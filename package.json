@@ -1,0 +1,66 @@
+{
+  "name": "mcparr",
+  "version": "0.1.0",
+  "description": "Template GitLab avec CI/CD complet pour vos projets",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node src/index.js",
+    "test": "jest --coverage",
+    "test:watch": "jest --watch",
+    "test:backend": "echo \"Add your backend test command here (e.g., jest, mocha)\"",
+    "lint": "eslint src/",
+    "init": "node scripts/init-project.js",
+    "update:deps": "node scripts/update-deps.js",
+    "update:template": "node scripts/sync-template.js",
+    "version:patch": "npm version patch && git push --follow-tags",
+    "version:minor": "npm version minor && git push --follow-tags",
+    "version:major": "npm version major && git push --follow-tags",
+    "release": "standard-version && git push --follow-tags",
+    "release:deploy": "standard-version && git push --follow-tags && node scripts/trigger-deploy.js",
+    "release:dry": "standard-version --dry-run",
+    "release:first": "standard-version --first-release && git push --follow-tags",
+    "docker:build": "docker build -t ${npm_package_config_dockerImage}:${npm_package_version} .",
+    "docker:test": "node scripts/docker-test.js",
+    "test:frontend": "echo \"Add your frontend test command here (e.g., jest, vitest, cypress)\"",
+    "build": "echo \"Add your build command here (e.g., vite build, webpack)\""
+  },
+  "config": {
+    "projectName": "mcparr",
+    "projectType": "fullstack",
+    "dockerImage": "sharkhunterr/mcparr",
+    "dockerRegistry": "docker.io",
+    "githubRepo": "sharkhunterr",
+    "enableGithubDeploy": true
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "standard-version": "^9.5.0",
+    "inquirer": "^8.2.5",
+    "chalk": "^4.1.2",
+    "ora": "^5.4.1",
+    "semver": "^7.5.4",
+    "jest": "^29.7.0",
+    "supertest": "^6.3.3",
+    "eslint": "^8.56.0"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "keywords": [
+    "template",
+    "gitlab",
+    "ci-cd",
+    "docker",
+    "hello-world"
+  ],
+  "author": "",
+  "license": "MIT"
+}

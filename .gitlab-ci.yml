@@ -1,0 +1,287 @@
+# GitLab CI/CD Pipeline Template
+# Template complet pour projets Node.js avec Docker
+
+# =============================================================================
+# Variables globales
+# =============================================================================
+variables:
+  # Configuration du projet
+  PROJECT_TYPE: "fullstack"           # backend, frontend, fullstack
+  NODE_VERSION: "18"
+
+  # Activation des fonctionnalités
+  ENABLE_BACKEND_TESTS: "true"
+  ENABLE_FRONTEND_TESTS: "true"
+  ENABLE_DOCKER_BUILD: "true"
+  ENABLE_GITLAB_REGISTRY: "false"
+
+  # Déploiement (activé via DEPLOY=true)
+  DEPLOY: "false"                      # Passer DEPLOY=true pour activer le déploiement
+  DOCKER_HUB_ENABLED: "true"           # Déployer sur Docker Hub si DEPLOY=true
+  GITHUB_DEPLOY_ENABLED: "true"        # Déployer sur GitHub si DEPLOY=true
+
+  # Docker
+  DOCKER_IMAGE: $CI_PROJECT_NAME
+  DOCKER_DRIVER: overlay2
+  DOCKER_TLS_CERTDIR: ""
+  DOCKER_HOST: tcp://docker:2375
+
+# =============================================================================
+# Workflow - évite les pipelines en double
+# =============================================================================
+workflow:
+  rules:
+    - if: '$CI_COMMIT_TAG'                    # Toujours exécuter sur les tags
+    - if: '$CI_COMMIT_MESSAGE =~ /^chore\(release\)/'
+      when: never                              # Ignorer les commits de release
+    - if: '$CI_COMMIT_BRANCH'                  # Exécuter sur les branches
+
+# =============================================================================
+# Stages du pipeline
+# =============================================================================
+stages:
+  - validate
+  - test
+  - build
+  - test-docker
+  - publish
+  - deploy
+
+# =============================================================================
+# Templates réutilisables
+# =============================================================================
+.node_template: &node_template
+  image: node:${NODE_VERSION}-alpine
+  cache:
+    key: ${CI_COMMIT_REF_SLUG}
+    paths:
+      - node_modules/
+      - .npm/
+  before_script:
+    - npm ci --cache .npm --prefer-offline
+
+.docker_template: &docker_template
+  image: docker:24-cli
+  services:
+    - name: docker:24-dind
+      alias: docker
+      command: ["--tls=false"]
+  before_script:
+    - until docker info; do sleep 1; done
+
+# =============================================================================
+# Stage: Validate
+# =============================================================================
+validate:syntax:
+  stage: validate
+  <<: *node_template
+  script:
+    - echo "Validation de la syntaxe..."
+    - npm run lint || echo "Linting optionnel - continuons"
+  allow_failure: true
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+    - if: '$CI_COMMIT_TAG'
+
+# =============================================================================
+# Stage: Test
+# =============================================================================
+test:backend:
+  stage: test
+  <<: *node_template
+  script:
+    - echo "Exécution des tests backend..."
+    - npm run test:backend
+  coverage: '/All files[^|]*\|[^|]*\s+([\d\.]+)/'
+  artifacts:
+    when: always
+    reports:
+      junit: junit.xml
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage/cobertura-coverage.xml
+    paths:
+      - coverage/
+    expire_in: 1 week
+  rules:
+    - if: '$ENABLE_BACKEND_TESTS == "true"'
+
+test:frontend:
+  stage: test
+  <<: *node_template
+  script:
+    - echo "Exécution des tests frontend..."
+    - npm run test:frontend
+  artifacts:
+    when: always
+    paths:
+      - coverage/
+    expire_in: 1 week
+  rules:
+    - if: '$ENABLE_FRONTEND_TESTS == "true"'
+
+# =============================================================================
+# Stage: Build Docker
+# =============================================================================
+build:docker:
+  stage: build
+  <<: *docker_template
+  variables:
+    DOCKER_BUILDKIT: 1
+  script:
+    - echo "Construction de l'image Docker..."
+    - |
+      docker build \
+        --build-arg NODE_VERSION=${NODE_VERSION} \
+        --build-arg BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ') \
+        --build-arg VCS_REF=${CI_COMMIT_SHA} \
+        --build-arg VERSION=${CI_COMMIT_TAG:-$CI_COMMIT_SHORT_SHA} \
+        --tag ${DOCKER_IMAGE}:${CI_COMMIT_SHA} \
+        --tag ${DOCKER_IMAGE}:${CI_COMMIT_REF_SLUG} \
+        --file Dockerfile \
+        .
+    - docker save ${DOCKER_IMAGE}:${CI_COMMIT_SHA} > image.tar
+  artifacts:
+    paths:
+      - image.tar
+    expire_in: 1 day
+  rules:
+    - if: '$ENABLE_DOCKER_BUILD == "true"'
+
+# =============================================================================
+# Stage: Test Docker
+# =============================================================================
+test:docker:health:
+  stage: test-docker
+  <<: *docker_template
+  script:
+    - docker load < image.tar
+    - echo "Test de santé du conteneur..."
+    - |
+      docker run -d --name test-container -p 3000:3000 ${DOCKER_IMAGE}:${CI_COMMIT_SHA}
+      sleep 10
+      docker exec test-container wget -q -O- http://localhost:3000/health || exit 1
+      docker stop test-container
+      docker rm test-container
+  rules:
+    - if: '$ENABLE_DOCKER_BUILD == "true"'
+
+test:docker:security:
+  stage: test-docker
+  <<: *docker_template
+  script:
+    - docker load < image.tar
+    - echo "Scan de sécurité de l'image..."
+    - docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy:latest image --exit-code 0 --severity HIGH,CRITICAL ${DOCKER_IMAGE}:${CI_COMMIT_SHA}
+  allow_failure: true
+  rules:
+    - if: '$ENABLE_DOCKER_BUILD == "true"'
+
+test:docker:size:
+  stage: test-docker
+  <<: *docker_template
+  script:
+    - docker load < image.tar
+    - echo "Vérification de la taille de l'image..."
+    - |
+      SIZE=$(docker images ${DOCKER_IMAGE}:${CI_COMMIT_SHA} --format "{{.Size}}")
+      echo "Taille de l'image: $SIZE"
+  rules:
+    - if: '$ENABLE_DOCKER_BUILD == "true"'
+
+# =============================================================================
+# Stage: Publish
+# =============================================================================
+publish:gitlab-registry:
+  stage: publish
+  <<: *docker_template
+  script:
+    - docker load < image.tar
+    - echo "Publication sur GitLab Registry..."
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker push ${DOCKER_IMAGE}:${CI_COMMIT_SHA}
+    - docker push ${DOCKER_IMAGE}:${CI_COMMIT_REF_SLUG}
+    - |
+      if [ -n "$CI_COMMIT_TAG" ]; then
+        docker tag ${DOCKER_IMAGE}:${CI_COMMIT_SHA} ${DOCKER_IMAGE}:${CI_COMMIT_TAG}
+        docker tag ${DOCKER_IMAGE}:${CI_COMMIT_SHA} ${DOCKER_IMAGE}:latest
+        docker push ${DOCKER_IMAGE}:${CI_COMMIT_TAG}
+        docker push ${DOCKER_IMAGE}:latest
+      fi
+  rules:
+    - if: '$ENABLE_GITLAB_REGISTRY == "true" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+    - if: '$ENABLE_GITLAB_REGISTRY == "true" && $CI_COMMIT_TAG'
+
+publish:docker-hub:
+  stage: publish
+  <<: *docker_template
+  script:
+    - docker load < image.tar
+    - echo "Publication sur Docker Hub..."
+    - docker login -u $DOCKER_HUB_USER -p $DOCKER_HUB_TOKEN
+    - |
+      DOCKER_HUB_IMAGE="${DOCKER_HUB_USER}/${CI_PROJECT_NAME}"
+      docker tag ${DOCKER_IMAGE}:${CI_COMMIT_SHA} ${DOCKER_HUB_IMAGE}:${CI_COMMIT_TAG:-latest}
+      docker push ${DOCKER_HUB_IMAGE}:${CI_COMMIT_TAG:-latest}
+      if [ -n "$CI_COMMIT_TAG" ]; then
+        docker tag ${DOCKER_IMAGE}:${CI_COMMIT_SHA} ${DOCKER_HUB_IMAGE}:latest
+        docker push ${DOCKER_HUB_IMAGE}:latest
+      fi
+  rules:
+    - if: '$DEPLOY == "true" && $DOCKER_HUB_ENABLED == "true" && $CI_COMMIT_TAG'
+    - if: '$DEPLOY == "true" && $DOCKER_HUB_ENABLED == "true" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+
+# =============================================================================
+# Stage: Deploy (optionnel)
+# =============================================================================
+deploy:github:
+  stage: deploy
+  image: alpine:latest
+  before_script:
+    - apk add --no-cache git curl
+  script:
+    - echo "Synchronisation avec GitHub..."
+    - git remote add github https://${GITHUB_TOKEN}@github.com/${GITHUB_REPO}.git || true
+    - git push github HEAD:${CI_COMMIT_REF_NAME} --force
+    - |
+      if [ -n "$CI_COMMIT_TAG" ]; then
+        git push github ${CI_COMMIT_TAG}
+      fi
+  rules:
+    - if: '$DEPLOY == "true" && $GITHUB_DEPLOY_ENABLED == "true" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+    - if: '$DEPLOY == "true" && $GITHUB_DEPLOY_ENABLED == "true" && $CI_COMMIT_TAG'
+
+# =============================================================================
+# Release automatique sur tags
+# =============================================================================
+release:
+  stage: deploy
+  image: registry.gitlab.com/gitlab-org/release-cli:latest
+  script:
+    - echo "Extraction des notes de release depuis CHANGELOG.md..."
+    - |
+      VERSION="${CI_COMMIT_TAG#v}"
+      if [ -f CHANGELOG.md ]; then
+        # Extraire le contenu entre cette version et la précédente
+        NOTES=$(awk "/^## \\[${VERSION}\\]/{flag=1; next} /^## \\[/{flag=0} flag" CHANGELOG.md)
+        if [ -z "$NOTES" ]; then
+          NOTES="Release ${CI_COMMIT_TAG}"
+        fi
+      else
+        NOTES="Release ${CI_COMMIT_TAG}"
+      fi
+      echo "Notes extraites:"
+      echo "$NOTES"
+      echo "$NOTES" > /tmp/release_notes.txt
+    - |
+      # Ajouter lien vers le CHANGELOG
+      echo "" >> /tmp/release_notes.txt
+      echo "---" >> /tmp/release_notes.txt
+      echo "[Voir le CHANGELOG complet](${CI_PROJECT_URL}/-/blob/${CI_COMMIT_TAG}/CHANGELOG.md)" >> /tmp/release_notes.txt
+      release-cli create \
+        --name "Release ${CI_COMMIT_TAG}" \
+        --tag-name "${CI_COMMIT_TAG}" \
+        --description "$(cat /tmp/release_notes.txt)"
+  rules:
+    - if: '$CI_COMMIT_TAG'
