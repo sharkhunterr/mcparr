@@ -2,6 +2,8 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.4](http://192.168.1.60/mcparr/mcparr/-/compare/v0.1.3...v0.1.4) (2025-12-23)
+
 ### [0.1.3](http://192.168.1.60/mcparr/mcparr/-/compare/v0.1.2...v0.1.3) (2025-12-22)
 
 ### [0.1.2](http://192.168.1.60/mcparr/mcparr/-/compare/v0.1.1...v0.1.2) (2025-12-22)
