@@ -1,11 +1,15 @@
+# MCParr - Docker Compose Configuration
+# Single unified container with backend + frontend
+
 services:
-  backend:
+  mcparr:
     build:
-      context: ../src/backend
-      dockerfile: ../../docker/backend.Dockerfile
-    container_name: mcparr-gateway-backend
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: mcparr
     ports:
-      - "8000:8000"  # Web API
+      - "3000:3000"  # Frontend (nginx)
+      - "8000:8000"  # Backend API
       - "8001:8001"  # MCP Server
     environment:
       - DATABASE_URL=sqlite+aiosqlite:////app/data/mcparr.db
@@ -13,7 +17,6 @@ services:
       - LOG_LEVEL=INFO
       - CORS_ORIGINS=["http://localhost:3000","http://localhost:5173"]
     volumes:
-      - ../src/backend:/app
       - gateway-data:/app/data
     depends_on:
       - redis
@@ -25,22 +28,6 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-
-  frontend:
-    build:
-      context: ../src/frontend
-      dockerfile: ../../docker/frontend.Dockerfile
-    container_name: mcparr-gateway-frontend
-    ports:
-      - "3000:3000"  # Dev: Vite on 3000, Prod: nginx on 3000 (override in prod compose)
-    environment:
-      - REACT_APP_API_URL=http://localhost:8000
-      - REACT_APP_WS_URL=ws://localhost:8000
-    volumes:
-      - ../src/frontend:/app
-    networks:
-      - mcparr-network
-    restart: unless-stopped
 
   redis:
     image: redis:7-alpine

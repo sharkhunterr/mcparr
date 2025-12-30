@@ -1,27 +1,52 @@
-# Development configuration - extends docker-compose.yml
+# Development configuration with hot-reload
+# Uses separate containers for backend and frontend to enable volume mounting
+
 services:
+  # Override mcparr service - disable it in dev
+  mcparr:
+    profiles:
+      - disabled
+
   backend:
     build:
       context: ../src/backend
       dockerfile: ../../docker/backend.dev.Dockerfile
-    volumes:
-      - ../src/backend:/app
-      - /app/.venv  # Don't overwrite virtual environment
+    container_name: mcparr-backend-dev
+    ports:
+      - "8000:8000"
+      - "8001:8001"
     environment:
+      - DATABASE_URL=sqlite+aiosqlite:////app/data/mcparr.db
+      - REDIS_URL=redis://redis:6379
+      - LOG_LEVEL=DEBUG
+      - CORS_ORIGINS=["http://localhost:3000","http://localhost:5173"]
       - DEBUG=true
       - RELOAD=true
-      - LOG_LEVEL=DEBUG
+    volumes:
+      - ../src/backend:/app
+      - /app/.venv
+      - gateway-data:/app/data
+    depends_on:
+      - redis
+    networks:
+      - mcparr-network
     command: uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
 
   frontend:
     build:
       context: ../src/frontend
       dockerfile: ../../docker/frontend.dev.Dockerfile
-    volumes:
-      - ../src/frontend:/app
-      - /app/node_modules  # Don't overwrite node_modules
+    container_name: mcparr-frontend-dev
+    ports:
+      - "3000:3000"
     environment:
       - NODE_ENV=development
+      - VITE_API_URL=http://localhost:8000
+    volumes:
+      - ../src/frontend:/app
+      - /app/node_modules
+    networks:
+      - mcparr-network
     command: npm run dev -- --host 0.0.0.0 --port 3000
 
   # Development-only database viewer
