@@ -1,109 +1,142 @@
 # Docker
 
-Configuration Docker pour le projet.
+Configuration Docker pour MCParr AI Gateway.
 
 ## Structure
 
 ```
 docker/
-├── Dockerfile          # Dockerfile de production
-├── Dockerfile.template # Template pour nouveaux projets
-├── docker-test.js      # Script de test local
-└── README.md           # Ce fichier
+├── backend.Dockerfile       # Backend Python/FastAPI (production)
+├── backend.dev.Dockerfile   # Backend (développement avec hot-reload)
+├── frontend.Dockerfile      # Frontend React/Vite (production)
+├── frontend.dev.Dockerfile  # Frontend (développement)
+├── docker-compose.yml       # Stack complète (production)
+├── docker-compose.dev.yml   # Override pour développement
+├── DOCKERHUB.md             # Description Docker Hub
+└── README.md                # Ce fichier
 ```
 
-## Build local
+## Démarrage rapide
+
+### Production
 
 ```bash
-# Construire l'image
-npm run docker:build
+# Depuis la racine du projet
+docker compose -f docker/docker-compose.yml up -d
 
-# Construire et tester
-npm run docker:test
+# Ou via npm
+npm start
+```
+
+### Développement (avec hot-reload)
+
+```bash
+# Depuis la racine du projet
+docker compose -f docker/docker-compose.yml -f docker/docker-compose.dev.yml up --build
+
+# Ou via npm
+npm run dev
+```
+
+### Arrêter les services
+
+```bash
+docker compose -f docker/docker-compose.yml down
+
+# Ou via npm
+npm stop
+```
+
+## Services
+
+| Service | Port | Description |
+|---------|------|-------------|
+| `backend` | 8000, 8001 | API FastAPI + MCP Server |
+| `frontend` | 3000 | Interface web React |
+| `redis` | 6379 | Cache et sessions |
+| `adminer` | 8080 | Viewer DB (dev only) |
+
+## Build manuel
+
+### Backend
+
+```bash
+docker build -f docker/backend.Dockerfile -t mcparr-backend:latest src/backend/
+```
+
+### Frontend
+
+```bash
+docker build -f docker/frontend.Dockerfile -t mcparr-frontend:latest src/frontend/
 ```
 
 ## Docker Hub
 
-### Configuration
+### Configuration CI/CD
 
-1. Créer un compte sur [Docker Hub](https://hub.docker.com)
-2. Créer un repository (ex: `username/mcparr`)
-3. Générer un Access Token : Account Settings > Security > New Access Token
-4. Configurer les variables GitLab CI/CD :
+Variables GitLab requises :
 
-| Variable | Description | Exemple |
-|----------|-------------|---------|
-| `DOCKER_HUB_USER` | Nom d'utilisateur Docker Hub | `sharkhunterr` |
-| `DOCKER_HUB_TOKEN` | Access Token Docker Hub | `dckr_pat_xxx...` |
+| Variable | Description |
+|----------|-------------|
+| `DOCKER_HUB_USER` | Nom d'utilisateur Docker Hub |
+| `DOCKER_HUB_TOKEN` | Access Token (scope: Read, Write, Delete) |
 
 ### Publication automatique
 
-La publication sur Docker Hub se fait automatiquement lors d'un `npm run release:deploy` :
+La publication se fait via `npm run release:deploy` :
 
-1. L'image est construite avec le tag de version (ex: `v0.1.0`)
-2. L'image est poussée sur Docker Hub avec :
-   - Tag de version : `username/mcparr:v0.1.0`
-   - Tag latest : `username/mcparr:latest`
+1. Crée un tag de version
+2. Pousse les images sur Docker Hub
+3. Met à jour le README Docker Hub (DOCKERHUB.md)
 
 ### Publication manuelle
 
 ```bash
-# Se connecter
+# Login
 docker login
 
-# Taguer l'image
-docker tag mcparr:latest username/mcparr:v0.1.0
+# Tag et push backend
+docker tag mcparr-backend:latest sharkhunterr/mcparr-backend:v0.2.0
+docker push sharkhunterr/mcparr-backend:v0.2.0
 
-# Pousser
-docker push username/mcparr:v0.1.0
-docker push username/mcparr:latest
+# Tag et push frontend
+docker tag mcparr-frontend:latest sharkhunterr/mcparr-frontend:v0.2.0
+docker push sharkhunterr/mcparr-frontend:v0.2.0
 ```
 
-## Dockerfile
+## Volumes
 
-Le Dockerfile utilise un build multi-stage pour optimiser la taille de l'image :
+| Volume | Description |
+|--------|-------------|
+| `gateway-data` | Base de données SQLite |
+| `redis-data` | Données Redis persistantes |
 
-1. **dependencies** : Installation des dépendances npm
-2. **builder** : Build de l'application (si nécessaire)
-3. **production** : Image finale minimale
+## Réseaux
 
-### Personnalisation
+Tous les services sont sur le réseau `mcparr-network` (bridge).
 
-Copier `Dockerfile.template` vers `Dockerfile` et adapter :
-
-```dockerfile
-# Changer la version Node.js
-ARG NODE_VERSION=22
-
-# Modifier les métadonnées
-LABEL maintainer="votre-email@example.com"
-LABEL org.opencontainers.image.title="Votre App"
-
-# Adapter le port
-EXPOSE 3000
-
-# Modifier la commande de démarrage
-CMD ["node", "src/index.js"]
-```
-
-## Exécution
+## Health Checks
 
 ```bash
-# Démarrer le conteneur
-docker run -d -p 3000:3000 username/mcparr:latest
+# Backend
+curl http://localhost:8000/health
 
-# Voir les logs
-docker logs -f <container_id>
+# Frontend (via nginx)
+curl http://localhost:3000
 
-# Arrêter
-docker stop <container_id>
+# Redis
+docker exec mcparr-redis redis-cli ping
 ```
 
-## Health Check
-
-L'image inclut un health check sur `/health` :
+## Logs
 
 ```bash
-# Vérifier la santé
-docker inspect --format='{{.State.Health.Status}}' <container_id>
+# Tous les services
+docker compose -f docker/docker-compose.yml logs -f
+
+# Service spécifique
+docker compose -f docker/docker-compose.yml logs -f backend
+
+# Ou via npm
+npm run logs
 ```
