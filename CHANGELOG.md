@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.2.1](https://github.com/sharkhunterr/mcparr/-/compare/v0.2.0...v0.2.1) (2025-12-30)
+
+
+### Features
+
+* add local development scripts ([0ed89bc](https://github.com/sharkhunterr/mcparr/-/commit/0ed89bc7aaee37f6b3a13fb494e5a61933c6d305))
+* unified Docker image with backend + frontend ([65513d4](https://github.com/sharkhunterr/mcparr/-/commit/65513d40e489e19d07e47af8dfb34159e4acf819))
+
+
+### Bug Fixes
+
+* Docker Compose configuration for local development ([f3d241f](https://github.com/sharkhunterr/mcparr/-/commit/f3d241f390f9d489cadd25a31edb94d879747023))
+* resolve CI build errors ([a794d99](https://github.com/sharkhunterr/mcparr/-/commit/a794d99e4f093789ef1d1389345c3f226f4ec3e9))
+
 ## [0.2.0](https://github.com/sharkhunterr/mcparr/-/compare/v0.1.15...v0.2.0) (2025-12-30)
 
 
