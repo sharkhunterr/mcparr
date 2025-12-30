@@ -1,6 +1,6 @@
 {
   "name": "mcparr",
-  "version": "0.1.13",
+  "version": "0.1.14",
   "description": "Template GitLab avec CI/CD complet pour vos projets",
   "main": "src/index.js",
   "scripts": {
