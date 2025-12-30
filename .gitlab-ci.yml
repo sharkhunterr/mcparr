@@ -17,7 +17,7 @@ variables:
 
   # Déploiement
   DOCKER_HUB_ENABLED: "true"           # Publier sur Docker Hub (sur les tags)
-  GITHUB_DEPLOY_ENABLED: "false"       # Synchroniser avec GitHub (sur les tags)
+  GITHUB_DEPLOY_ENABLED: "true"       # Synchroniser avec GitHub (sur les tags)
 
   # Docker
   DOCKER_IMAGE: $CI_PROJECT_NAME
