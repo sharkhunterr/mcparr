@@ -2,39 +2,37 @@
 
 import json
 import sys
-from datetime import datetime
 from typing import Any, Dict, Optional
 
 from loguru import logger
 
 
-class StructuredFormatter:
-    """Custom JSON formatter for structured logging."""
+def structured_format(record: Dict[str, Any]) -> str:
+    """Format log record as JSON string."""
+    # Extract correlation ID if available
+    correlation_id = None
+    extra = record.get("extra", {})
+    if isinstance(extra, dict) and "correlation_id" in extra:
+        correlation_id = extra["correlation_id"]
 
-    def format(self, record: Dict[str, Any]) -> str:
-        """Format log record as JSON."""
-        # Extract correlation ID if available
-        correlation_id = None
-        if hasattr(record.get("extra", {}), "correlation_id"):
-            correlation_id = record["extra"].correlation_id
+    log_entry = {
+        "timestamp": record["time"].isoformat(),
+        "level": record["level"].name,
+        "message": record["message"],
+        "module": record.get("name", ""),
+        "function": record.get("function", ""),
+        "line": record.get("line", 0),
+        "correlation_id": correlation_id,
+    }
 
-        log_entry = {
-            "timestamp": record["time"].isoformat(),
-            "level": record["level"].name,
-            "message": record["message"],
-            "module": record.get("name", ""),
-            "function": record.get("function", ""),
-            "line": record.get("line", 0),
-            "correlation_id": correlation_id,
-        }
+    # Add extra fields
+    if extra and isinstance(extra, dict):
+        for key, value in extra.items():
+            if key not in ["correlation_id"]:
+                log_entry[key] = value
 
-        # Add extra fields
-        if record.get("extra"):
-            for key, value in record["extra"].items():
-                if key not in ["correlation_id"]:
-                    log_entry[key] = value
-
-        return json.dumps(log_entry, default=str)
+    record["extra"]["serialized"] = json.dumps(log_entry, default=str)
+    return "{extra[serialized]}\n"
 
 
 def setup_logging(log_level: str = "INFO") -> None:
@@ -45,22 +43,20 @@ def setup_logging(log_level: str = "INFO") -> None:
     # Add console logger with JSON format
     logger.add(
         sys.stdout,
-        format=StructuredFormatter().format,
+        format=structured_format,
         level=log_level.upper(),
         colorize=False,
-        serialize=True,
     )
 
     # Add file logger for persistent logs
     logger.add(
         "logs/mcparr.log",
-        format=StructuredFormatter().format,
+        format=structured_format,
         level=log_level.upper(),
         rotation="100 MB",
         retention="7 days",
         compression="gz",
         colorize=False,
-        serialize=True,
     )
 
 

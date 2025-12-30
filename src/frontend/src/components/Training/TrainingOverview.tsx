@@ -133,27 +133,6 @@ interface TrainingOverviewProps {
   onViewLogs?: (id: string, name?: string, status?: string) => void;
 }
 
-// Progress bar component (keeping for future use)
-const _ProgressBar = ({ value, color = 'blue', size = 'sm' }: { value: number; color?: string; size?: 'sm' | 'md' }) => {
-  const colors: Record<string, string> = {
-    blue: 'bg-blue-500',
-    green: 'bg-green-500',
-    yellow: 'bg-yellow-500',
-    red: 'bg-red-500',
-    purple: 'bg-purple-500',
-    orange: 'bg-orange-500',
-  };
-
-  return (
-    <div className={`w-full bg-gray-200 dark:bg-gray-700 rounded-full ${size === 'sm' ? 'h-1.5' : 'h-2'}`}>
-      <div
-        className={`${colors[color] || colors.blue} rounded-full transition-all duration-300 ${size === 'sm' ? 'h-1.5' : 'h-2'}`}
-        style={{ width: `${Math.min(value, 100)}%` }}
-      />
-    </div>
-  );
-};
-
 // Stat card component - MCP style (compact)
 const StatCard = ({
   title,
@@ -355,12 +334,12 @@ const ServiceStackedBar = ({ data, total }: { data: Record<string, number>; tota
 const SessionsHistoryChart = ({ sessions }: { sessions: RecentSession[] }) => {
   if (!sessions || sessions.length === 0) return null;
 
-  const maxLoss = Math.max(...sessions.filter(s => s.loss !== null).map(s => s.loss!), 2);
+  const maxLoss = Math.max(...sessions.filter(s => s.loss != null).map(s => s.loss!), 2);
 
   return (
     <div className="flex items-end gap-1 h-16">
       {sessions.slice(0, 10).reverse().map((session) => {
-        const height = session.loss !== null ? Math.max((session.loss / maxLoss) * 100, 10) : 10;
+        const height = session.loss != null ? Math.max((session.loss / maxLoss) * 100, 10) : 10;
         const color = session.status === 'completed' ? 'bg-green-500' :
                       session.status === 'failed' ? 'bg-red-500' : 'bg-yellow-500';
         return (
@@ -505,16 +484,6 @@ const ActiveTrainingCard = ({ session, onViewLogs }: { session: ActiveSessionWit
     if (loss < 1.0) return 'text-yellow-500';
     if (loss < 2.0) return 'text-orange-500';
     return 'text-red-500';
-  };
-
-  const _getHealthColor = (health: string | undefined) => {
-    switch (health) {
-      case 'excellent': return 'text-green-400';
-      case 'good': return 'text-blue-400';
-      case 'warning': return 'text-yellow-400';
-      case 'critical': return 'text-red-400';
-      default: return 'text-gray-400';
-    }
   };
 
   const lossTrend = session._realtime_metrics?.quality?.loss_trend;

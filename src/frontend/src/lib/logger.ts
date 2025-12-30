@@ -31,6 +31,7 @@ export const logger = {
   info: (message: string, ...args: unknown[]) => log('info', message, ...args),
   warn: (message: string, ...args: unknown[]) => log('warn', message, ...args),
   error: (message: string, ...args: unknown[]) => log('error', message, ...args),
+  critical: (message: string, ...args: unknown[]) => log('error', message, ...args),
 };
 
 export default logger;
