@@ -6,19 +6,18 @@
 # =============================================================================
 variables:
   # Configuration du projet
-  PROJECT_TYPE: "fullstack"           # backend, frontend, fullstack
-  NODE_VERSION: "18"
+  PROJECT_TYPE: "backend"           # backend, frontend, fullstack
+  NODE_VERSION: "22"
 
   # Activation des fonctionnalités
   ENABLE_BACKEND_TESTS: "true"
-  ENABLE_FRONTEND_TESTS: "true"
+  ENABLE_FRONTEND_TESTS: "false"
   ENABLE_DOCKER_BUILD: "true"
   ENABLE_GITLAB_REGISTRY: "false"
 
-  # Déploiement (activé via DEPLOY=true)
-  DEPLOY: "false"                      # Passer DEPLOY=true pour activer le déploiement
-  DOCKER_HUB_ENABLED: "true"           # Déployer sur Docker Hub si DEPLOY=true
-  GITHUB_DEPLOY_ENABLED: "true"        # Déployer sur GitHub si DEPLOY=true
+  # Déploiement
+  DOCKER_HUB_ENABLED: "true"           # Publier sur Docker Hub (sur les tags)
+  GITHUB_DEPLOY_ENABLED: "false"       # Synchroniser avec GitHub (sur les tags)
 
   # Docker
   DOCKER_IMAGE: $CI_PROJECT_NAME
@@ -199,7 +198,7 @@ publish:gitlab-registry:
   script:
     - docker load < image.tar
     - echo "Publication sur GitLab Registry..."
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY"
     - docker push ${DOCKER_IMAGE}:${CI_COMMIT_SHA}
     - docker push ${DOCKER_IMAGE}:${CI_COMMIT_REF_SLUG}
     - |
@@ -219,7 +218,7 @@ publish:docker-hub:
   script:
     - docker load < image.tar
     - echo "Publication sur Docker Hub..."
-    - docker login -u $DOCKER_HUB_USER -p $DOCKER_HUB_TOKEN
+    - echo "$DOCKER_HUB_TOKEN" | docker login -u "$DOCKER_HUB_USER" --password-stdin
     - |
       DOCKER_HUB_IMAGE="${DOCKER_HUB_USER}/${CI_PROJECT_NAME}"
       docker tag ${DOCKER_IMAGE}:${CI_COMMIT_SHA} ${DOCKER_HUB_IMAGE}:${CI_COMMIT_TAG:-latest}
@@ -229,8 +228,7 @@ publish:docker-hub:
         docker push ${DOCKER_HUB_IMAGE}:latest
       fi
   rules:
-    - if: '$DEPLOY == "true" && $DOCKER_HUB_ENABLED == "true" && $CI_COMMIT_TAG'
-    - if: '$DEPLOY == "true" && $DOCKER_HUB_ENABLED == "true" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+    - if: '$DOCKER_HUB_ENABLED == "true" && $CI_COMMIT_TAG'
 
 # =============================================================================
 # Stage: Deploy (optionnel)
@@ -249,8 +247,7 @@ deploy:github:
         git push github ${CI_COMMIT_TAG}
       fi
   rules:
-    - if: '$DEPLOY == "true" && $GITHUB_DEPLOY_ENABLED == "true" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
-    - if: '$DEPLOY == "true" && $GITHUB_DEPLOY_ENABLED == "true" && $CI_COMMIT_TAG'
+    - if: '$GITHUB_DEPLOY_ENABLED == "true" && $CI_COMMIT_TAG'
 
 # =============================================================================
 # Release automatique sur tags
