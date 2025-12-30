@@ -223,7 +223,7 @@ deploy:
     DOCKER_HOST: tcp://docker:2375
     DOCKER_TLS_CERTDIR: ""
   before_script:
-    - apk add --no-cache git
+    - apk add --no-cache git curl jq
   script:
     # Publication Docker Hub
     - |
@@ -237,6 +237,24 @@ deploy:
         if [ -n "$CI_COMMIT_TAG" ]; then
           docker tag ${DOCKER_IMAGE}:${CI_COMMIT_SHA} ${DOCKER_HUB_IMAGE}:latest
           docker push ${DOCKER_HUB_IMAGE}:latest
+        fi
+        # Mise à jour du README Docker Hub
+        if [ -f "docker/DOCKERHUB.md" ]; then
+          echo "Mise à jour du README Docker Hub..."
+          JWT_TOKEN=$(curl -s -H "Content-Type: application/json" -X POST \
+            -d "{\"username\": \"$DOCKER_HUB_USER\", \"password\": \"$DOCKER_HUB_TOKEN\"}" \
+            https://hub.docker.com/v2/users/login/ | jq -r .token)
+          if [ "$JWT_TOKEN" != "null" ] && [ -n "$JWT_TOKEN" ]; then
+            README_CONTENT=$(cat docker/DOCKERHUB.md | jq -Rs .)
+            curl -s -X PATCH \
+              -H "Authorization: JWT $JWT_TOKEN" \
+              -H "Content-Type: application/json" \
+              -d "{\"full_description\": $README_CONTENT}" \
+              "https://hub.docker.com/v2/repositories/${DOCKER_HUB_IMAGE}/"
+            echo "✅ README Docker Hub mis à jour"
+          else
+            echo "⚠️ Impossible de s'authentifier pour mettre à jour le README"
+          fi
         fi
       fi
     # Synchronisation GitHub
