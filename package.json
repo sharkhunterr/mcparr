@@ -4,9 +4,9 @@
   "description": "MCParr - AI Homelab Gateway with MCP server and web administration",
   "scripts": {
     "dev": "docker compose -f docker/docker-compose.yml -f docker/docker-compose.dev.yml up --build",
-    "start": "docker compose -f docker/docker-compose.yml up -d",
+    "start": "docker compose -f docker/docker-compose.yml -f docker/docker-compose.prod.yml up -d",
     "stop": "docker compose -f docker/docker-compose.yml down",
-    "logs": "docker compose -f docker/docker-compose.yml logs -f",
+    "logs": "docker compose -f docker/docker-compose.yml -f docker/docker-compose.prod.yml logs -f",
     "version:patch": "npm version patch && git push --follow-tags",
     "version:minor": "npm version minor && git push --follow-tags",
     "version:major": "npm version major && git push --follow-tags",

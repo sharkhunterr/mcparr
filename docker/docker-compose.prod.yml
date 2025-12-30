@@ -1,0 +1,8 @@
+# Production configuration - extends docker-compose.yml
+services:
+  frontend:
+    build:
+      context: ../src/frontend
+      dockerfile: ../../docker/frontend.Dockerfile
+    ports:
+      - "3000:80"  # nginx serves on port 80

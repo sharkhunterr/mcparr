@@ -2,6 +2,22 @@
 node_modules/
 .npm/
 
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+ENV/
+.eggs/
+*.egg-info/
+*.egg
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+
 # Build outputs
 dist/
 build/
@@ -50,3 +66,12 @@ temp/
 # Test artifacts
 junit.xml
 test-results/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+data/
+
+# Poetry lock (optional - uncomment if you want to commit it)
+# poetry.lock

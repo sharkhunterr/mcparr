@@ -24,7 +24,7 @@ const getApiBaseUrl = (): string => {
   // In development or if no env var, dynamically use the current hostname
   // This allows access from other devices on the local network
   const hostname = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
-  return `http://${hostname}:8002`;
+  return `http://${hostname}:8000`;
 };
 
 class ApiClient {

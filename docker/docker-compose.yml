@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   backend:
     build:
@@ -13,7 +11,7 @@ services:
       - DATABASE_URL=sqlite+aiosqlite:////app/data/mcparr.db
       - REDIS_URL=redis://redis:6379
       - LOG_LEVEL=INFO
-      - CORS_ORIGINS=http://localhost:3000,http://localhost:5173
+      - CORS_ORIGINS=["http://localhost:3000","http://localhost:5173"]
     volumes:
       - ../src/backend:/app
       - gateway-data:/app/data
@@ -34,7 +32,7 @@ services:
       dockerfile: ../../docker/frontend.Dockerfile
     container_name: mcparr-gateway-frontend
     ports:
-      - "3000:80"
+      - "3000:3000"  # Dev: Vite on 3000, Prod: nginx on 3000 (override in prod compose)
     environment:
       - REACT_APP_API_URL=http://localhost:8000
       - REACT_APP_WS_URL=ws://localhost:8000
