@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.2.2](https://github.com/sharkhunterr/mcparr/-/compare/v0.2.1...v0.2.2) (2025-12-30)
+
+
+### Bug Fixes
+
+* resolve CI build errors and Loguru formatting issue ([57d345f](https://github.com/sharkhunterr/mcparr/-/commit/57d345f902392d9d842b7c822bf8f3617d225d37))
+
 ### [0.2.1](https://github.com/sharkhunterr/mcparr/-/compare/v0.2.0...v0.2.1) (2025-12-30)
 
 
