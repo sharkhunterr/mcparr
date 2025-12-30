@@ -1,6 +1,6 @@
 {
   "name": "mcparr",
-  "version": "0.1.15",
+  "version": "0.2.0",
   "description": "MCParr - AI Homelab Gateway with MCP server and web administration",
   "scripts": {
     "dev": "docker compose -f docker/docker-compose.yml -f docker/docker-compose.dev.yml up --build",

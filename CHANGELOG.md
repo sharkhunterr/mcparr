@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.2.0](https://github.com/sharkhunterr/mcparr/-/compare/v0.1.15...v0.2.0) (2025-12-30)
+
+
+### ⚠ BREAKING CHANGES
+
+* Complete project restructure
+
+- Add backend (Python/FastAPI) and frontend (React/Vite) in src/
+- Centralize all Docker files in docker/ folder
+- Update CI for Python backend tests and frontend build
+- Remove old Node.js template files
+- Add docker-compose for local development
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+### Features
+
+* migrate to MCParr AI Homelab Gateway ([0e44716](https://github.com/sharkhunterr/mcparr/-/commit/0e44716cdffdb40c156d366b1b6a912560d73766))
+
 ### [0.1.15](http://192.168.1.60/mcparr/mcparr/-/compare/v0.1.14...v0.1.15) (2025-12-30)
 
 ### [0.1.14](http://192.168.1.60/mcparr/mcparr/-/compare/v0.1.13...v0.1.14) (2025-12-30)
