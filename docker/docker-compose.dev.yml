@@ -1,0 +1,39 @@
+version: '3.8'
+
+# Development configuration - extends docker-compose.yml
+services:
+  backend:
+    build:
+      context: ../src/backend
+      dockerfile: ../../docker/backend.dev.Dockerfile
+    volumes:
+      - ../src/backend:/app
+      - /app/.venv  # Don't overwrite virtual environment
+    environment:
+      - DEBUG=true
+      - RELOAD=true
+      - LOG_LEVEL=DEBUG
+    command: uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
+
+  frontend:
+    build:
+      context: ../src/frontend
+      dockerfile: ../../docker/frontend.dev.Dockerfile
+    volumes:
+      - ../src/frontend:/app
+      - /app/node_modules  # Don't overwrite node_modules
+    environment:
+      - NODE_ENV=development
+    command: npm run dev -- --host 0.0.0.0 --port 3000
+
+  # Development-only database viewer
+  adminer:
+    image: adminer
+    container_name: mcparr-adminer
+    ports:
+      - "8080:8080"
+    networks:
+      - mcparr-network
+    environment:
+      - ADMINER_DEFAULT_SERVER=postgres
+      - ADMINER_DESIGN=pepa-linha

@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ../src/backend
+      dockerfile: ../../docker/backend.Dockerfile
+    container_name: mcparr-gateway-backend
+    ports:
+      - "8000:8000"  # Web API
+      - "8001:8001"  # MCP Server
+    environment:
+      - DATABASE_URL=sqlite+aiosqlite:////app/data/mcparr.db
+      - REDIS_URL=redis://redis:6379
+      - LOG_LEVEL=INFO
+      - CORS_ORIGINS=http://localhost:3000,http://localhost:5173
+    volumes:
+      - ../src/backend:/app
+      - gateway-data:/app/data
+    depends_on:
+      - redis
+    networks:
+      - mcparr-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  frontend:
+    build:
+      context: ../src/frontend
+      dockerfile: ../../docker/frontend.Dockerfile
+    container_name: mcparr-gateway-frontend
+    ports:
+      - "3000:80"
+    environment:
+      - REACT_APP_API_URL=http://localhost:8000
+      - REACT_APP_WS_URL=ws://localhost:8000
+    volumes:
+      - ../src/frontend:/app
+    networks:
+      - mcparr-network
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: mcparr-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - mcparr-network
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+
+volumes:
+  gateway-data:
+    name: mcparr-gateway-data
+  redis-data:
+    name: mcparr-redis-data
+
+networks:
+  mcparr-network:
+    name: mcparr-network
+    driver: bridge
