@@ -17,7 +17,7 @@
     "version:minor": "npm version minor && git push --follow-tags",
     "version:major": "npm version major && git push --follow-tags",
     "release": "standard-version && git push --follow-tags",
-    "release:deploy": "standard-version && git push --follow-tags",
+    "release:deploy": "standard-version && git push --follow-tags -o ci.variable=\"DEPLOY=true\"",
     "release:dry": "standard-version --dry-run",
     "release:first": "standard-version --first-release && git push --follow-tags",
     "docker:build": "docker build -t ${npm_package_config_dockerImage}:${npm_package_version} .",
