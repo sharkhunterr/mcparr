@@ -357,14 +357,14 @@ const getPhaseDisplay = (phase: string | undefined) => {
   return phases[phase || ''] || { label: phase || 'En cours', icon: <Activity className="w-3 h-3 animate-pulse" />, color: 'bg-gray-500' };
 };
 
-// Overview Tab
-const OverviewTab = ({
+// Overview Tab (keeping for future use)
+const _OverviewTab = ({
   stats,
   ollamaStatus,
   metrics,
   activeSessions,
   wsConnected,
-  onViewLogs,
+  onViewLogs: _onViewLogs,
 }: {
   stats: TrainingStats | null;
   ollamaStatus: OllamaStatus | null;
@@ -871,7 +871,7 @@ const OverviewTab = ({
                 return (
                   <div key={category}>
                     <div className="flex justify-between items-center mb-1">
-                      <CategoryBadge category={category} />
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300 capitalize">{category}</span>
                       <span className="text-sm text-gray-500">{count}</span>
                     </div>
                     <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
@@ -2380,8 +2380,8 @@ const SERVICE_COLORS: Record<string, string> = {
   authentik: 'bg-orange-600', deluge: 'bg-blue-600', system: 'bg-slate-600',
 };
 
-// Helper to build available services from loaded services + System
-const buildAvailableServices = (services: ServiceConfig[]) => {
+// Helper to build available services from loaded services + System (keeping for future use)
+const _buildAvailableServices = (services: ServiceConfig[]) => {
   const availableServices = services.map(s => ({
     id: s.service_type,
     label: s.name,
@@ -3019,7 +3019,7 @@ const SessionPromptsModal = ({
 export default function Training() {
   const [activeTab, setActiveTab] = useState<'overview' | 'sessions' | 'prompts' | 'workers' | 'models'>('overview');
   const [ollamaStatus, setOllamaStatus] = useState<OllamaStatus | null>(null);
-  const [ollamaMetrics, setOllamaMetrics] = useState<OllamaMetrics | null>(null);
+  const [_ollamaMetrics, _setOllamaMetrics] = useState<OllamaMetrics | null>(null);
   const [stats, setStats] = useState<TrainingStats | null>(null);
   const [sessions, setSessions] = useState<TrainingSession[]>([]);
   const [prompts, setPrompts] = useState<TrainingPrompt[]>([]);

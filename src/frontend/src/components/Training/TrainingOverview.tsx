@@ -24,8 +24,6 @@ import {
   Download,
   Settings,
   Upload,
-  Trash2,
-  Circle,
   Loader2,
 } from 'lucide-react';
 import { api } from '../../lib/api';
@@ -69,9 +67,9 @@ interface RecentSession {
   base_model: string;
   training_type: string;
   progress_percent: number;
-  loss: number | null;
-  started_at: string | null;
-  completed_at: string | null;
+  loss?: number | null;
+  started_at?: string | null;
+  completed_at?: string | null;
   dataset_size: number;
 }
 
@@ -92,6 +90,7 @@ interface ActiveSessionWithMetrics {
   name: string;
   base_model: string;
   training_type: string;
+  status?: string;
   progress_percent: number;
   current_epoch: number;
   total_epochs: number;
@@ -134,8 +133,8 @@ interface TrainingOverviewProps {
   onViewLogs?: (id: string, name?: string, status?: string) => void;
 }
 
-// Progress bar component
-const ProgressBar = ({ value, color = 'blue', size = 'sm' }: { value: number; color?: string; size?: 'sm' | 'md' }) => {
+// Progress bar component (keeping for future use)
+const _ProgressBar = ({ value, color = 'blue', size = 'sm' }: { value: number; color?: string; size?: 'sm' | 'md' }) => {
   const colors: Record<string, string> = {
     blue: 'bg-blue-500',
     green: 'bg-green-500',
@@ -360,7 +359,7 @@ const SessionsHistoryChart = ({ sessions }: { sessions: RecentSession[] }) => {
 
   return (
     <div className="flex items-end gap-1 h-16">
-      {sessions.slice(0, 10).reverse().map((session, index) => {
+      {sessions.slice(0, 10).reverse().map((session) => {
         const height = session.loss !== null ? Math.max((session.loss / maxLoss) * 100, 10) : 10;
         const color = session.status === 'completed' ? 'bg-green-500' :
                       session.status === 'failed' ? 'bg-red-500' : 'bg-yellow-500';
@@ -508,7 +507,7 @@ const ActiveTrainingCard = ({ session, onViewLogs }: { session: ActiveSessionWit
     return 'text-red-500';
   };
 
-  const getHealthColor = (health: string | undefined) => {
+  const _getHealthColor = (health: string | undefined) => {
     switch (health) {
       case 'excellent': return 'text-green-400';
       case 'good': return 'text-blue-400';

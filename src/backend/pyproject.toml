@@ -4,7 +4,6 @@ version = "0.1.0"
 description = "MCParr AI Gateway - MCP server with web administration interface"
 authors = ["MCParr Team"]
 readme = "README.md"
-python = "^3.11"
 
 [tool.poetry.dependencies]
 python = "^3.11"

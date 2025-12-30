@@ -30,7 +30,7 @@ export default function SessionLogsModal({
   const [autoRefresh, setAutoRefresh] = useState(true);
   const logsEndRef = useRef<HTMLDivElement>(null);
   const logsContainerRef = useRef<HTMLDivElement>(null);
-  const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const refreshIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const previousLogsLength = useRef<number>(0);
 
   const fetchLogs = async (silent = false) => {
