@@ -158,10 +158,9 @@ build:docker:
   variables:
     DOCKER_BUILDKIT: 1
   script:
-    - echo "Construction de l'image Docker..."
+    - echo "Construction de l'image Docker MCParr..."
     - |
       docker build \
-        --build-arg NODE_VERSION=${NODE_VERSION} \
         --build-arg BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ') \
         --build-arg VCS_REF=${CI_COMMIT_SHA} \
         --build-arg VERSION=${CI_COMMIT_TAG:-$CI_COMMIT_SHORT_SHA} \
@@ -187,9 +186,12 @@ test:docker:health:
     - docker load < image.tar
     - echo "Test de santé du conteneur..."
     - |
-      docker run -d --name test-container -p 3000:3000 ${DOCKER_IMAGE}:${CI_COMMIT_SHA}
-      sleep 10
-      docker exec test-container wget -q -O- http://localhost:3000/health || exit 1
+      docker run -d --name test-container -p 3000:3000 -p 8000:8000 ${DOCKER_IMAGE}:${CI_COMMIT_SHA}
+      sleep 15
+      # Test backend health
+      docker exec test-container curl -f http://localhost:8000/health || exit 1
+      # Test frontend
+      docker exec test-container curl -f http://localhost:3000 || exit 1
       docker stop test-container
       docker rm test-container
   rules:
@@ -228,14 +230,16 @@ publish:gitlab-registry:
     - docker load < image.tar
     - echo "Publication sur GitLab Registry..."
     - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY"
-    - docker push ${DOCKER_IMAGE}:${CI_COMMIT_SHA}
-    - docker push ${DOCKER_IMAGE}:${CI_COMMIT_REF_SLUG}
+    - docker tag ${DOCKER_IMAGE}:${CI_COMMIT_SHA} ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHA}
+    - docker tag ${DOCKER_IMAGE}:${CI_COMMIT_SHA} ${CI_REGISTRY_IMAGE}:${CI_COMMIT_REF_SLUG}
+    - docker push ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHA}
+    - docker push ${CI_REGISTRY_IMAGE}:${CI_COMMIT_REF_SLUG}
     - |
       if [ -n "$CI_COMMIT_TAG" ]; then
-        docker tag ${DOCKER_IMAGE}:${CI_COMMIT_SHA} ${DOCKER_IMAGE}:${CI_COMMIT_TAG}
-        docker tag ${DOCKER_IMAGE}:${CI_COMMIT_SHA} ${DOCKER_IMAGE}:latest
-        docker push ${DOCKER_IMAGE}:${CI_COMMIT_TAG}
-        docker push ${DOCKER_IMAGE}:latest
+        docker tag ${DOCKER_IMAGE}:${CI_COMMIT_SHA} ${CI_REGISTRY_IMAGE}:${CI_COMMIT_TAG}
+        docker tag ${DOCKER_IMAGE}:${CI_COMMIT_SHA} ${CI_REGISTRY_IMAGE}:latest
+        docker push ${CI_REGISTRY_IMAGE}:${CI_COMMIT_TAG}
+        docker push ${CI_REGISTRY_IMAGE}:latest
       fi
   rules:
     - if: '$ENABLE_GITLAB_REGISTRY == "true" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
@@ -258,20 +262,22 @@ deploy:
         docker load < image.tar
         echo "Publication sur Docker Hub..."
         echo "$DOCKER_HUB_TOKEN" | docker login -u "$DOCKER_HUB_USER" --password-stdin
+
         DOCKER_HUB_IMAGE="${DOCKER_HUB_USER}/${CI_PROJECT_NAME}"
         docker tag ${DOCKER_IMAGE}:${CI_COMMIT_SHA} ${DOCKER_HUB_IMAGE}:${CI_COMMIT_TAG:-latest}
         docker push ${DOCKER_HUB_IMAGE}:${CI_COMMIT_TAG:-latest}
+
         if [ -n "$CI_COMMIT_TAG" ]; then
           docker tag ${DOCKER_IMAGE}:${CI_COMMIT_SHA} ${DOCKER_HUB_IMAGE}:latest
           docker push ${DOCKER_HUB_IMAGE}:latest
         fi
+
         # Mise à jour du README Docker Hub via docker-pushrm
         if [ -f "docker/DOCKERHUB.md" ]; then
           echo "Mise à jour du README Docker Hub..."
           wget -q https://github.com/christian-korneck/docker-pushrm/releases/download/v1.9.0/docker-pushrm_linux_amd64 -O /usr/local/bin/docker-pushrm
           chmod +x /usr/local/bin/docker-pushrm
-          DOCKER_HUB_IMAGE="${DOCKER_HUB_USER}/${CI_PROJECT_NAME}"
-          docker-pushrm --file docker/DOCKERHUB.md --short "$CI_PROJECT_TITLE" "$DOCKER_HUB_IMAGE" || echo "⚠️ Impossible de mettre à jour le README Docker Hub"
+          docker-pushrm --file docker/DOCKERHUB.md --short "$CI_PROJECT_TITLE" "${DOCKER_HUB_IMAGE}" || echo "⚠️ Impossible de mettre à jour le README Docker Hub"
         fi
       fi
     # Synchronisation GitHub
