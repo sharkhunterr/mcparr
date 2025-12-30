@@ -238,23 +238,13 @@ deploy:
           docker tag ${DOCKER_IMAGE}:${CI_COMMIT_SHA} ${DOCKER_HUB_IMAGE}:latest
           docker push ${DOCKER_HUB_IMAGE}:latest
         fi
-        # Mise à jour du README Docker Hub
+        # Mise à jour du README Docker Hub via docker-pushrm
         if [ -f "docker/DOCKERHUB.md" ]; then
           echo "Mise à jour du README Docker Hub..."
-          JWT_TOKEN=$(curl -s -H "Content-Type: application/json" -X POST \
-            -d "{\"username\": \"$DOCKER_HUB_USER\", \"password\": \"$DOCKER_HUB_TOKEN\"}" \
-            https://hub.docker.com/v2/users/login/ | jq -r .token)
-          if [ "$JWT_TOKEN" != "null" ] && [ -n "$JWT_TOKEN" ]; then
-            README_CONTENT=$(cat docker/DOCKERHUB.md | jq -Rs .)
-            curl -s -X PATCH \
-              -H "Authorization: JWT $JWT_TOKEN" \
-              -H "Content-Type: application/json" \
-              -d "{\"full_description\": $README_CONTENT}" \
-              "https://hub.docker.com/v2/repositories/${DOCKER_HUB_IMAGE}/"
-            echo "✅ README Docker Hub mis à jour"
-          else
-            echo "⚠️ Impossible de s'authentifier pour mettre à jour le README"
-          fi
+          wget -q https://github.com/christian-korneck/docker-pushrm/releases/download/v1.9.0/docker-pushrm_linux_amd64 -O /usr/local/bin/docker-pushrm
+          chmod +x /usr/local/bin/docker-pushrm
+          DOCKER_HUB_IMAGE="${DOCKER_HUB_USER}/${CI_PROJECT_NAME}"
+          docker-pushrm --file docker/DOCKERHUB.md --short "$CI_PROJECT_TITLE" "$DOCKER_HUB_IMAGE" || echo "⚠️ Impossible de mettre à jour le README Docker Hub"
         fi
       fi
     # Synchronisation GitHub
