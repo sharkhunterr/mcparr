@@ -45,6 +45,8 @@ stages:
   - test-docker
   - publish
   - deploy
+  - release
+  - verify
 
 # =============================================================================
 # Templates réutilisables
@@ -253,17 +255,16 @@ deploy:
     - if: '$CI_COMMIT_TAG && $DEPLOY == "true"'
 
 # =============================================================================
-# Release automatique sur tags
+# Stage: Release (GitLab + GitHub releases)
 # =============================================================================
-release:
-  stage: deploy
+release:gitlab:
+  stage: release
   image: registry.gitlab.com/gitlab-org/release-cli:latest
   script:
     - echo "Extraction des notes de release depuis CHANGELOG.md..."
     - |
       VERSION="${CI_COMMIT_TAG#v}"
       if [ -f CHANGELOG.md ]; then
-        # Extraire le contenu entre cette version et la précédente
         NOTES=$(awk "/^## \\[${VERSION}\\]/{flag=1; next} /^## \\[/{flag=0} flag" CHANGELOG.md)
         if [ -z "$NOTES" ]; then
           NOTES="Release ${CI_COMMIT_TAG}"
@@ -275,7 +276,6 @@ release:
       echo "$NOTES"
       echo "$NOTES" > /tmp/release_notes.txt
     - |
-      # Ajouter lien vers le CHANGELOG
       echo "" >> /tmp/release_notes.txt
       echo "---" >> /tmp/release_notes.txt
       echo "[Voir le CHANGELOG complet](${CI_PROJECT_URL}/-/blob/${CI_COMMIT_TAG}/CHANGELOG.md)" >> /tmp/release_notes.txt
@@ -285,3 +285,44 @@ release:
         --description "$(cat /tmp/release_notes.txt)"
   rules:
     - if: '$CI_COMMIT_TAG'
+
+# =============================================================================
+# Stage: Verify (vérification post-deploy)
+# =============================================================================
+verify:
+  stage: verify
+  image: alpine:latest
+  before_script:
+    - apk add --no-cache curl jq
+  script:
+    - echo "Vérification du déploiement..."
+    # Vérifier Docker Hub
+    - |
+      if [ "$DOCKER_HUB_ENABLED" = "true" ] && [ "$DEPLOY" = "true" ]; then
+        echo "Vérification Docker Hub..."
+        DOCKER_HUB_IMAGE="${DOCKER_HUB_USER}/${CI_PROJECT_NAME}"
+        TAG="${CI_COMMIT_TAG:-latest}"
+        RESPONSE=$(curl -s "https://hub.docker.com/v2/repositories/${DOCKER_HUB_IMAGE}/tags/${TAG}")
+        if echo "$RESPONSE" | jq -e '.name' > /dev/null 2>&1; then
+          echo "✅ Image Docker Hub ${DOCKER_HUB_IMAGE}:${TAG} trouvée"
+        else
+          echo "❌ Image Docker Hub ${DOCKER_HUB_IMAGE}:${TAG} non trouvée"
+          exit 1
+        fi
+      fi
+    # Vérifier GitHub
+    - |
+      if [ "$GITHUB_DEPLOY_ENABLED" = "true" ] && [ "$DEPLOY" = "true" ]; then
+        echo "Vérification GitHub..."
+        RESPONSE=$(curl -s -H "Authorization: token ${GITHUB_TOKEN}" \
+          "https://api.github.com/repos/${GITHUB_REPO}/git/refs/tags/${CI_COMMIT_TAG}")
+        if echo "$RESPONSE" | jq -e '.ref' > /dev/null 2>&1; then
+          echo "✅ Tag ${CI_COMMIT_TAG} trouvé sur GitHub"
+        else
+          echo "❌ Tag ${CI_COMMIT_TAG} non trouvé sur GitHub"
+          exit 1
+        fi
+      fi
+    - echo "✅ Vérification terminée avec succès"
+  rules:
+    - if: '$CI_COMMIT_TAG && $DEPLOY == "true"'
