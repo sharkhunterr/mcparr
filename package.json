@@ -20,8 +20,8 @@
     "release:deploy": "standard-version && git push --follow-tags -o ci.variable=\"DEPLOY=true\"",
     "release:dry": "standard-version --dry-run",
     "release:first": "standard-version --first-release && git push --follow-tags",
-    "docker:build": "docker build -t ${npm_package_config_dockerImage}:${npm_package_version} .",
-    "docker:test": "node scripts/docker-test.js",
+    "docker:build": "docker build -f docker/Dockerfile -t ${npm_package_config_dockerImage}:${npm_package_version} .",
+    "docker:test": "node docker/docker-test.js",
     "test:frontend": "echo \"Add your frontend test command here (e.g., jest, vitest, cypress)\"",
     "build": "echo \"Add your build command here (e.g., vite build, webpack)\""
   },
