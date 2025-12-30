@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.9](http://192.168.1.60/mcparr/mcparr/-/compare/v0.1.8...v0.1.9) (2025-12-30)
+
+
+### Features
+
+* ajout du deploy github ([16fee16](http://192.168.1.60/mcparr/mcparr/-/commit/16fee16eb17a0c2838f15e7d0159526931abddbe))
+
 ### [0.1.8](http://192.168.1.60/mcparr/mcparr/-/compare/v0.1.7...v0.1.8) (2025-12-30)
 
 ### [0.1.7](http://192.168.1.60/mcparr/mcparr/-/compare/v0.1.6...v0.1.7) (2025-12-30)
