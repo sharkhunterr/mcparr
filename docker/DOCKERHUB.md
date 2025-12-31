@@ -4,6 +4,17 @@
 
 MCParr is your unified gateway for managing homelab services through AI. Built with FastAPI and React, it combines a powerful MCP (Model Context Protocol) server with a modern web interface for seamless AI-driven automation.
 
+## 🆕 What's New in v1.0.0
+
+- ✨ **15+ Service Integrations**: Plex, Overseerr, Radarr, Sonarr, Prowlarr, Deluge, Komga, Audiobookshelf, Wiki.js, Zammad, Authentik, Open WebUI, Ollama, Jackett, ROMM
+- 🧠 **AI Training**: Custom Ollama model training with GPU support and real-time progress tracking
+- 👥 **User Management**: Centralized user mapping across services with group-based permissions
+- 📊 **Observability**: Real-time WebSocket logs, system metrics, and health monitoring
+- 🔌 **MCP Server**: Complete Model Context Protocol implementation for AI assistants
+- 💾 **Backup/Restore**: Full configuration export and import
+
+See [CHANGELOG.md](https://github.com/sharkhunterr/mcparr/blob/master/CHANGELOG.md) for complete version history.
+
 ## ✨ Features
 
 🎯 **Unified Service Management**
