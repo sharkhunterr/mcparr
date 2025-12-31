@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.2.4](https://github.com/sharkhunterr/mcparr/-/compare/v0.2.3...v0.2.4) (2025-12-31)
+
+
+### Bug Fixes
+
+* install all npm dependencies for Docker build ([67f2d4d](https://github.com/sharkhunterr/mcparr/-/commit/67f2d4d1c2066bca3afc774e3246552d8831d683))
+
 ### [0.2.3](https://github.com/sharkhunterr/mcparr/-/compare/v0.2.2...v0.2.3) (2025-12-31)
 
 
