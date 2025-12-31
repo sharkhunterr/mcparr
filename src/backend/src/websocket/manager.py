@@ -2,7 +2,7 @@
 
 import json
 from datetime import datetime
-from typing import Dict, List, Any, Optional
+from typing import Any, Dict
 from uuid import uuid4
 
 from fastapi import WebSocket
@@ -33,7 +33,7 @@ class ConnectionManager:
                 "component": "websocket",
                 "action": "connect",
                 "connection_id": connection_id,
-            }
+            },
         )
 
         return connection_id
@@ -50,14 +50,10 @@ class ConnectionManager:
                     "component": "websocket",
                     "action": "disconnect",
                     "connection_id": connection_id,
-                }
+                },
             )
 
-    async def send_message(
-        self,
-        connection_id: str,
-        message: Dict[str, Any]
-    ) -> bool:
+    async def send_message(self, connection_id: str, message: Dict[str, Any]) -> bool:
         """Send message to specific connection."""
         if connection_id not in self.active_connections:
             return False
@@ -78,7 +74,7 @@ class ConnectionManager:
                     "action": "send_message",
                     "connection_id": connection_id,
                     "error": str(e),
-                }
+                },
             )
             # Remove broken connection
             await self.disconnect(connection_id)
@@ -106,7 +102,7 @@ class ConnectionManager:
                         "connection_id": connection_id,
                         "channel": channel,
                         "error": str(e),
-                    }
+                    },
                 )
                 connections_to_remove.append(connection_id)
 
@@ -114,12 +110,7 @@ class ConnectionManager:
         for connection_id in connections_to_remove:
             await self.disconnect(connection_id)
 
-    def subscribe(
-        self,
-        connection_id: str,
-        channel: str,
-        filters: Dict[str, Any] = None
-    ):
+    def subscribe(self, connection_id: str, channel: str, filters: Dict[str, Any] = None):
         """Subscribe connection to a channel with optional filters."""
         if connection_id not in self.subscriptions:
             self.subscriptions[connection_id] = {}
@@ -137,13 +128,12 @@ class ConnectionManager:
                 "connection_id": connection_id,
                 "channel": channel,
                 "filters": filters,
-            }
+            },
         )
 
     def unsubscribe(self, connection_id: str, channel: str):
         """Unsubscribe connection from channel."""
-        if (connection_id in self.subscriptions and
-                channel in self.subscriptions[connection_id]):
+        if connection_id in self.subscriptions and channel in self.subscriptions[connection_id]:
             del self.subscriptions[connection_id][channel]
 
             logger.info(
@@ -153,13 +143,12 @@ class ConnectionManager:
                     "action": "unsubscribe",
                     "connection_id": connection_id,
                     "channel": channel,
-                }
+                },
             )
 
     def _is_subscribed(self, connection_id: str, channel: str) -> bool:
         """Check if connection is subscribed to channel."""
-        return (connection_id in self.subscriptions and
-                channel in self.subscriptions[connection_id])
+        return connection_id in self.subscriptions and channel in self.subscriptions[connection_id]
 
     def get_connection_count(self) -> int:
         """Get number of active connections."""

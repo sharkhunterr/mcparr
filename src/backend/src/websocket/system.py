@@ -2,13 +2,13 @@
 
 import asyncio
 import json
-from typing import Dict, Any
+from typing import Any, Dict
 
 from fastapi import WebSocket, WebSocketDisconnect
 from loguru import logger
 
-from src.websocket.manager import connection_manager
 from src.services.system_monitor import SystemMonitorService
+from src.websocket.manager import connection_manager
 
 
 class SystemWebSocketHandler:
@@ -59,11 +59,7 @@ class SystemWebSocketHandler:
         if interval_seconds < 1 or interval_seconds > 60:
             interval_seconds = 5
 
-        subscription = {
-            "metrics_types": metrics_types,
-            "interval_seconds": interval_seconds,
-            "task": None
-        }
+        subscription = {"metrics_types": metrics_types, "interval_seconds": interval_seconds, "task": None}
 
         # Cancel existing subscription if any
         if connection_id in self.active_subscriptions:
@@ -72,19 +68,16 @@ class SystemWebSocketHandler:
                 existing_task.cancel()
 
         # Start metrics streaming task
-        task = asyncio.create_task(
-            self.stream_metrics(connection_id, subscription)
-        )
+        task = asyncio.create_task(self.stream_metrics(connection_id, subscription))
         subscription["task"] = task
 
         self.active_subscriptions[connection_id] = subscription
 
         # Send confirmation
-        await connection_manager.send_message(connection_id, {
-            "type": "metrics_subscribed",
-            "metrics_types": metrics_types,
-            "interval_seconds": interval_seconds
-        })
+        await connection_manager.send_message(
+            connection_id,
+            {"type": "metrics_subscribed", "metrics_types": metrics_types, "interval_seconds": interval_seconds},
+        )
 
         logger.info(
             f"Metrics subscription started for {connection_id}",
@@ -93,8 +86,8 @@ class SystemWebSocketHandler:
                 "action": "metrics_subscribe",
                 "connection_id": connection_id,
                 "metrics_types": metrics_types,
-                "interval": interval_seconds
-            }
+                "interval": interval_seconds,
+            },
         )
 
     async def handle_metrics_unsubscribe(self, connection_id: str):
@@ -107,17 +100,11 @@ class SystemWebSocketHandler:
 
             del self.active_subscriptions[connection_id]
 
-            await connection_manager.send_message(connection_id, {
-                "type": "metrics_unsubscribed"
-            })
+            await connection_manager.send_message(connection_id, {"type": "metrics_unsubscribed"})
 
             logger.info(
                 f"Metrics subscription stopped for {connection_id}",
-                extra={
-                    "component": "websocket",
-                    "action": "metrics_unsubscribe",
-                    "connection_id": connection_id
-                }
+                extra={"component": "websocket", "action": "metrics_unsubscribe", "connection_id": connection_id},
             )
 
     async def stream_metrics(self, connection_id: str, subscription: Dict[str, Any]):
@@ -142,7 +129,7 @@ class SystemWebSocketHandler:
                         "disk_percent": system_status.get("disk_percent", 0),
                         "network_sent_mb": system_status.get("network_sent_mb", 0),
                         "network_recv_mb": system_status.get("network_recv_mb", 0),
-                        "load_average": [0.1, 0.2, 0.15]  # Mock data
+                        "load_average": [0.1, 0.2, 0.15],  # Mock data
                     }
 
                 if "docker" in metrics_types:
@@ -152,7 +139,7 @@ class SystemWebSocketHandler:
                         "containers_stopped": docker_status.get("containers_stopped", 0),
                         "containers_paused": docker_status.get("containers_paused", 0),
                         "images_count": docker_status.get("images_count", 0),
-                        "volumes_count": docker_status.get("volumes_count", 0)
+                        "volumes_count": docker_status.get("volumes_count", 0),
                     }
 
                 if "services" in metrics_types:
@@ -163,15 +150,12 @@ class SystemWebSocketHandler:
                             "name": "Mock Service",
                             "status": "online",
                             "response_time_ms": 45.2,
-                            "last_check": system_status.get("timestamp")
+                            "last_check": system_status.get("timestamp"),
                         }
                     ]
 
                 # Send metrics update
-                message = {
-                    "type": "metrics_update",
-                    **metrics_data
-                }
+                message = {"type": "metrics_update", **metrics_data}
 
                 success = await connection_manager.send_message(connection_id, message)
                 if not success:

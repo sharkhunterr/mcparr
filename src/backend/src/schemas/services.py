@@ -1,14 +1,16 @@
 """Pydantic schemas for services."""
 
 from datetime import datetime
-from typing import Dict, Any, Optional
-from pydantic import BaseModel, Field, ConfigDict
+from typing import Any, Dict, Optional
 
-from ..models.service_config import ServiceType, ServiceStatus
+from pydantic import BaseModel, ConfigDict, Field
+
+from ..models.service_config import ServiceStatus, ServiceType
 
 
 class ServiceConfigBase(BaseModel):
     """Base service configuration schema."""
+
     name: str = Field(..., min_length=1, max_length=100)
     service_type: ServiceType
     description: Optional[str] = None
@@ -24,6 +26,7 @@ class ServiceConfigBase(BaseModel):
 
 class ServiceConfigCreate(ServiceConfigBase):
     """Schema for creating a service configuration."""
+
     api_key: Optional[str] = Field(None, max_length=2000)  # JWT tokens can be long
     username: Optional[str] = Field(None, max_length=100)
     password: Optional[str] = Field(None, max_length=255)
@@ -31,6 +34,7 @@ class ServiceConfigCreate(ServiceConfigBase):
 
 class ServiceConfigUpdate(BaseModel):
     """Schema for updating a service configuration."""
+
     name: Optional[str] = Field(None, min_length=1, max_length=100)
     description: Optional[str] = None
     base_url: Optional[str] = Field(None, min_length=1, max_length=255)
@@ -48,6 +52,7 @@ class ServiceConfigUpdate(BaseModel):
 
 class ServiceConfigResponse(ServiceConfigBase):
     """Schema for service configuration responses."""
+
     model_config = ConfigDict(from_attributes=True)
 
     id: str
@@ -72,15 +77,12 @@ class ServiceConfigResponse(ServiceConfigBase):
     @property
     def is_healthy(self) -> bool:
         """Check if service is healthy based on last test."""
-        return (
-            self.status == ServiceStatus.ACTIVE and
-            self.last_test_success is True and
-            self.enabled
-        )
+        return self.status == ServiceStatus.ACTIVE and self.last_test_success is True and self.enabled
 
 
 class ServiceTestResult(BaseModel):
     """Schema for service connection test results."""
+
     service_id: str
     success: bool
     error_message: Optional[str] = None
@@ -90,6 +92,7 @@ class ServiceTestResult(BaseModel):
 
 class ServiceHealthStatus(BaseModel):
     """Schema for service health status."""
+
     service_id: str
     name: str
     status: ServiceStatus

@@ -7,37 +7,47 @@ from pathlib import Path
 from typing import List, Optional
 from uuid import uuid4
 
-from fastapi import APIRouter, Depends, HTTPException, Query, BackgroundTasks, WebSocket, WebSocketDisconnect
-from pydantic import BaseModel, Field
-from sqlalchemy import select, func, and_, delete
-from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    Depends,
+    HTTPException,
+    Query,
+    WebSocket,
+    WebSocketDisconnect,
+)
 from loguru import logger
+from pydantic import BaseModel, Field
+from sqlalchemy import and_, delete, func, select
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.database.connection import get_db_session, async_session_maker
+from src.config.settings import get_settings
+from src.database.connection import async_session_maker, get_db_session
 from src.models import (
+    PromptCategory,
+    PromptDifficulty,
+    PromptFormat,
+    PromptSource,
+    ServiceConfig,
+    ServiceType,
+    TrainingPrompt,
     TrainingSession,
     TrainingStatus,
     TrainingType,
-    TrainingPrompt,
-    PromptTemplate,
-    PromptCategory,
-    PromptDifficulty,
-    PromptSource,
-    PromptFormat,
-    ServiceConfig,
-    ServiceType,
-    session_prompt_association
+    session_prompt_association,
 )
 from src.services.ollama_service import (
-    OllamaService,
-    get_ollama_service,
+    OllamaConnectionError,
     OllamaError,
-    OllamaConnectionError
+    get_ollama_service,
 )
-from src.services.training_service import TrainingService, TrainingConfig, OllamaModelfileConfig, TrainingBackend
-from src.services.worker_client import get_worker_client, WorkerClient
-from src.services.training_ws import connection_manager, WSMessageType
-from src.config.settings import get_settings
+from src.services.training_service import (
+    OllamaModelfileConfig,
+    TrainingConfig,
+    TrainingService,
+)
+from src.services.training_ws import connection_manager
+from src.services.worker_client import WorkerClient, get_worker_client
 
 # Global training service instance
 _training_service: Optional[TrainingService] = None
@@ -49,6 +59,7 @@ router = APIRouter(prefix="/api/training", tags=["training"])
 
 
 # ============= Pydantic Schemas =============
+
 
 class OllamaModelResponse(BaseModel):
     name: str
@@ -78,13 +89,17 @@ class TrainingSessionCreate(BaseModel):
     description: Optional[str] = None
     base_model: str = Field(..., min_length=1, max_length=100)
     training_type: TrainingType = TrainingType.FINE_TUNE
-    training_backend: str = Field(default="ollama_modelfile", description="Training backend: ollama_modelfile or unsloth")
+    training_backend: str = Field(
+        default="ollama_modelfile", description="Training backend: ollama_modelfile or unsloth"
+    )
     worker_id: Optional[str] = Field(default=None, description="Training worker ID")
     total_epochs: int = Field(default=1, ge=1, le=100)
     hyperparameters: dict = Field(default_factory=dict)
     ollama_service_id: Optional[str] = None
     # For incremental training: path to existing LoRA adapter on the worker
-    base_adapter_path: Optional[str] = Field(default=None, description="Path to existing LoRA adapter for incremental training")
+    base_adapter_path: Optional[str] = Field(
+        default=None, description="Path to existing LoRA adapter for incremental training"
+    )
 
 
 class TrainingSessionUpdate(BaseModel):
@@ -134,9 +149,13 @@ class TrainingPromptCreate(BaseModel):
     system_prompt: Optional[str] = None
     user_input: str
     # Tool calling support
-    tool_call: Optional[dict] = Field(default=None, description="Expected tool call: {'name': 'tool_name', 'arguments': {...}}")
+    tool_call: Optional[dict] = Field(
+        default=None, description="Expected tool call: {'name': 'tool_name', 'arguments': {...}}"
+    )
     tool_response: Optional[dict] = Field(default=None, description="Example tool response (realistic mock data)")
-    assistant_response: Optional[str] = Field(default=None, description="Final assistant response after processing tool results")
+    assistant_response: Optional[str] = Field(
+        default=None, description="Final assistant response after processing tool results"
+    )
     # DEPRECATED - use assistant_response instead
     expected_output: str = Field(default="", description="DEPRECATED: use assistant_response instead")
     tags: List[str] = Field(default_factory=list)
@@ -200,18 +219,14 @@ class TrainingStatsResponse(BaseModel):
 
 # ============= Ollama Endpoints =============
 
+
 @router.get("/ollama/status", response_model=OllamaStatusResponse)
-async def get_ollama_status(
-    service_id: Optional[str] = None,
-    session: AsyncSession = Depends(get_db_session)
-):
+async def get_ollama_status(service_id: Optional[str] = None, session: AsyncSession = Depends(get_db_session)):
     """Get Ollama server status and available models."""
     ollama = await get_ollama_service(session, service_id)
     if not ollama:
         return OllamaStatusResponse(
-            status="not_configured",
-            url="",
-            error="No Ollama service configured. Add an Ollama service in Settings."
+            status="not_configured", url="", error="No Ollama service configured. Add an Ollama service in Settings."
         )
 
     health = await ollama.health_check()
@@ -219,7 +234,7 @@ async def get_ollama_status(
         status=health.get("status", "unknown"),
         version=health.get("version"),
         url=health.get("url", ""),
-        error=health.get("error")
+        error=health.get("error"),
     )
 
     if health.get("status") == "healthy":
@@ -234,7 +249,7 @@ async def get_ollama_status(
                     family=m.family,
                     parameter_size=m.parameter_size,
                     quantization_level=m.quantization_level,
-                    modified_at=m.modified_at
+                    modified_at=m.modified_at,
                 )
                 for m in models
             ]
@@ -251,10 +266,7 @@ async def get_ollama_status(
 
 
 @router.get("/ollama/models")
-async def list_ollama_models(
-    service_id: Optional[str] = None,
-    session: AsyncSession = Depends(get_db_session)
-):
+async def list_ollama_models(service_id: Optional[str] = None, session: AsyncSession = Depends(get_db_session)):
     """List all available Ollama models."""
     ollama = await get_ollama_service(session, service_id)
     if not ollama:
@@ -264,16 +276,14 @@ async def list_ollama_models(
         models = await ollama.list_models()
         return {"models": [m.to_dict() for m in models], "total": len(models)}
     except OllamaConnectionError as e:
-        raise HTTPException(status_code=503, detail=str(e))
+        raise HTTPException(status_code=503, detail=str(e)) from e
     except OllamaError as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.get("/ollama/models/{model_name}")
 async def get_ollama_model_info(
-    model_name: str,
-    service_id: Optional[str] = None,
-    session: AsyncSession = Depends(get_db_session)
+    model_name: str, service_id: Optional[str] = None, session: AsyncSession = Depends(get_db_session)
 ):
     """Get detailed information about a specific model."""
     ollama = await get_ollama_service(session, service_id)
@@ -284,14 +294,12 @@ async def get_ollama_model_info(
         info = await ollama.get_model_info(model_name)
         return info
     except OllamaError as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.delete("/ollama/models/{model_name}")
 async def delete_ollama_model(
-    model_name: str,
-    service_id: Optional[str] = None,
-    session: AsyncSession = Depends(get_db_session)
+    model_name: str, service_id: Optional[str] = None, session: AsyncSession = Depends(get_db_session)
 ):
     """Delete an Ollama model."""
     ollama = await get_ollama_service(session, service_id)
@@ -304,14 +312,12 @@ async def delete_ollama_model(
             return {"message": f"Model {model_name} deleted successfully"}
         raise HTTPException(status_code=400, detail="Failed to delete model")
     except OllamaError as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.post("/ollama/models/{model_name}/load")
 async def load_ollama_model(
-    model_name: str,
-    service_id: Optional[str] = None,
-    session: AsyncSession = Depends(get_db_session)
+    model_name: str, service_id: Optional[str] = None, session: AsyncSession = Depends(get_db_session)
 ):
     """Load an Ollama model into memory (warm it up)."""
     ollama = await get_ollama_service(session, service_id)
@@ -324,14 +330,12 @@ async def load_ollama_model(
             return {"message": f"Model {model_name} loaded successfully", "loaded": True}
         raise HTTPException(status_code=400, detail="Failed to load model")
     except OllamaError as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.post("/ollama/models/{model_name}/unload")
 async def unload_ollama_model(
-    model_name: str,
-    service_id: Optional[str] = None,
-    session: AsyncSession = Depends(get_db_session)
+    model_name: str, service_id: Optional[str] = None, session: AsyncSession = Depends(get_db_session)
 ):
     """Unload an Ollama model from memory."""
     ollama = await get_ollama_service(session, service_id)
@@ -344,17 +348,18 @@ async def unload_ollama_model(
             return {"message": f"Model {model_name} unloaded successfully", "loaded": False}
         raise HTTPException(status_code=400, detail="Failed to unload model")
     except OllamaError as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 # ============= Training Session Endpoints =============
+
 
 @router.get("/sessions", response_model=List[TrainingSessionResponse])
 async def list_training_sessions(
     status: Optional[str] = None,
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
-    session: AsyncSession = Depends(get_db_session)
+    session: AsyncSession = Depends(get_db_session),
 ):
     """List all training sessions."""
     query = select(TrainingSession)
@@ -370,10 +375,7 @@ async def list_training_sessions(
 
 
 @router.post("/sessions", response_model=TrainingSessionResponse)
-async def create_training_session(
-    data: TrainingSessionCreate,
-    session: AsyncSession = Depends(get_db_session)
-):
+async def create_training_session(data: TrainingSessionCreate, session: AsyncSession = Depends(get_db_session)):
     """Create a new training session."""
     # Session starts with 0 prompts - user must add them
     # Store base_adapter_path in hyperparameters for incremental training
@@ -394,7 +396,7 @@ async def create_training_session(
         ollama_service_id=data.ollama_service_id,
         dataset_size=0,
         created_at=datetime.utcnow(),
-        updated_at=datetime.utcnow()
+        updated_at=datetime.utcnow(),
     )
 
     session.add(training_session)
@@ -405,14 +407,9 @@ async def create_training_session(
 
 
 @router.get("/sessions/{session_id}", response_model=TrainingSessionResponse)
-async def get_training_session(
-    session_id: str,
-    session: AsyncSession = Depends(get_db_session)
-):
+async def get_training_session(session_id: str, session: AsyncSession = Depends(get_db_session)):
     """Get a specific training session."""
-    result = await session.execute(
-        select(TrainingSession).where(TrainingSession.id == session_id)
-    )
+    result = await session.execute(select(TrainingSession).where(TrainingSession.id == session_id))
     training_session = result.scalar_one_or_none()
 
     if not training_session:
@@ -422,10 +419,7 @@ async def get_training_session(
 
 
 @router.get("/sessions/{session_id}/summary")
-async def get_session_summary(
-    session_id: str,
-    session: AsyncSession = Depends(get_db_session)
-):
+async def get_session_summary(session_id: str, session: AsyncSession = Depends(get_db_session)):
     """Get comprehensive summary and metrics for a training session.
 
     Returns detailed information including:
@@ -439,9 +433,7 @@ async def get_session_summary(
     from sqlalchemy.orm import selectinload
 
     result = await session.execute(
-        select(TrainingSession)
-        .options(selectinload(TrainingSession.prompts))
-        .where(TrainingSession.id == session_id)
+        select(TrainingSession).options(selectinload(TrainingSession.prompts)).where(TrainingSession.id == session_id)
     )
     training_session = result.scalar_one_or_none()
 
@@ -457,7 +449,7 @@ async def get_session_summary(
         {
             "id": p.id,
             "name": p.name,
-            "category": p.category.value if hasattr(p.category, 'value') else p.category,
+            "category": p.category.value if hasattr(p.category, "value") else p.category,
         }
         for p in training_session.prompts[:10]  # Limit to first 10
     ]
@@ -479,18 +471,13 @@ async def get_session_summary(
 
 
 @router.get("/sessions/{session_id}/logs")
-async def get_session_logs(
-    session_id: str,
-    session: AsyncSession = Depends(get_db_session)
-):
+async def get_session_logs(session_id: str, session: AsyncSession = Depends(get_db_session)):
     """Get training logs for a session.
 
     For active sessions, fetches logs from the worker.
     For completed sessions, returns stored logs from the database.
     """
-    result = await session.execute(
-        select(TrainingSession).where(TrainingSession.id == session_id)
-    )
+    result = await session.execute(select(TrainingSession).where(TrainingSession.id == session_id))
     training_session = result.scalar_one_or_none()
 
     if not training_session:
@@ -498,17 +485,16 @@ async def get_session_logs(
 
     # If session is completed and has stored logs, return them
     if training_session.training_logs and training_session.status in [
-        TrainingStatus.COMPLETED, TrainingStatus.FAILED, TrainingStatus.CANCELLED
+        TrainingStatus.COMPLETED,
+        TrainingStatus.FAILED,
+        TrainingStatus.CANCELLED,
     ]:
-        return {
-            "session_id": session_id,
-            "logs": training_session.training_logs,
-            "source": "stored"
-        }
+        return {"session_id": session_id, "logs": training_session.training_logs, "source": "stored"}
 
     # Try to fetch logs from worker for active sessions
     if training_session.worker_id:
         from src.models import TrainingWorker
+
         worker_result = await session.execute(
             select(TrainingWorker).where(TrainingWorker.id == training_session.worker_id)
         )
@@ -516,6 +502,7 @@ async def get_session_logs(
 
         if worker and worker.url:
             import httpx
+
             try:
                 # Get the job_id from hyperparameters if stored there
                 job_id = training_session.hyperparameters.get("job_id")
@@ -525,56 +512,43 @@ async def get_session_logs(
                         if response.status_code == 200:
                             data = response.json()
                             logs = "\n".join(data.get("logs", []))
-                            return {
-                                "session_id": session_id,
-                                "logs": logs,
-                                "source": "worker"
-                            }
+                            return {"session_id": session_id, "logs": logs, "source": "worker"}
 
                 # Fallback to recent logs
                 async with httpx.AsyncClient(timeout=30.0) as client:
                     response = await client.get(f"{worker.url}/api/logs/recent?count=500")
                     if response.status_code == 200:
                         data = response.json()
-                        logs = "\n".join([
-                            f"[{log.get('timestamp', '')}] [{log.get('level', '')}] {log.get('message', '')}"
-                            for log in data
-                        ])
-                        return {
-                            "session_id": session_id,
-                            "logs": logs,
-                            "source": "worker_recent"
-                        }
+                        logs = "\n".join(
+                            [
+                                f"[{log.get('timestamp', '')}] [{log.get('level', '')}] {log.get('message', '')}"
+                                for log in data
+                            ]
+                        )
+                        return {"session_id": session_id, "logs": logs, "source": "worker_recent"}
             except Exception as e:
                 logger.warning(f"Failed to fetch logs from worker: {e}")
 
     return {
         "session_id": session_id,
         "logs": training_session.training_logs or "Aucun log disponible",
-        "source": "none"
+        "source": "none",
     }
 
 
 @router.patch("/sessions/{session_id}", response_model=TrainingSessionResponse)
 async def update_training_session(
-    session_id: str,
-    data: TrainingSessionUpdate,
-    session: AsyncSession = Depends(get_db_session)
+    session_id: str, data: TrainingSessionUpdate, session: AsyncSession = Depends(get_db_session)
 ):
     """Update a training session."""
-    result = await session.execute(
-        select(TrainingSession).where(TrainingSession.id == session_id)
-    )
+    result = await session.execute(select(TrainingSession).where(TrainingSession.id == session_id))
     training_session = result.scalar_one_or_none()
 
     if not training_session:
         raise HTTPException(status_code=404, detail="Training session not found")
 
     if training_session.status in [TrainingStatus.RUNNING, TrainingStatus.PREPARING]:
-        raise HTTPException(
-            status_code=400,
-            detail="Cannot update a running training session"
-        )
+        raise HTTPException(status_code=400, detail="Cannot update a running training session")
 
     update_data = data.model_dump(exclude_unset=True)
     for key, value in update_data.items():
@@ -588,24 +562,16 @@ async def update_training_session(
 
 
 @router.delete("/sessions/{session_id}")
-async def delete_training_session(
-    session_id: str,
-    session: AsyncSession = Depends(get_db_session)
-):
+async def delete_training_session(session_id: str, session: AsyncSession = Depends(get_db_session)):
     """Delete a training session."""
-    result = await session.execute(
-        select(TrainingSession).where(TrainingSession.id == session_id)
-    )
+    result = await session.execute(select(TrainingSession).where(TrainingSession.id == session_id))
     training_session = result.scalar_one_or_none()
 
     if not training_session:
         raise HTTPException(status_code=404, detail="Training session not found")
 
     if training_session.status in [TrainingStatus.RUNNING, TrainingStatus.PREPARING]:
-        raise HTTPException(
-            status_code=400,
-            detail="Cannot delete a running training session. Cancel it first."
-        )
+        raise HTTPException(status_code=400, detail="Cannot delete a running training session. Cancel it first.")
 
     await session.delete(training_session)
     await session.commit()
@@ -614,10 +580,7 @@ async def delete_training_session(
 
 
 async def run_ollama_training_background(
-    session_id: str,
-    prompts_data: List[dict],
-    config: OllamaModelfileConfig,
-    ollama_url: str
+    session_id: str, prompts_data: List[dict], config: OllamaModelfileConfig, ollama_url: str
 ):
     """Background task to create Ollama model via Modelfile."""
     global _training_service
@@ -631,9 +594,7 @@ async def run_ollama_training_background(
     async def update_progress(progress: dict):
         """Update session progress in database."""
         async with async_session_maker() as db_session:
-            result = await db_session.execute(
-                select(TrainingSession).where(TrainingSession.id == session_id)
-            )
+            result = await db_session.execute(select(TrainingSession).where(TrainingSession.id == session_id))
             training_session = result.scalar_one_or_none()
             if training_session:
                 training_session.current_step = progress.get("step", 0)
@@ -646,9 +607,7 @@ async def run_ollama_training_background(
     try:
         # Update status to running
         async with async_session_maker() as db_session:
-            result = await db_session.execute(
-                select(TrainingSession).where(TrainingSession.id == session_id)
-            )
+            result = await db_session.execute(select(TrainingSession).where(TrainingSession.id == session_id))
             training_session = result.scalar_one_or_none()
             if training_session:
                 training_session.status = TrainingStatus.RUNNING
@@ -657,16 +616,12 @@ async def run_ollama_training_background(
 
         # Create Ollama model
         result = await _training_service.create_ollama_model(
-            prompts=prompts_data,
-            config=config,
-            progress_callback=update_progress
+            prompts=prompts_data, config=config, progress_callback=update_progress
         )
 
         # Update final status
         async with async_session_maker() as db_session:
-            result_db = await db_session.execute(
-                select(TrainingSession).where(TrainingSession.id == session_id)
-            )
+            result_db = await db_session.execute(select(TrainingSession).where(TrainingSession.id == session_id))
             training_session = result_db.scalar_one_or_none()
             if training_session:
                 if result.get("success"):
@@ -686,9 +641,7 @@ async def run_ollama_training_background(
     except Exception as e:
         logger.error(f"Ollama training failed for session {session_id}: {e}")
         async with async_session_maker() as db_session:
-            result = await db_session.execute(
-                select(TrainingSession).where(TrainingSession.id == session_id)
-            )
+            result = await db_session.execute(select(TrainingSession).where(TrainingSession.id == session_id))
             training_session = result.scalar_one_or_none()
             if training_session:
                 training_session.status = TrainingStatus.FAILED
@@ -709,9 +662,7 @@ async def run_training_background(session_id: str, prompts_data: List[dict], con
     async def update_progress(progress: dict):
         """Update session progress in database."""
         async with async_session_maker() as db_session:
-            result = await db_session.execute(
-                select(TrainingSession).where(TrainingSession.id == session_id)
-            )
+            result = await db_session.execute(select(TrainingSession).where(TrainingSession.id == session_id))
             training_session = result.scalar_one_or_none()
             if training_session:
                 training_session.current_step = progress.get("step", 0)
@@ -725,9 +676,7 @@ async def run_training_background(session_id: str, prompts_data: List[dict], con
     try:
         # Update status to running
         async with async_session_maker() as db_session:
-            result = await db_session.execute(
-                select(TrainingSession).where(TrainingSession.id == session_id)
-            )
+            result = await db_session.execute(select(TrainingSession).where(TrainingSession.id == session_id))
             training_session = result.scalar_one_or_none()
             if training_session:
                 training_session.status = TrainingStatus.RUNNING
@@ -736,16 +685,12 @@ async def run_training_background(session_id: str, prompts_data: List[dict], con
 
         # Run training
         result = await _training_service.start_training(
-            prompts=prompts_data,
-            config=config,
-            progress_callback=lambda p: asyncio.create_task(update_progress(p))
+            prompts=prompts_data, config=config, progress_callback=lambda p: asyncio.create_task(update_progress(p))
         )
 
         # Update final status
         async with async_session_maker() as db_session:
-            result_db = await db_session.execute(
-                select(TrainingSession).where(TrainingSession.id == session_id)
-            )
+            result_db = await db_session.execute(select(TrainingSession).where(TrainingSession.id == session_id))
             training_session = result_db.scalar_one_or_none()
             if training_session:
                 if result.get("success"):
@@ -766,9 +711,7 @@ async def run_training_background(session_id: str, prompts_data: List[dict], con
     except Exception as e:
         logger.error(f"Training failed for session {session_id}: {e}")
         async with async_session_maker() as db_session:
-            result = await db_session.execute(
-                select(TrainingSession).where(TrainingSession.id == session_id)
-            )
+            result = await db_session.execute(select(TrainingSession).where(TrainingSession.id == session_id))
             training_session = result.scalar_one_or_none()
             if training_session:
                 training_session.status = TrainingStatus.FAILED
@@ -806,15 +749,14 @@ async def fetch_and_save_logs(session_id: str, job_id: str, worker_client: Worke
 
             # Save logs to database
             async with async_session_maker() as db_session:
-                result = await db_session.execute(
-                    select(TrainingSession).where(TrainingSession.id == session_id)
-                )
+                result = await db_session.execute(select(TrainingSession).where(TrainingSession.id == session_id))
                 training_session = result.scalar_one_or_none()
                 if training_session:
                     training_session.training_logs = logs_text
                     training_session.updated_at = datetime.utcnow()
                     await db_session.commit()
-                    logger.info(f"Saved {len(formatted_logs) if isinstance(logs_list, list) else 1} log entries to session {session_id}")
+                    log_count = len(formatted_logs) if isinstance(logs_list, list) else 1
+                    logger.info(f"Saved {log_count} log entries to session {session_id}")
         else:
             logger.warning(f"No logs found for job {job_id}")
     except Exception as e:
@@ -840,9 +782,7 @@ async def poll_worker_status(session_id: str, job_id: str, worker_client: Worker
 
             # Update database
             async with async_session_maker() as db_session:
-                result = await db_session.execute(
-                    select(TrainingSession).where(TrainingSession.id == session_id)
-                )
+                result = await db_session.execute(select(TrainingSession).where(TrainingSession.id == session_id))
                 training_session = result.scalar_one_or_none()
 
                 if not training_session:
@@ -894,27 +834,40 @@ async def poll_worker_status(session_id: str, job_id: str, worker_client: Worker
 
                 # If worker has more loss_history data than our metrics_history, sync from worker
                 if job_status.loss_history and len(job_status.loss_history) > len(training_session.metrics_history):
-                    logger.info(f"Syncing metrics_history from worker loss_history ({len(job_status.loss_history)} points, was {len(training_session.metrics_history)})")
+                    worker_points = len(job_status.loss_history)
+                    session_points = len(training_session.metrics_history)
+                    logger.info(
+                        f"Syncing metrics_history from worker loss_history "
+                        f"({worker_points} points, was {session_points})"
+                    )
                     training_session.metrics_history = []
                     for i, loss_val in enumerate(job_status.loss_history):
-                        training_session.metrics_history.append({
-                            "timestamp": datetime.utcnow().isoformat(),
-                            "step": i + 1,
-                            "epoch": (i * job_status.total_epochs) // len(job_status.loss_history) + 1 if job_status.loss_history else 0,
-                            "loss": loss_val,
-                            "learning_rate": job_status.learning_rate,
-                        })
+                        training_session.metrics_history.append(
+                            {
+                                "timestamp": datetime.utcnow().isoformat(),
+                                "step": i + 1,
+                                "epoch": (i * job_status.total_epochs) // len(job_status.loss_history) + 1
+                                if job_status.loss_history
+                                else 0,
+                                "loss": loss_val,
+                                "learning_rate": job_status.learning_rate,
+                            }
+                        )
                 elif job_status.loss is not None:
                     # Only add if we have a new step (avoid duplicates)
-                    last_step = training_session.metrics_history[-1].get("step") if training_session.metrics_history else -1
+                    last_step = (
+                        training_session.metrics_history[-1].get("step") if training_session.metrics_history else -1
+                    )
                     if job_status.current_step > last_step:
-                        training_session.metrics_history.append({
-                            "timestamp": datetime.utcnow().isoformat(),
-                            "step": job_status.current_step,
-                            "epoch": job_status.current_epoch,
-                            "loss": job_status.loss,
-                            "learning_rate": job_status.learning_rate,
-                        })
+                        training_session.metrics_history.append(
+                            {
+                                "timestamp": datetime.utcnow().isoformat(),
+                                "step": job_status.current_step,
+                                "epoch": job_status.current_epoch,
+                                "loss": job_status.loss,
+                                "learning_rate": job_status.learning_rate,
+                            }
+                        )
                         # Keep last 1000 entries
                         if len(training_session.metrics_history) > 1000:
                             training_session.metrics_history = training_session.metrics_history[-1000:]
@@ -931,7 +884,9 @@ async def poll_worker_status(session_id: str, job_id: str, worker_client: Worker
                 loss_improvement_rate = 0.0
 
                 if training_session.metrics_history:
-                    loss_history = [m.get("loss") for m in training_session.metrics_history if m.get("loss") is not None]
+                    loss_history = [
+                        m.get("loss") for m in training_session.metrics_history if m.get("loss") is not None
+                    ]
 
                     if loss_history:
                         # Find best (minimum) loss
@@ -946,8 +901,8 @@ async def poll_worker_status(session_id: str, job_id: str, worker_client: Worker
                         if len(loss_history) >= 3:
                             # Use up to last 10 values for better trend detection
                             recent = loss_history[-10:] if len(loss_history) >= 10 else loss_history
-                            first_half = recent[:len(recent)//2]
-                            second_half = recent[len(recent)//2:]
+                            first_half = recent[: len(recent) // 2]
+                            second_half = recent[len(recent) // 2 :]
 
                             if first_half and second_half:
                                 avg_first = sum(first_half) / len(first_half)
@@ -1015,11 +970,16 @@ async def poll_worker_status(session_id: str, job_id: str, worker_client: Worker
                     },
                     "gpu": gpu_data,
                     "time": {
-                        "elapsed_seconds": (datetime.utcnow() - training_session.started_at).total_seconds() if training_session.started_at else 0,
+                        "elapsed_seconds": (datetime.utcnow() - training_session.started_at).total_seconds()
+                        if training_session.started_at
+                        else 0,
                         "eta_seconds": job_status.eta_seconds,
                         "samples_per_second": job_status.samples_per_second,
-                        "tokens_per_second": job_status.samples_per_second * 512,  # Estimate: ~512 tokens per sample average
-                        "step_duration_ms": (1000 / job_status.samples_per_second) if job_status.samples_per_second > 0 else 0,
+                        "tokens_per_second": job_status.samples_per_second
+                        * 512,  # Estimate: ~512 tokens per sample average
+                        "step_duration_ms": (1000 / job_status.samples_per_second)
+                        if job_status.samples_per_second > 0
+                        else 0,
                     },
                     "quality": {
                         "loss_trend": loss_trend,
@@ -1040,13 +1000,15 @@ async def poll_worker_status(session_id: str, job_id: str, worker_client: Worker
                     "phase": worker_status,
                 }
 
-                await connection_manager.broadcast_to_frontend({
-                    "type": "session_update",
-                    "session_id": session_id,
-                    "update_type": update_type,
-                    "data": ws_data,
-                    "timestamp": datetime.utcnow().isoformat(),
-                })
+                await connection_manager.broadcast_to_frontend(
+                    {
+                        "type": "session_update",
+                        "session_id": session_id,
+                        "update_type": update_type,
+                        "data": ws_data,
+                        "timestamp": datetime.utcnow().isoformat(),
+                    }
+                )
 
                 logger.debug(
                     f"Session {session_id}: {worker_status} - "
@@ -1077,9 +1039,7 @@ async def poll_worker_status(session_id: str, job_id: str, worker_client: Worker
             logger.warning(f"Failed to save logs on error: {log_err}")
         # Mark session as failed on polling error
         async with async_session_maker() as db_session:
-            result = await db_session.execute(
-                select(TrainingSession).where(TrainingSession.id == session_id)
-            )
+            result = await db_session.execute(select(TrainingSession).where(TrainingSession.id == session_id))
             training_session = result.scalar_one_or_none()
             if training_session and training_session.status in [TrainingStatus.RUNNING, TrainingStatus.PREPARING]:
                 training_session.status = TrainingStatus.FAILED
@@ -1100,7 +1060,7 @@ async def start_worker_training(
     output_model_name: str,
     ollama_url: str,
     hyperparams: dict,
-    total_epochs: int
+    total_epochs: int,
 ):
     """Start training on remote GPU worker and begin polling."""
     from loguru import logger
@@ -1109,9 +1069,7 @@ async def start_worker_training(
 
     # Update session to preparing
     async with async_session_maker() as db_session:
-        result = await db_session.execute(
-            select(TrainingSession).where(TrainingSession.id == session_id)
-        )
+        result = await db_session.execute(select(TrainingSession).where(TrainingSession.id == session_id))
         training_session = result.scalar_one_or_none()
         if training_session:
             training_session.status = TrainingStatus.PREPARING
@@ -1134,15 +1092,13 @@ async def start_worker_training(
         lora_alpha=hyperparams.get("lora_alpha", 16),
         quantization_method=hyperparams.get("quantization_method", "q4_k_m"),
         overwrite_existing=hyperparams.get("overwrite_existing", False),
-        base_adapter_path=hyperparams.get("base_adapter_path")  # For incremental training
+        base_adapter_path=hyperparams.get("base_adapter_path"),  # For incremental training
     )
 
     if not result.get("success"):
         # Mark as failed
         async with async_session_maker() as db_session:
-            result_db = await db_session.execute(
-                select(TrainingSession).where(TrainingSession.id == session_id)
-            )
+            result_db = await db_session.execute(select(TrainingSession).where(TrainingSession.id == session_id))
             training_session = result_db.scalar_one_or_none()
             if training_session:
                 training_session.status = TrainingStatus.FAILED
@@ -1158,9 +1114,7 @@ async def start_worker_training(
 
     # Update session with job info
     async with async_session_maker() as db_session:
-        result_db = await db_session.execute(
-            select(TrainingSession).where(TrainingSession.id == session_id)
-        )
+        result_db = await db_session.execute(select(TrainingSession).where(TrainingSession.id == session_id))
         training_session = result_db.scalar_one_or_none()
         if training_session:
             training_session.status = TrainingStatus.RUNNING
@@ -1175,9 +1129,7 @@ async def start_worker_training(
 
 @router.post("/sessions/{session_id}/start")
 async def start_training_session(
-    session_id: str,
-    background_tasks: BackgroundTasks = None,
-    session: AsyncSession = Depends(get_db_session)
+    session_id: str, background_tasks: BackgroundTasks = None, session: AsyncSession = Depends(get_db_session)
 ):
     """Start a training session.
 
@@ -1185,46 +1137,31 @@ async def start_training_session(
     - ollama_modelfile: Creates an Ollama model with embedded examples (no GPU needed)
     - unsloth / gpu_worker: Real fine-tuning with Unsloth (GPU required on worker)
     """
-    result = await session.execute(
-        select(TrainingSession).where(TrainingSession.id == session_id)
-    )
+    result = await session.execute(select(TrainingSession).where(TrainingSession.id == session_id))
     training_session = result.scalar_one_or_none()
 
     if not training_session:
         raise HTTPException(status_code=404, detail="Training session not found")
 
     if training_session.status != TrainingStatus.PENDING:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Cannot start session with status {training_session.status}"
-        )
+        raise HTTPException(status_code=400, detail=f"Cannot start session with status {training_session.status}")
 
     # Get prompts for this session (many-to-many via association table)
     from sqlalchemy.orm import selectinload
-    from src.models import session_prompt_association
 
     # Reload session with prompts
     result_with_prompts = await session.execute(
-        select(TrainingSession)
-        .options(selectinload(TrainingSession.prompts))
-        .where(TrainingSession.id == session_id)
+        select(TrainingSession).options(selectinload(TrainingSession.prompts)).where(TrainingSession.id == session_id)
     )
     training_session = result_with_prompts.scalar_one_or_none()
     prompts = training_session.prompts if training_session else []
 
     if not prompts:
-        raise HTTPException(
-            status_code=400,
-            detail="No prompts associated with this session"
-        )
+        raise HTTPException(status_code=400, detail="No prompts associated with this session")
 
     # Prepare prompts data
     prompts_data = [
-        {
-            "system_prompt": p.system_prompt,
-            "user_input": p.user_input,
-            "expected_output": p.expected_output
-        }
+        {"system_prompt": p.system_prompt, "user_input": p.user_input, "expected_output": p.expected_output}
         for p in prompts
     ]
 
@@ -1245,10 +1182,9 @@ async def start_training_session(
     else:
         # Try to find any Ollama service
         service_result = await session.execute(
-            select(ServiceConfig).where(
-                ServiceConfig.service_type == ServiceType.OLLAMA,
-                ServiceConfig.enabled == True
-            ).limit(1)
+            select(ServiceConfig)
+            .where(ServiceConfig.service_type == ServiceType.OLLAMA, ServiceConfig.enabled is True)
+            .limit(1)
         )
         service = service_result.scalar_one_or_none()
         if service and service.full_url:
@@ -1286,13 +1222,7 @@ async def start_training_session(
         await session.commit()
 
         # Start Ollama training in background
-        background_tasks.add_task(
-            run_ollama_training_background,
-            session_id,
-            prompts_data,
-            config,
-            ollama_url
-        )
+        background_tasks.add_task(run_ollama_training_background, session_id, prompts_data, config, ollama_url)
 
         return {
             "message": "Creating Ollama model with embedded examples",
@@ -1302,8 +1232,8 @@ async def start_training_session(
             "config": {
                 "base_model": config.base_model,
                 "output_model": config.output_model_name,
-                "ollama_url": ollama_url
-            }
+                "ollama_url": ollama_url,
+            },
         }
 
     elif backend in ("unsloth", "gpu_worker"):
@@ -1318,7 +1248,7 @@ async def start_training_session(
             raise HTTPException(
                 status_code=503,
                 detail=f"Training worker not available: {worker_status.error or 'Connection failed'}. "
-                       f"Check that the worker is running at {settings.training_worker_url}"
+                f"Check that the worker is running at {settings.training_worker_url}",
             )
 
         # Prepare model name for Unsloth (convert ollama format to unsloth)
@@ -1339,8 +1269,7 @@ async def start_training_session(
                 "qwen2.5:7b": "unsloth/Qwen2.5-7B-Instruct-bnb-4bit",
             }
             base_model = unsloth_model_map.get(
-                base_model_raw,
-                hyperparams.get("unsloth_model", f"unsloth/{base_model_raw.replace(':', '-')}-bnb-4bit")
+                base_model_raw, hyperparams.get("unsloth_model", f"unsloth/{base_model_raw.replace(':', '-')}-bnb-4bit")
             )
         output_model_name = f"mcparr-{training_session.name.lower().replace(' ', '-')}"
 
@@ -1361,7 +1290,7 @@ async def start_training_session(
             output_model_name,
             ollama_url,
             hyperparams,
-            training_session.total_epochs
+            training_session.total_epochs,
         )
 
         return {
@@ -1374,36 +1303,27 @@ async def start_training_session(
                 "base_model": base_model,
                 "epochs": training_session.total_epochs,
                 "output_model": output_model_name,
-                "ollama_url": ollama_url
-            }
+                "ollama_url": ollama_url,
+            },
         }
 
     else:
         raise HTTPException(
-            status_code=400,
-            detail=f"Unknown backend: {backend}. Use 'ollama_modelfile', 'unsloth' or 'gpu_worker'"
+            status_code=400, detail=f"Unknown backend: {backend}. Use 'ollama_modelfile', 'unsloth' or 'gpu_worker'"
         )
 
 
 @router.post("/sessions/{session_id}/cancel")
-async def cancel_training_session(
-    session_id: str,
-    session: AsyncSession = Depends(get_db_session)
-):
+async def cancel_training_session(session_id: str, session: AsyncSession = Depends(get_db_session)):
     """Cancel a running training session."""
-    result = await session.execute(
-        select(TrainingSession).where(TrainingSession.id == session_id)
-    )
+    result = await session.execute(select(TrainingSession).where(TrainingSession.id == session_id))
     training_session = result.scalar_one_or_none()
 
     if not training_session:
         raise HTTPException(status_code=404, detail="Training session not found")
 
     if training_session.status not in [TrainingStatus.RUNNING, TrainingStatus.PREPARING, TrainingStatus.PENDING]:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Cannot cancel session with status {training_session.status}"
-        )
+        raise HTTPException(status_code=400, detail=f"Cannot cancel session with status {training_session.status}")
 
     training_session.cancel_training()
     training_session.updated_at = datetime.utcnow()
@@ -1431,18 +1351,13 @@ async def cancel_training_session(
 
 
 @router.post("/sessions/{session_id}/duplicate")
-async def duplicate_training_session(
-    session_id: str,
-    session: AsyncSession = Depends(get_db_session)
-):
+async def duplicate_training_session(session_id: str, session: AsyncSession = Depends(get_db_session)):
     """Duplicate a training session with all its prompts."""
     from sqlalchemy.orm import selectinload
 
     # Get original session with prompts
     result = await session.execute(
-        select(TrainingSession)
-        .options(selectinload(TrainingSession.prompts))
-        .where(TrainingSession.id == session_id)
+        select(TrainingSession).options(selectinload(TrainingSession.prompts)).where(TrainingSession.id == session_id)
     )
     original_session = result.scalar_one_or_none()
 
@@ -1453,16 +1368,13 @@ async def duplicate_training_session(
     base_name = original_session.name
     # Remove version suffix if present (e.g., "Test v1" -> "Test")
     import re
+
     match = re.match(r"(.+?)\s*v(\d+)$", base_name)
     if match:
         base_name = match.group(1).strip()
 
     # Find existing sessions with similar names to get next version
-    similar_result = await session.execute(
-        select(TrainingSession).where(
-            TrainingSession.name.like(f"{base_name}%")
-        )
-    )
+    similar_result = await session.execute(select(TrainingSession).where(TrainingSession.name.like(f"{base_name}%")))
     similar_sessions = similar_result.scalars().all()
 
     max_version = 0
@@ -1492,9 +1404,7 @@ async def duplicate_training_session(
     for prompt in original_session.prompts:
         await session.execute(
             session_prompt_association.insert().values(
-                session_id=new_session.id,
-                prompt_id=prompt.id,
-                added_at=datetime.utcnow()
+                session_id=new_session.id, prompt_id=prompt.id, added_at=datetime.utcnow()
             )
         )
 
@@ -1505,7 +1415,7 @@ async def duplicate_training_session(
         "original_session_id": session_id,
         "new_session_id": new_session.id,
         "new_name": new_name,
-        "prompts_copied": len(original_session.prompts)
+        "prompts_copied": len(original_session.prompts),
     }
 
 
@@ -1534,7 +1444,7 @@ async def get_worker_status():
             "online": False,
             "worker_url": settings.training_worker_url,
             "error": health.error,
-            "gpu_available": False
+            "gpu_available": False,
         }
 
     # Get detailed info
@@ -1551,7 +1461,7 @@ async def get_worker_status():
         "gpu_count": info.gpu_count,
         "gpu_names": info.gpu_names,
         "current_job_id": info.current_job_id,
-        "gpu_metrics": gpu_metrics
+        "gpu_metrics": gpu_metrics,
     }
 
 
@@ -1563,10 +1473,7 @@ async def get_worker_models():
     # Check worker is online first
     health = await worker_client.health_check()
     if not health.online:
-        raise HTTPException(
-            status_code=503,
-            detail=f"Training worker not available: {health.error}"
-        )
+        raise HTTPException(status_code=503, detail=f"Training worker not available: {health.error}")
 
     models = await worker_client.get_available_models()
     return models
@@ -1574,10 +1481,11 @@ async def get_worker_models():
 
 # ============= Worker Logs Endpoints =============
 
+
 @router.get("/worker/logs/system")
 async def get_worker_system_logs(
     tail: int = Query(default=100, le=1000, description="Number of lines to return"),
-    level: Optional[str] = Query(default=None, description="Filter by log level (debug, info, warning, error)")
+    level: Optional[str] = Query(default=None, description="Filter by log level (debug, info, warning, error)"),
 ):
     """Get system logs from training worker."""
     worker_client = get_worker_client()
@@ -1585,10 +1493,7 @@ async def get_worker_system_logs(
     # Check worker is online first
     health = await worker_client.health_check()
     if not health.online:
-        raise HTTPException(
-            status_code=503,
-            detail=f"Training worker not available: {health.error}"
-        )
+        raise HTTPException(status_code=503, detail=f"Training worker not available: {health.error}")
 
     return await worker_client.get_system_logs(tail=tail, level=level)
 
@@ -1597,7 +1502,7 @@ async def get_worker_system_logs(
 async def get_worker_job_logs(
     job_id: str,
     tail: int = Query(default=100, le=5000, description="Number of lines to return"),
-    level: Optional[str] = Query(default=None, description="Filter by log level")
+    level: Optional[str] = Query(default=None, description="Filter by log level"),
 ):
     """Get logs for a specific training job from worker."""
     worker_client = get_worker_client()
@@ -1605,10 +1510,7 @@ async def get_worker_job_logs(
     # Check worker is online first
     health = await worker_client.health_check()
     if not health.online:
-        raise HTTPException(
-            status_code=503,
-            detail=f"Training worker not available: {health.error}"
-        )
+        raise HTTPException(status_code=503, detail=f"Training worker not available: {health.error}")
 
     return await worker_client.get_job_logs(job_id=job_id, tail=tail, level=level)
 
@@ -1621,10 +1523,7 @@ async def list_worker_job_logs():
     # Check worker is online first
     health = await worker_client.health_check()
     if not health.online:
-        raise HTTPException(
-            status_code=503,
-            detail=f"Training worker not available: {health.error}"
-        )
+        raise HTTPException(status_code=503, detail=f"Training worker not available: {health.error}")
 
     return await worker_client.get_available_job_logs()
 
@@ -1637,10 +1536,7 @@ async def delete_worker_job_logs(job_id: str):
     # Check worker is online first
     health = await worker_client.health_check()
     if not health.online:
-        raise HTTPException(
-            status_code=503,
-            detail=f"Training worker not available: {health.error}"
-        )
+        raise HTTPException(status_code=503, detail=f"Training worker not available: {health.error}")
 
     return await worker_client.delete_job_logs(job_id)
 
@@ -1654,7 +1550,7 @@ async def get_job_logs_stream_url(job_id: str):
     return {
         "stream_url": worker_client.get_job_logs_stream_url(job_id),
         "worker_url": settings.training_worker_url,
-        "job_id": job_id
+        "job_id": job_id,
     }
 
 
@@ -1664,21 +1560,13 @@ async def get_system_logs_stream_url():
     worker_client = get_worker_client()
     settings = get_settings()
 
-    return {
-        "stream_url": worker_client.get_system_logs_stream_url(),
-        "worker_url": settings.training_worker_url
-    }
+    return {"stream_url": worker_client.get_system_logs_stream_url(), "worker_url": settings.training_worker_url}
 
 
 @router.post("/sessions/{session_id}/import-ollama")
-async def import_model_to_ollama(
-    session_id: str,
-    session: AsyncSession = Depends(get_db_session)
-):
+async def import_model_to_ollama(session_id: str, session: AsyncSession = Depends(get_db_session)):
     """Import a completed training session's model into Ollama."""
-    result = await session.execute(
-        select(TrainingSession).where(TrainingSession.id == session_id)
-    )
+    result = await session.execute(select(TrainingSession).where(TrainingSession.id == session_id))
     training_session = result.scalar_one_or_none()
 
     if not training_session:
@@ -1686,8 +1574,7 @@ async def import_model_to_ollama(
 
     if training_session.status != TrainingStatus.COMPLETED:
         raise HTTPException(
-            status_code=400,
-            detail=f"Cannot import model from session with status {training_session.status}"
+            status_code=400, detail=f"Cannot import model from session with status {training_session.status}"
         )
 
     global _training_service
@@ -1707,47 +1594,38 @@ async def import_model_to_ollama(
 
 # ============= Session Prompts Management =============
 
+
 class SessionPromptsUpdate(BaseModel):
     """Update prompts for a session."""
+
     prompt_ids: List[str] = Field(..., description="List of prompt IDs to associate with session")
 
 
 @router.get("/sessions/{session_id}/prompts", response_model=List[TrainingPromptResponse])
-async def get_session_prompts(
-    session_id: str,
-    session: AsyncSession = Depends(get_db_session)
-):
+async def get_session_prompts(session_id: str, session: AsyncSession = Depends(get_db_session)):
     """Get all prompts associated with a session."""
     # Verify session exists
-    result = await session.execute(
-        select(TrainingSession).where(TrainingSession.id == session_id)
-    )
+    result = await session.execute(select(TrainingSession).where(TrainingSession.id == session_id))
     if not result.scalar_one_or_none():
         raise HTTPException(status_code=404, detail="Training session not found")
 
     # Get prompts for this session
     prompts_result = await session.execute(
-        select(TrainingPrompt)
-        .where(TrainingPrompt.session_id == session_id)
-        .order_by(TrainingPrompt.name)
+        select(TrainingPrompt).where(TrainingPrompt.session_id == session_id).order_by(TrainingPrompt.name)
     )
     return list(prompts_result.scalars().all())
 
 
 @router.put("/sessions/{session_id}/prompts")
 async def update_session_prompts(
-    session_id: str,
-    data: SessionPromptsUpdate,
-    session: AsyncSession = Depends(get_db_session)
+    session_id: str, data: SessionPromptsUpdate, session: AsyncSession = Depends(get_db_session)
 ):
     """Set prompts for a session (replaces existing associations). Many-to-many: prompts can be in multiple sessions."""
     from sqlalchemy.orm import selectinload
 
     # Get session with prompts loaded
     result = await session.execute(
-        select(TrainingSession)
-        .options(selectinload(TrainingSession.prompts))
-        .where(TrainingSession.id == session_id)
+        select(TrainingSession).options(selectinload(TrainingSession.prompts)).where(TrainingSession.id == session_id)
     )
     training_session = result.scalar_one_or_none()
 
@@ -1755,19 +1633,14 @@ async def update_session_prompts(
         raise HTTPException(status_code=404, detail="Training session not found")
 
     if training_session.status != TrainingStatus.PENDING:
-        raise HTTPException(
-            status_code=400,
-            detail="Cannot modify prompts for a session that is not pending"
-        )
+        raise HTTPException(status_code=400, detail="Cannot modify prompts for a session that is not pending")
 
     # Clear existing associations (many-to-many)
     training_session.prompts.clear()
 
     # Add new associations
     if data.prompt_ids:
-        prompts_result = await session.execute(
-            select(TrainingPrompt).where(TrainingPrompt.id.in_(data.prompt_ids))
-        )
+        prompts_result = await session.execute(select(TrainingPrompt).where(TrainingPrompt.id.in_(data.prompt_ids)))
         prompts = list(prompts_result.scalars().all())
 
         for prompt in prompts:
@@ -1784,23 +1657,19 @@ async def update_session_prompts(
     return {
         "message": f"Updated session with {training_session.dataset_size} prompts",
         "session_id": session_id,
-        "prompt_count": training_session.dataset_size
+        "prompt_count": training_session.dataset_size,
     }
 
 
 @router.post("/sessions/{session_id}/prompts/add")
 async def add_prompts_to_session(
-    session_id: str,
-    data: SessionPromptsUpdate,
-    session: AsyncSession = Depends(get_db_session)
+    session_id: str, data: SessionPromptsUpdate, session: AsyncSession = Depends(get_db_session)
 ):
     """Add prompts to a session (keeps existing associations). Many-to-many: prompts can be in multiple sessions."""
     from sqlalchemy.orm import selectinload
 
     result = await session.execute(
-        select(TrainingSession)
-        .options(selectinload(TrainingSession.prompts))
-        .where(TrainingSession.id == session_id)
+        select(TrainingSession).options(selectinload(TrainingSession.prompts)).where(TrainingSession.id == session_id)
     )
     training_session = result.scalar_one_or_none()
 
@@ -1808,10 +1677,7 @@ async def add_prompts_to_session(
         raise HTTPException(status_code=404, detail="Training session not found")
 
     if training_session.status != TrainingStatus.PENDING:
-        raise HTTPException(
-            status_code=400,
-            detail="Cannot modify prompts for a session that is not pending"
-        )
+        raise HTTPException(status_code=400, detail="Cannot modify prompts for a session that is not pending")
 
     # Add new associations (many-to-many, no restriction on already assigned)
     added = 0
@@ -1819,9 +1685,7 @@ async def add_prompts_to_session(
         # Get current prompt IDs to avoid duplicates
         current_prompt_ids = {p.id for p in training_session.prompts}
 
-        prompts_result = await session.execute(
-            select(TrainingPrompt).where(TrainingPrompt.id.in_(data.prompt_ids))
-        )
+        prompts_result = await session.execute(select(TrainingPrompt).where(TrainingPrompt.id.in_(data.prompt_ids)))
         for prompt in prompts_result.scalars():
             if prompt.id not in current_prompt_ids:
                 training_session.prompts.append(prompt)
@@ -1837,23 +1701,19 @@ async def add_prompts_to_session(
         "message": f"Added {added} prompts to session",
         "session_id": session_id,
         "added": added,
-        "total": training_session.dataset_size
+        "total": training_session.dataset_size,
     }
 
 
 @router.post("/sessions/{session_id}/prompts/remove")
 async def remove_prompts_from_session(
-    session_id: str,
-    data: SessionPromptsUpdate,
-    session: AsyncSession = Depends(get_db_session)
+    session_id: str, data: SessionPromptsUpdate, session: AsyncSession = Depends(get_db_session)
 ):
     """Remove prompts from a session (many-to-many: only removes from this session, prompt still exists)."""
     from sqlalchemy.orm import selectinload
 
     result = await session.execute(
-        select(TrainingSession)
-        .options(selectinload(TrainingSession.prompts))
-        .where(TrainingSession.id == session_id)
+        select(TrainingSession).options(selectinload(TrainingSession.prompts)).where(TrainingSession.id == session_id)
     )
     training_session = result.scalar_one_or_none()
 
@@ -1861,10 +1721,7 @@ async def remove_prompts_from_session(
         raise HTTPException(status_code=404, detail="Training session not found")
 
     if training_session.status != TrainingStatus.PENDING:
-        raise HTTPException(
-            status_code=400,
-            detail="Cannot modify prompts for a session that is not pending"
-        )
+        raise HTTPException(status_code=400, detail="Cannot modify prompts for a session that is not pending")
 
     # Remove associations from many-to-many
     removed = 0
@@ -1885,11 +1742,12 @@ async def remove_prompts_from_session(
         "message": f"Removed {removed} prompts from session",
         "session_id": session_id,
         "removed": removed,
-        "total": training_session.dataset_size
+        "total": training_session.dataset_size,
     }
 
 
 # ============= Training Prompts Endpoints =============
+
 
 @router.get("/prompts", response_model=List[TrainingPromptResponse])
 async def list_training_prompts(
@@ -1901,7 +1759,7 @@ async def list_training_prompts(
     search: Optional[str] = None,
     skip: int = Query(0, ge=0),
     limit: Optional[int] = Query(None, ge=1),
-    session: AsyncSession = Depends(get_db_session)
+    session: AsyncSession = Depends(get_db_session),
 ):
     """List training prompts with filtering. No limit by default (returns all)."""
     query = select(TrainingPrompt)
@@ -1918,10 +1776,7 @@ async def list_training_prompts(
     if session_id:
         conditions.append(TrainingPrompt.session_id == session_id)
     if search:
-        conditions.append(
-            TrainingPrompt.name.ilike(f"%{search}%") |
-            TrainingPrompt.user_input.ilike(f"%{search}%")
-        )
+        conditions.append(TrainingPrompt.name.ilike(f"%{search}%") | TrainingPrompt.user_input.ilike(f"%{search}%"))
 
     if conditions:
         query = query.where(and_(*conditions))
@@ -1936,10 +1791,7 @@ async def list_training_prompts(
 
 
 @router.post("/prompts", response_model=TrainingPromptResponse)
-async def create_training_prompt(
-    data: TrainingPromptCreate,
-    session: AsyncSession = Depends(get_db_session)
-):
+async def create_training_prompt(data: TrainingPromptCreate, session: AsyncSession = Depends(get_db_session)):
     """Create a new training prompt.
 
     For tool calling prompts:
@@ -1957,7 +1809,7 @@ async def create_training_prompt(
         "tool_call": data.tool_call,
         "tool_response": data.tool_response,
         "assistant_response": data.assistant_response,
-        "expected_output": data.expected_output
+        "expected_output": data.expected_output,
     }
 
     # Use assistant_response if provided, otherwise fall back to expected_output
@@ -1981,7 +1833,7 @@ async def create_training_prompt(
         tags=data.tags,
         session_id=data.session_id,
         created_at=datetime.utcnow(),
-        updated_at=datetime.utcnow()
+        updated_at=datetime.utcnow(),
     )
 
     session.add(prompt)
@@ -1992,14 +1844,9 @@ async def create_training_prompt(
 
 
 @router.get("/prompts/{prompt_id}", response_model=TrainingPromptResponse)
-async def get_training_prompt(
-    prompt_id: str,
-    session: AsyncSession = Depends(get_db_session)
-):
+async def get_training_prompt(prompt_id: str, session: AsyncSession = Depends(get_db_session)):
     """Get a specific training prompt."""
-    result = await session.execute(
-        select(TrainingPrompt).where(TrainingPrompt.id == prompt_id)
-    )
+    result = await session.execute(select(TrainingPrompt).where(TrainingPrompt.id == prompt_id))
     prompt = result.scalar_one_or_none()
 
     if not prompt:
@@ -2010,14 +1857,10 @@ async def get_training_prompt(
 
 @router.patch("/prompts/{prompt_id}", response_model=TrainingPromptResponse)
 async def update_training_prompt(
-    prompt_id: str,
-    data: TrainingPromptUpdate,
-    session: AsyncSession = Depends(get_db_session)
+    prompt_id: str, data: TrainingPromptUpdate, session: AsyncSession = Depends(get_db_session)
 ):
     """Update a training prompt."""
-    result = await session.execute(
-        select(TrainingPrompt).where(TrainingPrompt.id == prompt_id)
-    )
+    result = await session.execute(select(TrainingPrompt).where(TrainingPrompt.id == prompt_id))
     prompt = result.scalar_one_or_none()
 
     if not prompt:
@@ -2028,7 +1871,14 @@ async def update_training_prompt(
         setattr(prompt, key, value)
 
     # Update content if any relevant field changed
-    content_fields = ["user_input", "expected_output", "system_prompt", "tool_call", "tool_response", "assistant_response"]
+    content_fields = [
+        "user_input",
+        "expected_output",
+        "system_prompt",
+        "tool_call",
+        "tool_response",
+        "assistant_response",
+    ]
     if any(field in update_data for field in content_fields):
         prompt.content = {
             "system_prompt": prompt.system_prompt,
@@ -2036,7 +1886,7 @@ async def update_training_prompt(
             "tool_call": prompt.tool_call,
             "tool_response": prompt.tool_response,
             "assistant_response": prompt.assistant_response,
-            "expected_output": prompt.expected_output
+            "expected_output": prompt.expected_output,
         }
 
     prompt.updated_at = datetime.utcnow()
@@ -2047,14 +1897,9 @@ async def update_training_prompt(
 
 
 @router.delete("/prompts/{prompt_id}")
-async def delete_training_prompt(
-    prompt_id: str,
-    session: AsyncSession = Depends(get_db_session)
-):
+async def delete_training_prompt(prompt_id: str, session: AsyncSession = Depends(get_db_session)):
     """Delete a training prompt."""
-    result = await session.execute(
-        select(TrainingPrompt).where(TrainingPrompt.id == prompt_id)
-    )
+    result = await session.execute(select(TrainingPrompt).where(TrainingPrompt.id == prompt_id))
     prompt = result.scalar_one_or_none()
 
     if not prompt:
@@ -2071,12 +1916,10 @@ async def validate_training_prompt(
     prompt_id: str,
     score: Optional[float] = Query(None, ge=0, le=1),
     validated_by: Optional[str] = None,
-    session: AsyncSession = Depends(get_db_session)
+    session: AsyncSession = Depends(get_db_session),
 ):
     """Mark a prompt as validated."""
-    result = await session.execute(
-        select(TrainingPrompt).where(TrainingPrompt.id == prompt_id)
-    )
+    result = await session.execute(select(TrainingPrompt).where(TrainingPrompt.id == prompt_id))
     prompt = result.scalar_one_or_none()
 
     if not prompt:
@@ -2092,10 +1935,9 @@ async def validate_training_prompt(
 
 # ============= Stats Endpoint =============
 
+
 @router.get("/stats", response_model=TrainingStatsResponse)
-async def get_training_stats(
-    session: AsyncSession = Depends(get_db_session)
-):
+async def get_training_stats(session: AsyncSession = Depends(get_db_session)):
     """Get training statistics."""
     # Session counts
     total_sessions = await session.execute(select(func.count(TrainingSession.id)))
@@ -2109,16 +1951,12 @@ async def get_training_stats(
     active_sessions = active_sessions.scalar() or 0
 
     completed_sessions = await session.execute(
-        select(func.count(TrainingSession.id)).where(
-            TrainingSession.status == TrainingStatus.COMPLETED
-        )
+        select(func.count(TrainingSession.id)).where(TrainingSession.status == TrainingStatus.COMPLETED)
     )
     completed_sessions = completed_sessions.scalar() or 0
 
     failed_sessions = await session.execute(
-        select(func.count(TrainingSession.id)).where(
-            TrainingSession.status == TrainingStatus.FAILED
-        )
+        select(func.count(TrainingSession.id)).where(TrainingSession.status == TrainingStatus.FAILED)
     )
     failed_sessions = failed_sessions.scalar() or 0
 
@@ -2127,23 +1965,18 @@ async def get_training_stats(
     total_prompts = total_prompts.scalar() or 0
 
     validated_prompts = await session.execute(
-        select(func.count(TrainingPrompt.id)).where(TrainingPrompt.is_validated == True)
+        select(func.count(TrainingPrompt.id)).where(TrainingPrompt.is_validated is True)
     )
     validated_prompts = validated_prompts.scalar() or 0
 
     # Prompts by category
     category_result = await session.execute(
-        select(TrainingPrompt.category, func.count(TrainingPrompt.id))
-        .group_by(TrainingPrompt.category)
+        select(TrainingPrompt.category, func.count(TrainingPrompt.id)).group_by(TrainingPrompt.category)
     )
     prompts_by_category = {row[0]: row[1] for row in category_result.fetchall()}
 
     # Recent sessions
-    recent_result = await session.execute(
-        select(TrainingSession)
-        .order_by(TrainingSession.created_at.desc())
-        .limit(5)
-    )
+    recent_result = await session.execute(select(TrainingSession).order_by(TrainingSession.created_at.desc()).limit(5))
     recent_sessions = list(recent_result.scalars().all())
 
     return TrainingStatsResponse(
@@ -2154,24 +1987,22 @@ async def get_training_stats(
         total_prompts=total_prompts,
         validated_prompts=validated_prompts,
         prompts_by_category=prompts_by_category,
-        recent_sessions=recent_sessions
+        recent_sessions=recent_sessions,
     )
 
 
 # ============= Import/Export Endpoints =============
 
+
 @router.post("/prompts/import")
-async def import_training_prompts(
-    prompts: List[TrainingPromptCreate],
-    session: AsyncSession = Depends(get_db_session)
-):
+async def import_training_prompts(prompts: List[TrainingPromptCreate], session: AsyncSession = Depends(get_db_session)):
     """Import multiple training prompts."""
     created = []
     for data in prompts:
         content = {
             "system_prompt": data.system_prompt,
             "user_input": data.user_input,
-            "expected_output": data.expected_output
+            "expected_output": data.expected_output,
         }
 
         prompt = TrainingPrompt(
@@ -2189,7 +2020,7 @@ async def import_training_prompts(
             tags=data.tags,
             session_id=data.session_id,
             created_at=datetime.utcnow(),
-            updated_at=datetime.utcnow()
+            updated_at=datetime.utcnow(),
         )
         session.add(prompt)
         created.append(prompt)
@@ -2204,10 +2035,10 @@ async def export_training_prompts(
     category: Optional[str] = None,
     session_id: Optional[str] = None,
     format: str = Query("json", regex="^(json|jsonl)$"),
-    session: AsyncSession = Depends(get_db_session)
+    session: AsyncSession = Depends(get_db_session),
 ):
     """Export training prompts for download."""
-    query = select(TrainingPrompt).where(TrainingPrompt.enabled == True)
+    query = select(TrainingPrompt).where(TrainingPrompt.enabled is True)
 
     if category:
         query = query.where(TrainingPrompt.category == category)
@@ -2221,15 +2052,12 @@ async def export_training_prompts(
     for prompt in prompts:
         export_data.append(prompt.to_training_format())
 
-    return {
-        "format": format,
-        "count": len(export_data),
-        "data": export_data
-    }
+    return {"format": format, "count": len(export_data), "data": export_data}
 
 
 class OllamaMetricsResponse(BaseModel):
     """Ollama and system metrics response."""
+
     # Ollama metrics
     ollama_status: str
     ollama_version: Optional[str] = None
@@ -2262,17 +2090,11 @@ class OllamaMetricsResponse(BaseModel):
 
 
 @router.get("/ollama/metrics", response_model=OllamaMetricsResponse)
-async def get_ollama_metrics(
-    service_id: Optional[str] = None,
-    session: AsyncSession = Depends(get_db_session)
-):
+async def get_ollama_metrics(service_id: Optional[str] = None, session: AsyncSession = Depends(get_db_session)):
     """Get comprehensive Ollama and system metrics for training stats."""
     import psutil
 
-    response = OllamaMetricsResponse(
-        ollama_status="not_configured",
-        ollama_url=""
-    )
+    response = OllamaMetricsResponse(ollama_status="not_configured", ollama_url="")
 
     # Get Ollama service and status
     ollama = await get_ollama_service(session, service_id)
@@ -2295,7 +2117,7 @@ async def get_ollama_metrics(
                         "size_gb": m.size_gb,
                         "family": m.family,
                         "parameter_size": m.parameter_size,
-                        "quantization_level": m.quantization_level
+                        "quantization_level": m.quantization_level,
                     }
                     for m in models
                 ]
@@ -2321,13 +2143,19 @@ async def get_ollama_metrics(
         # GPU (try nvidia-smi via subprocess)
         try:
             import subprocess
+
             result = subprocess.run(
-                ['nvidia-smi', '--query-gpu=name,memory.used,memory.total,utilization.gpu',
-                 '--format=csv,noheader,nounits'],
-                capture_output=True, text=True, timeout=5
+                [
+                    "nvidia-smi",
+                    "--query-gpu=name,memory.used,memory.total,utilization.gpu",
+                    "--format=csv,noheader,nounits",
+                ],
+                capture_output=True,
+                text=True,
+                timeout=5,
             )
             if result.returncode == 0 and result.stdout.strip():
-                parts = result.stdout.strip().split(',')
+                parts = result.stdout.strip().split(",")
                 if len(parts) >= 4:
                     response.system_gpu_name = parts[0].strip()
                     response.system_gpu_used_gb = round(float(parts[1].strip()) / 1024, 2)
@@ -2352,9 +2180,7 @@ async def get_ollama_metrics(
         response.training_active_sessions = active_sessions.scalar() or 0
 
         completed_sessions = await session.execute(
-            select(func.count(TrainingSession.id)).where(
-                TrainingSession.status == TrainingStatus.COMPLETED
-            )
+            select(func.count(TrainingSession.id)).where(TrainingSession.status == TrainingStatus.COMPLETED)
         )
         response.training_completed_sessions = completed_sessions.scalar() or 0
 
@@ -2364,8 +2190,7 @@ async def get_ollama_metrics(
 
         # Prompts by category
         category_result = await session.execute(
-            select(TrainingPrompt.category, func.count(TrainingPrompt.id))
-            .group_by(TrainingPrompt.category)
+            select(TrainingPrompt.category, func.count(TrainingPrompt.id)).group_by(TrainingPrompt.category)
         )
         response.training_prompts_by_category = {row[0]: row[1] for row in category_result.fetchall()}
     except Exception:
@@ -2375,9 +2200,7 @@ async def get_ollama_metrics(
 
 
 @router.delete("/prompts/all")
-async def delete_all_prompts(
-    session: AsyncSession = Depends(get_db_session)
-):
+async def delete_all_prompts(session: AsyncSession = Depends(get_db_session)):
     """Delete all training prompts."""
     result = await session.execute(select(func.count(TrainingPrompt.id)))
     count = result.scalar() or 0
@@ -2385,17 +2208,11 @@ async def delete_all_prompts(
     await session.execute(delete(TrainingPrompt))
     await session.commit()
 
-    return {
-        "message": f"Deleted {count} prompts",
-        "deleted_count": count
-    }
+    return {"message": f"Deleted {count} prompts", "deleted_count": count}
 
 
 @router.post("/prompts/seed")
-async def seed_training_prompts(
-    reset: bool = False,
-    session: AsyncSession = Depends(get_db_session)
-):
+async def seed_training_prompts(reset: bool = False, session: AsyncSession = Depends(get_db_session)):
     """Load pre-defined homelab training prompts from seed files.
 
     Args:
@@ -2423,9 +2240,7 @@ async def seed_training_prompts(
     for prompt_data in seed_prompts:
         # Check if prompt with same name already exists (only if not reset)
         if not reset:
-            existing = await session.execute(
-                select(TrainingPrompt).where(TrainingPrompt.name == prompt_data["name"])
-            )
+            existing = await session.execute(select(TrainingPrompt).where(TrainingPrompt.name == prompt_data["name"]))
             if existing.scalar_one_or_none():
                 skipped.append(prompt_data["name"])
                 continue
@@ -2446,10 +2261,10 @@ async def seed_training_prompts(
             content={
                 "system_prompt": prompt_data.get("system_prompt"),
                 "user_input": prompt_data["user_input"],
-                "expected_output": prompt_data["expected_output"]
+                "expected_output": prompt_data["expected_output"],
             },
             created_at=datetime.utcnow(),
-            updated_at=datetime.utcnow()
+            updated_at=datetime.utcnow(),
         )
         session.add(prompt)
         created.append(prompt_data["name"])
@@ -2457,14 +2272,17 @@ async def seed_training_prompts(
     await session.commit()
 
     return {
-        "message": f"Seeded {len(created)} prompts" + (f", skipped {len(skipped)} existing" if skipped else "") + (" (reset mode)" if reset else ""),
+        "message": f"Seeded {len(created)} prompts"
+        + (f", skipped {len(skipped)} existing" if skipped else "")
+        + (" (reset mode)" if reset else ""),
         "created": created,
         "skipped": skipped,
-        "reset": reset
+        "reset": reset,
     }
 
 
 # ============= WebSocket Endpoints =============
+
 
 @router.websocket("/ws")
 async def websocket_frontend(websocket: WebSocket):
@@ -2477,7 +2295,8 @@ async def websocket_frontend(websocket: WebSocket):
     - {"type": "ping"} - Keepalive ping
 
     Messages sent to client:
-    - {"type": "session_update", "session_id": "xxx", "update_type": "progress|metrics|started|completed|failed", "data": {...}}
+    - {"type": "session_update", "session_id": "xxx",
+       "update_type": "progress|metrics|started|completed|failed", "data": {...}}
     - {"type": "log_line", "session_id": "xxx", "data": {...}}
     - {"type": "pong"} - Response to ping
     """
@@ -2561,6 +2380,7 @@ async def get_websocket_stats():
 
 # ============= Session Update Callback =============
 
+
 async def _handle_session_update(session_id: str, update_type: str, data: dict):
     """
     Callback to update session in database when receiving worker updates.
@@ -2568,9 +2388,7 @@ async def _handle_session_update(session_id: str, update_type: str, data: dict):
     """
     try:
         async with async_session_maker() as db_session:
-            result = await db_session.execute(
-                select(TrainingSession).where(TrainingSession.id == session_id)
-            )
+            result = await db_session.execute(select(TrainingSession).where(TrainingSession.id == session_id))
             session = result.scalar_one_or_none()
 
             if not session:
@@ -2581,7 +2399,7 @@ async def _handle_session_update(session_id: str, update_type: str, data: dict):
                 metrics = data
                 progress = metrics.get("progress", {})
                 performance = metrics.get("performance", {})
-                time_metrics = metrics.get("time", {})
+                metrics.get("time", {})
                 quality = metrics.get("quality", {})
 
                 session.current_epoch = progress.get("current_epoch", session.current_epoch)
@@ -2599,14 +2417,16 @@ async def _handle_session_update(session_id: str, update_type: str, data: dict):
                 if session.metrics_history is None:
                     session.metrics_history = []
 
-                session.metrics_history.append({
-                    "timestamp": datetime.utcnow().isoformat(),
-                    "step": progress.get("current_step"),
-                    "epoch": progress.get("current_epoch"),
-                    "loss": performance.get("loss"),
-                    "learning_rate": performance.get("learning_rate"),
-                    "quality": quality,
-                })
+                session.metrics_history.append(
+                    {
+                        "timestamp": datetime.utcnow().isoformat(),
+                        "step": progress.get("current_step"),
+                        "epoch": progress.get("current_epoch"),
+                        "loss": performance.get("loss"),
+                        "learning_rate": performance.get("learning_rate"),
+                        "quality": quality,
+                    }
+                )
 
                 # Keep last 1000 metrics
                 if len(session.metrics_history) > 1000:

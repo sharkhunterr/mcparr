@@ -1,16 +1,11 @@
 """Sonarr TV series management adapter."""
 
-from typing import Dict, Any, List, Optional
 from datetime import datetime
+from typing import Any, Dict, List
+
 import httpx
 
-from .base import (
-    TokenAuthAdapter,
-    ServiceCapability,
-    ConnectionTestResult,
-    AdapterError,
-    AuthenticationError
-)
+from .base import ConnectionTestResult, ServiceCapability, TokenAuthAdapter
 
 
 class SonarrAdapter(TokenAuthAdapter):
@@ -22,10 +17,7 @@ class SonarrAdapter(TokenAuthAdapter):
 
     @property
     def supported_capabilities(self) -> List[ServiceCapability]:
-        return [
-            ServiceCapability.MEDIA_CONTENT,
-            ServiceCapability.API_ACCESS
-        ]
+        return [ServiceCapability.MEDIA_CONTENT, ServiceCapability.API_ACCESS]
 
     @property
     def token_config_key(self) -> str:
@@ -33,11 +25,7 @@ class SonarrAdapter(TokenAuthAdapter):
 
     def _format_token_header(self, token: str) -> Dict[str, str]:
         """Format Sonarr API key header."""
-        return {
-            "X-Api-Key": token,
-            "Content-Type": "application/json",
-            "Accept": "application/json"
-        }
+        return {"X-Api-Key": token, "Content-Type": "application/json", "Accept": "application/json"}
 
     async def test_connection(self) -> ConnectionTestResult:
         """Test connection to Sonarr."""
@@ -59,15 +47,15 @@ class SonarrAdapter(TokenAuthAdapter):
                         "status": "connected",
                         "version": data.get("version"),
                         "app_name": data.get("appName", "Sonarr"),
-                        "branch": data.get("branch")
-                    }
+                        "branch": data.get("branch"),
+                    },
                 )
             else:
                 return ConnectionTestResult(
                     success=False,
                     message="Connected but response doesn't appear to be from Sonarr",
                     response_time_ms=response_time,
-                    details={"status": "invalid_response"}
+                    details={"status": "invalid_response"},
                 )
 
         except httpx.HTTPStatusError as e:
@@ -75,18 +63,18 @@ class SonarrAdapter(TokenAuthAdapter):
                 return ConnectionTestResult(
                     success=False,
                     message="Authentication failed - check API key",
-                    details={"status": "auth_failed", "status_code": 401}
+                    details={"status": "auth_failed", "status_code": 401},
                 )
             return ConnectionTestResult(
                 success=False,
                 message=f"HTTP error: {e.response.status_code}",
-                details={"status": "http_error", "status_code": e.response.status_code}
+                details={"status": "http_error", "status_code": e.response.status_code},
             )
         except Exception as e:
             return ConnectionTestResult(
                 success=False,
                 message=f"Connection failed: {str(e)}",
-                details={"status": "connection_failed", "error": str(e)}
+                details={"status": "connection_failed", "error": str(e)},
             )
 
     async def get_service_info(self) -> Dict[str, Any]:
@@ -102,15 +90,10 @@ class SonarrAdapter(TokenAuthAdapter):
                 "branch": data.get("branch"),
                 "build_time": data.get("buildTime"),
                 "runtime_version": data.get("runtimeVersion"),
-                "status": "online"
+                "status": "online",
             }
         except Exception as e:
-            return {
-                "service": "sonarr",
-                "version": "unknown",
-                "status": "error",
-                "error": str(e)
-            }
+            return {"service": "sonarr", "version": "unknown", "status": "error", "error": str(e)}
 
     async def get_series(self, limit: int = 50) -> List[Dict[str, Any]]:
         """Get list of TV series in Sonarr."""
@@ -132,7 +115,7 @@ class SonarrAdapter(TokenAuthAdapter):
                     "episode_file_count": series.get("episodeFileCount", 0),
                     "path": series.get("path"),
                     "size_on_disk": series.get("sizeOnDisk", 0),
-                    "network": series.get("network")
+                    "network": series.get("network"),
                 }
                 for series in series_list[:limit]
             ]
@@ -143,11 +126,7 @@ class SonarrAdapter(TokenAuthAdapter):
     async def search_series(self, query: str) -> List[Dict[str, Any]]:
         """Search for series to add."""
         try:
-            response = await self._make_request(
-                "GET",
-                "/api/v3/series/lookup",
-                params={"term": query}
-            )
+            response = await self._make_request("GET", "/api/v3/series/lookup", params={"term": query})
             results = response.json()
 
             return [
@@ -159,7 +138,7 @@ class SonarrAdapter(TokenAuthAdapter):
                     "overview": series.get("overview", "")[:200],
                     "network": series.get("network"),
                     "season_count": series.get("seasonCount", 0),
-                    "in_library": series.get("id") is not None
+                    "in_library": series.get("id") is not None,
                 }
                 for series in results[:20]
             ]
@@ -184,7 +163,7 @@ class SonarrAdapter(TokenAuthAdapter):
                     "status": item.get("status"),
                     "progress": (1 - item.get("sizeleft", 0) / item.get("size", 1)) * 100 if item.get("size") else 0,
                     "download_client": item.get("downloadClient"),
-                    "estimated_completion": item.get("estimatedCompletionTime")
+                    "estimated_completion": item.get("estimatedCompletionTime"),
                 }
                 for item in data.get("records", [])
             ]
@@ -196,16 +175,12 @@ class SonarrAdapter(TokenAuthAdapter):
         """Get upcoming episodes."""
         try:
             from datetime import timedelta
+
             start = datetime.utcnow()
             end = start + timedelta(days=days)
 
             response = await self._make_request(
-                "GET",
-                "/api/v3/calendar",
-                params={
-                    "start": start.isoformat(),
-                    "end": end.isoformat()
-                }
+                "GET", "/api/v3/calendar", params={"start": start.isoformat(), "end": end.isoformat()}
             )
             episodes = response.json()
 
@@ -218,7 +193,7 @@ class SonarrAdapter(TokenAuthAdapter):
                     "season": ep.get("seasonNumber"),
                     "episode": ep.get("episodeNumber"),
                     "air_date": ep.get("airDateUtc"),
-                    "has_file": ep.get("hasFile", False)
+                    "has_file": ep.get("hasFile", False),
                 }
                 for ep in episodes
             ]
@@ -245,7 +220,7 @@ class SonarrAdapter(TokenAuthAdapter):
                 "episodes_with_files": total_files,
                 "missing_episodes": total_episodes - total_files,
                 "queue_count": len(queue),
-                "total_size_gb": round(total_size / (1024**3), 2)
+                "total_size_gb": round(total_size / (1024**3), 2),
             }
         except Exception as e:
             self.logger.error(f"Failed to get statistics: {e}")
@@ -256,7 +231,7 @@ class SonarrAdapter(TokenAuthAdapter):
                 "episodes_with_files": 0,
                 "missing_episodes": 0,
                 "queue_count": 0,
-                "total_size_gb": 0
+                "total_size_gb": 0,
             }
 
     async def get_indexers(self) -> List[Dict[str, Any]]:
@@ -275,7 +250,7 @@ class SonarrAdapter(TokenAuthAdapter):
                     "supports_rss": indexer.get("supportsRss", False),
                     "supports_search": indexer.get("supportsSearch", False),
                     "implementation": indexer.get("implementation"),
-                    "config_contract": indexer.get("configContract")
+                    "config_contract": indexer.get("configContract"),
                 }
                 for indexer in indexers
             ]
@@ -292,18 +267,13 @@ class SonarrAdapter(TokenAuthAdapter):
             indexer_name = indexer_config.get("name", f"Indexer {indexer_id}")
 
             # Then test it
-            test_response = await self._make_request(
-                "POST",
-                "/api/v3/indexer/test",
-                json=indexer_config,
-                timeout=60.0
-            )
+            await self._make_request("POST", "/api/v3/indexer/test", json=indexer_config, timeout=60.0)
 
             return {
                 "success": True,
                 "indexer_id": indexer_id,
                 "indexer_name": indexer_name,
-                "message": "Indexer test passed"
+                "message": "Indexer test passed",
             }
         except httpx.HTTPStatusError as e:
             error_msg = "Test failed"
@@ -316,17 +286,9 @@ class SonarrAdapter(TokenAuthAdapter):
             except Exception:
                 error_msg = str(e)
 
-            return {
-                "success": False,
-                "indexer_id": indexer_id,
-                "error": error_msg
-            }
+            return {"success": False, "indexer_id": indexer_id, "error": error_msg}
         except Exception as e:
-            return {
-                "success": False,
-                "indexer_id": indexer_id,
-                "error": str(e)
-            }
+            return {"success": False, "indexer_id": indexer_id, "error": str(e)}
 
     async def test_all_indexers(self) -> Dict[str, Any]:
         """Test all enabled indexers."""
@@ -344,5 +306,5 @@ class SonarrAdapter(TokenAuthAdapter):
             "total_tested": len(results),
             "success_count": success_count,
             "failed_count": len(results) - success_count,
-            "results": results
+            "results": results,
         }

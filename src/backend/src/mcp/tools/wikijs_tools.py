@@ -1,6 +1,7 @@
 """MCP tools for WikiJS wiki/documentation integration."""
 
 from typing import List
+
 from .base import BaseTool, ToolDefinition, ToolParameter
 
 
@@ -170,10 +171,7 @@ class WikiJSTools(BaseTool):
     async def execute(self, tool_name: str, arguments: dict) -> dict:
         """Execute a WikiJS tool."""
         if not self.service_config:
-            return {
-                "success": False,
-                "error": "WikiJS service not configured"
-            }
+            return {"success": False, "error": "WikiJS service not configured"}
 
         try:
             from src.adapters.wikijs import WikiJSAdapter
@@ -224,14 +222,7 @@ class WikiJSTools(BaseTool):
 
         pages = await adapter.get_pages(limit=limit, locale=locale)
 
-        return {
-            "success": True,
-            "result": {
-                "count": len(pages),
-                "locale": locale,
-                "pages": pages
-            }
-        }
+        return {"success": True, "result": {"count": len(pages), "locale": locale, "pages": pages}}
 
     async def _get_page(self, adapter, arguments: dict) -> dict:
         """Get a specific page from WikiJS."""
@@ -243,15 +234,9 @@ class WikiJSTools(BaseTool):
         page = await adapter.get_page(int(page_id))
 
         if page:
-            return {
-                "success": True,
-                "result": page
-            }
+            return {"success": True, "result": page}
         else:
-            return {
-                "success": False,
-                "error": f"Page not found: {page_id}"
-            }
+            return {"success": False, "error": f"Page not found: {page_id}"}
 
     async def _search(self, adapter, arguments: dict) -> dict:
         """Search in WikiJS."""
@@ -270,8 +255,8 @@ class WikiJSTools(BaseTool):
                 "locale": locale,
                 "total": results.get("total", 0),
                 "suggestions": results.get("suggestions", []),
-                "results": results.get("results", [])
-            }
+                "results": results.get("results", []),
+            },
         }
 
     async def _get_page_tree(self, adapter, arguments: dict) -> dict:
@@ -281,48 +266,25 @@ class WikiJSTools(BaseTool):
 
         tree = await adapter.get_page_tree(parent_id=parent_id, locale=locale)
 
-        return {
-            "success": True,
-            "result": {
-                "parent_id": parent_id,
-                "locale": locale,
-                "count": len(tree),
-                "tree": tree
-            }
-        }
+        return {"success": True, "result": {"parent_id": parent_id, "locale": locale, "count": len(tree), "tree": tree}}
 
     async def _get_tags(self, adapter) -> dict:
         """Get tags from WikiJS."""
         tags = await adapter.get_tags()
 
-        return {
-            "success": True,
-            "result": {
-                "count": len(tags),
-                "tags": tags
-            }
-        }
+        return {"success": True, "result": {"count": len(tags), "tags": tags}}
 
     async def _get_users(self, adapter) -> dict:
         """Get users from WikiJS."""
         users = await adapter.get_users()
 
-        return {
-            "success": True,
-            "result": {
-                "count": len(users),
-                "users": users
-            }
-        }
+        return {"success": True, "result": {"count": len(users), "users": users}}
 
     async def _get_statistics(self, adapter) -> dict:
         """Get statistics from WikiJS."""
         stats = await adapter.get_statistics()
 
-        return {
-            "success": True,
-            "result": stats
-        }
+        return {"success": True, "result": stats}
 
     async def _create_page(self, adapter, arguments: dict) -> dict:
         """Create a page in WikiJS."""
@@ -340,16 +302,11 @@ class WikiJSTools(BaseTool):
         tags = [t.strip() for t in tags_str.split(",") if t.strip()] if tags_str else []
 
         result = await adapter.create_page(
-            path=path,
-            title=title,
-            content=content,
-            description=description,
-            locale=locale,
-            tags=tags
+            path=path, title=title, content=content, description=description, locale=locale, tags=tags
         )
 
         return {
             "success": result.get("success", False),
             "result": result if result.get("success") else None,
-            "error": result.get("error") if not result.get("success") else None
+            "error": result.get("error") if not result.get("success") else None,
         }

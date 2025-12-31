@@ -1,15 +1,14 @@
 """Audiobookshelf audiobook/podcast server adapter."""
 
-from typing import Dict, Any, List, Optional
 from datetime import datetime
+from typing import Any, Dict, List, Optional
+
 import httpx
 
 from .base import (
-    TokenAuthAdapter,
-    ServiceCapability,
     ConnectionTestResult,
-    AdapterError,
-    AuthenticationError
+    ServiceCapability,
+    TokenAuthAdapter,
 )
 
 
@@ -25,11 +24,7 @@ class AudiobookshelfAdapter(TokenAuthAdapter):
 
     @property
     def supported_capabilities(self) -> List[ServiceCapability]:
-        return [
-            ServiceCapability.MEDIA_CONTENT,
-            ServiceCapability.USER_MANAGEMENT,
-            ServiceCapability.API_ACCESS
-        ]
+        return [ServiceCapability.MEDIA_CONTENT, ServiceCapability.USER_MANAGEMENT, ServiceCapability.API_ACCESS]
 
     @property
     def token_config_key(self) -> str:
@@ -37,11 +32,7 @@ class AudiobookshelfAdapter(TokenAuthAdapter):
 
     def _format_token_header(self, token: str) -> Dict[str, str]:
         """Format Audiobookshelf Bearer token header."""
-        return {
-            "Authorization": f"Bearer {token}",
-            "Content-Type": "application/json",
-            "Accept": "application/json"
-        }
+        return {"Authorization": f"Bearer {token}", "Content-Type": "application/json", "Accept": "application/json"}
 
     def _get_auth_header(self) -> Dict[str, str]:
         """Get auth header with Bearer token."""
@@ -51,10 +42,7 @@ class AudiobookshelfAdapter(TokenAuthAdapter):
             return self._format_token_header(api_token)
 
         # No auth configured
-        return {
-            "Content-Type": "application/json",
-            "Accept": "application/json"
-        }
+        return {"Content-Type": "application/json", "Accept": "application/json"}
 
     async def _make_request(
         self,
@@ -62,20 +50,14 @@ class AudiobookshelfAdapter(TokenAuthAdapter):
         endpoint: str,
         params: Optional[Dict[str, Any]] = None,
         json: Optional[Dict[str, Any]] = None,
-        timeout: float = 30.0
+        timeout: float = 30.0,
     ):
         """Make HTTP request to Audiobookshelf API."""
         url = f"{self.base_url.rstrip('/')}{endpoint}"
         headers = self._get_auth_header()
 
         async with httpx.AsyncClient(timeout=timeout) as client:
-            response = await client.request(
-                method,
-                url,
-                params=params,
-                json=json,
-                headers=headers
-            )
+            response = await client.request(method, url, params=params, json=json, headers=headers)
             response.raise_for_status()
             return response
 
@@ -105,8 +87,8 @@ class AudiobookshelfAdapter(TokenAuthAdapter):
                             "status": "connected",
                             "user": me_data.get("username"),
                             "user_type": me_data.get("type"),
-                            "is_active": me_data.get("isActive", False)
-                        }
+                            "is_active": me_data.get("isActive", False),
+                        },
                     )
                 except httpx.HTTPStatusError as e:
                     if e.response.status_code == 401:
@@ -114,7 +96,7 @@ class AudiobookshelfAdapter(TokenAuthAdapter):
                             success=False,
                             message="Server reachable but authentication failed - check API token",
                             response_time_ms=response_time,
-                            details={"status": "auth_failed", "status_code": 401}
+                            details={"status": "auth_failed", "status_code": 401},
                         )
                     raise
             else:
@@ -122,7 +104,7 @@ class AudiobookshelfAdapter(TokenAuthAdapter):
                     success=False,
                     message="Connected but response doesn't appear to be from Audiobookshelf",
                     response_time_ms=response_time,
-                    details={"status": "invalid_response"}
+                    details={"status": "invalid_response"},
                 )
 
         except httpx.HTTPStatusError as e:
@@ -130,18 +112,18 @@ class AudiobookshelfAdapter(TokenAuthAdapter):
                 return ConnectionTestResult(
                     success=False,
                     message="Authentication failed - check API token",
-                    details={"status": "auth_failed", "status_code": 401}
+                    details={"status": "auth_failed", "status_code": 401},
                 )
             return ConnectionTestResult(
                 success=False,
                 message=f"HTTP error: {e.response.status_code}",
-                details={"status": "http_error", "status_code": e.response.status_code}
+                details={"status": "http_error", "status_code": e.response.status_code},
             )
         except Exception as e:
             return ConnectionTestResult(
                 success=False,
                 message=f"Connection failed: {str(e)}",
-                details={"status": "connection_failed", "error": str(e)}
+                details={"status": "connection_failed", "error": str(e)},
             )
 
     async def get_service_info(self) -> Dict[str, Any]:
@@ -162,15 +144,10 @@ class AudiobookshelfAdapter(TokenAuthAdapter):
                 "user_type": me.get("type"),
                 "is_admin": me.get("type") == "root" or me.get("type") == "admin",
                 "auth_methods": status.get("authMethods", []),
-                "status": "online"
+                "status": "online",
             }
         except Exception as e:
-            return {
-                "service": "audiobookshelf",
-                "version": "unknown",
-                "status": "error",
-                "error": str(e)
-            }
+            return {"service": "audiobookshelf", "version": "unknown", "status": "error", "error": str(e)}
 
     async def get_libraries(self) -> List[Dict[str, Any]]:
         """Get list of libraries."""
@@ -189,8 +166,8 @@ class AudiobookshelfAdapter(TokenAuthAdapter):
                     "provider": lib.get("provider"),
                     "settings": {
                         "cover_aspect_ratio": lib.get("settings", {}).get("coverAspectRatio"),
-                        "disable_watcher": lib.get("settings", {}).get("disableWatcher", False)
-                    }
+                        "disable_watcher": lib.get("settings", {}).get("disableWatcher", False),
+                    },
                 }
                 for lib in libraries
             ]
@@ -204,23 +181,15 @@ class AudiobookshelfAdapter(TokenAuthAdapter):
         limit: int = 50,
         page: int = 0,
         sort: str = "media.metadata.title",
-        filter_type: Optional[str] = None
+        filter_type: Optional[str] = None,
     ) -> Dict[str, Any]:
         """Get items from a library."""
         try:
-            params = {
-                "limit": limit,
-                "page": page,
-                "sort": sort
-            }
+            params = {"limit": limit, "page": page, "sort": sort}
             if filter_type:
                 params["filter"] = filter_type
 
-            response = await self._make_request(
-                "GET",
-                f"/api/libraries/{library_id}/items",
-                params=params
-            )
+            response = await self._make_request("GET", f"/api/libraries/{library_id}/items", params=params)
             data = response.json()
 
             return {
@@ -238,10 +207,10 @@ class AudiobookshelfAdapter(TokenAuthAdapter):
                         "num_chapters": len(item.get("media", {}).get("chapters", [])),
                         "num_audio_files": item.get("media", {}).get("numAudioFiles", 0),
                         "added_at": item.get("addedAt"),
-                        "updated_at": item.get("updatedAt")
+                        "updated_at": item.get("updatedAt"),
                     }
                     for item in data.get("results", [])
-                ]
+                ],
             }
         except Exception as e:
             self.logger.error(f"Failed to get library items: {e}")
@@ -276,16 +245,11 @@ class AudiobookshelfAdapter(TokenAuthAdapter):
                 "num_chapters": len(media.get("chapters", [])),
                 "num_audio_files": media.get("numAudioFiles", 0),
                 "chapters": [
-                    {
-                        "id": ch.get("id"),
-                        "title": ch.get("title"),
-                        "start": ch.get("start"),
-                        "end": ch.get("end")
-                    }
+                    {"id": ch.get("id"), "title": ch.get("title"), "start": ch.get("start"), "end": ch.get("end")}
                     for ch in media.get("chapters", [])
                 ],
                 "added_at": item.get("addedAt"),
-                "updated_at": item.get("updatedAt")
+                "updated_at": item.get("updatedAt"),
             }
         except Exception as e:
             self.logger.error(f"Failed to get item: {e}")
@@ -295,9 +259,7 @@ class AudiobookshelfAdapter(TokenAuthAdapter):
         """Search for items in a library."""
         try:
             response = await self._make_request(
-                "GET",
-                f"/api/libraries/{library_id}/search",
-                params={"q": query, "limit": limit}
+                "GET", f"/api/libraries/{library_id}/search", params={"q": query, "limit": limit}
             )
             data = response.json()
 
@@ -308,7 +270,7 @@ class AudiobookshelfAdapter(TokenAuthAdapter):
                         "title": item.get("libraryItem", {}).get("media", {}).get("metadata", {}).get("title"),
                         "author": item.get("libraryItem", {}).get("media", {}).get("metadata", {}).get("authorName"),
                         "match_key": item.get("matchKey"),
-                        "match_text": item.get("matchText")
+                        "match_text": item.get("matchText"),
                     }
                     for item in data.get("book", [])
                 ],
@@ -318,25 +280,19 @@ class AudiobookshelfAdapter(TokenAuthAdapter):
                         "title": item.get("libraryItem", {}).get("media", {}).get("metadata", {}).get("title"),
                         "author": item.get("libraryItem", {}).get("media", {}).get("metadata", {}).get("author"),
                         "match_key": item.get("matchKey"),
-                        "match_text": item.get("matchText")
+                        "match_text": item.get("matchText"),
                     }
                     for item in data.get("podcast", [])
                 ],
-                "authors": [
-                    {
-                        "id": a.get("id"),
-                        "name": a.get("name")
-                    }
-                    for a in data.get("authors", [])
-                ],
+                "authors": [{"id": a.get("id"), "name": a.get("name")} for a in data.get("authors", [])],
                 "series": [
                     {
                         "id": s.get("series", {}).get("id"),
                         "name": s.get("series", {}).get("name"),
-                        "num_books": len(s.get("books", []))
+                        "num_books": len(s.get("books", [])),
                     }
                     for s in data.get("series", [])
-                ]
+                ],
             }
         except Exception as e:
             self.logger.error(f"Failed to search: {e}")
@@ -359,7 +315,7 @@ class AudiobookshelfAdapter(TokenAuthAdapter):
                     "is_locked": user.get("isLocked", False),
                     "created_at": user.get("createdAt"),
                     "libraries_allowed": user.get("librariesAccessible", []),
-                    "permissions": user.get("permissions", {})
+                    "permissions": user.get("permissions", {}),
                 }
                 for user in users
             ]
@@ -386,7 +342,7 @@ class AudiobookshelfAdapter(TokenAuthAdapter):
                     "play_method": session.get("playMethod"),
                     "device_info": session.get("deviceInfo", {}),
                     "started_at": session.get("startedAt"),
-                    "updated_at": session.get("updatedAt")
+                    "updated_at": session.get("updatedAt"),
                 }
                 for session in sessions
             ]
@@ -408,20 +364,22 @@ class AudiobookshelfAdapter(TokenAuthAdapter):
                         "id": item.get("id"),
                         "media_metadata": item.get("mediaMetadata", {}),
                         "min_since_update": item.get("minSinceUpdate"),
-                        "recently_listened": item.get("recentlyListened")
+                        "recently_listened": item.get("recentlyListened"),
                     }
                     for item in data.get("items", [])
                 ],
                 "days": data.get("days", {}),
                 "day_of_week": data.get("dayOfWeek", {}),
                 "today": data.get("today", 0),
-                "recent_sessions": data.get("recentSessions", [])
+                "recent_sessions": data.get("recentSessions", []),
             }
         except Exception as e:
             self.logger.error(f"Failed to get listening stats: {e}")
             return {"total_time": 0, "items": [], "days": {}, "day_of_week": {}, "today": 0}
 
-    async def get_media_progress(self, library_item_id: str, episode_id: Optional[str] = None) -> Optional[Dict[str, Any]]:
+    async def get_media_progress(
+        self, library_item_id: str, episode_id: Optional[str] = None
+    ) -> Optional[Dict[str, Any]]:
         """Get media progress for a library item."""
         try:
             if episode_id:
@@ -443,7 +401,7 @@ class AudiobookshelfAdapter(TokenAuthAdapter):
                 "hide_from_continue_listening": progress.get("hideFromContinueListening", False),
                 "started_at": progress.get("startedAt"),
                 "finished_at": progress.get("finishedAt"),
-                "last_update": progress.get("lastUpdate")
+                "last_update": progress.get("lastUpdate"),
             }
         except httpx.HTTPStatusError as e:
             if e.response.status_code == 404:
@@ -480,7 +438,7 @@ class AudiobookshelfAdapter(TokenAuthAdapter):
                 "total_podcasts": total_podcasts,
                 "total_duration_hours": round(total_duration / 3600, 2),
                 "listening_time_hours": round(listening_stats.get("total_time", 0) / 3600, 2),
-                "listened_today_hours": round(listening_stats.get("today", 0) / 3600, 2)
+                "listened_today_hours": round(listening_stats.get("today", 0) / 3600, 2),
             }
         except Exception as e:
             self.logger.error(f"Failed to get statistics: {e}")
@@ -490,5 +448,5 @@ class AudiobookshelfAdapter(TokenAuthAdapter):
                 "total_podcasts": 0,
                 "total_duration_hours": 0,
                 "listening_time_hours": 0,
-                "listened_today_hours": 0
+                "listened_today_hours": 0,
             }

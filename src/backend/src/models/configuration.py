@@ -1,12 +1,11 @@
 """Configuration settings model."""
 
-from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import String, Text, Boolean, DateTime
+from sqlalchemy import Boolean, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
-from .base import Base, UUIDMixin, TimestampMixin, ConfigCategory, ValueType
+from .base import Base, ConfigCategory, TimestampMixin, UUIDMixin, ValueType
 
 
 class ConfigurationSetting(Base, UUIDMixin, TimestampMixin):
@@ -14,51 +13,16 @@ class ConfigurationSetting(Base, UUIDMixin, TimestampMixin):
 
     __tablename__ = "configuration_settings"
 
-    category: Mapped[ConfigCategory] = mapped_column(
-        String(50),
-        nullable=False,
-        index=True
-    )
-    key: Mapped[str] = mapped_column(
-        String(255),
-        nullable=False,
-        index=True
-    )
-    value: Mapped[str] = mapped_column(
-        Text,
-        nullable=False
-    )
-    value_type: Mapped[ValueType] = mapped_column(
-        String(20),
-        nullable=False,
-        default=ValueType.STRING
-    )
-    default_value: Mapped[str] = mapped_column(
-        Text,
-        nullable=False
-    )
-    description: Mapped[str] = mapped_column(
-        Text,
-        nullable=False
-    )
-    is_sensitive: Mapped[bool] = mapped_column(
-        Boolean,
-        default=False,
-        nullable=False
-    )
-    validation_regex: Mapped[Optional[str]] = mapped_column(
-        String(500),
-        nullable=True
-    )
-    requires_restart: Mapped[bool] = mapped_column(
-        Boolean,
-        default=False,
-        nullable=False
-    )
-    updated_by: Mapped[Optional[str]] = mapped_column(
-        String(255),
-        nullable=True
-    )
+    category: Mapped[ConfigCategory] = mapped_column(String(50), nullable=False, index=True)
+    key: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
+    value: Mapped[str] = mapped_column(Text, nullable=False)
+    value_type: Mapped[ValueType] = mapped_column(String(20), nullable=False, default=ValueType.STRING)
+    default_value: Mapped[str] = mapped_column(Text, nullable=False)
+    description: Mapped[str] = mapped_column(Text, nullable=False)
+    is_sensitive: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    validation_regex: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
+    requires_restart: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    updated_by: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
 
     def __repr__(self) -> str:
         return (
@@ -77,8 +41,8 @@ class ConfigurationSetting(Base, UUIDMixin, TimestampMixin):
 
     def validate_value(self, value: str) -> bool:
         """Validate value against type and regex."""
-        import re
         import json
+        import re
 
         # Type validation
         try:
@@ -87,7 +51,7 @@ class ConfigurationSetting(Base, UUIDMixin, TimestampMixin):
             elif self.value_type == ValueType.FLOAT:
                 float(value)
             elif self.value_type == ValueType.BOOLEAN:
-                if value.lower() not in ['true', 'false', '1', '0']:
+                if value.lower() not in ["true", "false", "1", "0"]:
                     return False
             elif self.value_type == ValueType.JSON:
                 json.loads(value)

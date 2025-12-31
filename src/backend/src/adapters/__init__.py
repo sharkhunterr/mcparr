@@ -1,27 +1,27 @@
 """Service adapters package."""
 
-from .base import (
-    BaseServiceAdapter,
-    TokenAuthAdapter,
-    ServiceCapability,
-    ConnectionTestResult,
-    AdapterError,
-    AuthenticationError
-)
-from .plex import PlexAdapter
-from .overseerr import OverseerrAdapter
-from .zammad import ZammadAdapter
-from .tautulli import TautulliAdapter
 from .authentik import AuthentikAdapter
-from .openwebui import OpenWebUIAdapter
-from .ollama import OllamaAdapter
-from .radarr import RadarrAdapter
-from .sonarr import SonarrAdapter
-from .prowlarr import ProwlarrAdapter
-from .jackett import JackettAdapter
+from .base import (
+    AdapterError,
+    AuthenticationError,
+    BaseServiceAdapter,
+    ConnectionTestResult,
+    ServiceCapability,
+    TokenAuthAdapter,
+)
 from .deluge import DelugeAdapter
+from .jackett import JackettAdapter
 from .komga import KomgaAdapter
+from .ollama import OllamaAdapter
+from .openwebui import OpenWebUIAdapter
+from .overseerr import OverseerrAdapter
+from .plex import PlexAdapter
+from .prowlarr import ProwlarrAdapter
+from .radarr import RadarrAdapter
 from .romm import RommAdapter
+from .sonarr import SonarrAdapter
+from .tautulli import TautulliAdapter
+from .zammad import ZammadAdapter
 
 __all__ = [
     # Base classes

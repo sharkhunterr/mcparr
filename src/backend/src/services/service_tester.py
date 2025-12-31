@@ -1,27 +1,28 @@
 """Service connection testing functionality."""
 
-from typing import Dict, Any, Optional
 import logging
+from typing import Any, Dict, Optional
+
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..models.service_config import ServiceConfig, ServiceHealthHistory
-from ..adapters.base import BaseServiceAdapter, ConnectionTestResult
-from ..adapters.plex import PlexAdapter
-from ..adapters.overseerr import OverseerrAdapter
-from ..adapters.zammad import ZammadAdapter
-from ..adapters.tautulli import TautulliAdapter
-from ..adapters.authentik import AuthentikAdapter
-from ..adapters.openwebui import OpenWebUIAdapter
-from ..adapters.ollama import OllamaAdapter
-from ..adapters.radarr import RadarrAdapter
-from ..adapters.sonarr import SonarrAdapter
-from ..adapters.prowlarr import ProwlarrAdapter
-from ..adapters.jackett import JackettAdapter
-from ..adapters.deluge import DelugeAdapter
-from ..adapters.komga import KomgaAdapter
-from ..adapters.romm import RommAdapter
 from ..adapters.audiobookshelf import AudiobookshelfAdapter
+from ..adapters.authentik import AuthentikAdapter
+from ..adapters.base import BaseServiceAdapter, ConnectionTestResult
+from ..adapters.deluge import DelugeAdapter
+from ..adapters.jackett import JackettAdapter
+from ..adapters.komga import KomgaAdapter
+from ..adapters.ollama import OllamaAdapter
+from ..adapters.openwebui import OpenWebUIAdapter
+from ..adapters.overseerr import OverseerrAdapter
+from ..adapters.plex import PlexAdapter
+from ..adapters.prowlarr import ProwlarrAdapter
+from ..adapters.radarr import RadarrAdapter
+from ..adapters.romm import RommAdapter
+from ..adapters.sonarr import SonarrAdapter
+from ..adapters.tautulli import TautulliAdapter
 from ..adapters.wikijs import WikiJSAdapter
+from ..adapters.zammad import ZammadAdapter
+from ..models.service_config import ServiceConfig, ServiceHealthHistory
 
 logger = logging.getLogger(__name__)
 
@@ -46,7 +47,7 @@ class ServiceTester:
         "komga": KomgaAdapter,
         "romm": RommAdapter,
         "audiobookshelf": AudiobookshelfAdapter,
-        "wikijs": WikiJSAdapter
+        "wikijs": WikiJSAdapter,
     }
 
     @classmethod
@@ -65,9 +66,7 @@ class ServiceTester:
 
     @classmethod
     async def test_service_connection(
-        cls,
-        service_config: ServiceConfig,
-        db_session: Optional[AsyncSession] = None
+        cls, service_config: ServiceConfig, db_session: Optional[AsyncSession] = None
     ) -> ConnectionTestResult:
         """Test connection to a service using its adapter."""
         logger.info(f"Testing connection to service: {service_config.name} ({service_config.service_type})")
@@ -78,7 +77,7 @@ class ServiceTester:
             return ConnectionTestResult(
                 success=False,
                 message=f"No adapter available for service type: {service_config.service_type}",
-                details={"error": "unsupported_service_type"}
+                details={"error": "unsupported_service_type"},
             )
 
         try:
@@ -90,8 +89,7 @@ class ServiceTester:
             if db_session:
                 try:
                     service_config.update_test_result(
-                        success=result.success,
-                        error=result.message if not result.success else None
+                        success=result.success, error=result.message if not result.success else None
                     )
 
                     # Store health history record
@@ -99,7 +97,7 @@ class ServiceTester:
                         service_id=service_config.id,
                         success=result.success,
                         response_time_ms=result.response_time_ms,
-                        error_message=result.message if not result.success else None
+                        error_message=result.message if not result.success else None,
                     )
                     db_session.add(health_record)
 
@@ -109,8 +107,7 @@ class ServiceTester:
                     logger.warning(f"Failed to update test results in database: {e}")
 
             logger.info(
-                f"Connection test completed for {service_config.name}: "
-                f"{'SUCCESS' if result.success else 'FAILED'}"
+                f"Connection test completed for {service_config.name}: " f"{'SUCCESS' if result.success else 'FAILED'}"
             )
 
             return result
@@ -121,7 +118,7 @@ class ServiceTester:
             error_result = ConnectionTestResult(
                 success=False,
                 message=f"Test failed with error: {str(e)}",
-                details={"error": "test_exception", "exception": str(e)}
+                details={"error": "test_exception", "exception": str(e)},
             )
 
             # Update service with error if database session is provided
@@ -131,10 +128,7 @@ class ServiceTester:
 
                     # Store health history record for error
                     health_record = ServiceHealthHistory(
-                        service_id=service_config.id,
-                        success=False,
-                        response_time_ms=None,
-                        error_message=str(e)
+                        service_id=service_config.id, success=False, response_time_ms=None, error_message=str(e)
                     )
                     db_session.add(health_record)
 
@@ -176,7 +170,7 @@ class ServiceTester:
         try:
             async with adapter:
                 # Check if adapter has statistics method
-                if hasattr(adapter, 'get_statistics'):
+                if hasattr(adapter, "get_statistics"):
                     stats = await adapter.get_statistics()
                     logger.info(f"Retrieved statistics for {service_config.name}")
                     return stats
@@ -194,10 +188,7 @@ class ServiceTester:
 
         adapter = cls.get_adapter_for_service(service_config)
         if not adapter:
-            return {
-                "valid": False,
-                "errors": [f"No adapter available for service type: {service_config.service_type}"]
-            }
+            return {"valid": False, "errors": [f"No adapter available for service type: {service_config.service_type}"]}
 
         try:
             errors = adapter.validate_config()
@@ -212,15 +203,12 @@ class ServiceTester:
                 "valid": is_valid,
                 "errors": errors,
                 "service_type": adapter.service_type,
-                "supported_capabilities": [cap.value for cap in adapter.supported_capabilities]
+                "supported_capabilities": [cap.value for cap in adapter.supported_capabilities],
             }
 
         except Exception as e:
             logger.error(f"Error validating configuration for {service_config.name}: {e}")
-            return {
-                "valid": False,
-                "errors": [f"Validation failed: {str(e)}"]
-            }
+            return {"valid": False, "errors": [f"Validation failed: {str(e)}"]}
 
     @classmethod
     def get_supported_service_types(cls) -> Dict[str, Dict[str, Any]]:
@@ -230,18 +218,22 @@ class ServiceTester:
         for service_type, adapter_class in cls.ADAPTER_REGISTRY.items():
             try:
                 # Create a dummy service config to get adapter info
-                dummy_config = type('DummyConfig', (), {
-                    'service_type': service_type,
-                    'base_url': 'http://example.com',
-                    'get_config_value': lambda self, key, default=None: default
-                })()
+                dummy_config = type(
+                    "DummyConfig",
+                    (),
+                    {
+                        "service_type": service_type,
+                        "base_url": "http://example.com",
+                        "get_config_value": lambda self, key, default=None: default,
+                    },
+                )()
 
                 adapter = adapter_class(dummy_config)
 
                 supported_types[service_type] = {
                     "name": service_type.title(),
                     "capabilities": [cap.value for cap in adapter.supported_capabilities],
-                    "description": f"{service_type.title()} service adapter"
+                    "description": f"{service_type.title()} service adapter",
                 }
 
             except Exception as e:
@@ -249,7 +241,7 @@ class ServiceTester:
                 supported_types[service_type] = {
                     "name": service_type.title(),
                     "capabilities": [],
-                    "description": f"{service_type.title()} service adapter (error loading)"
+                    "description": f"{service_type.title()} service adapter (error loading)",
                 }
 
         return supported_types

@@ -21,37 +21,38 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspa
 
 async def load_service_configs():
     """Load service configurations from database."""
+    from sqlalchemy import select
+
     from src.database.connection import get_db_session
     from src.models import ServiceConfig
-    from sqlalchemy import select
 
     configs = []
     async for session in get_db_session():
-        result = await session.execute(
-            select(ServiceConfig).where(ServiceConfig.enabled == True)
-        )
+        result = await session.execute(select(ServiceConfig).where(ServiceConfig.enabled is True))
         services = result.scalars().all()
 
         for service in services:
-            configs.append({
-                "id": str(service.id),
-                "name": service.name,
-                "service_type": service.service_type,
-                "base_url": service.base_url,
-                "port": service.port,
-                "api_key": service.api_key,
-                "username": service.username,
-                "password": service.password,
-                "config": service.config or {},
-            })
+            configs.append(
+                {
+                    "id": str(service.id),
+                    "name": service.name,
+                    "service_type": service.service_type,
+                    "base_url": service.base_url,
+                    "port": service.port,
+                    "api_key": service.api_key,
+                    "username": service.username,
+                    "password": service.password,
+                    "config": service.config or {},
+                }
+            )
 
     return configs
 
 
 async def main():
     """Main entry point for the MCP server."""
-    from src.mcp.server import MCPServer
     from src.database.connection import async_session_maker
+    from src.mcp.server import MCPServer
 
     # Create the MCP server
     server = MCPServer(db_session_factory=async_session_maker)

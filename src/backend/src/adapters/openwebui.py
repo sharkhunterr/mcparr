@@ -1,15 +1,16 @@
 """Open WebUI adapter for AI chat interface integration."""
 
-from typing import Dict, Any, List, Optional
-import httpx
 from datetime import datetime
+from typing import Any, Dict, List, Optional
+
+import httpx
 
 from .base import (
-    TokenAuthAdapter,
-    ServiceCapability,
-    ConnectionTestResult,
     AdapterError,
-    AuthenticationError
+    AuthenticationError,
+    ConnectionTestResult,
+    ServiceCapability,
+    TokenAuthAdapter,
 )
 
 
@@ -36,11 +37,7 @@ class OpenWebUIAdapter(TokenAuthAdapter):
 
     @property
     def supported_capabilities(self) -> List[ServiceCapability]:
-        return [
-            ServiceCapability.USER_MANAGEMENT,
-            ServiceCapability.API_ACCESS,
-            ServiceCapability.AUTHENTICATION
-        ]
+        return [ServiceCapability.USER_MANAGEMENT, ServiceCapability.API_ACCESS, ServiceCapability.AUTHENTICATION]
 
     @property
     def token_config_key(self) -> str:
@@ -48,11 +45,7 @@ class OpenWebUIAdapter(TokenAuthAdapter):
 
     def _format_token_header(self, token: str) -> Dict[str, str]:
         """Format Open WebUI token header."""
-        return {
-            "Authorization": f"Bearer {token}",
-            "Content-Type": "application/json",
-            "Accept": "application/json"
-        }
+        return {"Authorization": f"Bearer {token}", "Content-Type": "application/json", "Accept": "application/json"}
 
     async def test_connection(self) -> ConnectionTestResult:
         """Test connection to Open WebUI."""
@@ -77,15 +70,15 @@ class OpenWebUIAdapter(TokenAuthAdapter):
                         "user_id": data.get("id"),
                         "email": data.get("email"),
                         "name": data.get("name"),
-                        "role": data.get("role")
-                    }
+                        "role": data.get("role"),
+                    },
                 )
             else:
                 return ConnectionTestResult(
                     success=False,
                     message="Connected but response doesn't appear to be from Open WebUI",
                     response_time_ms=response_time,
-                    details={"status": "invalid_response"}
+                    details={"status": "invalid_response"},
                 )
 
         except httpx.HTTPStatusError as e:
@@ -93,31 +86,31 @@ class OpenWebUIAdapter(TokenAuthAdapter):
                 return ConnectionTestResult(
                     success=False,
                     message="Authentication failed - check token",
-                    details={"status": "auth_failed", "status_code": 401}
+                    details={"status": "auth_failed", "status_code": 401},
                 )
             elif e.response.status_code == 403:
                 return ConnectionTestResult(
                     success=False,
                     message="Access denied - insufficient permissions",
-                    details={"status": "access_denied", "status_code": 403}
+                    details={"status": "access_denied", "status_code": 403},
                 )
             else:
                 return ConnectionTestResult(
                     success=False,
                     message=f"HTTP error: {e.response.status_code}",
-                    details={"status": "http_error", "status_code": e.response.status_code}
+                    details={"status": "http_error", "status_code": e.response.status_code},
                 )
         except httpx.RequestError as e:
             return ConnectionTestResult(
                 success=False,
                 message=f"Connection failed: {str(e)}",
-                details={"status": "connection_failed", "error": str(e)}
+                details={"status": "connection_failed", "error": str(e)},
             )
         except Exception as e:
             return ConnectionTestResult(
                 success=False,
                 message=f"Unexpected error: {str(e)}",
-                details={"status": "unexpected_error", "error": str(e)}
+                details={"status": "unexpected_error", "error": str(e)},
             )
 
     async def get_service_info(self) -> Dict[str, Any]:
@@ -141,24 +134,20 @@ class OpenWebUIAdapter(TokenAuthAdapter):
                     "email": user_data.get("email"),
                     "name": user_data.get("name"),
                     "role": user_data.get("role"),
-                    "profile_image_url": user_data.get("profile_image_url")
+                    "profile_image_url": user_data.get("profile_image_url"),
                 },
                 "models_available": len(models_data) if models_data and isinstance(models_data, list) else 0,
-                "config": config_data if config_data else {}
+                "config": config_data if config_data else {},
             }
 
         except httpx.HTTPStatusError as e:
             if e.response.status_code == 401:
-                raise AuthenticationError("Invalid Open WebUI token")
-            raise AdapterError(f"HTTP error: {e.response.status_code}")
+                raise AuthenticationError("Invalid Open WebUI token") from e
+            raise AdapterError(f"HTTP error: {e.response.status_code}") from e
         except Exception as e:
-            raise AdapterError(f"Failed to get service info: {str(e)}")
+            raise AdapterError(f"Failed to get service info: {str(e)}") from e
 
-    async def get_users(
-        self,
-        skip: int = 0,
-        limit: int = 50
-    ) -> Dict[str, Any]:
+    async def get_users(self, skip: int = 0, limit: int = 50) -> Dict[str, Any]:
         """
         Get users from Open WebUI.
 
@@ -173,30 +162,27 @@ class OpenWebUIAdapter(TokenAuthAdapter):
             users = []
             # Handle both list and dict response formats
             raw_users = users_data
-            if isinstance(users_data, dict) and 'users' in users_data:
-                raw_users = users_data['users']
+            if isinstance(users_data, dict) and "users" in users_data:
+                raw_users = users_data["users"]
 
             if isinstance(raw_users, list):
                 for user in raw_users:
-                    users.append({
-                        "id": user.get("id"),
-                        "email": user.get("email"),
-                        "name": user.get("name"),
-                        "username": user.get("email", "").split("@")[0] if user.get("email") else user.get("name"),
-                        "role": user.get("role"),
-                        "profile_image_url": user.get("profile_image_url"),
-                        "created_at": user.get("created_at"),
-                        "last_active_at": user.get("last_active_at"),
-                        # Keep raw data for reference
-                        "_raw": user
-                    })
+                    users.append(
+                        {
+                            "id": user.get("id"),
+                            "email": user.get("email"),
+                            "name": user.get("name"),
+                            "username": user.get("email", "").split("@")[0] if user.get("email") else user.get("name"),
+                            "role": user.get("role"),
+                            "profile_image_url": user.get("profile_image_url"),
+                            "created_at": user.get("created_at"),
+                            "last_active_at": user.get("last_active_at"),
+                            # Keep raw data for reference
+                            "_raw": user,
+                        }
+                    )
 
-            return {
-                "users": users,
-                "count": len(users),
-                "skip": skip,
-                "limit": limit
-            }
+            return {"users": users, "count": len(users), "skip": skip, "limit": limit}
 
         except httpx.HTTPStatusError as e:
             if e.response.status_code == 403:
@@ -221,7 +207,7 @@ class OpenWebUIAdapter(TokenAuthAdapter):
                 "role": user.get("role"),
                 "profile_image_url": user.get("profile_image_url"),
                 "created_at": user.get("created_at"),
-                "last_active_at": user.get("last_active_at")
+                "last_active_at": user.get("last_active_at"),
             }
 
         except httpx.HTTPStatusError as e:
@@ -243,7 +229,7 @@ class OpenWebUIAdapter(TokenAuthAdapter):
                 "email": user.get("email"),
                 "name": user.get("name"),
                 "role": user.get("role"),
-                "profile_image_url": user.get("profile_image_url")
+                "profile_image_url": user.get("profile_image_url"),
             }
 
         except Exception as e:
@@ -263,7 +249,7 @@ class OpenWebUIAdapter(TokenAuthAdapter):
                         "name": model.get("name"),
                         "owned_by": model.get("owned_by"),
                         "created": model.get("created"),
-                        "object": model.get("object")
+                        "object": model.get("object"),
                     }
                     for model in models_data
                 ]
@@ -274,7 +260,7 @@ class OpenWebUIAdapter(TokenAuthAdapter):
                         "name": model.get("name", model.get("id")),
                         "owned_by": model.get("owned_by"),
                         "created": model.get("created"),
-                        "object": model.get("object")
+                        "object": model.get("object"),
                     }
                     for model in models_data.get("data", [])
                 ]
@@ -284,11 +270,7 @@ class OpenWebUIAdapter(TokenAuthAdapter):
             self.logger.warning(f"Failed to get models: {e}")
             return []
 
-    async def get_chats(
-        self,
-        skip: int = 0,
-        limit: int = 50
-    ) -> Dict[str, Any]:
+    async def get_chats(self, skip: int = 0, limit: int = 50) -> Dict[str, Any]:
         """Get chat history for current user."""
         try:
             params = {"skip": str(skip), "limit": str(limit)}
@@ -298,20 +280,17 @@ class OpenWebUIAdapter(TokenAuthAdapter):
             chats = []
             if isinstance(chats_data, list):
                 for chat in chats_data:
-                    chats.append({
-                        "id": chat.get("id"),
-                        "title": chat.get("title"),
-                        "created_at": chat.get("created_at"),
-                        "updated_at": chat.get("updated_at"),
-                        "models": chat.get("models", [])
-                    })
+                    chats.append(
+                        {
+                            "id": chat.get("id"),
+                            "title": chat.get("title"),
+                            "created_at": chat.get("created_at"),
+                            "updated_at": chat.get("updated_at"),
+                            "models": chat.get("models", []),
+                        }
+                    )
 
-            return {
-                "chats": chats,
-                "count": len(chats),
-                "skip": skip,
-                "limit": limit
-            }
+            return {"chats": chats, "count": len(chats), "skip": skip, "limit": limit}
 
         except Exception as e:
             self.logger.warning(f"Failed to get chats: {e}")
@@ -353,7 +332,7 @@ class OpenWebUIAdapter(TokenAuthAdapter):
                 "models": [m.get("id") for m in models[:10]],  # First 10 model IDs
                 "user_chats_count": chats_data.get("count", 0),
                 "version": service_info.get("version", "unknown"),
-                "current_user": service_info.get("current_user", {})
+                "current_user": service_info.get("current_user", {}),
             }
 
         except Exception as e:
@@ -364,7 +343,7 @@ class OpenWebUIAdapter(TokenAuthAdapter):
                 "models": [],
                 "user_chats_count": 0,
                 "version": "unknown",
-                "error": str(e)
+                "error": str(e),
             }
 
     async def search_users(self, query: str) -> List[Dict[str, Any]]:
@@ -377,7 +356,8 @@ class OpenWebUIAdapter(TokenAuthAdapter):
 
             query_lower = query.lower()
             matching_users = [
-                user for user in users
+                user
+                for user in users
                 if query_lower in (user.get("email") or "").lower()
                 or query_lower in (user.get("name") or "").lower()
                 or query_lower in (user.get("username") or "").lower()

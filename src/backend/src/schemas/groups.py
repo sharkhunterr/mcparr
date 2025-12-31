@@ -1,14 +1,16 @@
 """Group schemas for API validation and serialization."""
 
-from typing import List, Optional
 from datetime import datetime
-from pydantic import BaseModel, Field
+from typing import List, Optional
 
+from pydantic import BaseModel, Field
 
 # --- Tool Permission Schemas ---
 
+
 class GroupToolPermissionCreate(BaseModel):
     """Schema for creating a tool permission."""
+
     tool_name: str = Field(..., description="Tool name or '*' for all tools")
     service_type: Optional[str] = Field(None, description="Service type filter (optional)")
     enabled: bool = Field(True, description="Whether permission is enabled")
@@ -17,6 +19,7 @@ class GroupToolPermissionCreate(BaseModel):
 
 class GroupToolPermissionUpdate(BaseModel):
     """Schema for updating a tool permission."""
+
     tool_name: Optional[str] = Field(None, description="Tool name or '*' for all tools")
     service_type: Optional[str] = Field(None, description="Service type filter")
     enabled: Optional[bool] = Field(None, description="Whether permission is enabled")
@@ -25,6 +28,7 @@ class GroupToolPermissionUpdate(BaseModel):
 
 class GroupToolPermissionResponse(BaseModel):
     """Schema for tool permission API responses."""
+
     id: str
     group_id: str
     tool_name: str
@@ -45,14 +49,16 @@ class GroupToolPermissionResponse(BaseModel):
             enabled=obj.enabled,
             description=obj.description,
             created_at=obj.created_at,
-            updated_at=obj.updated_at
+            updated_at=obj.updated_at,
         )
 
 
 # --- Group Membership Schemas ---
 
+
 class GroupMembershipCreate(BaseModel):
     """Schema for adding a user to a group."""
+
     central_user_id: str = Field(..., description="Central user ID to add")
     enabled: bool = Field(True, description="Whether membership is active")
     granted_by: Optional[str] = Field(None, description="Who granted this membership")
@@ -60,11 +66,13 @@ class GroupMembershipCreate(BaseModel):
 
 class GroupMembershipUpdate(BaseModel):
     """Schema for updating a membership."""
+
     enabled: Optional[bool] = Field(None, description="Whether membership is active")
 
 
 class GroupMembershipResponse(BaseModel):
     """Schema for membership API responses."""
+
     id: str
     group_id: str
     central_user_id: str
@@ -88,14 +96,16 @@ class GroupMembershipResponse(BaseModel):
             granted_by=obj.granted_by,
             created_at=obj.created_at,
             updated_at=obj.updated_at,
-            central_username=username
+            central_username=username,
         )
 
 
 # --- Group Schemas ---
 
+
 class GroupCreate(BaseModel):
     """Schema for creating a new group."""
+
     name: str = Field(..., description="Group name (unique)")
     description: Optional[str] = Field(None, description="Group description")
     color: Optional[str] = Field("#6366f1", description="Display color (hex)")
@@ -106,6 +116,7 @@ class GroupCreate(BaseModel):
 
 class GroupUpdate(BaseModel):
     """Schema for updating an existing group."""
+
     name: Optional[str] = Field(None, description="Group name")
     description: Optional[str] = Field(None, description="Group description")
     color: Optional[str] = Field(None, description="Display color (hex)")
@@ -116,6 +127,7 @@ class GroupUpdate(BaseModel):
 
 class GroupResponse(BaseModel):
     """Schema for group API responses."""
+
     id: str
     name: str
     description: Optional[str]
@@ -145,12 +157,13 @@ class GroupResponse(BaseModel):
             created_at=obj.created_at,
             updated_at=obj.updated_at,
             member_count=len([m for m in obj.memberships if m.enabled]) if obj.memberships else 0,
-            tool_count=len([p for p in obj.tool_permissions if p.enabled]) if obj.tool_permissions else 0
+            tool_count=len([p for p in obj.tool_permissions if p.enabled]) if obj.tool_permissions else 0,
         )
 
 
 class GroupDetailResponse(GroupResponse):
     """Detailed group response with members and permissions."""
+
     memberships: List[GroupMembershipResponse] = []
     tool_permissions: List[GroupToolPermissionResponse] = []
 
@@ -172,18 +185,19 @@ class GroupDetailResponse(GroupResponse):
             member_count=len([m for m in obj.memberships if m.enabled]) if obj.memberships else 0,
             tool_count=len([p for p in obj.tool_permissions if p.enabled]) if obj.tool_permissions else 0,
             memberships=[
-                GroupMembershipResponse.model_validate(m, usernames.get(m.central_user_id))
-                for m in obj.memberships
-            ] if obj.memberships else [],
-            tool_permissions=[
-                GroupToolPermissionResponse.model_validate(p)
-                for p in obj.tool_permissions
-            ] if obj.tool_permissions else []
+                GroupMembershipResponse.model_validate(m, usernames.get(m.central_user_id)) for m in obj.memberships
+            ]
+            if obj.memberships
+            else [],
+            tool_permissions=[GroupToolPermissionResponse.model_validate(p) for p in obj.tool_permissions]
+            if obj.tool_permissions
+            else [],
         )
 
 
 class GroupListResponse(BaseModel):
     """Schema for paginated group list responses."""
+
     groups: List[GroupResponse]
     total: int
     skip: int
@@ -192,8 +206,10 @@ class GroupListResponse(BaseModel):
 
 # --- Bulk Operations ---
 
+
 class BulkPermissionUpdate(BaseModel):
     """Schema for bulk updating tool permissions."""
+
     service_type: Optional[str] = Field(None, description="Service type to update")
     tool_names: List[str] = Field(..., description="List of tool names to add/enable")
     enabled: bool = Field(True, description="Enable or disable these permissions")
@@ -201,14 +217,17 @@ class BulkPermissionUpdate(BaseModel):
 
 class BulkMembershipUpdate(BaseModel):
     """Schema for bulk updating group memberships."""
+
     central_user_ids: List[str] = Field(..., description="List of user IDs to add/remove")
     action: str = Field(..., description="Action: 'add' or 'remove'")
 
 
 # --- Permission Check ---
 
+
 class PermissionCheckRequest(BaseModel):
     """Schema for checking if a user has access to a tool."""
+
     central_user_id: str = Field(..., description="User to check")
     tool_name: str = Field(..., description="Tool to check access for")
     service_type: Optional[str] = Field(None, description="Service type context")
@@ -216,6 +235,7 @@ class PermissionCheckRequest(BaseModel):
 
 class PermissionCheckResponse(BaseModel):
     """Schema for permission check results."""
+
     has_access: bool
     central_user_id: str
     tool_name: str
@@ -226,8 +246,10 @@ class PermissionCheckResponse(BaseModel):
 
 # --- User Groups ---
 
+
 class UserGroupsResponse(BaseModel):
     """Schema for listing groups a user belongs to."""
+
     central_user_id: str
     groups: List[GroupResponse]
     total_groups: int

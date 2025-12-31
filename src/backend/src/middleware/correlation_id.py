@@ -10,18 +10,12 @@ from starlette.middleware.base import BaseHTTPMiddleware
 class CorrelationIdMiddleware(BaseHTTPMiddleware):
     """Middleware to add correlation ID to each request."""
 
-    async def dispatch(
-        self,
-        request: Request,
-        call_next: Callable[[Request], Response]
-    ) -> Response:
+    async def dispatch(self, request: Request, call_next: Callable[[Request], Response]) -> Response:
         """Add correlation ID to request state and response headers."""
 
         # Get or generate correlation ID
         correlation_id = (
-            request.headers.get("X-Correlation-ID") or
-            request.headers.get("X-Request-ID") or
-            str(uuid.uuid4())
+            request.headers.get("X-Correlation-ID") or request.headers.get("X-Request-ID") or str(uuid.uuid4())
         )
 
         # Add to request state

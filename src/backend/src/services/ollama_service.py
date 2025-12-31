@@ -4,30 +4,32 @@ import asyncio
 import json
 import logging
 from datetime import datetime
-from typing import Dict, Any, Optional, List, AsyncGenerator
-from enum import Enum
+from typing import Any, AsyncGenerator, Dict, List, Optional
 
 import httpx
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.models import ServiceConfig, ServiceType, ServiceStatus
+from src.models import ServiceConfig, ServiceType
 
 logger = logging.getLogger(__name__)
 
 
 class OllamaError(Exception):
     """Base exception for Ollama service errors."""
+
     pass
 
 
 class OllamaConnectionError(OllamaError):
     """Raised when unable to connect to Ollama."""
+
     pass
 
 
 class OllamaModelError(OllamaError):
     """Raised when there's a model-related error."""
+
     pass
 
 
@@ -45,7 +47,7 @@ class OllamaModel:
     @property
     def size_gb(self) -> float:
         """Get model size in GB."""
-        return round(self.size / (1024 ** 3), 2)
+        return round(self.size / (1024**3), 2)
 
     @property
     def family(self) -> str:
@@ -73,7 +75,7 @@ class OllamaModel:
             "family": self.family,
             "parameter_size": self.parameter_size,
             "quantization_level": self.quantization_level,
-            "details": self.details
+            "details": self.details,
         }
 
 
@@ -86,14 +88,11 @@ class OllamaService:
 
     @classmethod
     async def from_service_config(
-        cls,
-        session: AsyncSession,
-        service_id: Optional[str] = None
+        cls, session: AsyncSession, service_id: Optional[str] = None
     ) -> Optional["OllamaService"]:
         """Create OllamaService from database configuration."""
         query = select(ServiceConfig).where(
-            ServiceConfig.service_type == ServiceType.OLLAMA,
-            ServiceConfig.enabled == True
+            ServiceConfig.service_type == ServiceType.OLLAMA, ServiceConfig.enabled is True
         )
         if service_id:
             query = query.where(ServiceConfig.id == service_id)
@@ -106,12 +105,7 @@ class OllamaService:
 
         return cls(base_url=config.full_url)
 
-    async def _request(
-        self,
-        method: str,
-        endpoint: str,
-        **kwargs
-    ) -> Dict[str, Any]:
+    async def _request(self, method: str, endpoint: str, **kwargs) -> Dict[str, Any]:
         """Make HTTP request to Ollama API."""
         url = f"{self.base_url}{endpoint}"
 
@@ -124,20 +118,13 @@ class OllamaService:
                     return {}
                 return response.json()
             except httpx.ConnectError as e:
-                raise OllamaConnectionError(
-                    f"Unable to connect to Ollama at {self.base_url}: {e}"
-                )
+                raise OllamaConnectionError(f"Unable to connect to Ollama at {self.base_url}: {e}") from e
             except httpx.HTTPStatusError as e:
-                raise OllamaError(f"Ollama API error: {e.response.status_code} - {e.response.text}")
+                raise OllamaError(f"Ollama API error: {e.response.status_code} - {e.response.text}") from e
             except Exception as e:
-                raise OllamaError(f"Ollama request failed: {e}")
+                raise OllamaError(f"Ollama request failed: {e}") from e
 
-    async def _stream_request(
-        self,
-        method: str,
-        endpoint: str,
-        **kwargs
-    ) -> AsyncGenerator[Dict[str, Any], None]:
+    async def _stream_request(self, method: str, endpoint: str, **kwargs) -> AsyncGenerator[Dict[str, Any], None]:
         """Make streaming HTTP request to Ollama API."""
         url = f"{self.base_url}{endpoint}"
 
@@ -152,11 +139,9 @@ class OllamaService:
                             except json.JSONDecodeError:
                                 continue
             except httpx.ConnectError as e:
-                raise OllamaConnectionError(
-                    f"Unable to connect to Ollama at {self.base_url}: {e}"
-                )
+                raise OllamaConnectionError(f"Unable to connect to Ollama at {self.base_url}: {e}") from e
             except httpx.HTTPStatusError as e:
-                raise OllamaError(f"Ollama API error: {e.response.status_code}")
+                raise OllamaError(f"Ollama API error: {e.response.status_code}") from e
 
     async def health_check(self) -> Dict[str, Any]:
         """Check Ollama server health."""
@@ -167,14 +152,10 @@ class OllamaService:
                     return {
                         "status": "healthy",
                         "version": response.json().get("version", "unknown"),
-                        "url": self.base_url
+                        "url": self.base_url,
                     }
         except Exception as e:
-            return {
-                "status": "unhealthy",
-                "error": str(e),
-                "url": self.base_url
-            }
+            return {"status": "unhealthy", "error": str(e), "url": self.base_url}
         return {"status": "unknown", "url": self.base_url}
 
     async def list_models(self) -> List[OllamaModel]:
@@ -189,16 +170,10 @@ class OllamaService:
         return data
 
     async def pull_model(
-        self,
-        model_name: str,
-        progress_callback: Optional[callable] = None
+        self, model_name: str, progress_callback: Optional[callable] = None
     ) -> AsyncGenerator[Dict[str, Any], None]:
         """Pull a model from Ollama registry with progress updates."""
-        async for update in self._stream_request(
-            "POST",
-            "/api/pull",
-            json={"name": model_name, "stream": True}
-        ):
+        async for update in self._stream_request("POST", "/api/pull", json={"name": model_name, "stream": True}):
             if progress_callback:
                 await progress_callback(update)
             yield update
@@ -211,10 +186,7 @@ class OllamaService:
     async def copy_model(self, source: str, destination: str) -> bool:
         """Copy a model to a new name."""
         try:
-            await self._request("POST", "/api/copy", json={
-                "source": source,
-                "destination": destination
-            })
+            await self._request("POST", "/api/copy", json={"source": source, "destination": destination})
             return True
         except OllamaError:
             return False
@@ -227,11 +199,7 @@ class OllamaService:
         options: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """Generate completion from a model (non-streaming)."""
-        payload = {
-            "model": model,
-            "prompt": prompt,
-            "stream": False
-        }
+        payload = {"model": model, "prompt": prompt, "stream": False}
         if system:
             payload["system"] = system
         if options:
@@ -247,11 +215,7 @@ class OllamaService:
         options: Optional[Dict[str, Any]] = None,
     ) -> AsyncGenerator[Dict[str, Any], None]:
         """Generate completion from a model (streaming)."""
-        payload = {
-            "model": model,
-            "prompt": prompt,
-            "stream": True
-        }
+        payload = {"model": model, "prompt": prompt, "stream": True}
         if system:
             payload["system"] = system
         if options:
@@ -267,11 +231,7 @@ class OllamaService:
         options: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """Chat completion from a model (non-streaming)."""
-        payload = {
-            "model": model,
-            "messages": messages,
-            "stream": False
-        }
+        payload = {"model": model, "messages": messages, "stream": False}
         if options:
             payload["options"] = options
 
@@ -284,11 +244,7 @@ class OllamaService:
         options: Optional[Dict[str, Any]] = None,
     ) -> AsyncGenerator[Dict[str, Any], None]:
         """Chat completion from a model (streaming)."""
-        payload = {
-            "model": model,
-            "messages": messages,
-            "stream": True
-        }
+        payload = {"model": model, "messages": messages, "stream": True}
         if options:
             payload["options"] = options
 
@@ -296,16 +252,11 @@ class OllamaService:
             yield chunk
 
     async def create_model(
-        self,
-        name: str,
-        modelfile: str,
-        progress_callback: Optional[callable] = None
+        self, name: str, modelfile: str, progress_callback: Optional[callable] = None
     ) -> AsyncGenerator[Dict[str, Any], None]:
         """Create a new model from a Modelfile."""
         async for update in self._stream_request(
-            "POST",
-            "/api/create",
-            json={"name": name, "modelfile": modelfile, "stream": True}
+            "POST", "/api/create", json={"name": name, "modelfile": modelfile, "stream": True}
         ):
             if progress_callback:
                 await progress_callback(update)
@@ -323,12 +274,16 @@ class OllamaService:
         """Load a model into memory (warm it up)."""
         try:
             # Use generate with empty prompt to load the model
-            await self._request("POST", "/api/generate", json={
-                "model": model_name,
-                "prompt": "",
-                "stream": False,
-                "keep_alive": "10m"  # Keep in memory for 10 minutes
-            })
+            await self._request(
+                "POST",
+                "/api/generate",
+                json={
+                    "model": model_name,
+                    "prompt": "",
+                    "stream": False,
+                    "keep_alive": "10m",  # Keep in memory for 10 minutes
+                },
+            )
             return True
         except OllamaError as e:
             logger.error(f"Failed to load model {model_name}: {e}")
@@ -337,27 +292,19 @@ class OllamaService:
     async def unload_model(self, model_name: str) -> bool:
         """Unload a model from memory."""
         try:
-            await self._request("POST", "/api/generate", json={
-                "model": model_name,
-                "prompt": "",
-                "stream": False,
-                "keep_alive": 0  # Immediately unload
-            })
+            await self._request(
+                "POST",
+                "/api/generate",
+                json={"model": model_name, "prompt": "", "stream": False, "keep_alive": 0},  # Immediately unload
+            )
             return True
         except OllamaError as e:
             logger.error(f"Failed to unload model {model_name}: {e}")
             return False
 
-    async def get_embeddings(
-        self,
-        model: str,
-        prompt: str
-    ) -> List[float]:
+    async def get_embeddings(self, model: str, prompt: str) -> List[float]:
         """Get embeddings for text."""
-        data = await self._request("POST", "/api/embeddings", json={
-            "model": model,
-            "prompt": prompt
-        })
+        data = await self._request("POST", "/api/embeddings", json={"model": model, "prompt": prompt})
         return data.get("embedding", [])
 
 
@@ -378,7 +325,7 @@ class OllamaMetricsCollector:
             "status": health.get("status"),
             "version": health.get("version"),
             "models": [],
-            "running_models": []
+            "running_models": [],
         }
 
         if health.get("status") == "healthy":
@@ -423,9 +370,7 @@ _metrics_collector: Optional[OllamaMetricsCollector] = None
 
 
 async def get_ollama_service(
-    session: AsyncSession = None,
-    service_id: str = None,
-    allow_fallback: bool = False
+    session: AsyncSession = None, service_id: str = None, allow_fallback: bool = False
 ) -> Optional[OllamaService]:
     """Get or create Ollama service instance.
 

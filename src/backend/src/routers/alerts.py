@@ -1,21 +1,22 @@
 """Alerts API router."""
 
 from datetime import datetime
-from typing import Optional, List
+from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.database.connection import get_db_session
-from src.services.alert_service import alert_service
 from src.models.base import AlertSeverity, MetricType, ThresholdOperator
+from src.services.alert_service import alert_service
 
 router = APIRouter(prefix="/api/alerts")
 
 
 class AlertConfigCreate(BaseModel):
     """Schema for creating an alert configuration."""
+
     name: str = Field(..., min_length=1, max_length=100)
     description: Optional[str] = None
     enabled: bool = True
@@ -34,6 +35,7 @@ class AlertConfigCreate(BaseModel):
 
 class AlertConfigUpdate(BaseModel):
     """Schema for updating an alert configuration."""
+
     name: Optional[str] = Field(None, min_length=1, max_length=100)
     description: Optional[str] = None
     enabled: Optional[bool] = None
@@ -52,6 +54,7 @@ class AlertConfigUpdate(BaseModel):
 
 class AlertConfigResponse(BaseModel):
     """Schema for alert configuration response."""
+
     id: str
     name: str
     description: Optional[str]
@@ -76,6 +79,7 @@ class AlertConfigResponse(BaseModel):
 
 class AlertConfigListResponse(BaseModel):
     """Schema for paginated alert config list response."""
+
     items: List[AlertConfigResponse]
     total: int
     skip: int
@@ -84,6 +88,7 @@ class AlertConfigListResponse(BaseModel):
 
 class AlertHistoryResponse(BaseModel):
     """Schema for alert history response."""
+
     id: str
     alert_config_id: str
     alert_name: str
@@ -102,6 +107,7 @@ class AlertHistoryResponse(BaseModel):
 
 class AlertHistoryListResponse(BaseModel):
     """Schema for paginated alert history list response."""
+
     items: List[AlertHistoryResponse]
     total: int
     skip: int
@@ -110,6 +116,7 @@ class AlertHistoryListResponse(BaseModel):
 
 class AlertStatsResponse(BaseModel):
     """Schema for alert statistics response."""
+
     total_triggered: int
     active_count: int
     by_severity: dict
@@ -119,6 +126,7 @@ class AlertStatsResponse(BaseModel):
 
 
 # Alert Configurations endpoints
+
 
 @router.get("/configs", response_model=AlertConfigListResponse)
 async def list_alert_configs(
@@ -175,9 +183,7 @@ async def update_alert_config(
     session: AsyncSession = Depends(get_db_session),
 ):
     """Update an alert configuration."""
-    config = await alert_service.update_alert_config(
-        session, config_id, **config_data.model_dump(exclude_unset=True)
-    )
+    config = await alert_service.update_alert_config(session, config_id, **config_data.model_dump(exclude_unset=True))
     if not config:
         raise HTTPException(status_code=404, detail="Alert configuration not found")
     return AlertConfigResponse(**config.to_dict())
@@ -209,6 +215,7 @@ async def toggle_alert_config(
 
 
 # Alert History endpoints
+
 
 @router.get("/history", response_model=AlertHistoryListResponse)
 async def list_alert_history(
@@ -258,10 +265,7 @@ async def resolve_alert(
     """Manually resolve an alert."""
     history = await alert_service.resolve_alert(session, history_id, message)
     if not history:
-        raise HTTPException(
-            status_code=404,
-            detail="Alert not found or already resolved"
-        )
+        raise HTTPException(status_code=404, detail="Alert not found or already resolved")
     return AlertHistoryResponse(**history.to_dict())
 
 
@@ -277,28 +281,20 @@ async def get_alert_stats(
 
 # Metadata endpoints
 
+
 @router.get("/severities")
 async def get_alert_severities():
     """Get all available alert severities."""
-    return {
-        "severities": [severity.value for severity in AlertSeverity]
-    }
+    return {"severities": [severity.value for severity in AlertSeverity]}
 
 
 @router.get("/metric-types")
 async def get_metric_types():
     """Get all available metric types."""
-    return {
-        "metric_types": [metric.value for metric in MetricType]
-    }
+    return {"metric_types": [metric.value for metric in MetricType]}
 
 
 @router.get("/operators")
 async def get_threshold_operators():
     """Get all available threshold operators."""
-    return {
-        "operators": [
-            {"value": op.value, "label": op.name.replace("_", " ").title()}
-            for op in ThresholdOperator
-        ]
-    }
+    return {"operators": [{"value": op.value, "label": op.name.replace("_", " ").title()} for op in ThresholdOperator]}

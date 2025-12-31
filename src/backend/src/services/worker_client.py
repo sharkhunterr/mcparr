@@ -1,7 +1,7 @@
 """Training Worker Client - Communicates with GPU training worker."""
 
-from typing import Any, Dict, List, Optional
 from dataclasses import dataclass
+from typing import Any, Dict, List, Optional
 
 import httpx
 from loguru import logger
@@ -12,6 +12,7 @@ from src.config.settings import get_settings
 @dataclass
 class WorkerStatus:
     """Training worker status."""
+
     online: bool
     worker_id: str = ""
     worker_name: str = ""
@@ -30,6 +31,7 @@ class WorkerStatus:
 @dataclass
 class TrainingJobStatus:
     """Training job status from worker."""
+
     job_id: str
     session_id: str
     status: str
@@ -52,6 +54,7 @@ class TrainingJobStatus:
 
 class WorkerClientError(Exception):
     """Worker client error."""
+
     pass
 
 
@@ -75,17 +78,14 @@ class WorkerClient:
         """Check if worker is online and get its status."""
         try:
             async with httpx.AsyncClient(timeout=self.timeout) as client:
-                response = await client.get(
-                    f"{self.base_url}/health",
-                    headers=self._get_headers()
-                )
+                response = await client.get(f"{self.base_url}/health", headers=self._get_headers())
                 if response.status_code == 200:
                     data = response.json()
                     return WorkerStatus(
                         online=True,
                         worker_id=data.get("worker_id", ""),
                         status="healthy",
-                        gpu_available=data.get("gpu_available", False)
+                        gpu_available=data.get("gpu_available", False),
                     )
                 return WorkerStatus(online=False, error=f"HTTP {response.status_code}")
         except httpx.ConnectError:
@@ -99,10 +99,7 @@ class WorkerClient:
         """Get detailed worker information."""
         try:
             async with httpx.AsyncClient(timeout=self.timeout) as client:
-                response = await client.get(
-                    f"{self.base_url}/",
-                    headers=self._get_headers()
-                )
+                response = await client.get(f"{self.base_url}/", headers=self._get_headers())
                 if response.status_code == 200:
                     data = response.json()
                     return WorkerStatus(
@@ -113,7 +110,7 @@ class WorkerClient:
                         gpu_available=data.get("gpu_available", False),
                         gpu_count=data.get("gpu_count", 0),
                         gpu_names=data.get("gpu_names", []),
-                        current_job_id=data.get("current_job_id")
+                        current_job_id=data.get("current_job_id"),
                     )
                 return WorkerStatus(online=False, error=f"HTTP {response.status_code}")
         except Exception as e:
@@ -124,10 +121,7 @@ class WorkerClient:
         """Get GPU metrics from worker."""
         try:
             async with httpx.AsyncClient(timeout=self.timeout) as client:
-                response = await client.get(
-                    f"{self.base_url}/api/metrics/gpu",
-                    headers=self._get_headers()
-                )
+                response = await client.get(f"{self.base_url}/api/metrics/gpu", headers=self._get_headers())
                 if response.status_code == 200:
                     return response.json()
                 return {"available": False, "error": f"HTTP {response.status_code}"}
@@ -149,7 +143,7 @@ class WorkerClient:
         lora_alpha: int = 16,
         quantization_method: str = "q4_k_m",
         overwrite_existing: bool = False,
-        base_adapter_path: Optional[str] = None
+        base_adapter_path: Optional[str] = None,
     ) -> Dict[str, Any]:
         """Start a training job on the worker.
 
@@ -181,7 +175,7 @@ class WorkerClient:
                 {
                     "system_prompt": p.get("system_prompt"),
                     "user_input": p["user_input"],
-                    "expected_output": p["expected_output"]
+                    "expected_output": p["expected_output"],
                 }
                 for p in prompts
             ],
@@ -194,13 +188,9 @@ class WorkerClient:
                 "weight_decay": 0.01,
                 "lora_r": lora_r,
                 "lora_alpha": lora_alpha,
-                "quantization_method": quantization_method
+                "quantization_method": quantization_method,
             },
-            "ollama_target": {
-                "url": ollama_url,
-                "model_name": output_model_name,
-                "overwrite": overwrite_existing
-            }
+            "ollama_target": {"url": ollama_url, "model_name": output_model_name, "overwrite": overwrite_existing},
         }
 
         # Add base_adapter_path for incremental training
@@ -210,9 +200,7 @@ class WorkerClient:
         try:
             async with httpx.AsyncClient(timeout=httpx.Timeout(60.0, connect=10.0)) as client:
                 response = await client.post(
-                    f"{self.base_url}/api/training/start",
-                    json=request_data,
-                    headers=self._get_headers()
+                    f"{self.base_url}/api/training/start", json=request_data, headers=self._get_headers()
                 )
 
                 if response.status_code == 200:
@@ -222,24 +210,15 @@ class WorkerClient:
                         "success": True,
                         "job_id": data.get("job_id"),
                         "message": data.get("message"),
-                        "status": data.get("status")
+                        "status": data.get("status"),
                     }
                 elif response.status_code == 409:
-                    return {
-                        "success": False,
-                        "error": "Worker is already training another job"
-                    }
+                    return {"success": False, "error": "Worker is already training another job"}
                 elif response.status_code == 503:
-                    return {
-                        "success": False,
-                        "error": "No GPU available on worker"
-                    }
+                    return {"success": False, "error": "No GPU available on worker"}
                 else:
                     error_detail = response.json().get("detail", response.text)
-                    return {
-                        "success": False,
-                        "error": f"HTTP {response.status_code}: {error_detail}"
-                    }
+                    return {"success": False, "error": f"HTTP {response.status_code}: {error_detail}"}
 
         except httpx.ConnectError:
             return {"success": False, "error": "Cannot connect to training worker"}
@@ -253,10 +232,7 @@ class WorkerClient:
         """Get current training job status."""
         try:
             async with httpx.AsyncClient(timeout=self.timeout) as client:
-                response = await client.get(
-                    f"{self.base_url}/training/status",
-                    headers=self._get_headers()
-                )
+                response = await client.get(f"{self.base_url}/training/status", headers=self._get_headers())
 
                 if response.status_code == 200:
                     data = response.json()
@@ -292,10 +268,7 @@ class WorkerClient:
         """Get status for a specific job."""
         try:
             async with httpx.AsyncClient(timeout=self.timeout) as client:
-                response = await client.get(
-                    f"{self.base_url}/api/training/job/{job_id}",
-                    headers=self._get_headers()
-                )
+                response = await client.get(f"{self.base_url}/api/training/job/{job_id}", headers=self._get_headers())
 
                 if response.status_code == 200:
                     data = response.json()
@@ -340,10 +313,7 @@ class WorkerClient:
         """Cancel the current training job."""
         try:
             async with httpx.AsyncClient(timeout=self.timeout) as client:
-                response = await client.post(
-                    f"{self.base_url}/training/cancel",
-                    headers=self._get_headers()
-                )
+                response = await client.post(f"{self.base_url}/training/cancel", headers=self._get_headers())
 
                 if response.status_code == 200:
                     return {"success": True, **response.json()}
@@ -359,10 +329,7 @@ class WorkerClient:
         """Get available base models for training."""
         try:
             async with httpx.AsyncClient(timeout=self.timeout) as client:
-                response = await client.get(
-                    f"{self.base_url}/models",
-                    headers=self._get_headers()
-                )
+                response = await client.get(f"{self.base_url}/models", headers=self._get_headers())
 
                 if response.status_code == 200:
                     return response.json()
@@ -382,11 +349,7 @@ class WorkerClient:
                 params["level"] = level
 
             async with httpx.AsyncClient(timeout=self.timeout) as client:
-                response = await client.get(
-                    f"{self.base_url}/logs/system",
-                    params=params,
-                    headers=self._get_headers()
-                )
+                response = await client.get(f"{self.base_url}/logs/system", params=params, headers=self._get_headers())
 
                 if response.status_code == 200:
                     return response.json()
@@ -396,12 +359,7 @@ class WorkerClient:
             logger.warning(f"Failed to get system logs: {e}")
             return {"logs": [], "count": 0, "error": str(e)}
 
-    async def get_job_logs(
-        self,
-        job_id: str,
-        tail: int = 100,
-        level: Optional[str] = None
-    ) -> Dict[str, Any]:
+    async def get_job_logs(self, job_id: str, tail: int = 100, level: Optional[str] = None) -> Dict[str, Any]:
         """Get logs for a specific training job."""
         try:
             params = {"tail": tail}
@@ -410,9 +368,7 @@ class WorkerClient:
 
             async with httpx.AsyncClient(timeout=self.timeout) as client:
                 response = await client.get(
-                    f"{self.base_url}/logs/job/{job_id}",
-                    params=params,
-                    headers=self._get_headers()
+                    f"{self.base_url}/logs/job/{job_id}", params=params, headers=self._get_headers()
                 )
 
                 if response.status_code == 200:
@@ -427,10 +383,7 @@ class WorkerClient:
         """Get list of job IDs that have available logs."""
         try:
             async with httpx.AsyncClient(timeout=self.timeout) as client:
-                response = await client.get(
-                    f"{self.base_url}/logs/jobs",
-                    headers=self._get_headers()
-                )
+                response = await client.get(f"{self.base_url}/logs/jobs", headers=self._get_headers())
 
                 if response.status_code == 200:
                     return response.json()
@@ -444,10 +397,7 @@ class WorkerClient:
         """Delete logs for a specific job."""
         try:
             async with httpx.AsyncClient(timeout=self.timeout) as client:
-                response = await client.delete(
-                    f"{self.base_url}/logs/job/{job_id}",
-                    headers=self._get_headers()
-                )
+                response = await client.delete(f"{self.base_url}/logs/job/{job_id}", headers=self._get_headers())
 
                 if response.status_code == 200:
                     return {"success": True, **response.json()}

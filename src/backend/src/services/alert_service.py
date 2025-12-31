@@ -1,13 +1,13 @@
 """Alert management service."""
 
 from datetime import datetime, timedelta
-from typing import Optional, List, Dict, Any
+from typing import Any, Dict, List, Optional
 
-from sqlalchemy import select, func
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.alert_config import AlertConfiguration, AlertHistory
-from src.models.base import AlertSeverity, MetricType
+from src.models.base import AlertSeverity
 
 
 class AlertService:
@@ -64,7 +64,7 @@ class AlertService:
         query = select(AlertConfiguration)
 
         if enabled_only:
-            query = query.where(AlertConfiguration.enabled == True)
+            query = query.where(AlertConfiguration.enabled is True)
         if service_id:
             query = query.where(AlertConfiguration.service_id == service_id)
         if severity:
@@ -82,19 +82,14 @@ class AlertService:
 
         return configs, total or 0
 
-    async def get_alert_config_by_id(
-        self, session: AsyncSession, config_id: str
-    ) -> Optional[AlertConfiguration]:
+    async def get_alert_config_by_id(self, session: AsyncSession, config_id: str) -> Optional[AlertConfiguration]:
         """Get a single alert configuration by ID."""
         query = select(AlertConfiguration).where(AlertConfiguration.id == config_id)
         result = await session.execute(query)
         return result.scalar_one_or_none()
 
     async def update_alert_config(
-        self,
-        session: AsyncSession,
-        config_id: str,
-        **updates
+        self, session: AsyncSession, config_id: str, **updates
     ) -> Optional[AlertConfiguration]:
         """Update an alert configuration."""
         config = await self.get_alert_config_by_id(session, config_id)
@@ -109,9 +104,7 @@ class AlertService:
         await session.refresh(config)
         return config
 
-    async def delete_alert_config(
-        self, session: AsyncSession, config_id: str
-    ) -> bool:
+    async def delete_alert_config(self, session: AsyncSession, config_id: str) -> bool:
         """Delete an alert configuration."""
         config = await self.get_alert_config_by_id(session, config_id)
         if not config:
@@ -139,9 +132,7 @@ class AlertService:
         if should_trigger and not config.is_firing:
             # Check cooldown
             if config.last_triggered_at:
-                cooldown_until = config.last_triggered_at + timedelta(
-                    minutes=config.cooldown_minutes
-                )
+                cooldown_until = config.last_triggered_at + timedelta(minutes=config.cooldown_minutes)
                 if datetime.utcnow() < cooldown_until:
                     return None
 
@@ -159,7 +150,10 @@ class AlertService:
                 metric_value=current_value,
                 threshold_value=config.threshold_value,
                 service_id=config.service_id,
-                message=f"Alert '{config.name}' triggered: {current_value} {config.threshold_operator} {config.threshold_value}",
+                message=(
+                    f"Alert '{config.name}' triggered: {current_value} "
+                    f"{config.threshold_operator} {config.threshold_value}"
+                ),
             )
             session.add(history)
             await session.commit()
@@ -193,9 +187,7 @@ class AlertService:
             history.message = f"{history.message}\nResolution: {message}"
 
         # Update the config's firing state
-        config_query = select(AlertConfiguration).where(
-            AlertConfiguration.id == history.alert_config_id
-        )
+        config_query = select(AlertConfiguration).where(AlertConfiguration.id == history.alert_config_id)
         config_result = await session.execute(config_query)
         config = config_result.scalar_one_or_none()
         if config:
@@ -242,21 +234,13 @@ class AlertService:
 
         return history, total or 0
 
-    async def get_active_alerts(
-        self, session: AsyncSession
-    ) -> List[AlertHistory]:
+    async def get_active_alerts(self, session: AsyncSession) -> List[AlertHistory]:
         """Get all currently active (unresolved) alerts."""
-        query = (
-            select(AlertHistory)
-            .where(AlertHistory.is_resolved == False)
-            .order_by(AlertHistory.triggered_at.desc())
-        )
+        query = select(AlertHistory).where(AlertHistory.is_resolved is False).order_by(AlertHistory.triggered_at.desc())
         result = await session.execute(query)
         return list(result.scalars().all())
 
-    async def get_alert_stats(
-        self, session: AsyncSession, hours: int = 24
-    ) -> Dict[str, Any]:
+    async def get_alert_stats(self, session: AsyncSession, hours: int = 24) -> Dict[str, Any]:
         """Get alert statistics for the specified time period."""
         cutoff = datetime.utcnow() - timedelta(hours=hours)
 
@@ -270,25 +254,18 @@ class AlertService:
         severity_counts = dict(severity_result.all())
 
         # Count active alerts
-        active_query = select(func.count(AlertHistory.id)).where(
-            AlertHistory.is_resolved == False
-        )
+        active_query = select(func.count(AlertHistory.id)).where(AlertHistory.is_resolved is False)
         active_count = await session.scalar(active_query) or 0
 
         # Total triggered in period
-        total_query = select(func.count(AlertHistory.id)).where(
-            AlertHistory.triggered_at >= cutoff
-        )
+        total_query = select(func.count(AlertHistory.id)).where(AlertHistory.triggered_at >= cutoff)
         total = await session.scalar(total_query) or 0
 
         # Mean time to resolution
-        resolved_query = (
-            select(AlertHistory)
-            .where(
-                AlertHistory.triggered_at >= cutoff,
-                AlertHistory.is_resolved == True,
-                AlertHistory.resolved_at.isnot(None),
-            )
+        resolved_query = select(AlertHistory).where(
+            AlertHistory.triggered_at >= cutoff,
+            AlertHistory.is_resolved is True,
+            AlertHistory.resolved_at.isnot(None),
         )
         resolved_result = await session.execute(resolved_query)
         resolved_alerts = list(resolved_result.scalars().all())

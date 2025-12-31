@@ -1,6 +1,7 @@
 """MCP tools for Open WebUI integration."""
 
 from typing import List
+
 from .base import BaseTool, ToolDefinition, ToolParameter
 
 
@@ -86,10 +87,7 @@ class OpenWebUITools(BaseTool):
     async def execute(self, tool_name: str, arguments: dict) -> dict:
         """Execute an Open WebUI tool."""
         if not self.service_config:
-            return {
-                "success": False,
-                "error": "Open WebUI service not configured"
-            }
+            return {"success": False, "error": "Open WebUI service not configured"}
 
         try:
             # Import adapter here to avoid circular imports
@@ -139,7 +137,7 @@ class OpenWebUITools(BaseTool):
                 "version": info.get("version"),
                 "models_available": info.get("models_available"),
                 "current_user": info.get("current_user"),
-            }
+            },
         }
 
     async def _get_users(self, adapter, arguments: dict) -> dict:
@@ -148,10 +146,7 @@ class OpenWebUITools(BaseTool):
         result = await adapter.get_users(limit=limit)
 
         if "error" in result:
-            return {
-                "success": False,
-                "error": result.get("error", "Failed to get users")
-            }
+            return {"success": False, "error": result.get("error", "Failed to get users")}
 
         return {
             "success": True,
@@ -167,8 +162,8 @@ class OpenWebUITools(BaseTool):
                         "last_active_at": user.get("last_active_at"),
                     }
                     for user in result.get("users", [])
-                ]
-            }
+                ],
+            },
         }
 
     async def _get_models(self, adapter) -> dict:
@@ -185,8 +180,8 @@ class OpenWebUITools(BaseTool):
                         "owned_by": model.get("owned_by"),
                     }
                     for model in models
-                ]
-            }
+                ],
+            },
         }
 
     async def _get_chats(self, adapter, arguments: dict) -> dict:
@@ -194,21 +189,12 @@ class OpenWebUITools(BaseTool):
         limit = arguments.get("limit", 20)
         result = await adapter.get_chats(limit=limit)
 
-        return {
-            "success": True,
-            "result": {
-                "count": result.get("count", 0),
-                "chats": result.get("chats", [])
-            }
-        }
+        return {"success": True, "result": {"count": result.get("count", 0), "chats": result.get("chats", [])}}
 
     async def _get_statistics(self, adapter) -> dict:
         """Get Open WebUI statistics."""
         stats = await adapter.get_statistics()
-        return {
-            "success": True,
-            "result": stats
-        }
+        return {"success": True, "result": stats}
 
     async def _search_users(self, adapter, arguments: dict) -> dict:
         """Search for users."""
@@ -231,6 +217,6 @@ class OpenWebUITools(BaseTool):
                         "role": user.get("role"),
                     }
                     for user in users
-                ]
-            }
+                ],
+            },
         }

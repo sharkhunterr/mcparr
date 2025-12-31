@@ -2,25 +2,20 @@
 
 import asyncio
 from datetime import datetime, timedelta
-from typing import Optional, List, Dict, Any
+from typing import Any, Dict, List, Optional
 
-from sqlalchemy import select, delete, func
+from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.models.log_entry import LogEntry
 from src.models.alert_config import AlertHistory
 from src.models.base import LogLevel
+from src.models.log_entry import LogEntry
 
 
 class LogService:
     """Service for managing log entries and retention policies."""
 
-    def __init__(
-        self,
-        retention_days: int = 30,
-        max_entries: int = 100000,
-        cleanup_interval_hours: int = 6
-    ):
+    def __init__(self, retention_days: int = 30, max_entries: int = 100000, cleanup_interval_hours: int = 6):
         self.retention_days = retention_days
         self.max_entries = max_entries
         self.cleanup_interval_hours = cleanup_interval_hours
@@ -114,37 +109,25 @@ class LogService:
 
         return logs, total or 0
 
-    async def get_log_by_id(
-        self, session: AsyncSession, log_id: str
-    ) -> Optional[LogEntry]:
+    async def get_log_by_id(self, session: AsyncSession, log_id: str) -> Optional[LogEntry]:
         """Get a single log entry by ID."""
         query = select(LogEntry).where(LogEntry.id == log_id)
         result = await session.execute(query)
         return result.scalar_one_or_none()
 
-    async def get_logs_by_correlation_id(
-        self, session: AsyncSession, correlation_id: str
-    ) -> List[LogEntry]:
+    async def get_logs_by_correlation_id(self, session: AsyncSession, correlation_id: str) -> List[LogEntry]:
         """Get all logs for a specific correlation ID (request trace)."""
-        query = (
-            select(LogEntry)
-            .where(LogEntry.correlation_id == correlation_id)
-            .order_by(LogEntry.logged_at.asc())
-        )
+        query = select(LogEntry).where(LogEntry.correlation_id == correlation_id).order_by(LogEntry.logged_at.asc())
         result = await session.execute(query)
         return list(result.scalars().all())
 
-    async def get_log_stats(
-        self, session: AsyncSession, hours: int = 24
-    ) -> Dict[str, Any]:
+    async def get_log_stats(self, session: AsyncSession, hours: int = 24) -> Dict[str, Any]:
         """Get log statistics for the specified time period."""
         cutoff = datetime.utcnow() - timedelta(hours=hours)
 
         # Count by level
         level_query = (
-            select(LogEntry.level, func.count(LogEntry.id))
-            .where(LogEntry.logged_at >= cutoff)
-            .group_by(LogEntry.level)
+            select(LogEntry.level, func.count(LogEntry.id)).where(LogEntry.logged_at >= cutoff).group_by(LogEntry.level)
         )
         level_result = await session.execute(level_query)
         level_counts = dict(level_result.all())
@@ -159,16 +142,11 @@ class LogService:
         source_counts = dict(source_result.all())
 
         # Total count
-        total_query = (
-            select(func.count(LogEntry.id))
-            .where(LogEntry.logged_at >= cutoff)
-        )
+        total_query = select(func.count(LogEntry.id)).where(LogEntry.logged_at >= cutoff)
         total = await session.scalar(total_query) or 0
 
         # Error rate
-        error_count = level_counts.get(LogLevel.ERROR.value, 0) + level_counts.get(
-            LogLevel.CRITICAL.value, 0
-        )
+        error_count = level_counts.get(LogLevel.ERROR.value, 0) + level_counts.get(LogLevel.CRITICAL.value, 0)
         error_rate = (error_count / total * 100) if total > 0 else 0
 
         return {
@@ -196,11 +174,7 @@ class LogService:
         if total > self.max_entries:
             # Get IDs of oldest entries to delete
             excess = total - self.max_entries
-            oldest_query = (
-                select(LogEntry.id)
-                .order_by(LogEntry.logged_at.asc())
-                .limit(excess)
-            )
+            oldest_query = select(LogEntry.id).order_by(LogEntry.logged_at.asc()).limit(excess)
             oldest_result = await session.execute(oldest_query)
             oldest_ids = [row[0] for row in oldest_result.all()]
 
@@ -216,8 +190,7 @@ class LogService:
         """Remove resolved alert history older than specified days."""
         cutoff_date = datetime.utcnow() - timedelta(days=days)
         delete_query = delete(AlertHistory).where(
-            AlertHistory.is_resolved == True,
-            AlertHistory.resolved_at < cutoff_date
+            AlertHistory.is_resolved is True, AlertHistory.resolved_at < cutoff_date
         )
         result = await session.execute(delete_query)
         await session.commit()
@@ -229,13 +202,9 @@ class LogService:
         result = await session.execute(query)
         return [row[0] for row in result.all()]
 
-    async def get_distinct_components(
-        self, session: AsyncSession, source: Optional[str] = None
-    ) -> List[str]:
+    async def get_distinct_components(self, session: AsyncSession, source: Optional[str] = None) -> List[str]:
         """Get all distinct log components, optionally filtered by source."""
-        query = select(LogEntry.component).distinct().where(
-            LogEntry.component.isnot(None)
-        )
+        query = select(LogEntry.component).distinct().where(LogEntry.component.isnot(None))
         if source:
             query = query.where(LogEntry.source == source)
         result = await session.execute(query)

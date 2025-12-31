@@ -1,11 +1,15 @@
 """Base adapter class for homelab service integrations."""
 
-from abc import ABC, abstractmethod
-from typing import Dict, Any, Optional, List, Union
-from datetime import datetime
-import httpx
 import logging
+from abc import ABC, abstractmethod
+from datetime import datetime
 from enum import Enum
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
+
+import httpx
+
+if TYPE_CHECKING:
+    from src.models.service_config import ServiceConfig
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +22,7 @@ class ConnectionTestResult:
         success: bool,
         message: Optional[str] = None,
         response_time_ms: Optional[float] = None,
-        details: Optional[Dict[str, Any]] = None
+        details: Optional[Dict[str, Any]] = None,
     ):
         self.success = success
         self.message = message
@@ -29,6 +33,7 @@ class ConnectionTestResult:
 
 class ServiceCapability(Enum):
     """Capabilities that a service adapter can provide."""
+
     USER_MANAGEMENT = "user_management"
     MEDIA_CONTENT = "media_content"
     TICKET_SYSTEM = "ticket_system"
@@ -40,12 +45,7 @@ class ServiceCapability(Enum):
 class BaseServiceAdapter(ABC):
     """Base class for all service adapters."""
 
-    def __init__(
-        self,
-        service_config: 'ServiceConfig',
-        timeout: int = 30,
-        verify_ssl: bool = True
-    ):
+    def __init__(self, service_config: "ServiceConfig", timeout: int = 30, verify_ssl: bool = True):
         """Initialize the adapter.
 
         Args:
@@ -79,7 +79,7 @@ class BaseServiceAdapter(ABC):
                 headers=headers,
                 timeout=self.timeout,
                 verify=self.verify_ssl,
-                follow_redirects=True
+                follow_redirects=True,
             )
 
     async def close(self):
@@ -93,7 +93,7 @@ class BaseServiceAdapter(ABC):
         """Get the base URL for the service."""
         url = self.service_config.base_url
         if self.service_config.port:
-            if ':' not in url.split('://', 1)[1]:  # No port specified
+            if ":" not in url.split("://", 1)[1]:  # No port specified
                 url = f"{url}:{self.service_config.port}"
         return url
 
@@ -124,12 +124,7 @@ class BaseServiceAdapter(ABC):
         """Get basic service information."""
         pass
 
-    async def _make_request(
-        self,
-        method: str,
-        endpoint: str,
-        **kwargs
-    ) -> httpx.Response:
+    async def _make_request(self, method: str, endpoint: str, **kwargs) -> httpx.Response:
         """Make an HTTP request to the service.
 
         Args:
@@ -154,9 +149,7 @@ class BaseServiceAdapter(ABC):
             end_time = datetime.utcnow()
             response_time = int((end_time - start_time).total_seconds() * 1000)
 
-            self.logger.debug(
-                f"{method} {endpoint} - {response.status_code} ({response_time:.1f}ms)"
-            )
+            self.logger.debug(f"{method} {endpoint} - {response.status_code} ({response_time:.1f}ms)")
 
             return response
 
@@ -164,18 +157,10 @@ class BaseServiceAdapter(ABC):
             self.logger.error(f"Request failed: {method} {endpoint} - {e}")
             raise
         except httpx.HTTPStatusError as e:
-            self.logger.error(
-                f"HTTP error: {method} {endpoint} - "
-                f"{e.response.status_code} {e.response.text}"
-            )
+            self.logger.error(f"HTTP error: {method} {endpoint} - " f"{e.response.status_code} {e.response.text}")
             raise
 
-    async def _safe_request(
-        self,
-        method: str,
-        endpoint: str,
-        **kwargs
-    ) -> Optional[Dict[str, Any]]:
+    async def _safe_request(self, method: str, endpoint: str, **kwargs) -> Optional[Dict[str, Any]]:
         """Make a safe HTTP request that returns None on error.
 
         Useful for optional operations where failures shouldn't crash the adapter.
@@ -207,7 +192,7 @@ class BaseServiceAdapter(ABC):
         if not self.service_config.base_url:
             errors.append("Base URL is required")
 
-        if not self.service_config.base_url.startswith(('http://', 'https://')):
+        if not self.service_config.base_url.startswith(("http://", "https://")):
             errors.append("Base URL must start with http:// or https://")
 
         return errors
@@ -290,6 +275,7 @@ class BasicAuthAdapter(AuthenticatedAdapter):
             return {}
 
         import base64
+
         credentials = base64.b64encode(f"{username}:{password}".encode()).decode()
         return {"Authorization": f"Basic {credentials}"}
 
@@ -310,19 +296,23 @@ class BasicAuthAdapter(AuthenticatedAdapter):
 # Exception classes for adapters
 class AdapterError(Exception):
     """Base exception for adapter errors."""
+
     pass
 
 
 class ConnectionError(AdapterError):
     """Connection-related error."""
+
     pass
 
 
 class AuthenticationError(AdapterError):
     """Authentication-related error."""
+
     pass
 
 
 class ConfigurationError(AdapterError):
     """Configuration-related error."""
+
     pass

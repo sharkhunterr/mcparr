@@ -2,15 +2,14 @@
 
 import asyncio
 import time
+from collections import deque
 from datetime import datetime
 from typing import Callable, Optional
-from collections import deque
 
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from src.utils.logging import log_request, setup_logging
-
+from src.utils.logging import log_request
 
 # Queue for async log persistence
 _log_queue: deque = deque(maxlen=1000)
@@ -73,27 +72,25 @@ def queue_log_entry(
     duration_ms: Optional[float] = None,
 ):
     """Queue a log entry for database persistence."""
-    _log_queue.append({
-        "level": level,
-        "message": message,
-        "source": source,
-        "component": component,
-        "correlation_id": correlation_id,
-        "request_id": request_id,
-        "extra_data": extra_data or {},
-        "duration_ms": int(duration_ms) if duration_ms else None,
-        "logged_at": datetime.utcnow(),
-    })
+    _log_queue.append(
+        {
+            "level": level,
+            "message": message,
+            "source": source,
+            "component": component,
+            "correlation_id": correlation_id,
+            "request_id": request_id,
+            "extra_data": extra_data or {},
+            "duration_ms": int(duration_ms) if duration_ms else None,
+            "logged_at": datetime.utcnow(),
+        }
+    )
 
 
 class LoggingMiddleware(BaseHTTPMiddleware):
     """Middleware to log HTTP requests and responses."""
 
-    async def dispatch(
-        self,
-        request: Request,
-        call_next: Callable[[Request], Response]
-    ) -> Response:
+    async def dispatch(self, request: Request, call_next: Callable[[Request], Response]) -> Response:
         """Log request and response details."""
         # Start log persistence task if not running
         start_log_persistence()

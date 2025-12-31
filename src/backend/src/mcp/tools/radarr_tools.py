@@ -1,6 +1,7 @@
 """MCP tools for Radarr integration."""
 
 from typing import List
+
 from .base import BaseTool, ToolDefinition, ToolParameter
 
 
@@ -109,10 +110,7 @@ class RadarrTools(BaseTool):
     async def execute(self, tool_name: str, arguments: dict) -> dict:
         """Execute a Radarr tool."""
         if not self.service_config:
-            return {
-                "success": False,
-                "error": "Radarr service not configured"
-            }
+            return {"success": False, "error": "Radarr service not configured"}
 
         try:
             from src.adapters.radarr import RadarrAdapter
@@ -159,62 +157,33 @@ class RadarrTools(BaseTool):
         limit = arguments.get("limit", 50)
         movies = await adapter.get_movies(limit=limit)
 
-        return {
-            "success": True,
-            "result": {
-                "count": len(movies),
-                "movies": movies
-            }
-        }
+        return {"success": True, "result": {"count": len(movies), "movies": movies}}
 
     async def _search_movie(self, adapter, arguments: dict) -> dict:
         """Search for a movie."""
         query = arguments.get("query")
         results = await adapter.search_movie(query)
 
-        return {
-            "success": True,
-            "result": {
-                "query": query,
-                "count": len(results),
-                "results": results
-            }
-        }
+        return {"success": True, "result": {"query": query, "count": len(results), "results": results}}
 
     async def _get_queue(self, adapter) -> dict:
         """Get download queue."""
         queue = await adapter.get_queue()
 
-        return {
-            "success": True,
-            "result": {
-                "count": len(queue),
-                "queue": queue
-            }
-        }
+        return {"success": True, "result": {"count": len(queue), "queue": queue}}
 
     async def _get_calendar(self, adapter, arguments: dict) -> dict:
         """Get calendar."""
         days = arguments.get("days", 7)
         calendar = await adapter.get_calendar(days=days)
 
-        return {
-            "success": True,
-            "result": {
-                "days": days,
-                "count": len(calendar),
-                "upcoming": calendar
-            }
-        }
+        return {"success": True, "result": {"days": days, "count": len(calendar), "upcoming": calendar}}
 
     async def _get_statistics(self, adapter) -> dict:
         """Get statistics."""
         stats = await adapter.get_statistics()
 
-        return {
-            "success": True,
-            "result": stats
-        }
+        return {"success": True, "result": stats}
 
     async def _get_indexers(self, adapter) -> dict:
         """Get list of indexers."""
@@ -225,8 +194,8 @@ class RadarrTools(BaseTool):
             "result": {
                 "count": len(indexers),
                 "enabled_count": sum(1 for i in indexers if i.get("enable")),
-                "indexers": indexers
-            }
+                "indexers": indexers,
+            },
         }
 
     async def _test_indexer(self, adapter, arguments: dict) -> dict:
@@ -236,15 +205,9 @@ class RadarrTools(BaseTool):
             return {"success": False, "error": "indexer_id is required"}
 
         result = await adapter.test_indexer(int(indexer_id))
-        return {
-            "success": result.get("success", False),
-            "result": result
-        }
+        return {"success": result.get("success", False), "result": result}
 
     async def _test_all_indexers(self, adapter) -> dict:
         """Test all enabled indexers."""
         result = await adapter.test_all_indexers()
-        return {
-            "success": True,
-            "result": result
-        }
+        return {"success": True, "result": result}

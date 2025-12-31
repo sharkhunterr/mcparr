@@ -1,6 +1,7 @@
 """MCP tools for Jackett integration."""
 
 from typing import List
+
 from .base import BaseTool, ToolDefinition, ToolParameter
 
 
@@ -89,10 +90,7 @@ class JackettTools(BaseTool):
     async def execute(self, tool_name: str, arguments: dict) -> dict:
         """Execute a Jackett tool."""
         if not self.service_config:
-            return {
-                "success": False,
-                "error": "Jackett service not configured"
-            }
+            return {"success": False, "error": "Jackett service not configured"}
 
         try:
             from src.adapters.jackett import JackettAdapter
@@ -136,13 +134,7 @@ class JackettTools(BaseTool):
         else:
             indexers = await adapter.get_indexers()
 
-        return {
-            "success": True,
-            "result": {
-                "count": len(indexers),
-                "indexers": indexers
-            }
-        }
+        return {"success": True, "result": {"count": len(indexers), "indexers": indexers}}
 
     async def _search(self, adapter, arguments: dict) -> dict:
         """Search across indexers."""
@@ -160,38 +152,22 @@ class JackettTools(BaseTool):
 
         results = await adapter.search(query, indexers=indexers, categories=categories)
 
-        return {
-            "success": True,
-            "result": {
-                "query": query,
-                "count": len(results),
-                "results": results
-            }
-        }
+        return {"success": True, "result": {"query": query, "count": len(results), "results": results}}
 
     async def _test_indexer(self, adapter, arguments: dict) -> dict:
         """Test a specific indexer."""
         indexer_id = arguments.get("indexer_id")
         result = await adapter.test_indexer(indexer_id)
 
-        return {
-            "success": True,
-            "result": result
-        }
+        return {"success": True, "result": result}
 
     async def _get_statistics(self, adapter) -> dict:
         """Get statistics."""
         stats = await adapter.get_statistics()
 
-        return {
-            "success": True,
-            "result": stats
-        }
+        return {"success": True, "result": stats}
 
     async def _test_all_indexers(self, adapter) -> dict:
         """Test all configured indexers."""
         result = await adapter.test_all_indexers()
-        return {
-            "success": True,
-            "result": result
-        }
+        return {"success": True, "result": result}

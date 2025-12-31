@@ -302,7 +302,16 @@ const StatusDonutChart = ({ data, total }: { data: Record<string, number>; total
     return order.indexOf(a[0]) - order.indexOf(b[0]);
   });
 
-  let cumulativeOffset = 0;
+  // Calculate segments with cumulative offsets
+  const segments = entries.reduce<Array<{ status: string; count: number; offset: number; percentage: number }>>(
+    (acc, [status, count]) => {
+      const percentage = total > 0 ? count / total : 0;
+      const previousOffset = acc.length > 0 ? acc[acc.length - 1].offset + acc[acc.length - 1].percentage : 0;
+      acc.push({ status, count, offset: previousOffset, percentage });
+      return acc;
+    },
+    []
+  );
 
   return (
     <div className="flex items-center justify-center gap-6">
@@ -320,13 +329,11 @@ const StatusDonutChart = ({ data, total }: { data: Record<string, number>; total
             className="text-gray-200 dark:text-gray-700"
           />
           {/* Data segments */}
-          {entries.map(([status, count]) => {
-            const percentage = total > 0 ? count / total : 0;
-            const dashLength = circumference * percentage;
-            const dashOffset = circumference * cumulativeOffset;
-            cumulativeOffset += percentage;
-
+          {segments.map(({ status, count, offset, percentage }) => {
             if (count === 0) return null;
+
+            const dashLength = circumference * percentage;
+            const dashOffset = circumference * offset;
 
             return (
               <circle

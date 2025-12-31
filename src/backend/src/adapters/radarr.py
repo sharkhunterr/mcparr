@@ -1,16 +1,11 @@
 """Radarr movie management adapter."""
 
-from typing import Dict, Any, List, Optional
 from datetime import datetime
+from typing import Any, Dict, List
+
 import httpx
 
-from .base import (
-    TokenAuthAdapter,
-    ServiceCapability,
-    ConnectionTestResult,
-    AdapterError,
-    AuthenticationError
-)
+from .base import ConnectionTestResult, ServiceCapability, TokenAuthAdapter
 
 
 class RadarrAdapter(TokenAuthAdapter):
@@ -22,10 +17,7 @@ class RadarrAdapter(TokenAuthAdapter):
 
     @property
     def supported_capabilities(self) -> List[ServiceCapability]:
-        return [
-            ServiceCapability.MEDIA_CONTENT,
-            ServiceCapability.API_ACCESS
-        ]
+        return [ServiceCapability.MEDIA_CONTENT, ServiceCapability.API_ACCESS]
 
     @property
     def token_config_key(self) -> str:
@@ -33,11 +25,7 @@ class RadarrAdapter(TokenAuthAdapter):
 
     def _format_token_header(self, token: str) -> Dict[str, str]:
         """Format Radarr API key header."""
-        return {
-            "X-Api-Key": token,
-            "Content-Type": "application/json",
-            "Accept": "application/json"
-        }
+        return {"X-Api-Key": token, "Content-Type": "application/json", "Accept": "application/json"}
 
     async def test_connection(self) -> ConnectionTestResult:
         """Test connection to Radarr."""
@@ -59,15 +47,15 @@ class RadarrAdapter(TokenAuthAdapter):
                         "status": "connected",
                         "version": data.get("version"),
                         "app_name": data.get("appName", "Radarr"),
-                        "branch": data.get("branch")
-                    }
+                        "branch": data.get("branch"),
+                    },
                 )
             else:
                 return ConnectionTestResult(
                     success=False,
                     message="Connected but response doesn't appear to be from Radarr",
                     response_time_ms=response_time,
-                    details={"status": "invalid_response"}
+                    details={"status": "invalid_response"},
                 )
 
         except httpx.HTTPStatusError as e:
@@ -75,18 +63,18 @@ class RadarrAdapter(TokenAuthAdapter):
                 return ConnectionTestResult(
                     success=False,
                     message="Authentication failed - check API key",
-                    details={"status": "auth_failed", "status_code": 401}
+                    details={"status": "auth_failed", "status_code": 401},
                 )
             return ConnectionTestResult(
                 success=False,
                 message=f"HTTP error: {e.response.status_code}",
-                details={"status": "http_error", "status_code": e.response.status_code}
+                details={"status": "http_error", "status_code": e.response.status_code},
             )
         except Exception as e:
             return ConnectionTestResult(
                 success=False,
                 message=f"Connection failed: {str(e)}",
-                details={"status": "connection_failed", "error": str(e)}
+                details={"status": "connection_failed", "error": str(e)},
             )
 
     async def get_service_info(self) -> Dict[str, Any]:
@@ -102,15 +90,10 @@ class RadarrAdapter(TokenAuthAdapter):
                 "branch": data.get("branch"),
                 "build_time": data.get("buildTime"),
                 "runtime_version": data.get("runtimeVersion"),
-                "status": "online"
+                "status": "online",
             }
         except Exception as e:
-            return {
-                "service": "radarr",
-                "version": "unknown",
-                "status": "error",
-                "error": str(e)
-            }
+            return {"service": "radarr", "version": "unknown", "status": "error", "error": str(e)}
 
     async def get_movies(self, limit: int = 50) -> List[Dict[str, Any]]:
         """Get list of movies in Radarr."""
@@ -130,7 +113,7 @@ class RadarrAdapter(TokenAuthAdapter):
                     "status": movie.get("status"),
                     "quality_profile_id": movie.get("qualityProfileId"),
                     "path": movie.get("path"),
-                    "size_on_disk": movie.get("sizeOnDisk", 0)
+                    "size_on_disk": movie.get("sizeOnDisk", 0),
                 }
                 for movie in movies[:limit]
             ]
@@ -141,11 +124,7 @@ class RadarrAdapter(TokenAuthAdapter):
     async def search_movie(self, query: str) -> List[Dict[str, Any]]:
         """Search for movies to add."""
         try:
-            response = await self._make_request(
-                "GET",
-                "/api/v3/movie/lookup",
-                params={"term": query}
-            )
+            response = await self._make_request("GET", "/api/v3/movie/lookup", params={"term": query})
             results = response.json()
 
             return [
@@ -155,7 +134,7 @@ class RadarrAdapter(TokenAuthAdapter):
                     "tmdb_id": movie.get("tmdbId"),
                     "imdb_id": movie.get("imdbId"),
                     "overview": movie.get("overview", "")[:200],
-                    "in_library": movie.get("id") is not None
+                    "in_library": movie.get("id") is not None,
                 }
                 for movie in results[:20]
             ]
@@ -176,7 +155,7 @@ class RadarrAdapter(TokenAuthAdapter):
                     "status": item.get("status"),
                     "progress": item.get("sizeleft", 0) / item.get("size", 1) * 100 if item.get("size") else 0,
                     "download_client": item.get("downloadClient"),
-                    "estimated_completion": item.get("estimatedCompletionTime")
+                    "estimated_completion": item.get("estimatedCompletionTime"),
                 }
                 for item in data.get("records", [])
             ]
@@ -188,16 +167,12 @@ class RadarrAdapter(TokenAuthAdapter):
         """Get upcoming movies."""
         try:
             from datetime import timedelta
+
             start = datetime.utcnow()
             end = start + timedelta(days=days)
 
             response = await self._make_request(
-                "GET",
-                "/api/v3/calendar",
-                params={
-                    "start": start.isoformat(),
-                    "end": end.isoformat()
-                }
+                "GET", "/api/v3/calendar", params={"start": start.isoformat(), "end": end.isoformat()}
             )
             movies = response.json()
 
@@ -207,7 +182,7 @@ class RadarrAdapter(TokenAuthAdapter):
                     "title": movie.get("title"),
                     "year": movie.get("year"),
                     "release_date": movie.get("inCinemas") or movie.get("physicalRelease"),
-                    "has_file": movie.get("hasFile", False)
+                    "has_file": movie.get("hasFile", False),
                 }
                 for movie in movies
             ]
@@ -232,7 +207,7 @@ class RadarrAdapter(TokenAuthAdapter):
                 "monitored_movies": monitored,
                 "missing_movies": monitored - movies_with_files,
                 "queue_count": len(queue),
-                "total_size_gb": round(total_size / (1024**3), 2)
+                "total_size_gb": round(total_size / (1024**3), 2),
             }
         except Exception as e:
             self.logger.error(f"Failed to get statistics: {e}")
@@ -242,7 +217,7 @@ class RadarrAdapter(TokenAuthAdapter):
                 "monitored_movies": 0,
                 "missing_movies": 0,
                 "queue_count": 0,
-                "total_size_gb": 0
+                "total_size_gb": 0,
             }
 
     async def get_indexers(self) -> List[Dict[str, Any]]:
@@ -261,7 +236,7 @@ class RadarrAdapter(TokenAuthAdapter):
                     "supports_rss": indexer.get("supportsRss", False),
                     "supports_search": indexer.get("supportsSearch", False),
                     "implementation": indexer.get("implementation"),
-                    "config_contract": indexer.get("configContract")
+                    "config_contract": indexer.get("configContract"),
                 }
                 for indexer in indexers
             ]
@@ -278,18 +253,13 @@ class RadarrAdapter(TokenAuthAdapter):
             indexer_name = indexer_config.get("name", f"Indexer {indexer_id}")
 
             # Then test it
-            test_response = await self._make_request(
-                "POST",
-                "/api/v3/indexer/test",
-                json=indexer_config,
-                timeout=60.0
-            )
+            await self._make_request("POST", "/api/v3/indexer/test", json=indexer_config, timeout=60.0)
 
             return {
                 "success": True,
                 "indexer_id": indexer_id,
                 "indexer_name": indexer_name,
-                "message": "Indexer test passed"
+                "message": "Indexer test passed",
             }
         except httpx.HTTPStatusError as e:
             error_msg = "Test failed"
@@ -302,17 +272,9 @@ class RadarrAdapter(TokenAuthAdapter):
             except Exception:
                 error_msg = str(e)
 
-            return {
-                "success": False,
-                "indexer_id": indexer_id,
-                "error": error_msg
-            }
+            return {"success": False, "indexer_id": indexer_id, "error": error_msg}
         except Exception as e:
-            return {
-                "success": False,
-                "indexer_id": indexer_id,
-                "error": str(e)
-            }
+            return {"success": False, "indexer_id": indexer_id, "error": str(e)}
 
     async def test_all_indexers(self) -> Dict[str, Any]:
         """Test all enabled indexers."""
@@ -330,5 +292,5 @@ class RadarrAdapter(TokenAuthAdapter):
             "total_tested": len(results),
             "success_count": success_count,
             "failed_count": len(results) - success_count,
-            "results": results
+            "results": results,
         }

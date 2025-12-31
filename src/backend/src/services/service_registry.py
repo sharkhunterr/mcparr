@@ -4,22 +4,23 @@ This module provides a centralized registry for service adapters,
 allowing dynamic discovery and instantiation of service integrations.
 """
 
-from typing import Dict, List, Type, Optional, Any
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from typing import Any, Dict, List, Optional, Type
 
-from ..models.service_config import ServiceConfig, ServiceType
-from ..adapters.base import BaseServiceAdapter
-from ..adapters.plex import PlexAdapter
-from ..adapters.tautulli import TautulliAdapter
-from ..adapters.overseerr import OverseerrAdapter
-from ..adapters.zammad import ZammadAdapter
-from ..adapters.authentik import AuthentikAdapter
-from ..adapters.openwebui import OpenWebUIAdapter
-from ..adapters.komga import KomgaAdapter
-from ..adapters.romm import RommAdapter
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from ..adapters.audiobookshelf import AudiobookshelfAdapter
+from ..adapters.authentik import AuthentikAdapter
+from ..adapters.base import BaseServiceAdapter
+from ..adapters.komga import KomgaAdapter
+from ..adapters.openwebui import OpenWebUIAdapter
+from ..adapters.overseerr import OverseerrAdapter
+from ..adapters.plex import PlexAdapter
+from ..adapters.romm import RommAdapter
+from ..adapters.tautulli import TautulliAdapter
 from ..adapters.wikijs import WikiJSAdapter
+from ..adapters.zammad import ZammadAdapter
+from ..models.service_config import ServiceConfig, ServiceType
 
 
 class ServiceRegistry:
@@ -73,10 +74,7 @@ class ServiceRegistry:
         return service_type.lower() in self._adapters
 
     async def create_adapter(
-        self,
-        service_config: ServiceConfig,
-        timeout: int = 30,
-        verify_ssl: bool = True
+        self, service_config: ServiceConfig, timeout: int = 30, verify_ssl: bool = True
     ) -> Optional[BaseServiceAdapter]:
         """Create and return an adapter instance for the given service config.
 
@@ -88,15 +86,15 @@ class ServiceRegistry:
         Returns:
             Adapter instance if successful, None if service type not supported
         """
-        adapter_class = self.get_adapter_class(service_config.service_type.value if hasattr(service_config.service_type, 'value') else service_config.service_type)
+        adapter_class = self.get_adapter_class(
+            service_config.service_type.value
+            if hasattr(service_config.service_type, "value")
+            else service_config.service_type
+        )
         if not adapter_class:
             return None
 
-        return adapter_class(
-            service_config=service_config,
-            timeout=timeout,
-            verify_ssl=verify_ssl
-        )
+        return adapter_class(service_config=service_config, timeout=timeout, verify_ssl=verify_ssl)
 
     async def get_service_capabilities(self, service_type: str) -> List[str]:
         """Get the capabilities supported by a service adapter.
@@ -116,7 +114,7 @@ class ServiceRegistry:
         # In practice, capabilities should be class-level properties
         try:
             # Try to get capabilities without instantiating if possible
-            if hasattr(adapter_class, 'supported_capabilities'):
+            if hasattr(adapter_class, "supported_capabilities"):
                 capabilities = adapter_class.supported_capabilities
                 if callable(capabilities):
                     # It's a property or method, we need an instance
@@ -128,11 +126,7 @@ class ServiceRegistry:
         except Exception:
             return []
 
-    async def discover_services(
-        self,
-        db: AsyncSession,
-        service_type: Optional[str] = None
-    ) -> List[ServiceConfig]:
+    async def discover_services(self, db: AsyncSession, service_type: Optional[str] = None) -> List[ServiceConfig]:
         """Discover all configured services, optionally filtered by type.
 
         Args:
@@ -163,11 +157,13 @@ class ServiceRegistry:
         results = {}
 
         for service in services:
-            service_type_str = service.service_type.value if hasattr(service.service_type, 'value') else service.service_type
+            service_type_str = (
+                service.service_type.value if hasattr(service.service_type, "value") else service.service_type
+            )
             if not self.has_adapter(service_type_str):
                 results[service.id] = {
                     "success": False,
-                    "error": f"No adapter available for service type: {service_type_str}"
+                    "error": f"No adapter available for service type: {service_type_str}",
                 }
                 continue
 
@@ -180,18 +176,12 @@ class ServiceRegistry:
                             "success": test_result.success,
                             "message": test_result.message,
                             "response_time_ms": test_result.response_time_ms,
-                            "details": test_result.details
+                            "details": test_result.details,
                         }
                 else:
-                    results[service.id] = {
-                        "success": False,
-                        "error": "Failed to create adapter"
-                    }
+                    results[service.id] = {"success": False, "error": "Failed to create adapter"}
             except Exception as e:
-                results[service.id] = {
-                    "success": False,
-                    "error": f"Exception during test: {str(e)}"
-                }
+                results[service.id] = {"success": False, "error": f"Exception during test: {str(e)}"}
 
         return results
 
@@ -211,16 +201,18 @@ class ServiceRegistry:
             "active_services": 0,
             "inactive_services": 0,
             "error_services": 0,
-            "supported_service_types": self.get_available_service_types()
+            "supported_service_types": self.get_available_service_types(),
         }
 
         for service in services:
-            service_type = service.service_type.value if hasattr(service.service_type, 'value') else service.service_type
+            service_type = (
+                service.service_type.value if hasattr(service.service_type, "value") else service.service_type
+            )
             stats["services_by_type"][service_type] = stats["services_by_type"].get(service_type, 0) + 1
 
-            if service.status.value if hasattr(service.status, 'value') else service.status == "active":
+            if service.status.value if hasattr(service.status, "value") else service.status == "active":
                 stats["active_services"] += 1
-            elif service.status.value if hasattr(service.status, 'value') else service.status == "inactive":
+            elif service.status.value if hasattr(service.status, "value") else service.status == "inactive":
                 stats["inactive_services"] += 1
             else:
                 stats["error_services"] += 1
@@ -228,9 +220,7 @@ class ServiceRegistry:
         return stats
 
     async def auto_discover_services(
-        self,
-        network_range: Optional[str] = None,
-        common_ports: Optional[List[int]] = None
+        self, network_range: Optional[str] = None, common_ports: Optional[List[int]] = None
     ) -> List[Dict[str, Any]]:
         """Automatically discover services on the network.
 
@@ -252,12 +242,12 @@ class ServiceRegistry:
         if common_ports is None:
             common_ports = [
                 32400,  # Plex
-                8096,   # Jellyfin
-                5055,   # Overseerr
-                8181,   # Tautulli
-                8080,   # Various services
-                443,    # HTTPS
-                80      # HTTP
+                8096,  # Jellyfin
+                5055,  # Overseerr
+                8181,  # Tautulli
+                8080,  # Various services
+                443,  # HTTPS
+                80,  # HTTP
             ]
 
         # In a real implementation, this would:

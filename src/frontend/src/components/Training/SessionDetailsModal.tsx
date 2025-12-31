@@ -257,20 +257,22 @@ export default function SessionDetailsModal({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (isOpen && sessionId) {
+    if (!isOpen || !sessionId) return;
+
+    const fetchData = async () => {
       setLoading(true);
       setError(null);
-      apiClient
-        .get<SessionSummary>(`/api/training/sessions/${sessionId}/summary`)
-        .then((data) => {
-          setSummary(data);
-          setLoading(false);
-        })
-        .catch((err) => {
-          setError(err.message || 'Failed to load session details');
-          setLoading(false);
-        });
-    }
+      try {
+        const data = await apiClient.get<SessionSummary>(`/api/training/sessions/${sessionId}/summary`);
+        setSummary(data);
+      } catch (err: unknown) {
+        setError((err as Error).message || 'Failed to load session details');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, [isOpen, sessionId]);
 
   if (!isOpen) return null;

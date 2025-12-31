@@ -1,7 +1,7 @@
 """MCP tools for system monitoring and management."""
 
-from typing import List, Optional
-from datetime import datetime, timedelta
+from typing import List
+
 from .base import BaseTool, ToolDefinition, ToolParameter
 
 
@@ -164,7 +164,7 @@ class SystemTools(BaseTool):
         # Get basic system health
         cpu_percent = psutil.cpu_percent(interval=0.1)
         memory = psutil.virtual_memory()
-        disk = psutil.disk_usage('/')
+        disk = psutil.disk_usage("/")
 
         health_status = "healthy"
         issues = []
@@ -182,17 +182,16 @@ class SystemTools(BaseTool):
         # Get service status from database
         service_status = {"active": 0, "error": 0, "unknown": 0}
         try:
-            from src.database.connection import async_session_maker
-            from src.models.service_config import ServiceConfig
             from sqlalchemy import select
 
+            from src.database.connection import async_session_maker
+            from src.models.service_config import ServiceConfig
+
             async with async_session_maker() as session:
-                result = await session.execute(
-                    select(ServiceConfig).where(ServiceConfig.enabled == True)
-                )
+                result = await session.execute(select(ServiceConfig).where(ServiceConfig.enabled is True))
                 services = result.scalars().all()
                 for svc in services:
-                    status = svc.status.value if hasattr(svc.status, 'value') else str(svc.status)
+                    status = svc.status.value if hasattr(svc.status, "value") else str(svc.status)
                     if status == "active":
                         service_status["active"] += 1
                     elif status == "error":
@@ -216,17 +215,18 @@ class SystemTools(BaseTool):
                     "disk_usage": f"{disk.percent}%",
                 },
                 "services": service_status,
-            }
+            },
         }
 
     async def _get_metrics(self) -> dict:
         """Get current system metrics."""
-        import psutil
         import time
+
+        import psutil
 
         cpu_percent = psutil.cpu_percent(interval=0.1)
         memory = psutil.virtual_memory()
-        disk = psutil.disk_usage('/')
+        disk = psutil.disk_usage("/")
         network = psutil.net_io_counters()
         boot_time = psutil.boot_time()
         uptime = time.time() - boot_time
@@ -263,7 +263,7 @@ class SystemTools(BaseTool):
                     "recv_gb": round(network.bytes_recv / (1024**3), 2),
                 },
                 "uptime": uptime_str,
-            }
+            },
         }
 
     async def _get_services(self, arguments: dict) -> dict:
@@ -271,9 +271,10 @@ class SystemTools(BaseTool):
         status_filter = arguments.get("status_filter", "all")
 
         try:
+            from sqlalchemy import select
+
             from src.database.connection import async_session_maker
             from src.models.service_config import ServiceConfig
-            from sqlalchemy import select
 
             async with async_session_maker() as session:
                 query = select(ServiceConfig)
@@ -287,18 +288,22 @@ class SystemTools(BaseTool):
 
                 services_list = []
                 for svc in services:
-                    services_list.append({
-                        "id": str(svc.id),
-                        "name": svc.name,
-                        "type": svc.service_type.value if hasattr(svc.service_type, 'value') else str(svc.service_type),
-                        "status": svc.status.value if hasattr(svc.status, 'value') else str(svc.status),
-                        "enabled": svc.enabled,
-                        "url": svc.full_url,
-                        "version": svc.version,
-                        "last_test_at": svc.last_test_at.isoformat() if svc.last_test_at else None,
-                        "last_test_success": svc.last_test_success,
-                        "last_error": svc.last_error,
-                    })
+                    services_list.append(
+                        {
+                            "id": str(svc.id),
+                            "name": svc.name,
+                            "type": svc.service_type.value
+                            if hasattr(svc.service_type, "value")
+                            else str(svc.service_type),
+                            "status": svc.status.value if hasattr(svc.status, "value") else str(svc.status),
+                            "enabled": svc.enabled,
+                            "url": svc.full_url,
+                            "version": svc.version,
+                            "last_test_at": svc.last_test_at.isoformat() if svc.last_test_at else None,
+                            "last_test_success": svc.last_test_success,
+                            "last_error": svc.last_error,
+                        }
+                    )
 
                 return {
                     "success": True,
@@ -306,7 +311,7 @@ class SystemTools(BaseTool):
                         "count": len(services_list),
                         "filter": status_filter,
                         "services": services_list,
-                    }
+                    },
                 }
 
         except Exception as e:
@@ -320,16 +325,15 @@ class SystemTools(BaseTool):
             return {"success": False, "error": "service_name is required"}
 
         try:
+            from sqlalchemy import select
+
             from src.database.connection import async_session_maker
             from src.models.service_config import ServiceConfig
             from src.services.service_tester import ServiceTester
-            from sqlalchemy import select
 
             async with async_session_maker() as session:
                 # Find service by name
-                result = await session.execute(
-                    select(ServiceConfig).where(ServiceConfig.name == service_name)
-                )
+                result = await session.execute(select(ServiceConfig).where(ServiceConfig.name == service_name))
                 service = result.scalar_one_or_none()
 
                 if not service:
@@ -346,7 +350,7 @@ class SystemTools(BaseTool):
                         "message": test_result.message,
                         "response_time_ms": test_result.response_time_ms,
                         "details": test_result.details,
-                    }
+                    },
                 }
 
         except Exception as e:
@@ -374,17 +378,19 @@ class SystemTools(BaseTool):
 
                 logs_list = []
                 for log in logs:
-                    logs_list.append({
-                        "id": str(log.id),
-                        "level": log.level,
-                        "message": log.message,
-                        "source": log.source,
-                        "component": log.component,
-                        "logged_at": log.logged_at.isoformat() if log.logged_at else None,
-                        "service_type": log.service_type,
-                        "exception_type": log.exception_type,
-                        "exception_message": log.exception_message,
-                    })
+                    logs_list.append(
+                        {
+                            "id": str(log.id),
+                            "level": log.level,
+                            "message": log.message,
+                            "source": log.source,
+                            "component": log.component,
+                            "logged_at": log.logged_at.isoformat() if log.logged_at else None,
+                            "service_type": log.service_type,
+                            "exception_type": log.exception_type,
+                            "exception_message": log.exception_message,
+                        }
+                    )
 
                 return {
                     "success": True,
@@ -397,7 +403,7 @@ class SystemTools(BaseTool):
                             "search": search,
                         },
                         "logs": logs_list,
-                    }
+                    },
                 }
 
         except Exception as e:
@@ -418,16 +424,18 @@ class SystemTools(BaseTool):
                     alerts = await alert_service.get_active_alerts(session)
                     alerts_list = []
                     for alert in alerts[:limit]:
-                        alerts_list.append({
-                            "id": str(alert.id),
-                            "alert_name": alert.alert_name,
-                            "severity": alert.severity,
-                            "triggered_at": alert.triggered_at.isoformat() if alert.triggered_at else None,
-                            "is_resolved": alert.is_resolved,
-                            "metric_value": alert.metric_value,
-                            "threshold_value": alert.threshold_value,
-                            "message": alert.message,
-                        })
+                        alerts_list.append(
+                            {
+                                "id": str(alert.id),
+                                "alert_name": alert.alert_name,
+                                "severity": alert.severity,
+                                "triggered_at": alert.triggered_at.isoformat() if alert.triggered_at else None,
+                                "is_resolved": alert.is_resolved,
+                                "metric_value": alert.metric_value,
+                                "threshold_value": alert.threshold_value,
+                                "message": alert.message,
+                            }
+                        )
                 else:
                     # Get recent alert history
                     history, total = await alert_service.get_alert_history(
@@ -436,17 +444,19 @@ class SystemTools(BaseTool):
                     )
                     alerts_list = []
                     for alert in history:
-                        alerts_list.append({
-                            "id": str(alert.id),
-                            "alert_name": alert.alert_name,
-                            "severity": alert.severity,
-                            "triggered_at": alert.triggered_at.isoformat() if alert.triggered_at else None,
-                            "resolved_at": alert.resolved_at.isoformat() if alert.resolved_at else None,
-                            "is_resolved": alert.is_resolved,
-                            "metric_value": alert.metric_value,
-                            "threshold_value": alert.threshold_value,
-                            "message": alert.message,
-                        })
+                        alerts_list.append(
+                            {
+                                "id": str(alert.id),
+                                "alert_name": alert.alert_name,
+                                "severity": alert.severity,
+                                "triggered_at": alert.triggered_at.isoformat() if alert.triggered_at else None,
+                                "resolved_at": alert.resolved_at.isoformat() if alert.resolved_at else None,
+                                "is_resolved": alert.is_resolved,
+                                "metric_value": alert.metric_value,
+                                "threshold_value": alert.threshold_value,
+                                "message": alert.message,
+                            }
+                        )
 
                 # Get stats
                 stats = await alert_service.get_alert_stats(session, hours=24)
@@ -461,8 +471,8 @@ class SystemTools(BaseTool):
                             "total_triggered_24h": stats.get("total_triggered", 0),
                             "active_count": stats.get("active_count", 0),
                             "by_severity": stats.get("by_severity", {}),
-                        }
-                    }
+                        },
+                    },
                 }
 
         except Exception as e:
@@ -474,17 +484,15 @@ class SystemTools(BaseTool):
         limit = int(arguments.get("limit", 50))
 
         try:
+            from sqlalchemy import or_, select
+            from sqlalchemy.orm import selectinload
+
             from src.database.connection import async_session_maker
             from src.models.user_mapping import UserMapping
-            from src.models.service_config import ServiceConfig
-            from sqlalchemy import select, func, or_
-            from sqlalchemy.orm import selectinload
 
             async with async_session_maker() as session:
                 # Query to get unique central users with their mappings count
-                query = select(UserMapping).options(
-                    selectinload(UserMapping.service_config)
-                )
+                query = select(UserMapping).options(selectinload(UserMapping.service_config))
 
                 if search:
                     query = query.where(
@@ -495,9 +503,7 @@ class SystemTools(BaseTool):
                         )
                     )
 
-                result = await session.execute(
-                    query.order_by(UserMapping.central_username).limit(limit * 10)
-                )
+                result = await session.execute(query.order_by(UserMapping.central_username).limit(limit * 10))
                 mappings = result.scalars().all()
 
                 # Group by central_user_id
@@ -511,13 +517,17 @@ class SystemTools(BaseTool):
                             "central_email": mapping.central_email,
                             "mappings": [],
                         }
-                    users_dict[user_id]["mappings"].append({
-                        "service_name": mapping.service_config.name if mapping.service_config else "Unknown",
-                        "service_type": mapping.service_config.service_type.value if mapping.service_config else "unknown",
-                        "service_username": mapping.service_username,
-                        "status": mapping.status.value if hasattr(mapping.status, 'value') else str(mapping.status),
-                        "role": mapping.role.value if hasattr(mapping.role, 'value') else str(mapping.role),
-                    })
+                    users_dict[user_id]["mappings"].append(
+                        {
+                            "service_name": mapping.service_config.name if mapping.service_config else "Unknown",
+                            "service_type": mapping.service_config.service_type.value
+                            if mapping.service_config
+                            else "unknown",
+                            "service_username": mapping.service_username,
+                            "status": mapping.status.value if hasattr(mapping.status, "value") else str(mapping.status),
+                            "role": mapping.role.value if hasattr(mapping.role, "value") else str(mapping.role),
+                        }
+                    )
 
                 users_list = list(users_dict.values())[:limit]
 
@@ -527,7 +537,7 @@ class SystemTools(BaseTool):
                         "count": len(users_list),
                         "search": search,
                         "users": users_list,
-                    }
+                    },
                 }
 
         except Exception as e:

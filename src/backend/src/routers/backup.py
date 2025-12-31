@@ -1,22 +1,21 @@
 """Complete site backup/restore endpoints."""
 
 from datetime import datetime
-from typing import List, Dict, Any, Optional
+from typing import Any, Dict, List
 
 from fastapi import APIRouter, Depends, HTTPException
-from fastapi.responses import JSONResponse
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
-from sqlalchemy.orm import selectinload
 from pydantic import BaseModel, Field
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from src.database.connection import get_db_session
-from src.models.service_config import ServiceConfig
-from src.models.user_mapping import UserMapping
-from src.models.group import Group, GroupMembership, GroupToolPermission
 from src.models.configuration import ConfigurationSetting
-from src.models.training_prompt import TrainingPrompt, PromptTemplate
+from src.models.group import Group, GroupMembership, GroupToolPermission
+from src.models.service_config import ServiceConfig
+from src.models.training_prompt import PromptTemplate, TrainingPrompt
 from src.models.training_worker import TrainingWorker
+from src.models.user_mapping import UserMapping
 from src.utils.logging import get_logger
 
 logger = get_logger()
@@ -26,6 +25,7 @@ router = APIRouter(prefix="/api/backup", tags=["backup"])
 
 class ExportOptions(BaseModel):
     """Options for what to include in export."""
+
     services: bool = Field(default=True, description="Include service configurations")
     user_mappings: bool = Field(default=True, description="Include user mappings")
     groups: bool = Field(default=True, description="Include groups and permissions")
@@ -37,6 +37,7 @@ class ExportOptions(BaseModel):
 
 class ExportResponse(BaseModel):
     """Complete export response."""
+
     version: str
     exported_at: str
     app_name: str = "mcparr-ai-gateway"
@@ -47,6 +48,7 @@ class ExportResponse(BaseModel):
 
 class ImportOptions(BaseModel):
     """Options for what to import."""
+
     services: bool = Field(default=True, description="Import service configurations")
     user_mappings: bool = Field(default=True, description="Import user mappings")
     groups: bool = Field(default=True, description="Import groups and permissions")
@@ -59,6 +61,7 @@ class ImportOptions(BaseModel):
 
 class ImportRequest(BaseModel):
     """Import request with data and options."""
+
     version: str
     data: Dict[str, Any]
     options: ImportOptions = Field(default_factory=ImportOptions)
@@ -66,6 +69,7 @@ class ImportRequest(BaseModel):
 
 class ImportResult(BaseModel):
     """Result of import operation."""
+
     success: bool
     imported: Dict[str, int]
     errors: List[Dict[str, str]]
@@ -74,13 +78,10 @@ class ImportResult(BaseModel):
 
 @router.post("/export", response_model=ExportResponse)
 async def export_configuration(
-    options: ExportOptions = ExportOptions(),
-    db: AsyncSession = Depends(get_db_session)
+    options: ExportOptions = ExportOptions(), db: AsyncSession = Depends(get_db_session)
 ) -> ExportResponse:
     """Export complete site configuration based on selected options."""
-    logger.info(
-        f"Configuration export requested with options: {options.model_dump()}"
-    )
+    logger.info(f"Configuration export requested with options: {options.model_dump()}")
 
     data = {}
     stats = {}
@@ -93,7 +94,7 @@ async def export_configuration(
             data["services"] = [
                 {
                     "name": s.name,
-                    "service_type": s.service_type.value if hasattr(s.service_type, 'value') else str(s.service_type),
+                    "service_type": s.service_type.value if hasattr(s.service_type, "value") else str(s.service_type),
                     "base_url": s.base_url,
                     "api_key": s.api_key,  # Note: sensitive data included
                     "enabled": s.enabled,
@@ -111,22 +112,22 @@ async def export_configuration(
 
         # Export user mappings
         if options.user_mappings:
-            result = await db.execute(
-                select(UserMapping).options(selectinload(UserMapping.service_config))
-            )
+            result = await db.execute(select(UserMapping).options(selectinload(UserMapping.service_config)))
             mappings = result.scalars().all()
             data["user_mappings"] = [
                 {
                     "central_user_id": m.central_user_id,
                     "central_username": m.central_username,
                     "central_email": m.central_email,
-                    "service_type": m.service_config.service_type.value if m.service_config and hasattr(m.service_config.service_type, 'value') else None,
+                    "service_type": m.service_config.service_type.value
+                    if m.service_config and hasattr(m.service_config.service_type, "value")
+                    else None,
                     "service_name": m.service_config.name if m.service_config else None,
                     "service_user_id": m.service_user_id,
                     "service_username": m.service_username,
                     "service_email": m.service_email,
-                    "role": m.role.value if hasattr(m.role, 'value') else str(m.role),
-                    "status": m.status.value if hasattr(m.status, 'value') else str(m.status),
+                    "role": m.role.value if hasattr(m.role, "value") else str(m.role),
+                    "status": m.status.value if hasattr(m.status, "value") else str(m.status),
                 }
                 for m in mappings
             ]
@@ -135,10 +136,7 @@ async def export_configuration(
         # Export groups with memberships and permissions
         if options.groups:
             result = await db.execute(
-                select(Group).options(
-                    selectinload(Group.memberships),
-                    selectinload(Group.tool_permissions)
-                )
+                select(Group).options(selectinload(Group.memberships), selectinload(Group.tool_permissions))
             )
             groups = result.scalars().all()
             data["groups"] = [
@@ -199,10 +197,10 @@ async def export_configuration(
                 {
                     "name": p.name,
                     "description": p.description,
-                    "category": p.category.value if hasattr(p.category, 'value') else str(p.category),
-                    "difficulty": p.difficulty.value if hasattr(p.difficulty, 'value') else str(p.difficulty),
-                    "source": p.source.value if hasattr(p.source, 'value') else str(p.source),
-                    "format": p.format.value if hasattr(p.format, 'value') else str(p.format),
+                    "category": p.category.value if hasattr(p.category, "value") else str(p.category),
+                    "difficulty": p.difficulty.value if hasattr(p.difficulty, "value") else str(p.difficulty),
+                    "source": p.source.value if hasattr(p.source, "value") else str(p.source),
+                    "format": p.format.value if hasattr(p.format, "value") else str(p.format),
                     "content": p.content or {},
                     "system_prompt": p.system_prompt,
                     "user_input": p.user_input,
@@ -233,8 +231,8 @@ async def export_configuration(
                     "user_template": t.user_template,
                     "assistant_template": t.assistant_template,
                     "variables": t.variables or [],
-                    "category": t.category.value if hasattr(t.category, 'value') else str(t.category),
-                    "format": t.format.value if hasattr(t.format, 'value') else str(t.format),
+                    "category": t.category.value if hasattr(t.category, "value") else str(t.category),
+                    "format": t.format.value if hasattr(t.format, "value") else str(t.format),
                     "enabled": t.enabled,
                     "times_used": t.times_used,
                 }
@@ -261,11 +259,7 @@ async def export_configuration(
             stats["training_workers"] = len(data["training_workers"])
 
         response = ExportResponse(
-            version="1.0",
-            exported_at=datetime.utcnow().isoformat(),
-            options=options,
-            data=data,
-            stats=stats
+            version="1.0", exported_at=datetime.utcnow().isoformat(), options=options, data=data, stats=stats
         )
 
         logger.info(f"Configuration export completed: {stats}")
@@ -274,14 +268,11 @@ async def export_configuration(
 
     except Exception as e:
         logger.error(f"Configuration export failed: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Export failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Export failed: {str(e)}") from e
 
 
 @router.post("/import", response_model=ImportResult)
-async def import_configuration(
-    request: ImportRequest,
-    db: AsyncSession = Depends(get_db_session)
-) -> ImportResult:
+async def import_configuration(request: ImportRequest, db: AsyncSession = Depends(get_db_session)) -> ImportResult:
     """Import configuration from backup file."""
     logger.info(f"Configuration import requested with options: {request.options.model_dump()}")
 
@@ -296,9 +287,7 @@ async def import_configuration(
             for service_data in request.data["services"]:
                 try:
                     # Check if service exists by name
-                    existing = await db.execute(
-                        select(ServiceConfig).where(ServiceConfig.name == service_data["name"])
-                    )
+                    existing = await db.execute(select(ServiceConfig).where(ServiceConfig.name == service_data["name"]))
                     existing_service = existing.scalar_one_or_none()
 
                     if existing_service:
@@ -313,6 +302,7 @@ async def import_configuration(
                     else:
                         # Create new service
                         from src.models.service_config import ServiceType
+
                         service = ServiceConfig(
                             name=service_data["name"],
                             service_type=ServiceType(service_data["service_type"]),
@@ -343,9 +333,7 @@ async def import_configuration(
             for group_data in request.data["groups"]:
                 try:
                     # Check if group exists
-                    existing = await db.execute(
-                        select(Group).where(Group.name == group_data["name"])
-                    )
+                    existing = await db.execute(select(Group).where(Group.name == group_data["name"]))
                     existing_group = existing.scalar_one_or_none()
 
                     if existing_group:
@@ -378,7 +366,7 @@ async def import_configuration(
                             existing_member = await db.execute(
                                 select(GroupMembership).where(
                                     GroupMembership.group_id == group.id,
-                                    GroupMembership.central_user_id == member_data["central_user_id"]
+                                    GroupMembership.central_user_id == member_data["central_user_id"],
                                 )
                             )
                             if not existing_member.scalar_one_or_none():
@@ -399,7 +387,7 @@ async def import_configuration(
                             existing_perm = await db.execute(
                                 select(GroupToolPermission).where(
                                     GroupToolPermission.group_id == group.id,
-                                    GroupToolPermission.tool_name == perm_data["tool_name"]
+                                    GroupToolPermission.tool_name == perm_data["tool_name"],
                                 )
                             )
                             if not existing_perm.scalar_one_or_none():
@@ -442,11 +430,12 @@ async def import_configuration(
                         existing = await db.execute(
                             select(UserMapping).where(
                                 UserMapping.central_user_id == mapping_data["central_user_id"],
-                                UserMapping.service_config_id == service.id
+                                UserMapping.service_config_id == service.id,
                             )
                         )
                         if not existing.scalar_one_or_none():
-                            from src.models.user_mapping import UserRole, MappingStatus
+                            from src.models.user_mapping import MappingStatus, UserRole
+
                             mapping = UserMapping(
                                 central_user_id=mapping_data["central_user_id"],
                                 central_username=mapping_data.get("central_username"),
@@ -461,7 +450,13 @@ async def import_configuration(
                             db.add(mapping)
                             count += 1
                 except Exception as e:
-                    errors.append({"type": "user_mapping", "user": mapping_data.get("central_user_id", "unknown"), "error": str(e)})
+                    errors.append(
+                        {
+                            "type": "user_mapping",
+                            "user": mapping_data.get("central_user_id", "unknown"),
+                            "error": str(e),
+                        }
+                    )
 
             imported["user_mappings"] = count
 
@@ -493,7 +488,13 @@ async def import_configuration(
                         select(TrainingPrompt).where(TrainingPrompt.name == prompt_data["name"])
                     )
                     if not existing.scalar_one_or_none():
-                        from src.models.training_prompt import PromptCategory, PromptDifficulty, PromptFormat, PromptSource
+                        from src.models.training_prompt import (
+                            PromptCategory,
+                            PromptDifficulty,
+                            PromptFormat,
+                            PromptSource,
+                        )
+
                         prompt = TrainingPrompt(
                             name=prompt_data["name"],
                             description=prompt_data.get("description"),
@@ -518,7 +519,9 @@ async def import_configuration(
                         db.add(prompt)
                         count += 1
                 except Exception as e:
-                    errors.append({"type": "training_prompt", "name": prompt_data.get("name", "unknown"), "error": str(e)})
+                    errors.append(
+                        {"type": "training_prompt", "name": prompt_data.get("name", "unknown"), "error": str(e)}
+                    )
 
             imported["training_prompts"] = count
 
@@ -532,6 +535,7 @@ async def import_configuration(
                     )
                     if not existing.scalar_one_or_none():
                         from src.models.training_prompt import PromptCategory, PromptFormat
+
                         template = PromptTemplate(
                             name=template_data["name"],
                             description=template_data.get("description"),
@@ -547,7 +551,9 @@ async def import_configuration(
                         db.add(template)
                         count += 1
                 except Exception as e:
-                    errors.append({"type": "prompt_template", "name": template_data.get("name", "unknown"), "error": str(e)})
+                    errors.append(
+                        {"type": "prompt_template", "name": template_data.get("name", "unknown"), "error": str(e)}
+                    )
 
             imported["prompt_templates"] = count
 
@@ -584,18 +590,15 @@ async def import_configuration(
                         db.add(worker)
                         count += 1
                 except Exception as e:
-                    errors.append({"type": "training_worker", "name": worker_data.get("name", "unknown"), "error": str(e)})
+                    errors.append(
+                        {"type": "training_worker", "name": worker_data.get("name", "unknown"), "error": str(e)}
+                    )
 
             imported["training_workers"] = count
 
         await db.commit()
 
-        result = ImportResult(
-            success=len(errors) == 0,
-            imported=imported,
-            errors=errors,
-            warnings=warnings
-        )
+        result = ImportResult(success=len(errors) == 0, imported=imported, errors=errors, warnings=warnings)
 
         logger.info(f"Configuration import completed: {imported}, errors: {len(errors)}")
 
@@ -604,7 +607,7 @@ async def import_configuration(
     except Exception as e:
         await db.rollback()
         logger.error(f"Configuration import failed: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Import failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Import failed: {str(e)}") from e
 
 
 @router.get("/preview")
@@ -616,7 +619,7 @@ async def preview_export(
     training_prompts: bool = True,
     prompt_templates: bool = True,
     training_workers: bool = True,
-    db: AsyncSession = Depends(get_db_session)
+    db: AsyncSession = Depends(get_db_session),
 ) -> Dict[str, int]:
     """Preview what would be exported with the given options."""
     stats = {}

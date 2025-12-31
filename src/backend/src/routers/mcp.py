@@ -2,16 +2,16 @@
 
 from datetime import datetime
 from typing import Optional
+
 from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func
 
 from src.database.connection import get_db_session
-from src.services.mcp_audit import mcp_audit_service
-from src.models.user_mapping import UserMapping
 from src.models.service_config import ServiceConfig
-
+from src.models.user_mapping import UserMapping
+from src.services.mcp_audit import mcp_audit_service
 
 router = APIRouter(prefix="/api/mcp", tags=["mcp"])
 
@@ -43,10 +43,7 @@ async def get_user_display_names(session: AsyncSession, user_ids: list[str]) -> 
 
     # Find Open WebUI service
     openwebui_result = await session.execute(
-        select(ServiceConfig).where(
-            ServiceConfig.service_type == "openwebui",
-            ServiceConfig.enabled == True
-        )
+        select(ServiceConfig).where(ServiceConfig.service_type == "openwebui", ServiceConfig.enabled is True)
     )
     openwebui_service = openwebui_result.scalar_one_or_none()
 
@@ -58,7 +55,7 @@ async def get_user_display_names(session: AsyncSession, user_ids: list[str]) -> 
         select(UserMapping).where(
             UserMapping.service_config_id == str(openwebui_service.id),
             UserMapping.service_email.in_(valid_user_ids),
-            UserMapping.enabled == True
+            UserMapping.enabled is True,
         )
     )
     openwebui_mappings = mapping_result.scalars().all()
@@ -71,10 +68,7 @@ async def get_user_display_names(session: AsyncSession, user_ids: list[str]) -> 
 
     # Get all mappings for these users to find the best display name
     all_mappings_result = await session.execute(
-        select(UserMapping).where(
-            UserMapping.central_user_id.in_(central_user_ids),
-            UserMapping.enabled == True
-        )
+        select(UserMapping).where(UserMapping.central_user_id.in_(central_user_ids), UserMapping.enabled is True)
     )
     all_mappings = all_mappings_result.scalars().all()
 
@@ -89,8 +83,8 @@ async def get_user_display_names(session: AsyncSession, user_ids: list[str]) -> 
             best_names[mapping.central_user_id] = candidate
         elif current_name and candidate:
             # Prefer names that don't look like email prefixes (contain dots or match email pattern)
-            current_looks_like_email = '.' in current_name and '@' not in current_name
-            candidate_looks_like_email = '.' in candidate and '@' not in candidate
+            current_looks_like_email = "." in current_name and "@" not in current_name
+            candidate_looks_like_email = "." in candidate and "@" not in candidate
             if current_looks_like_email and not candidate_looks_like_email:
                 best_names[mapping.central_user_id] = candidate
 
@@ -99,8 +93,7 @@ async def get_user_display_names(session: AsyncSession, user_ids: list[str]) -> 
     for mapping in openwebui_mappings:
         if mapping.service_email:
             display_names[mapping.service_email] = best_names.get(
-                mapping.central_user_id,
-                mapping.central_username or mapping.service_username
+                mapping.central_user_id, mapping.central_username or mapping.service_username
             )
 
     return display_names
@@ -123,29 +116,27 @@ async def get_mcp_server_status(
     session: AsyncSession = Depends(get_db_session),
 ):
     """Get MCP server status and configuration info."""
-    from src.mcp.tools.base import ToolRegistry
-    from src.mcp.tools.system_tools import SystemTools
-    from src.mcp.tools.plex_tools import PlexTools
-    from src.mcp.tools.overseerr_tools import OverseerrTools
-    from src.mcp.tools.zammad_tools import ZammadTools
-    from src.mcp.tools.tautulli_tools import TautulliTools
-    from src.mcp.tools.openwebui_tools import OpenWebUITools
-    from src.mcp.tools.radarr_tools import RadarrTools
-    from src.mcp.tools.sonarr_tools import SonarrTools
-    from src.mcp.tools.prowlarr_tools import ProwlarrTools
-    from src.mcp.tools.jackett_tools import JackettTools
-    from src.mcp.tools.deluge_tools import DelugeTools
-    from src.mcp.tools.komga_tools import KomgaTools
-    from src.mcp.tools.romm_tools import RommTools
-    from src.mcp.tools.authentik_tools import AuthentikTools
     from src.mcp.tools.audiobookshelf_tools import AudiobookshelfTools
+    from src.mcp.tools.authentik_tools import AuthentikTools
+    from src.mcp.tools.base import ToolRegistry
+    from src.mcp.tools.deluge_tools import DelugeTools
+    from src.mcp.tools.jackett_tools import JackettTools
+    from src.mcp.tools.komga_tools import KomgaTools
+    from src.mcp.tools.openwebui_tools import OpenWebUITools
+    from src.mcp.tools.overseerr_tools import OverseerrTools
+    from src.mcp.tools.plex_tools import PlexTools
+    from src.mcp.tools.prowlarr_tools import ProwlarrTools
+    from src.mcp.tools.radarr_tools import RadarrTools
+    from src.mcp.tools.romm_tools import RommTools
+    from src.mcp.tools.sonarr_tools import SonarrTools
+    from src.mcp.tools.system_tools import SystemTools
+    from src.mcp.tools.tautulli_tools import TautulliTools
     from src.mcp.tools.wikijs_tools import WikiJSTools
+    from src.mcp.tools.zammad_tools import ZammadTools
     from src.models import ServiceConfig
 
     # Get enabled services from database
-    result = await session.execute(
-        select(ServiceConfig).where(ServiceConfig.enabled == True)
-    )
+    result = await session.execute(select(ServiceConfig).where(ServiceConfig.enabled is True))
     enabled_services = result.scalars().all()
     enabled_service_types = [s.service_type.lower() for s in enabled_services]
 
@@ -301,7 +292,7 @@ async def get_mcp_requests(
                 id=str(req.id),
                 tool_name=req.tool_name,
                 tool_category=req.tool_category,
-                status=req.status.value if hasattr(req.status, 'value') else req.status,
+                status=req.status.value if hasattr(req.status, "value") else req.status,
                 input_params=req.input_params,
                 output_result=req.output_result,
                 error_message=req.error_message,
@@ -330,6 +321,7 @@ async def get_mcp_request(
 
     if not request:
         from fastapi import HTTPException
+
         raise HTTPException(status_code=404, detail="MCP request not found")
 
     # Get user display name if user_id exists
@@ -342,7 +334,7 @@ async def get_mcp_request(
         id=str(request.id),
         tool_name=request.tool_name,
         tool_category=request.tool_category,
-        status=request.status.value if hasattr(request.status, 'value') else request.status,
+        status=request.status.value if hasattr(request.status, "value") else request.status,
         input_params=request.input_params,
         output_result=request.output_result,
         error_message=request.error_message,
@@ -398,10 +390,7 @@ async def get_user_stats(
     display_names = await get_user_display_names(session, user_ids)
 
     return [
-        McpUserStatsResponse(
-            **s,
-            user_display_name=display_names.get(s["user_id"]) if s["user_id"] else None
-        )
+        McpUserStatsResponse(**s, user_display_name=display_names.get(s["user_id"]) if s["user_id"] else None)
         for s in stats
     ]
 
@@ -415,14 +404,11 @@ async def get_user_service_stats(
     stats = await mcp_audit_service.get_user_service_stats(session, hours=hours)
 
     # Get display names for all user_ids
-    user_ids = list(set(s["user_id"] for s in stats if s["user_id"]))
+    user_ids = list({s["user_id"] for s in stats if s["user_id"]})
     display_names = await get_user_display_names(session, user_ids)
 
     return [
-        McpUserServiceStatsResponse(
-            **s,
-            user_display_name=display_names.get(s["user_id"]) if s["user_id"] else None
-        )
+        McpUserServiceStatsResponse(**s, user_display_name=display_names.get(s["user_id"]) if s["user_id"] else None)
         for s in stats
     ]
 
@@ -436,14 +422,11 @@ async def get_hourly_usage_by_user(
     usage = await mcp_audit_service.get_hourly_usage_by_user(session, hours=hours)
 
     # Get display names for all user_ids
-    user_ids = list(set(u["user_id"] for u in usage if u["user_id"]))
+    user_ids = list({u["user_id"] for u in usage if u["user_id"]})
     display_names = await get_user_display_names(session, user_ids)
 
     return [
-        McpHourlyUserUsageResponse(
-            **u,
-            user_display_name=display_names.get(u["user_id"]) if u["user_id"] else None
-        )
+        McpHourlyUserUsageResponse(**u, user_display_name=display_names.get(u["user_id"]) if u["user_id"] else None)
         for u in usage
     ]
 
@@ -463,30 +446,29 @@ async def get_available_tools(
     session: AsyncSession = Depends(get_db_session),
 ):
     """Get list of available MCP tools based on enabled services."""
-    from src.mcp.tools.base import ToolRegistry
-    from src.mcp.tools.system_tools import SystemTools
-    from src.mcp.tools.plex_tools import PlexTools
-    from src.mcp.tools.overseerr_tools import OverseerrTools
-    from src.mcp.tools.zammad_tools import ZammadTools
-    from src.mcp.tools.tautulli_tools import TautulliTools
-    from src.mcp.tools.openwebui_tools import OpenWebUITools
-    from src.mcp.tools.radarr_tools import RadarrTools
-    from src.mcp.tools.sonarr_tools import SonarrTools
-    from src.mcp.tools.prowlarr_tools import ProwlarrTools
-    from src.mcp.tools.jackett_tools import JackettTools
-    from src.mcp.tools.deluge_tools import DelugeTools
-    from src.mcp.tools.komga_tools import KomgaTools
-    from src.mcp.tools.romm_tools import RommTools
-    from src.mcp.tools.authentik_tools import AuthentikTools
-    from src.mcp.tools.audiobookshelf_tools import AudiobookshelfTools
-    from src.mcp.tools.wikijs_tools import WikiJSTools
-    from src.models import ServiceConfig
     from sqlalchemy import select
 
+    from src.mcp.tools.audiobookshelf_tools import AudiobookshelfTools
+    from src.mcp.tools.authentik_tools import AuthentikTools
+    from src.mcp.tools.base import ToolRegistry
+    from src.mcp.tools.deluge_tools import DelugeTools
+    from src.mcp.tools.jackett_tools import JackettTools
+    from src.mcp.tools.komga_tools import KomgaTools
+    from src.mcp.tools.openwebui_tools import OpenWebUITools
+    from src.mcp.tools.overseerr_tools import OverseerrTools
+    from src.mcp.tools.plex_tools import PlexTools
+    from src.mcp.tools.prowlarr_tools import ProwlarrTools
+    from src.mcp.tools.radarr_tools import RadarrTools
+    from src.mcp.tools.romm_tools import RommTools
+    from src.mcp.tools.sonarr_tools import SonarrTools
+    from src.mcp.tools.system_tools import SystemTools
+    from src.mcp.tools.tautulli_tools import TautulliTools
+    from src.mcp.tools.wikijs_tools import WikiJSTools
+    from src.mcp.tools.zammad_tools import ZammadTools
+    from src.models import ServiceConfig
+
     # Get enabled services from database
-    result = await session.execute(
-        select(ServiceConfig).where(ServiceConfig.enabled == True)
-    )
+    result = await session.execute(select(ServiceConfig).where(ServiceConfig.enabled is True))
     enabled_services = result.scalars().all()
     enabled_service_types = {s.service_type.lower() for s in enabled_services}
 
@@ -521,24 +503,26 @@ async def get_available_tools(
 
     tools = []
     for name, tool_def in registry.tools.items():
-        tools.append({
-            "name": name,
-            "description": tool_def.description,
-            "category": tool_def.category,
-            "is_mutation": tool_def.is_mutation,
-            "requires_service": tool_def.requires_service,
-            "parameters": [
-                {
-                    "name": p.name,
-                    "description": p.description,
-                    "type": p.type,
-                    "required": p.required,
-                    "enum": p.enum,
-                    "default": p.default,
-                }
-                for p in tool_def.parameters
-            ],
-        })
+        tools.append(
+            {
+                "name": name,
+                "description": tool_def.description,
+                "category": tool_def.category,
+                "is_mutation": tool_def.is_mutation,
+                "requires_service": tool_def.requires_service,
+                "parameters": [
+                    {
+                        "name": p.name,
+                        "description": p.description,
+                        "type": p.type,
+                        "required": p.required,
+                        "enum": p.enum,
+                        "default": p.default,
+                    }
+                    for p in tool_def.parameters
+                ],
+            }
+        )
 
     # Group by category
     categories = {}
@@ -576,32 +560,31 @@ async def test_tool(
 ):
     """Test a specific MCP tool with given arguments."""
     import time
-    from src.mcp.tools.base import ToolRegistry
-    from src.mcp.tools.system_tools import SystemTools
-    from src.mcp.tools.plex_tools import PlexTools
-    from src.mcp.tools.overseerr_tools import OverseerrTools
-    from src.mcp.tools.zammad_tools import ZammadTools
-    from src.mcp.tools.tautulli_tools import TautulliTools
-    from src.mcp.tools.openwebui_tools import OpenWebUITools
-    from src.mcp.tools.radarr_tools import RadarrTools
-    from src.mcp.tools.sonarr_tools import SonarrTools
-    from src.mcp.tools.prowlarr_tools import ProwlarrTools
-    from src.mcp.tools.jackett_tools import JackettTools
-    from src.mcp.tools.deluge_tools import DelugeTools
-    from src.mcp.tools.komga_tools import KomgaTools
-    from src.mcp.tools.romm_tools import RommTools
-    from src.mcp.tools.authentik_tools import AuthentikTools
-    from src.mcp.tools.audiobookshelf_tools import AudiobookshelfTools
-    from src.mcp.tools.wikijs_tools import WikiJSTools
-    from src.models import ServiceConfig
+
     from sqlalchemy import select
+
+    from src.mcp.tools.audiobookshelf_tools import AudiobookshelfTools
+    from src.mcp.tools.authentik_tools import AuthentikTools
+    from src.mcp.tools.deluge_tools import DelugeTools
+    from src.mcp.tools.jackett_tools import JackettTools
+    from src.mcp.tools.komga_tools import KomgaTools
+    from src.mcp.tools.openwebui_tools import OpenWebUITools
+    from src.mcp.tools.overseerr_tools import OverseerrTools
+    from src.mcp.tools.plex_tools import PlexTools
+    from src.mcp.tools.prowlarr_tools import ProwlarrTools
+    from src.mcp.tools.radarr_tools import RadarrTools
+    from src.mcp.tools.romm_tools import RommTools
+    from src.mcp.tools.sonarr_tools import SonarrTools
+    from src.mcp.tools.system_tools import SystemTools
+    from src.mcp.tools.tautulli_tools import TautulliTools
+    from src.mcp.tools.wikijs_tools import WikiJSTools
+    from src.mcp.tools.zammad_tools import ZammadTools
+    from src.models import ServiceConfig
 
     start_time = time.time()
 
     # Get enabled services from database
-    result = await session.execute(
-        select(ServiceConfig).where(ServiceConfig.enabled == True)
-    )
+    result = await session.execute(select(ServiceConfig).where(ServiceConfig.enabled is True))
     enabled_services = result.scalars().all()
 
     # Build service configs dict
@@ -611,9 +594,9 @@ async def test_tool(
             "url": svc.base_url,
             "port": svc.port,
             "api_key": svc.api_key,
-            "username": getattr(svc, 'username', None),
-            "password": getattr(svc, 'password', None),
-            "extra_config": getattr(svc, 'extra_config', None) or {},
+            "username": getattr(svc, "username", None),
+            "password": getattr(svc, "password", None),
+            "extra_config": getattr(svc, "extra_config", None) or {},
         }
 
     # Tool class mapping

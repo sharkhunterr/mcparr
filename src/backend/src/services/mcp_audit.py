@@ -1,11 +1,12 @@
 """MCP request auditing and analytics service."""
 
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Tuple
-from sqlalchemy import select, func, and_, case
+from typing import List, Optional, Tuple
+
+from sqlalchemy import and_, case, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.models import McpRequest, McpRequestStatus, McpToolCategory
+from src.models import McpRequest, McpRequestStatus
 
 
 class McpAuditService:
@@ -63,9 +64,7 @@ class McpAuditService:
         request_id: str,
     ) -> Optional[McpRequest]:
         """Get a specific MCP request by ID."""
-        result = await session.execute(
-            select(McpRequest).where(McpRequest.id == request_id)
-        )
+        result = await session.execute(select(McpRequest).where(McpRequest.id == request_id))
         return result.scalar_one_or_none()
 
     async def get_stats(
@@ -77,10 +76,7 @@ class McpAuditService:
         since = datetime.utcnow() - timedelta(hours=hours)
 
         # Total requests
-        total_result = await session.execute(
-            select(func.count(McpRequest.id))
-            .where(McpRequest.created_at >= since)
-        )
+        total_result = await session.execute(select(func.count(McpRequest.id)).where(McpRequest.created_at >= since))
         total = total_result.scalar() or 0
 
         # By status
@@ -111,11 +107,9 @@ class McpAuditService:
 
         # Average duration
         avg_duration_result = await session.execute(
-            select(func.avg(McpRequest.duration_ms))
-            .where(and_(
-                McpRequest.created_at >= since,
-                McpRequest.duration_ms.isnot(None)
-            ))
+            select(func.avg(McpRequest.duration_ms)).where(
+                and_(McpRequest.created_at >= since, McpRequest.duration_ms.isnot(None))
+            )
         )
         avg_duration = avg_duration_result.scalar() or 0
 
@@ -148,12 +142,7 @@ class McpAuditService:
                 McpRequest.tool_category,
                 func.count(McpRequest.id).label("count"),
                 func.avg(McpRequest.duration_ms).label("avg_duration"),
-                func.sum(
-                    case(
-                        (McpRequest.status == McpRequestStatus.COMPLETED, 1),
-                        else_=0
-                    )
-                ).label("success_count"),
+                func.sum(case((McpRequest.status == McpRequestStatus.COMPLETED, 1), else_=0)).label("success_count"),
             )
             .where(McpRequest.created_at >= since)
             .group_by(McpRequest.tool_name, McpRequest.tool_category)
@@ -182,24 +171,14 @@ class McpAuditService:
         # SQLite doesn't have date_trunc, use strftime instead
         result = await session.execute(
             select(
-                func.strftime('%Y-%m-%d %H:00:00', McpRequest.created_at).label("hour"),
+                func.strftime("%Y-%m-%d %H:00:00", McpRequest.created_at).label("hour"),
                 func.count(McpRequest.id).label("count"),
-                func.sum(
-                    case(
-                        (McpRequest.status == McpRequestStatus.COMPLETED, 1),
-                        else_=0
-                    )
-                ).label("success_count"),
-                func.sum(
-                    case(
-                        (McpRequest.status == McpRequestStatus.FAILED, 1),
-                        else_=0
-                    )
-                ).label("failed_count"),
+                func.sum(case((McpRequest.status == McpRequestStatus.COMPLETED, 1), else_=0)).label("success_count"),
+                func.sum(case((McpRequest.status == McpRequestStatus.FAILED, 1), else_=0)).label("failed_count"),
             )
             .where(McpRequest.created_at >= since)
-            .group_by(func.strftime('%Y-%m-%d %H:00:00', McpRequest.created_at))
-            .order_by(func.strftime('%Y-%m-%d %H:00:00', McpRequest.created_at))
+            .group_by(func.strftime("%Y-%m-%d %H:00:00", McpRequest.created_at))
+            .order_by(func.strftime("%Y-%m-%d %H:00:00", McpRequest.created_at))
         )
 
         return [
@@ -222,9 +201,7 @@ class McpAuditService:
 
         cutoff = datetime.utcnow() - timedelta(days=retention_days)
 
-        result = await session.execute(
-            delete(McpRequest).where(McpRequest.created_at < cutoff)
-        )
+        result = await session.execute(delete(McpRequest).where(McpRequest.created_at < cutoff))
         await session.commit()
 
         return result.rowcount
@@ -242,23 +219,10 @@ class McpAuditService:
                 McpRequest.user_id,
                 func.count(McpRequest.id).label("count"),
                 func.avg(McpRequest.duration_ms).label("avg_duration"),
-                func.sum(
-                    case(
-                        (McpRequest.status == McpRequestStatus.COMPLETED, 1),
-                        else_=0
-                    )
-                ).label("success_count"),
-                func.sum(
-                    case(
-                        (McpRequest.status == McpRequestStatus.FAILED, 1),
-                        else_=0
-                    )
-                ).label("failed_count"),
+                func.sum(case((McpRequest.status == McpRequestStatus.COMPLETED, 1), else_=0)).label("success_count"),
+                func.sum(case((McpRequest.status == McpRequestStatus.FAILED, 1), else_=0)).label("failed_count"),
             )
-            .where(and_(
-                McpRequest.created_at >= since,
-                McpRequest.user_id.isnot(None)
-            ))
+            .where(and_(McpRequest.created_at >= since, McpRequest.user_id.isnot(None)))
             .group_by(McpRequest.user_id)
             .order_by(func.count(McpRequest.id).desc())
         )
@@ -285,29 +249,22 @@ class McpAuditService:
 
         # Extract service name from tool_name (prefix before first underscore)
         # e.g., "plex_search_media" -> "plex", "radarr_get_queue" -> "radarr"
-        service_expr = func.substr(
-            McpRequest.tool_name,
-            1,
-            func.instr(McpRequest.tool_name, '_') - 1
-        ).label("service")
+        service_expr = func.substr(McpRequest.tool_name, 1, func.instr(McpRequest.tool_name, "_") - 1).label("service")
 
         result = await session.execute(
             select(
                 McpRequest.user_id,
                 service_expr,
                 func.count(McpRequest.id).label("count"),
-                func.sum(
-                    case(
-                        (McpRequest.status == McpRequestStatus.COMPLETED, 1),
-                        else_=0
-                    )
-                ).label("success_count"),
+                func.sum(case((McpRequest.status == McpRequestStatus.COMPLETED, 1), else_=0)).label("success_count"),
             )
-            .where(and_(
-                McpRequest.created_at >= since,
-                McpRequest.user_id.isnot(None),
-                McpRequest.tool_name.contains('_')  # Only tools with underscore
-            ))
+            .where(
+                and_(
+                    McpRequest.created_at >= since,
+                    McpRequest.user_id.isnot(None),
+                    McpRequest.tool_name.contains("_"),  # Only tools with underscore
+                )
+            )
             .group_by(McpRequest.user_id, service_expr)
             .order_by(func.count(McpRequest.id).desc())
         )
@@ -333,19 +290,13 @@ class McpAuditService:
 
         result = await session.execute(
             select(
-                func.strftime('%Y-%m-%d %H:00:00', McpRequest.created_at).label("hour"),
+                func.strftime("%Y-%m-%d %H:00:00", McpRequest.created_at).label("hour"),
                 McpRequest.user_id,
                 func.count(McpRequest.id).label("count"),
             )
-            .where(and_(
-                McpRequest.created_at >= since,
-                McpRequest.user_id.isnot(None)
-            ))
-            .group_by(
-                func.strftime('%Y-%m-%d %H:00:00', McpRequest.created_at),
-                McpRequest.user_id
-            )
-            .order_by(func.strftime('%Y-%m-%d %H:00:00', McpRequest.created_at))
+            .where(and_(McpRequest.created_at >= since, McpRequest.user_id.isnot(None)))
+            .group_by(func.strftime("%Y-%m-%d %H:00:00", McpRequest.created_at), McpRequest.user_id)
+            .order_by(func.strftime("%Y-%m-%d %H:00:00", McpRequest.created_at))
         )
 
         return [

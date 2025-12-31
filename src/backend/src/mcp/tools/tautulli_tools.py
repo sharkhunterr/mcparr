@@ -1,6 +1,7 @@
 """MCP tools for Tautulli integration."""
 
-from typing import List, Optional
+from typing import List
+
 from .base import BaseTool, ToolDefinition, ToolParameter
 
 
@@ -12,7 +13,10 @@ class TautulliTools(BaseTool):
         return [
             ToolDefinition(
                 name="tautulli_get_activity",
-                description="Get current Plex streaming activity including active sessions, bandwidth usage, and stream counts",
+                description=(
+                    "Get current Plex streaming activity including active sessions, "
+                    "bandwidth usage, and stream counts"
+                ),
                 parameters=[],
                 category="monitoring",
                 is_mutation=False,
@@ -263,7 +267,10 @@ class TautulliTools(BaseTool):
             ),
             ToolDefinition(
                 name="tautulli_get_user_stats",
-                description="Get detailed watch statistics for a specific user including watch time, top content, and devices",
+                description=(
+                    "Get detailed watch statistics for a specific user "
+                    "including watch time, top content, and devices"
+                ),
                 parameters=[
                     ToolParameter(
                         name="username",
@@ -285,7 +292,10 @@ class TautulliTools(BaseTool):
             ),
             ToolDefinition(
                 name="tautulli_get_watch_stats_summary",
-                description="Get a comprehensive summary of watch statistics including top users, movies, TV shows, and platforms",
+                description=(
+                    "Get a comprehensive summary of watch statistics "
+                    "including top users, movies, TV shows, and platforms"
+                ),
                 parameters=[
                     ToolParameter(
                         name="days",
@@ -319,15 +329,11 @@ class TautulliTools(BaseTool):
     async def execute(self, tool_name: str, arguments: dict) -> dict:
         """Execute a Tautulli tool."""
         if not self.service_config:
-            return {
-                "success": False,
-                "error": "Tautulli service not configured"
-            }
+            return {"success": False, "error": "Tautulli service not configured"}
 
         try:
             # Import adapter here to avoid circular imports
             from src.adapters.tautulli import TautulliAdapter
-            from src.models import ServiceConfig
 
             # Create a mock ServiceConfig object for the adapter
             class ServiceConfigProxy:
@@ -405,8 +411,8 @@ class TautulliTools(BaseTool):
                         "location": session.get("location"),
                     }
                     for session in activity.get("sessions", [])
-                ]
-            }
+                ],
+            },
         }
 
     async def _get_history(self, adapter, arguments: dict) -> dict:
@@ -438,8 +444,8 @@ class TautulliTools(BaseTool):
                         "player": item.get("player"),
                     }
                     for item in history_data.get("history", [])
-                ]
-            }
+                ],
+            },
         }
 
     async def _get_users(self, adapter) -> dict:
@@ -461,8 +467,8 @@ class TautulliTools(BaseTool):
                         "shared_libraries": user.get("shared_libraries", []),
                     }
                     for user in users
-                ]
-            }
+                ],
+            },
         }
 
     async def _get_libraries(self, adapter) -> dict:
@@ -483,8 +489,8 @@ class TautulliTools(BaseTool):
                         "is_active": lib.get("is_active"),
                     }
                     for lib in libraries
-                ]
-            }
+                ],
+            },
         }
 
     async def _get_statistics(self, adapter) -> dict:
@@ -515,8 +521,8 @@ class TautulliTools(BaseTool):
                         "state": session.get("state"),
                     }
                     for session in stats.get("recent_sessions", [])
-                ]
-            }
+                ],
+            },
         }
 
     async def _get_recently_added(self, adapter, arguments: dict) -> dict:
@@ -539,8 +545,8 @@ class TautulliTools(BaseTool):
                         "rating": item.get("rating"),
                     }
                     for item in items
-                ]
-            }
+                ],
+            },
         }
 
     async def _get_server_info(self, adapter) -> dict:
@@ -556,7 +562,7 @@ class TautulliTools(BaseTool):
                 "plex_platform": info.get("plex_platform"),
                 "update_available": info.get("update_available", False),
                 "update_version": info.get("update_version"),
-            }
+            },
         }
 
     def _format_title(self, item: dict) -> str:
@@ -607,10 +613,7 @@ class TautulliTools(BaseTool):
         limit = arguments.get("limit", 10)
 
         stats_data = await adapter.get_home_stats(
-            time_range=days,
-            stats_type=stats_type,
-            stats_count=limit,
-            stat_id="top_users"
+            time_range=days, stats_type=stats_type, stats_count=limit, stat_id="top_users"
         )
 
         rows = self._extract_stat_rows(stats_data, "top_users")
@@ -630,14 +633,7 @@ class TautulliTools(BaseTool):
                 user_data["total_duration"] = self._format_duration(duration)
             users.append(user_data)
 
-        return {
-            "success": True,
-            "result": {
-                "period_days": days,
-                "stats_type": stats_type,
-                "users": users
-            }
-        }
+        return {"success": True, "result": {"period_days": days, "stats_type": stats_type, "users": users}}
 
     async def _get_top_movies(self, adapter, arguments: dict) -> dict:
         """Get top watched movies."""
@@ -650,17 +646,10 @@ class TautulliTools(BaseTool):
         if username:
             user_id = await self._get_user_id_from_username(adapter, username)
             if user_id is None:
-                return {
-                    "success": False,
-                    "error": f"User '{username}' not found"
-                }
+                return {"success": False, "error": f"User '{username}' not found"}
 
         stats_data = await adapter.get_home_stats(
-            time_range=days,
-            stats_type=stats_type,
-            stats_count=limit,
-            stat_id="top_movies",
-            user_id=user_id
+            time_range=days, stats_type=stats_type, stats_count=limit, stat_id="top_movies", user_id=user_id
         )
 
         rows = self._extract_stat_rows(stats_data, "top_movies")
@@ -681,11 +670,7 @@ class TautulliTools(BaseTool):
                 movie_data["total_duration"] = self._format_duration(duration)
             movies.append(movie_data)
 
-        result = {
-            "period_days": days,
-            "stats_type": stats_type,
-            "movies": movies
-        }
+        result = {"period_days": days, "stats_type": stats_type, "movies": movies}
         if username:
             result["filtered_by_user"] = username
 
@@ -702,17 +687,10 @@ class TautulliTools(BaseTool):
         if username:
             user_id = await self._get_user_id_from_username(adapter, username)
             if user_id is None:
-                return {
-                    "success": False,
-                    "error": f"User '{username}' not found"
-                }
+                return {"success": False, "error": f"User '{username}' not found"}
 
         stats_data = await adapter.get_home_stats(
-            time_range=days,
-            stats_type=stats_type,
-            stats_count=limit,
-            stat_id="top_tv",
-            user_id=user_id
+            time_range=days, stats_type=stats_type, stats_count=limit, stat_id="top_tv", user_id=user_id
         )
 
         rows = self._extract_stat_rows(stats_data, "top_tv")
@@ -732,11 +710,7 @@ class TautulliTools(BaseTool):
                 show_data["total_duration"] = self._format_duration(duration)
             shows.append(show_data)
 
-        result = {
-            "period_days": days,
-            "stats_type": stats_type,
-            "tv_shows": shows
-        }
+        result = {"period_days": days, "stats_type": stats_type, "tv_shows": shows}
         if username:
             result["filtered_by_user"] = username
 
@@ -753,17 +727,10 @@ class TautulliTools(BaseTool):
         if username:
             user_id = await self._get_user_id_from_username(adapter, username)
             if user_id is None:
-                return {
-                    "success": False,
-                    "error": f"User '{username}' not found"
-                }
+                return {"success": False, "error": f"User '{username}' not found"}
 
         stats_data = await adapter.get_home_stats(
-            time_range=days,
-            stats_type=stats_type,
-            stats_count=limit,
-            stat_id="top_music",
-            user_id=user_id
+            time_range=days, stats_type=stats_type, stats_count=limit, stat_id="top_music", user_id=user_id
         )
 
         rows = self._extract_stat_rows(stats_data, "top_music")
@@ -785,11 +752,7 @@ class TautulliTools(BaseTool):
                 music_data["total_duration"] = self._format_duration(duration)
             music.append(music_data)
 
-        result = {
-            "period_days": days,
-            "stats_type": stats_type,
-            "music": music
-        }
+        result = {"period_days": days, "stats_type": stats_type, "music": music}
         if username:
             result["filtered_by_user"] = username
 
@@ -802,10 +765,7 @@ class TautulliTools(BaseTool):
         limit = arguments.get("limit", 10)
 
         stats_data = await adapter.get_home_stats(
-            time_range=days,
-            stats_type=stats_type,
-            stats_count=limit,
-            stat_id="top_platforms"
+            time_range=days, stats_type=stats_type, stats_count=limit, stat_id="top_platforms"
         )
 
         rows = self._extract_stat_rows(stats_data, "top_platforms")
@@ -824,14 +784,7 @@ class TautulliTools(BaseTool):
                 platform_data["total_duration"] = self._format_duration(duration)
             platforms.append(platform_data)
 
-        return {
-            "success": True,
-            "result": {
-                "period_days": days,
-                "stats_type": stats_type,
-                "platforms": platforms
-            }
-        }
+        return {"success": True, "result": {"period_days": days, "stats_type": stats_type, "platforms": platforms}}
 
     async def _get_user_stats(self, adapter, arguments: dict) -> dict:
         """Get detailed statistics for a specific user."""
@@ -849,17 +802,13 @@ class TautulliTools(BaseTool):
         user_id = user.get("user_id")
 
         # Get user's watch time stats
-        watch_time_stats = await adapter.get_user_watch_time_stats(
-            user_id, query_days=[1, 7, 30, 0]
-        )
+        watch_time_stats = await adapter.get_user_watch_time_stats(user_id, query_days=[1, 7, 30, 0])
 
         # Get user's top content for the period
         top_movies_data = await adapter.get_home_stats(
             time_range=days, stats_count=5, stat_id="top_movies", user_id=user_id
         )
-        top_tv_data = await adapter.get_home_stats(
-            time_range=days, stats_count=5, stat_id="top_tv", user_id=user_id
-        )
+        top_tv_data = await adapter.get_home_stats(time_range=days, stats_count=5, stat_id="top_tv", user_id=user_id)
 
         # Get player stats
         player_stats = await adapter.get_user_player_stats(user_id)
@@ -872,25 +821,13 @@ class TautulliTools(BaseTool):
                 total_time = stat.get("total_time", 0)
                 total_plays = stat.get("total_plays", 0)
                 if query_days == 1:
-                    watch_time["last_24h"] = {
-                        "plays": total_plays,
-                        "duration": self._format_duration(total_time)
-                    }
+                    watch_time["last_24h"] = {"plays": total_plays, "duration": self._format_duration(total_time)}
                 elif query_days == 7:
-                    watch_time["last_7_days"] = {
-                        "plays": total_plays,
-                        "duration": self._format_duration(total_time)
-                    }
+                    watch_time["last_7_days"] = {"plays": total_plays, "duration": self._format_duration(total_time)}
                 elif query_days == 30:
-                    watch_time["last_30_days"] = {
-                        "plays": total_plays,
-                        "duration": self._format_duration(total_time)
-                    }
+                    watch_time["last_30_days"] = {"plays": total_plays, "duration": self._format_duration(total_time)}
                 elif query_days == 0:
-                    watch_time["all_time"] = {
-                        "plays": total_plays,
-                        "duration": self._format_duration(total_time)
-                    }
+                    watch_time["all_time"] = {"plays": total_plays, "duration": self._format_duration(total_time)}
 
         # Extract top content
         top_movies = [
@@ -904,11 +841,7 @@ class TautulliTools(BaseTool):
 
         # Process player stats
         devices = [
-            {
-                "platform": p.get("platform"),
-                "player": p.get("player"),
-                "total_plays": p.get("total_plays", 0)
-            }
+            {"platform": p.get("platform"), "player": p.get("player"), "total_plays": p.get("total_plays", 0)}
             for p in (player_stats[:5] if player_stats else [])
         ]
 
@@ -924,8 +857,8 @@ class TautulliTools(BaseTool):
                 "watch_time": watch_time,
                 f"top_movies_last_{days}_days": top_movies,
                 f"top_tv_shows_last_{days}_days": top_shows,
-                "devices": devices
-            }
+                "devices": devices,
+            },
         }
 
     async def _get_watch_stats_summary(self, adapter, arguments: dict) -> dict:
@@ -935,11 +868,7 @@ class TautulliTools(BaseTool):
         limit = arguments.get("limit", 5)
 
         # Fetch all stats at once
-        stats_data = await adapter.get_home_stats(
-            time_range=days,
-            stats_type=stats_type,
-            stats_count=limit
-        )
+        stats_data = await adapter.get_home_stats(time_range=days, stats_type=stats_type, stats_count=limit)
 
         # Extract each category
         def extract_items(stat_id: str, title_key: str = "title") -> list:
@@ -981,6 +910,6 @@ class TautulliTools(BaseTool):
                 "top_movies": extract_items("top_movies"),
                 "top_tv_shows": extract_items("top_tv", "grandparent_title"),
                 "top_music": extract_items("top_music", "grandparent_title"),
-                "top_platforms": top_platforms
-            }
+                "top_platforms": top_platforms,
+            },
         }

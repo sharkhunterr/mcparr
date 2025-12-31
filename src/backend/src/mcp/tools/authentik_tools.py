@@ -1,6 +1,7 @@
 """MCP tools for Authentik integration."""
 
 from typing import List
+
 from .base import BaseTool, ToolDefinition, ToolParameter
 
 
@@ -164,10 +165,7 @@ class AuthentikTools(BaseTool):
     async def execute(self, tool_name: str, arguments: dict) -> dict:
         """Execute an Authentik tool."""
         if not self.service_config:
-            return {
-                "success": False,
-                "error": "Authentik service not configured"
-            }
+            return {"success": False, "error": "Authentik service not configured"}
 
         try:
             from src.adapters.authentik import AuthentikAdapter
@@ -217,11 +215,7 @@ class AuthentikTools(BaseTool):
         is_active = arguments.get("is_active")
         limit = arguments.get("limit", 20)
 
-        result = await adapter.get_users(
-            page_size=limit,
-            search=search,
-            is_active=is_active
-        )
+        result = await adapter.get_users(page_size=limit, search=search, is_active=is_active)
 
         return {
             "success": True,
@@ -240,8 +234,8 @@ class AuthentikTools(BaseTool):
                         "groups": [g.get("name") if isinstance(g, dict) else g for g in user.get("groups", [])],
                     }
                     for user in result.get("users", [])
-                ]
-            }
+                ],
+            },
         }
 
     async def _get_user(self, adapter, arguments: dict) -> dict:
@@ -268,7 +262,7 @@ class AuthentikTools(BaseTool):
                 "last_login": user.get("last_login"),
                 "groups": user.get("groups", []),
                 "attributes": user.get("attributes", {}),
-            }
+            },
         }
 
     async def _search_users(self, adapter, arguments: dict) -> dict:
@@ -279,14 +273,7 @@ class AuthentikTools(BaseTool):
 
         users = await adapter.search_users(query)
 
-        return {
-            "success": True,
-            "result": {
-                "query": query,
-                "count": len(users),
-                "users": users
-            }
-        }
+        return {"success": True, "result": {"query": query, "count": len(users), "users": users}}
 
     async def _get_groups(self, adapter, arguments: dict) -> dict:
         """Get groups from Authentik."""
@@ -308,8 +295,8 @@ class AuthentikTools(BaseTool):
                         "user_count": len(group.get("users_obj", [])),
                     }
                     for group in result.get("groups", [])
-                ]
-            }
+                ],
+            },
         }
 
     async def _get_applications(self, adapter, arguments: dict) -> dict:
@@ -333,8 +320,8 @@ class AuthentikTools(BaseTool):
                         "group": app.get("group"),
                     }
                     for app in result.get("applications", [])
-                ]
-            }
+                ],
+            },
         }
 
     async def _get_events(self, adapter, arguments: dict) -> dict:
@@ -343,11 +330,7 @@ class AuthentikTools(BaseTool):
         username = arguments.get("username")
         limit = arguments.get("limit", 20)
 
-        result = await adapter.get_events(
-            page_size=limit,
-            action=action,
-            username=username
-        )
+        result = await adapter.get_events(page_size=limit, action=action, username=username)
 
         return {
             "success": True,
@@ -360,13 +343,15 @@ class AuthentikTools(BaseTool):
                         "action": event.get("action"),
                         "result": event.get("result"),
                         "created": event.get("created"),
-                        "user": event.get("user", {}).get("username") if isinstance(event.get("user"), dict) else event.get("user"),
+                        "user": event.get("user", {}).get("username")
+                        if isinstance(event.get("user"), dict)
+                        else event.get("user"),
                         "client_ip": event.get("client_ip"),
                         "app": event.get("app"),
                     }
                     for event in result.get("events", [])
-                ]
-            }
+                ],
+            },
         }
 
     async def _get_statistics(self, adapter) -> dict:
@@ -394,8 +379,8 @@ class AuthentikTools(BaseTool):
                         "created": event.get("created"),
                     }
                     for event in stats.get("recent_events", [])[:5]
-                ]
-            }
+                ],
+            },
         }
 
     async def _get_server_info(self, adapter) -> dict:
@@ -410,7 +395,7 @@ class AuthentikTools(BaseTool):
                 "version_latest": info.get("version_latest"),
                 "outdated": info.get("outdated", False),
                 "current_user": info.get("current_user", {}),
-            }
+            },
         }
 
     async def _deactivate_user(self, adapter, arguments: dict) -> dict:
@@ -431,7 +416,7 @@ class AuthentikTools(BaseTool):
                     "message": f"User '{user.get('username')}' is already inactive",
                     "user_pk": user_pk,
                     "was_active": False,
-                }
+                },
             }
 
         success = await adapter.deactivate_user(int(user_pk))
@@ -443,10 +428,7 @@ class AuthentikTools(BaseTool):
                     "message": f"User '{user.get('username')}' has been deactivated",
                     "user_pk": user_pk,
                     "username": user.get("username"),
-                }
+                },
             }
         else:
-            return {
-                "success": False,
-                "error": f"Failed to deactivate user {user_pk}"
-            }
+            return {"success": False, "error": f"Failed to deactivate user {user_pk}"}

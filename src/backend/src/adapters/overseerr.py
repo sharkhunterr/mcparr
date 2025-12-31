@@ -1,22 +1,23 @@
 """Overseerr request management adapter."""
 
-import asyncio
-from typing import Dict, Any, List, Optional
-import httpx
 from datetime import datetime
 from enum import Enum
+from typing import Any, Dict, List, Optional
+
+import httpx
 
 from .base import (
-    TokenAuthAdapter,
-    ServiceCapability,
-    ConnectionTestResult,
     AdapterError,
-    AuthenticationError
+    AuthenticationError,
+    ConnectionTestResult,
+    ServiceCapability,
+    TokenAuthAdapter,
 )
 
 
 class RequestStatus(Enum):
     """Overseerr request status."""
+
     PENDING = 1
     APPROVED = 2
     DECLINED = 3
@@ -25,6 +26,7 @@ class RequestStatus(Enum):
 
 class MediaType(Enum):
     """Media type."""
+
     MOVIE = "movie"
     TV = "tv"
 
@@ -38,11 +40,7 @@ class OverseerrAdapter(TokenAuthAdapter):
 
     @property
     def supported_capabilities(self) -> List[ServiceCapability]:
-        return [
-            ServiceCapability.MEDIA_CONTENT,
-            ServiceCapability.USER_MANAGEMENT,
-            ServiceCapability.API_ACCESS
-        ]
+        return [ServiceCapability.MEDIA_CONTENT, ServiceCapability.USER_MANAGEMENT, ServiceCapability.API_ACCESS]
 
     @property
     def token_config_key(self) -> str:
@@ -50,11 +48,7 @@ class OverseerrAdapter(TokenAuthAdapter):
 
     def _format_token_header(self, token: str) -> Dict[str, str]:
         """Format Overseerr API key header."""
-        return {
-            "X-Api-Key": token,
-            "Content-Type": "application/json",
-            "Accept": "application/json"
-        }
+        return {"X-Api-Key": token, "Content-Type": "application/json", "Accept": "application/json"}
 
     async def test_connection(self) -> ConnectionTestResult:
         """Test connection to Overseerr."""
@@ -77,15 +71,15 @@ class OverseerrAdapter(TokenAuthAdapter):
                     details={
                         "status": "connected",
                         "version": data.get("version"),
-                        "commit_tag": data.get("commitTag")
-                    }
+                        "commit_tag": data.get("commitTag"),
+                    },
                 )
             else:
                 return ConnectionTestResult(
                     success=False,
                     message="Connected but response doesn't appear to be from Overseerr",
                     response_time_ms=response_time,
-                    details={"status": "invalid_response"}
+                    details={"status": "invalid_response"},
                 )
 
         except httpx.HTTPStatusError as e:
@@ -93,31 +87,31 @@ class OverseerrAdapter(TokenAuthAdapter):
                 return ConnectionTestResult(
                     success=False,
                     message="Authentication failed - check API key",
-                    details={"status": "auth_failed", "status_code": 401}
+                    details={"status": "auth_failed", "status_code": 401},
                 )
             elif e.response.status_code == 403:
                 return ConnectionTestResult(
                     success=False,
                     message="Access denied - insufficient permissions",
-                    details={"status": "access_denied", "status_code": 403}
+                    details={"status": "access_denied", "status_code": 403},
                 )
             else:
                 return ConnectionTestResult(
                     success=False,
                     message=f"HTTP error: {e.response.status_code}",
-                    details={"status": "http_error", "status_code": e.response.status_code}
+                    details={"status": "http_error", "status_code": e.response.status_code},
                 )
         except httpx.RequestError as e:
             return ConnectionTestResult(
                 success=False,
                 message=f"Connection failed: {str(e)}",
-                details={"status": "connection_failed", "error": str(e)}
+                details={"status": "connection_failed", "error": str(e)},
             )
         except Exception as e:
             return ConnectionTestResult(
                 success=False,
                 message=f"Unexpected error: {str(e)}",
-                details={"status": "unexpected_error", "error": str(e)}
+                details={"status": "unexpected_error", "error": str(e)},
             )
 
     async def get_service_info(self) -> Dict[str, Any]:
@@ -136,17 +130,19 @@ class OverseerrAdapter(TokenAuthAdapter):
                 "commit_tag": status_data.get("commitTag"),
                 "build_id": status_data.get("buildId"),
                 "repository": status_data.get("repository"),
-                "application_title": settings_data.get("applicationTitle", "Overseerr") if settings_data else "Overseerr",
+                "application_title": settings_data.get("applicationTitle", "Overseerr")
+                if settings_data
+                else "Overseerr",
                 "application_url": settings_data.get("applicationUrl") if settings_data else None,
-                "trust_proxy": settings_data.get("trustProxy", False) if settings_data else False
+                "trust_proxy": settings_data.get("trustProxy", False) if settings_data else False,
             }
 
         except httpx.HTTPStatusError as e:
             if e.response.status_code == 401:
-                raise AuthenticationError("Invalid Overseerr API key")
-            raise AdapterError(f"HTTP error: {e.response.status_code}")
+                raise AuthenticationError("Invalid Overseerr API key") from e
+            raise AdapterError(f"HTTP error: {e.response.status_code}") from e
         except Exception as e:
-            raise AdapterError(f"Failed to get service info: {str(e)}")
+            raise AdapterError(f"Failed to get service info: {str(e)}") from e
 
     async def _get_media_title(self, media_type: str, tmdb_id: int) -> Optional[str]:
         """Get media title from TMDB ID by calling Overseerr's media endpoint."""
@@ -164,10 +160,7 @@ class OverseerrAdapter(TokenAuthAdapter):
         return None
 
     async def get_requests(
-        self,
-        take: int = 20,
-        skip: int = 0,
-        status: Optional[RequestStatus] = None
+        self, take: int = 20, skip: int = 0, status: Optional[RequestStatus] = None
     ) -> Dict[str, Any]:
         """Get media requests."""
         try:
@@ -197,10 +190,7 @@ class OverseerrAdapter(TokenAuthAdapter):
                     "updated_at": request.get("updatedAt"),
                     "requested_by": request.get("requestedBy", {}).get("displayName"),
                     "requested_by_id": request.get("requestedBy", {}).get("id"),
-                    "media_info": {
-                        **self._extract_media_info(media),
-                        "title": title  # Add title from TMDB lookup
-                    }
+                    "media_info": {**self._extract_media_info(media), "title": title},  # Add title from TMDB lookup
                 }
 
                 # Add seasons for TV shows
@@ -209,7 +199,7 @@ class OverseerrAdapter(TokenAuthAdapter):
                         {
                             "id": season.get("id"),
                             "season_number": season.get("seasonNumber"),
-                            "status": season.get("status")
+                            "status": season.get("status"),
                         }
                         for season in request.get("seasons", [])
                     ]
@@ -222,8 +212,8 @@ class OverseerrAdapter(TokenAuthAdapter):
                     "pages": data.get("pageInfo", {}).get("pages", 1),
                     "page_size": data.get("pageInfo", {}).get("pageSize", take),
                     "results": data.get("pageInfo", {}).get("results", len(requests)),
-                    "page": data.get("pageInfo", {}).get("page", 1)
-                }
+                    "page": data.get("pageInfo", {}).get("page", 1),
+                },
             }
 
         except Exception as e:
@@ -239,24 +229,26 @@ class OverseerrAdapter(TokenAuthAdapter):
             users = []
             for user in data.get("results", []):
                 display_name = user.get("displayName") or user.get("username") or user.get("email", "").split("@")[0]
-                users.append({
-                    "id": user.get("id"),
-                    "email": user.get("email"),
-                    "display_name": display_name,
-                    "friendly_name": display_name,  # Alias for matching
-                    "username": user.get("username") or display_name,
-                    "name": display_name,  # Alias for matching
-                    "user_type": user.get("userType"),
-                    "permissions": user.get("permissions"),
-                    "avatar": user.get("avatar"),
-                    "created_at": user.get("createdAt"),
-                    "updated_at": user.get("updatedAt"),
-                    "request_count": user.get("requestCount", 0),
-                    "movie_quota_limit": user.get("movieQuotaLimit"),
-                    "movie_quota_days": user.get("movieQuotaDays"),
-                    "tv_quota_limit": user.get("tvQuotaLimit"),
-                    "tv_quota_days": user.get("tvQuotaDays")
-                })
+                users.append(
+                    {
+                        "id": user.get("id"),
+                        "email": user.get("email"),
+                        "display_name": display_name,
+                        "friendly_name": display_name,  # Alias for matching
+                        "username": user.get("username") or display_name,
+                        "name": display_name,  # Alias for matching
+                        "user_type": user.get("userType"),
+                        "permissions": user.get("permissions"),
+                        "avatar": user.get("avatar"),
+                        "created_at": user.get("createdAt"),
+                        "updated_at": user.get("updatedAt"),
+                        "request_count": user.get("requestCount", 0),
+                        "movie_quota_limit": user.get("movieQuotaLimit"),
+                        "movie_quota_days": user.get("movieQuotaDays"),
+                        "tv_quota_limit": user.get("tvQuotaLimit"),
+                        "tv_quota_days": user.get("tvQuotaDays"),
+                    }
+                )
 
             return users
 
@@ -281,10 +273,7 @@ class OverseerrAdapter(TokenAuthAdapter):
     async def approve_request(self, request_id: int) -> bool:
         """Approve a media request."""
         try:
-            response = await self._make_request(
-                "POST",
-                f"/api/v1/request/{request_id}/approve"
-            )
+            response = await self._make_request("POST", f"/api/v1/request/{request_id}/approve")
             return response.status_code == 200
 
         except Exception as e:
@@ -298,11 +287,7 @@ class OverseerrAdapter(TokenAuthAdapter):
             if reason:
                 data["reason"] = reason
 
-            response = await self._make_request(
-                "POST",
-                f"/api/v1/request/{request_id}/decline",
-                json=data
-            )
+            response = await self._make_request("POST", f"/api/v1/request/{request_id}/decline", json=data)
             return response.status_code == 200
 
         except Exception as e:
@@ -322,18 +307,20 @@ class OverseerrAdapter(TokenAuthAdapter):
 
             search_results = []
             for result in data.get("results", []):
-                search_results.append({
-                    "id": result.get("id"),
-                    "media_type": result.get("mediaType"),
-                    "title": result.get("title") or result.get("name"),
-                    "overview": result.get("overview"),
-                    "release_date": result.get("releaseDate") or result.get("firstAirDate"),
-                    "poster_path": result.get("posterPath"),
-                    "backdrop_path": result.get("backdropPath"),
-                    "vote_average": result.get("voteAverage"),
-                    "genre_ids": result.get("genreIds", []),
-                    "media_info": result.get("mediaInfo")
-                })
+                search_results.append(
+                    {
+                        "id": result.get("id"),
+                        "media_type": result.get("mediaType"),
+                        "title": result.get("title") or result.get("name"),
+                        "overview": result.get("overview"),
+                        "release_date": result.get("releaseDate") or result.get("firstAirDate"),
+                        "poster_path": result.get("posterPath"),
+                        "backdrop_path": result.get("backdropPath"),
+                        "vote_average": result.get("voteAverage"),
+                        "genre_ids": result.get("genreIds", []),
+                        "media_info": result.get("mediaInfo"),
+                    }
+                )
 
             return search_results
 
@@ -352,9 +339,15 @@ class OverseerrAdapter(TokenAuthAdapter):
 
             # Calculate statistics
             total_requests = len(requests_data.get("results", []))
-            pending_count = sum(1 for r in requests_data.get("results", []) if r.get("status") == RequestStatus.PENDING.value)
-            approved_count = sum(1 for r in requests_data.get("results", []) if r.get("status") == RequestStatus.APPROVED.value)
-            available_count = sum(1 for r in requests_data.get("results", []) if r.get("status") == RequestStatus.AVAILABLE.value)
+            pending_count = sum(
+                1 for r in requests_data.get("results", []) if r.get("status") == RequestStatus.PENDING.value
+            )
+            approved_count = sum(
+                1 for r in requests_data.get("results", []) if r.get("status") == RequestStatus.APPROVED.value
+            )
+            available_count = sum(
+                1 for r in requests_data.get("results", []) if r.get("status") == RequestStatus.AVAILABLE.value
+            )
 
             return {
                 "total_requests": total_requests,
@@ -363,7 +356,7 @@ class OverseerrAdapter(TokenAuthAdapter):
                 "available_requests": available_count,
                 "declined_requests": total_requests - pending_count - approved_count - available_count,
                 "total_users": len(users),
-                "recent_requests": requests_data.get("results", [])[:10]
+                "recent_requests": requests_data.get("results", [])[:10],
             }
 
         except Exception as e:
@@ -375,7 +368,7 @@ class OverseerrAdapter(TokenAuthAdapter):
                 "available_requests": 0,
                 "declined_requests": 0,
                 "total_users": 0,
-                "recent_requests": []
+                "recent_requests": [],
             }
 
     def _get_status_name(self, status: int) -> str:
@@ -384,7 +377,7 @@ class OverseerrAdapter(TokenAuthAdapter):
             RequestStatus.PENDING.value: "Pending",
             RequestStatus.APPROVED.value: "Approved",
             RequestStatus.DECLINED.value: "Declined",
-            RequestStatus.AVAILABLE.value: "Available"
+            RequestStatus.AVAILABLE.value: "Available",
         }
         return status_map.get(status, "Unknown")
 
@@ -401,7 +394,7 @@ class OverseerrAdapter(TokenAuthAdapter):
             "tvdb_id": media.get("tvdbId"),
             "status": media.get("status"),
             "created_at": media.get("createdAt"),
-            "updated_at": media.get("updatedAt")
+            "updated_at": media.get("updatedAt"),
         }
 
     def validate_config(self) -> List[str]:
@@ -414,11 +407,7 @@ class OverseerrAdapter(TokenAuthAdapter):
 
         return errors
 
-    async def get_trending(
-        self,
-        media_type: str = "all",
-        limit: int = 10
-    ) -> List[Dict[str, Any]]:
+    async def get_trending(self, media_type: str = "all", limit: int = 10) -> List[Dict[str, Any]]:
         """Get trending movies and TV shows."""
         try:
             results = []

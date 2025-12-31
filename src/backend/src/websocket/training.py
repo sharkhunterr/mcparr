@@ -3,14 +3,13 @@
 import asyncio
 import json
 from datetime import datetime
-from typing import Dict, Any, Optional
-from uuid import UUID
+from typing import Any, Dict, Optional
 
 from fastapi import WebSocket, WebSocketDisconnect
 from loguru import logger
 
+from src.services.ollama_service import OllamaMetricsCollector, OllamaService
 from src.websocket.manager import connection_manager
-from src.services.ollama_service import OllamaService, OllamaMetricsCollector
 
 
 class TrainingWebSocketHandler:
@@ -32,10 +31,9 @@ class TrainingWebSocketHandler:
 
         try:
             # Send initial connection confirmation
-            await connection_manager.send_message(connection_id, {
-                "type": "connected",
-                "message": "Connected to training WebSocket"
-            })
+            await connection_manager.send_message(
+                connection_id, {"type": "connected", "message": "Connected to training WebSocket"}
+            )
 
             while True:
                 # Receive message from client
@@ -80,17 +78,15 @@ class TrainingWebSocketHandler:
             await handler(connection_id, message)
         else:
             logger.warning(f"Unknown training message type: {message_type}")
-            await connection_manager.send_message(connection_id, {
-                "type": "error",
-                "message": f"Unknown message type: {message_type}"
-            })
+            await connection_manager.send_message(
+                connection_id, {"type": "error", "message": f"Unknown message type: {message_type}"}
+            )
 
     async def handle_ping(self, connection_id: str, message: Dict[str, Any]):
         """Handle ping message."""
-        await connection_manager.send_message(connection_id, {
-            "type": "pong",
-            "timestamp": datetime.utcnow().isoformat()
-        })
+        await connection_manager.send_message(
+            connection_id, {"type": "pong", "timestamp": datetime.utcnow().isoformat()}
+        )
 
     async def handle_training_subscribe(self, connection_id: str, message: Dict[str, Any]):
         """Subscribe to general training updates."""
@@ -103,25 +99,18 @@ class TrainingWebSocketHandler:
         # Cancel existing subscription if any
         await self._cancel_subscription(connection_id, "training")
 
-        subscription = {
-            "type": "training",
-            "interval_seconds": interval_seconds,
-            "task": None
-        }
+        subscription = {"type": "training", "interval_seconds": interval_seconds, "task": None}
 
         # Start training updates streaming task
-        task = asyncio.create_task(
-            self.stream_training_updates(connection_id, subscription)
-        )
+        task = asyncio.create_task(self.stream_training_updates(connection_id, subscription))
         subscription["task"] = task
 
         self.active_subscriptions[connection_id] = subscription
 
         # Send confirmation
-        await connection_manager.send_message(connection_id, {
-            "type": "training_subscribed",
-            "interval_seconds": interval_seconds
-        })
+        await connection_manager.send_message(
+            connection_id, {"type": "training_subscribed", "interval_seconds": interval_seconds}
+        )
 
         logger.info(
             f"Training subscription started for {connection_id}",
@@ -129,35 +118,26 @@ class TrainingWebSocketHandler:
                 "component": "websocket",
                 "action": "training_subscribe",
                 "connection_id": connection_id,
-                "interval": interval_seconds
-            }
+                "interval": interval_seconds,
+            },
         )
 
     async def handle_training_unsubscribe(self, connection_id: str, message: Dict[str, Any]):
         """Unsubscribe from training updates."""
         await self._cancel_subscription(connection_id, "training")
 
-        await connection_manager.send_message(connection_id, {
-            "type": "training_unsubscribed"
-        })
+        await connection_manager.send_message(connection_id, {"type": "training_unsubscribed"})
 
         logger.info(
             f"Training subscription stopped for {connection_id}",
-            extra={
-                "component": "websocket",
-                "action": "training_unsubscribe",
-                "connection_id": connection_id
-            }
+            extra={"component": "websocket", "action": "training_unsubscribe", "connection_id": connection_id},
         )
 
     async def handle_session_subscribe(self, connection_id: str, message: Dict[str, Any]):
         """Subscribe to specific training session updates."""
         session_id = message.get("session_id")
         if not session_id:
-            await connection_manager.send_message(connection_id, {
-                "type": "error",
-                "message": "session_id is required"
-            })
+            await connection_manager.send_message(connection_id, {"type": "error", "message": "session_id is required"})
             return
 
         interval_seconds = message.get("interval_seconds", 2)
@@ -169,27 +149,19 @@ class TrainingWebSocketHandler:
         # Cancel existing subscription if any
         await self._cancel_subscription(connection_id, "session")
 
-        subscription = {
-            "type": "session",
-            "session_id": session_id,
-            "interval_seconds": interval_seconds,
-            "task": None
-        }
+        subscription = {"type": "session", "session_id": session_id, "interval_seconds": interval_seconds, "task": None}
 
         # Start session progress streaming task
-        task = asyncio.create_task(
-            self.stream_session_progress(connection_id, subscription)
-        )
+        task = asyncio.create_task(self.stream_session_progress(connection_id, subscription))
         subscription["task"] = task
 
         self.active_subscriptions[connection_id] = subscription
 
         # Send confirmation
-        await connection_manager.send_message(connection_id, {
-            "type": "session_subscribed",
-            "session_id": session_id,
-            "interval_seconds": interval_seconds
-        })
+        await connection_manager.send_message(
+            connection_id,
+            {"type": "session_subscribed", "session_id": session_id, "interval_seconds": interval_seconds},
+        )
 
         logger.info(
             f"Session subscription started for {connection_id}",
@@ -198,25 +170,19 @@ class TrainingWebSocketHandler:
                 "action": "session_subscribe",
                 "connection_id": connection_id,
                 "session_id": session_id,
-                "interval": interval_seconds
-            }
+                "interval": interval_seconds,
+            },
         )
 
     async def handle_session_unsubscribe(self, connection_id: str, message: Dict[str, Any]):
         """Unsubscribe from session updates."""
         await self._cancel_subscription(connection_id, "session")
 
-        await connection_manager.send_message(connection_id, {
-            "type": "session_unsubscribed"
-        })
+        await connection_manager.send_message(connection_id, {"type": "session_unsubscribed"})
 
         logger.info(
             f"Session subscription stopped for {connection_id}",
-            extra={
-                "component": "websocket",
-                "action": "session_unsubscribe",
-                "connection_id": connection_id
-            }
+            extra={"component": "websocket", "action": "session_unsubscribe", "connection_id": connection_id},
         )
 
     async def handle_ollama_metrics_subscribe(self, connection_id: str, message: Dict[str, Any]):
@@ -243,22 +209,19 @@ class TrainingWebSocketHandler:
             "type": "ollama_metrics",
             "interval_seconds": interval_seconds,
             "ollama_service": ollama_service,
-            "task": None
+            "task": None,
         }
 
         # Start Ollama metrics streaming task
-        task = asyncio.create_task(
-            self.stream_ollama_metrics(connection_id, subscription)
-        )
+        task = asyncio.create_task(self.stream_ollama_metrics(connection_id, subscription))
         subscription["task"] = task
 
         self.active_subscriptions[connection_id] = subscription
 
         # Send confirmation
-        await connection_manager.send_message(connection_id, {
-            "type": "ollama_metrics_subscribed",
-            "interval_seconds": interval_seconds
-        })
+        await connection_manager.send_message(
+            connection_id, {"type": "ollama_metrics_subscribed", "interval_seconds": interval_seconds}
+        )
 
         logger.info(
             f"Ollama metrics subscription started for {connection_id}",
@@ -266,25 +229,19 @@ class TrainingWebSocketHandler:
                 "component": "websocket",
                 "action": "ollama_metrics_subscribe",
                 "connection_id": connection_id,
-                "interval": interval_seconds
-            }
+                "interval": interval_seconds,
+            },
         )
 
     async def handle_ollama_metrics_unsubscribe(self, connection_id: str, message: Dict[str, Any]):
         """Unsubscribe from Ollama metrics updates."""
         await self._cancel_subscription(connection_id, "ollama_metrics")
 
-        await connection_manager.send_message(connection_id, {
-            "type": "ollama_metrics_unsubscribed"
-        })
+        await connection_manager.send_message(connection_id, {"type": "ollama_metrics_unsubscribed"})
 
         logger.info(
             f"Ollama metrics subscription stopped for {connection_id}",
-            extra={
-                "component": "websocket",
-                "action": "ollama_metrics_unsubscribe",
-                "connection_id": connection_id
-            }
+            extra={"component": "websocket", "action": "ollama_metrics_unsubscribe", "connection_id": connection_id},
         )
 
     async def _cancel_subscription(self, connection_id: str, subscription_type: str):
@@ -314,7 +271,7 @@ class TrainingWebSocketHandler:
                         "total_prompts": 0,
                         "validated_prompts": 0,
                     },
-                    "recent_activity": []
+                    "recent_activity": [],
                 }
 
                 success = await connection_manager.send_message(connection_id, training_data)
@@ -355,7 +312,7 @@ class TrainingWebSocketHandler:
                         "learning_rate": None,
                         "elapsed_seconds": 0,
                         "estimated_remaining_seconds": None,
-                    }
+                    },
                 }
 
                 success = await connection_manager.send_message(connection_id, session_data)
@@ -415,29 +372,15 @@ class TrainingWebSocketHandler:
 
     async def broadcast_training_event(self, event_type: str, data: Dict[str, Any]):
         """Broadcast training event to all subscribed connections."""
-        message = {
-            "type": event_type,
-            **data,
-            "timestamp": datetime.utcnow().isoformat()
-        }
+        message = {"type": event_type, **data, "timestamp": datetime.utcnow().isoformat()}
 
         for connection_id, subscription in self.active_subscriptions.items():
             if subscription.get("type") in ["training", "session"]:
                 await connection_manager.send_message(connection_id, message)
 
-    async def broadcast_session_event(
-        self,
-        session_id: str,
-        event_type: str,
-        data: Dict[str, Any]
-    ):
+    async def broadcast_session_event(self, session_id: str, event_type: str, data: Dict[str, Any]):
         """Broadcast session-specific event to subscribed connections."""
-        message = {
-            "type": event_type,
-            "session_id": session_id,
-            **data,
-            "timestamp": datetime.utcnow().isoformat()
-        }
+        message = {"type": event_type, "session_id": session_id, **data, "timestamp": datetime.utcnow().isoformat()}
 
         for connection_id, subscription in self.active_subscriptions.items():
             if subscription.get("type") == "session":

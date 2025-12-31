@@ -1,21 +1,23 @@
 """Authentik identity provider adapter."""
 
-from typing import Dict, Any, List, Optional
-import httpx
 from datetime import datetime
 from enum import Enum
+from typing import Any, Dict, List, Optional
+
+import httpx
 
 from .base import (
-    TokenAuthAdapter,
-    ServiceCapability,
-    ConnectionTestResult,
     AdapterError,
-    AuthenticationError
+    AuthenticationError,
+    ConnectionTestResult,
+    ServiceCapability,
+    TokenAuthAdapter,
 )
 
 
 class UserStatus(Enum):
     """User status in Authentik."""
+
     ACTIVE = "active"
     INACTIVE = "inactive"
 
@@ -29,11 +31,7 @@ class AuthentikAdapter(TokenAuthAdapter):
 
     @property
     def supported_capabilities(self) -> List[ServiceCapability]:
-        return [
-            ServiceCapability.AUTHENTICATION,
-            ServiceCapability.USER_MANAGEMENT,
-            ServiceCapability.API_ACCESS
-        ]
+        return [ServiceCapability.AUTHENTICATION, ServiceCapability.USER_MANAGEMENT, ServiceCapability.API_ACCESS]
 
     @property
     def token_config_key(self) -> str:
@@ -41,11 +39,7 @@ class AuthentikAdapter(TokenAuthAdapter):
 
     def _format_token_header(self, token: str) -> Dict[str, str]:
         """Format Authentik token header."""
-        return {
-            "Authorization": f"Bearer {token}",
-            "Content-Type": "application/json",
-            "Accept": "application/json"
-        }
+        return {"Authorization": f"Bearer {token}", "Content-Type": "application/json", "Accept": "application/json"}
 
     async def test_connection(self) -> ConnectionTestResult:
         """Test connection to Authentik."""
@@ -72,15 +66,15 @@ class AuthentikAdapter(TokenAuthAdapter):
                         "status": "connected",
                         "user_pk": user_data.get("pk"),
                         "username": user_data.get("username"),
-                        "is_superuser": user_data.get("is_superuser", False)
-                    }
+                        "is_superuser": user_data.get("is_superuser", False),
+                    },
                 )
             else:
                 return ConnectionTestResult(
                     success=False,
                     message="Connected but response doesn't appear to be from Authentik",
                     response_time_ms=response_time,
-                    details={"status": "invalid_response"}
+                    details={"status": "invalid_response"},
                 )
 
         except httpx.HTTPStatusError as e:
@@ -88,31 +82,31 @@ class AuthentikAdapter(TokenAuthAdapter):
                 return ConnectionTestResult(
                     success=False,
                     message="Authentication failed - check token",
-                    details={"status": "auth_failed", "status_code": 401}
+                    details={"status": "auth_failed", "status_code": 401},
                 )
             elif e.response.status_code == 403:
                 return ConnectionTestResult(
                     success=False,
                     message="Access denied - insufficient permissions",
-                    details={"status": "access_denied", "status_code": 403}
+                    details={"status": "access_denied", "status_code": 403},
                 )
             else:
                 return ConnectionTestResult(
                     success=False,
                     message=f"HTTP error: {e.response.status_code}",
-                    details={"status": "http_error", "status_code": e.response.status_code}
+                    details={"status": "http_error", "status_code": e.response.status_code},
                 )
         except httpx.RequestError as e:
             return ConnectionTestResult(
                 success=False,
                 message=f"Connection failed: {str(e)}",
-                details={"status": "connection_failed", "error": str(e)}
+                details={"status": "connection_failed", "error": str(e)},
             )
         except Exception as e:
             return ConnectionTestResult(
                 success=False,
                 message=f"Unexpected error: {str(e)}",
-                details={"status": "unexpected_error", "error": str(e)}
+                details={"status": "unexpected_error", "error": str(e)},
             )
 
     async def get_service_info(self) -> Dict[str, Any]:
@@ -141,24 +135,20 @@ class AuthentikAdapter(TokenAuthAdapter):
                     "is_superuser": user_data.get("is_superuser", False),
                     "is_staff": user_data.get("is_staff", False),
                     "is_active": user_data.get("is_active", True),
-                    "groups": user_data.get("groups", [])
+                    "groups": user_data.get("groups", []),
                 },
-                "system_info": system_data if system_data else {}
+                "system_info": system_data if system_data else {},
             }
 
         except httpx.HTTPStatusError as e:
             if e.response.status_code == 401:
-                raise AuthenticationError("Invalid Authentik token")
-            raise AdapterError(f"HTTP error: {e.response.status_code}")
+                raise AuthenticationError("Invalid Authentik token") from e
+            raise AdapterError(f"HTTP error: {e.response.status_code}") from e
         except Exception as e:
-            raise AdapterError(f"Failed to get service info: {str(e)}")
+            raise AdapterError(f"Failed to get service info: {str(e)}") from e
 
     async def get_users(
-        self,
-        page: int = 1,
-        page_size: int = 20,
-        search: Optional[str] = None,
-        is_active: Optional[bool] = None
+        self, page: int = 1, page_size: int = 20, search: Optional[str] = None, is_active: Optional[bool] = None
     ) -> Dict[str, Any]:
         """Get users from Authentik."""
         try:
@@ -175,20 +165,22 @@ class AuthentikAdapter(TokenAuthAdapter):
             # Process users
             users = []
             for user in data.get("results", []):
-                users.append({
-                    "pk": user.get("pk"),
-                    "username": user.get("username"),
-                    "name": user.get("name"),
-                    "email": user.get("email"),
-                    "is_active": user.get("is_active"),
-                    "is_superuser": user.get("is_superuser"),
-                    "is_staff": user.get("is_staff"),
-                    "date_joined": user.get("date_joined"),
-                    "last_login": user.get("last_login"),
-                    "groups": user.get("groups", []),
-                    "avatar": user.get("avatar"),
-                    "attributes": user.get("attributes", {})
-                })
+                users.append(
+                    {
+                        "pk": user.get("pk"),
+                        "username": user.get("username"),
+                        "name": user.get("name"),
+                        "email": user.get("email"),
+                        "is_active": user.get("is_active"),
+                        "is_superuser": user.get("is_superuser"),
+                        "is_staff": user.get("is_staff"),
+                        "date_joined": user.get("date_joined"),
+                        "last_login": user.get("last_login"),
+                        "groups": user.get("groups", []),
+                        "avatar": user.get("avatar"),
+                        "attributes": user.get("attributes", {}),
+                    }
+                )
 
             return {
                 "users": users,
@@ -198,8 +190,8 @@ class AuthentikAdapter(TokenAuthAdapter):
                     "count": data.get("pagination", {}).get("count", len(users)),
                     "total_pages": data.get("pagination", {}).get("num_pages", 1),
                     "next": data.get("pagination", {}).get("next"),
-                    "previous": data.get("pagination", {}).get("previous")
-                }
+                    "previous": data.get("pagination", {}).get("previous"),
+                },
             }
 
         except Exception as e:
@@ -243,11 +235,7 @@ class AuthentikAdapter(TokenAuthAdapter):
     async def deactivate_user(self, user_pk: int) -> bool:
         """Deactivate a user."""
         try:
-            response = await self._make_request(
-                "PATCH",
-                f"/api/v3/core/users/{user_pk}/",
-                json={"is_active": False}
-            )
+            response = await self._make_request("PATCH", f"/api/v3/core/users/{user_pk}/", json={"is_active": False})
             return response.status_code == 200
 
         except Exception as e:
@@ -263,15 +251,17 @@ class AuthentikAdapter(TokenAuthAdapter):
 
             groups = []
             for group in data.get("results", []):
-                groups.append({
-                    "pk": group.get("pk"),
-                    "name": group.get("name"),
-                    "is_superuser": group.get("is_superuser"),
-                    "parent": group.get("parent"),
-                    "users_obj": group.get("users_obj", []),
-                    "attributes": group.get("attributes", {}),
-                    "num_pk": group.get("num_pk")
-                })
+                groups.append(
+                    {
+                        "pk": group.get("pk"),
+                        "name": group.get("name"),
+                        "is_superuser": group.get("is_superuser"),
+                        "parent": group.get("parent"),
+                        "users_obj": group.get("users_obj", []),
+                        "attributes": group.get("attributes", {}),
+                        "num_pk": group.get("num_pk"),
+                    }
+                )
 
             return {
                 "groups": groups,
@@ -279,8 +269,8 @@ class AuthentikAdapter(TokenAuthAdapter):
                     "page": page,
                     "page_size": page_size,
                     "count": data.get("pagination", {}).get("count", len(groups)),
-                    "total_pages": data.get("pagination", {}).get("num_pages", 1)
-                }
+                    "total_pages": data.get("pagination", {}).get("num_pages", 1),
+                },
             }
 
         except Exception as e:
@@ -296,19 +286,21 @@ class AuthentikAdapter(TokenAuthAdapter):
 
             applications = []
             for app in data.get("results", []):
-                applications.append({
-                    "pk": app.get("pk"),
-                    "name": app.get("name"),
-                    "slug": app.get("slug"),
-                    "provider": app.get("provider"),
-                    "provider_obj": app.get("provider_obj", {}),
-                    "launch_url": app.get("launch_url"),
-                    "open_in_new_tab": app.get("open_in_new_tab"),
-                    "meta_icon": app.get("meta_icon"),
-                    "meta_description": app.get("meta_description"),
-                    "policy_engine_mode": app.get("policy_engine_mode"),
-                    "group": app.get("group")
-                })
+                applications.append(
+                    {
+                        "pk": app.get("pk"),
+                        "name": app.get("name"),
+                        "slug": app.get("slug"),
+                        "provider": app.get("provider"),
+                        "provider_obj": app.get("provider_obj", {}),
+                        "launch_url": app.get("launch_url"),
+                        "open_in_new_tab": app.get("open_in_new_tab"),
+                        "meta_icon": app.get("meta_icon"),
+                        "meta_description": app.get("meta_description"),
+                        "policy_engine_mode": app.get("policy_engine_mode"),
+                        "group": app.get("group"),
+                    }
+                )
 
             return {
                 "applications": applications,
@@ -316,8 +308,8 @@ class AuthentikAdapter(TokenAuthAdapter):
                     "page": page,
                     "page_size": page_size,
                     "count": data.get("pagination", {}).get("count", len(applications)),
-                    "total_pages": data.get("pagination", {}).get("num_pages", 1)
-                }
+                    "total_pages": data.get("pagination", {}).get("num_pages", 1),
+                },
             }
 
         except Exception as e:
@@ -325,11 +317,7 @@ class AuthentikAdapter(TokenAuthAdapter):
             return {"applications": [], "pagination": {"page": page, "page_size": page_size, "count": 0}}
 
     async def get_events(
-        self,
-        page: int = 1,
-        page_size: int = 20,
-        action: Optional[str] = None,
-        username: Optional[str] = None
+        self, page: int = 1, page_size: int = 20, action: Optional[str] = None, username: Optional[str] = None
     ) -> Dict[str, Any]:
         """Get audit events from Authentik."""
         try:
@@ -345,17 +333,19 @@ class AuthentikAdapter(TokenAuthAdapter):
 
             events = []
             for event in data.get("results", []):
-                events.append({
-                    "pk": event.get("pk"),
-                    "user": event.get("user", {}),
-                    "action": event.get("action"),
-                    "result": event.get("result"),
-                    "created": event.get("created"),
-                    "client_ip": event.get("client_ip"),
-                    "context": event.get("context", {}),
-                    "app": event.get("app"),
-                    "tenant": event.get("tenant", {})
-                })
+                events.append(
+                    {
+                        "pk": event.get("pk"),
+                        "user": event.get("user", {}),
+                        "action": event.get("action"),
+                        "result": event.get("result"),
+                        "created": event.get("created"),
+                        "client_ip": event.get("client_ip"),
+                        "context": event.get("context", {}),
+                        "app": event.get("app"),
+                        "tenant": event.get("tenant", {}),
+                    }
+                )
 
             return {
                 "events": events,
@@ -363,8 +353,8 @@ class AuthentikAdapter(TokenAuthAdapter):
                     "page": page,
                     "page_size": page_size,
                     "count": data.get("pagination", {}).get("count", len(events)),
-                    "total_pages": data.get("pagination", {}).get("num_pages", 1)
-                }
+                    "total_pages": data.get("pagination", {}).get("num_pages", 1),
+                },
             }
 
         except Exception as e:
@@ -384,7 +374,7 @@ class AuthentikAdapter(TokenAuthAdapter):
                     "username": user.get("username"),
                     "name": user.get("name"),
                     "email": user.get("email"),
-                    "is_active": user.get("is_active")
+                    "is_active": user.get("is_active"),
                 }
                 for user in data.get("results", [])
             ]
@@ -425,9 +415,13 @@ class AuthentikAdapter(TokenAuthAdapter):
                 "recent_events_count": len(recent_events),
                 "recent_events": recent_events[:5],
                 "user_activity": {
-                    "logins_today": sum(1 for event in recent_events if event.get("action") == "login" and "today" in event.get("created", "")),
-                    "failed_logins": sum(1 for event in recent_events if event.get("action") == "login_failed")
-                }
+                    "logins_today": sum(
+                        1
+                        for event in recent_events
+                        if event.get("action") == "login" and "today" in event.get("created", "")
+                    ),
+                    "failed_logins": sum(1 for event in recent_events if event.get("action") == "login_failed"),
+                },
             }
 
         except Exception as e:
@@ -440,7 +434,7 @@ class AuthentikAdapter(TokenAuthAdapter):
                 "total_applications": 0,
                 "recent_events_count": 0,
                 "recent_events": [],
-                "user_activity": {"logins_today": 0, "failed_logins": 0}
+                "user_activity": {"logins_today": 0, "failed_logins": 0},
             }
 
     def validate_config(self) -> List[str]:

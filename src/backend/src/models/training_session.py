@@ -1,13 +1,13 @@
 """Training session models for Ollama model training."""
 
 from datetime import datetime
-from typing import Dict, Any, Optional, List, TYPE_CHECKING
 from enum import Enum
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
-from sqlalchemy import String, Text, DateTime, Boolean, JSON, Integer, Float, ForeignKey
+from sqlalchemy import JSON, DateTime, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from .base import Base, UUIDMixin, TimestampMixin
+from .base import Base, TimestampMixin, UUIDMixin
 
 if TYPE_CHECKING:
     from .training_prompt import TrainingPrompt
@@ -15,6 +15,7 @@ if TYPE_CHECKING:
 
 class TrainingStatus(str, Enum):
     """Training session status."""
+
     PENDING = "pending"
     PREPARING = "preparing"
     RUNNING = "running"
@@ -26,6 +27,7 @@ class TrainingStatus(str, Enum):
 
 class TrainingType(str, Enum):
     """Type of training/fine-tuning."""
+
     FINE_TUNE = "fine_tune"
     LORA = "lora"
     QLORA = "qlora"
@@ -38,166 +40,72 @@ class TrainingSession(Base, UUIDMixin, TimestampMixin):
     __tablename__ = "training_sessions"
 
     # Basic information
-    name: Mapped[str] = mapped_column(
-        String(200),
-        nullable=False,
-        index=True
-    )
-    description: Mapped[Optional[str]] = mapped_column(
-        Text,
-        nullable=True
-    )
+    name: Mapped[str] = mapped_column(String(200), nullable=False, index=True)
+    description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
     # Model configuration
-    base_model: Mapped[str] = mapped_column(
-        String(100),
-        nullable=False,
-        index=True
-    )
-    output_model: Mapped[Optional[str]] = mapped_column(
-        String(100),
-        nullable=True
-    )
-    training_type: Mapped[TrainingType] = mapped_column(
-        String(20),
-        default=TrainingType.FINE_TUNE,
-        nullable=False
-    )
-    training_backend: Mapped[str] = mapped_column(
-        String(50),
-        default="ollama_modelfile",
-        nullable=False
-    )
+    base_model: Mapped[str] = mapped_column(String(100), nullable=False, index=True)
+    output_model: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    training_type: Mapped[TrainingType] = mapped_column(String(20), default=TrainingType.FINE_TUNE, nullable=False)
+    training_backend: Mapped[str] = mapped_column(String(50), default="ollama_modelfile", nullable=False)
 
     # Status tracking
     status: Mapped[TrainingStatus] = mapped_column(
-        String(20),
-        default=TrainingStatus.PENDING,
-        nullable=False,
-        index=True
+        String(20), default=TrainingStatus.PENDING, nullable=False, index=True
     )
-    error_message: Mapped[Optional[str]] = mapped_column(
-        Text,
-        nullable=True
-    )
+    error_message: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
     # Progress metrics
-    current_epoch: Mapped[int] = mapped_column(
-        Integer,
-        default=0,
-        nullable=False
-    )
-    total_epochs: Mapped[int] = mapped_column(
-        Integer,
-        default=1,
-        nullable=False
-    )
-    current_step: Mapped[int] = mapped_column(
-        Integer,
-        default=0,
-        nullable=False
-    )
-    total_steps: Mapped[int] = mapped_column(
-        Integer,
-        default=0,
-        nullable=False
-    )
-    progress_percent: Mapped[float] = mapped_column(
-        Float,
-        default=0.0,
-        nullable=False
-    )
+    current_epoch: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    total_epochs: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
+    current_step: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    total_steps: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    progress_percent: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
 
     # Training metrics (updated in real-time)
-    loss: Mapped[Optional[float]] = mapped_column(
-        Float,
-        nullable=True
-    )
-    learning_rate: Mapped[Optional[float]] = mapped_column(
-        Float,
-        nullable=True
-    )
-    metrics_history: Mapped[List[Dict[str, Any]]] = mapped_column(
-        JSON,
-        default=list,
-        nullable=False
-    )
+    loss: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    learning_rate: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    metrics_history: Mapped[List[Dict[str, Any]]] = mapped_column(JSON, default=list, nullable=False)
 
     # Final session summary (populated on completion)
     session_summary: Mapped[Optional[Dict[str, Any]]] = mapped_column(
-        JSON,
-        nullable=True,
-        comment="Final summary with step durations, final metrics, and overall assessment"
+        JSON, nullable=True, comment="Final summary with step durations, final metrics, and overall assessment"
     )
 
     # Training logs (stored after training completes)
     training_logs: Mapped[Optional[str]] = mapped_column(
-        Text,
-        nullable=True,
-        comment="Training logs captured from the worker"
+        Text, nullable=True, comment="Training logs captured from the worker"
     )
 
     # Hyperparameters
-    hyperparameters: Mapped[Dict[str, Any]] = mapped_column(
-        JSON,
-        default=dict,
-        nullable=False
-    )
+    hyperparameters: Mapped[Dict[str, Any]] = mapped_column(JSON, default=dict, nullable=False)
 
     # Timing
-    started_at: Mapped[Optional[datetime]] = mapped_column(
-        DateTime,
-        nullable=True
-    )
-    completed_at: Mapped[Optional[datetime]] = mapped_column(
-        DateTime,
-        nullable=True
-    )
-    estimated_completion: Mapped[Optional[datetime]] = mapped_column(
-        DateTime,
-        nullable=True
-    )
+    started_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    completed_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    estimated_completion: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
 
     # Resource usage
-    gpu_memory_used: Mapped[Optional[float]] = mapped_column(
-        Float,
-        nullable=True
-    )
-    cpu_usage: Mapped[Optional[float]] = mapped_column(
-        Float,
-        nullable=True
-    )
+    gpu_memory_used: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    cpu_usage: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
 
     # Data source
-    dataset_size: Mapped[int] = mapped_column(
-        Integer,
-        default=0,
-        nullable=False
-    )
-    dataset_path: Mapped[Optional[str]] = mapped_column(
-        String(500),
-        nullable=True
-    )
+    dataset_size: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    dataset_path: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
 
     # Ollama service reference
     ollama_service_id: Mapped[Optional[str]] = mapped_column(
-        String(36),
-        ForeignKey("service_configs.id", ondelete="SET NULL"),
-        nullable=True
+        String(36), ForeignKey("service_configs.id", ondelete="SET NULL"), nullable=True
     )
 
     # Training worker reference
     worker_id: Mapped[Optional[str]] = mapped_column(
-        String(36),
-        ForeignKey("training_workers.id", ondelete="SET NULL"),
-        nullable=True
+        String(36), ForeignKey("training_workers.id", ondelete="SET NULL"), nullable=True
     )
 
     # Many-to-many relationship with prompts (via association table)
     prompts: Mapped[List["TrainingPrompt"]] = relationship(
-        "TrainingPrompt",
-        secondary="session_prompt_association",
-        back_populates="sessions"
+        "TrainingPrompt", secondary="session_prompt_association", back_populates="sessions"
     )
 
     def __repr__(self) -> str:
@@ -224,11 +132,7 @@ class TrainingSession(Base, UUIDMixin, TimestampMixin):
     @property
     def is_completed(self) -> bool:
         """Check if training is finished (success or failure)."""
-        return self.status in [
-            TrainingStatus.COMPLETED,
-            TrainingStatus.FAILED,
-            TrainingStatus.CANCELLED
-        ]
+        return self.status in [TrainingStatus.COMPLETED, TrainingStatus.FAILED, TrainingStatus.CANCELLED]
 
     def update_progress(
         self,
@@ -236,7 +140,7 @@ class TrainingSession(Base, UUIDMixin, TimestampMixin):
         total_steps: int,
         current_epoch: int = None,
         loss: float = None,
-        learning_rate: float = None
+        learning_rate: float = None,
     ) -> None:
         """Update training progress."""
         self.current_step = current_step
@@ -258,7 +162,7 @@ class TrainingSession(Base, UUIDMixin, TimestampMixin):
             "step": current_step,
             "epoch": self.current_epoch,
             "loss": loss,
-            "learning_rate": learning_rate
+            "learning_rate": learning_rate,
         }
         if self.metrics_history is None:
             self.metrics_history = []
@@ -297,30 +201,24 @@ class TrainingSession(Base, UUIDMixin, TimestampMixin):
             "base_model": self.base_model,
             "output_model": self.output_model,
             "training_backend": self.training_backend,
-
             # Timing
             "started_at": self.started_at.isoformat() if self.started_at else None,
             "completed_at": self.completed_at.isoformat() if self.completed_at else None,
             "duration_seconds": self.duration_seconds,
             "duration_formatted": self._format_duration(self.duration_seconds),
-
             # Progress
             "total_epochs": self.total_epochs,
             "total_steps": self.total_steps,
             "final_step": self.current_step,
             "progress_percent": self.progress_percent,
             "dataset_size": self.dataset_size,
-
             # Final metrics
             "final_loss": self.loss,
             "final_learning_rate": self.learning_rate,
-
             # Metrics analysis
             "metrics_analysis": self._analyze_metrics(),
-
             # Error info
             "error_message": self.error_message,
-
             # Assessment
             "assessment": self._assess_training(),
         }
@@ -370,8 +268,8 @@ class TrainingSession(Base, UUIDMixin, TimestampMixin):
 
         # Determine trend
         if len(losses) >= 3:
-            first_third = losses[:len(losses)//3]
-            last_third = losses[-len(losses)//3:]
+            first_third = losses[: len(losses) // 3]
+            last_third = losses[-len(losses) // 3 :]
             avg_first = sum(first_third) / len(first_third) if first_third else 0
             avg_last = sum(last_third) / len(last_third) if last_third else 0
 
@@ -401,7 +299,9 @@ class TrainingSession(Base, UUIDMixin, TimestampMixin):
             if loss_improvement_pct >= 20:
                 assessment = {
                     "health": "excellent",
-                    "message": f"Training réussi avec une amélioration significative du loss ({loss_improvement_pct:.1f}%)",
+                    "message": (
+                        f"Training réussi avec une amélioration significative du loss " f"({loss_improvement_pct:.1f}%)"
+                    ),
                     "icon": "✅",
                 }
             elif loss_improvement_pct >= 5:

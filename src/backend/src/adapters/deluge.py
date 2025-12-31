@@ -1,16 +1,16 @@
 """Deluge torrent client adapter."""
 
-from typing import Dict, Any, List, Optional
 from datetime import datetime
+from typing import Any, Dict, List, Optional
+
 import httpx
-import json
 
 from .base import (
-    BaseServiceAdapter,
-    ServiceCapability,
-    ConnectionTestResult,
     AdapterError,
-    AuthenticationError
+    AuthenticationError,
+    BaseServiceAdapter,
+    ConnectionTestResult,
+    ServiceCapability,
 )
 
 
@@ -28,9 +28,7 @@ class DelugeAdapter(BaseServiceAdapter):
 
     @property
     def supported_capabilities(self) -> List[ServiceCapability]:
-        return [
-            ServiceCapability.API_ACCESS
-        ]
+        return [ServiceCapability.API_ACCESS]
 
     def _get_next_request_id(self) -> int:
         """Get next JSON-RPC request ID."""
@@ -45,12 +43,8 @@ class DelugeAdapter(BaseServiceAdapter):
             async with httpx.AsyncClient(timeout=30.0) as client:
                 response = await client.post(
                     f"{self.base_url}/json",
-                    json={
-                        "method": "auth.login",
-                        "params": [password],
-                        "id": self._get_next_request_id()
-                    },
-                    headers={"Content-Type": "application/json"}
+                    json={"method": "auth.login", "params": [password], "id": self._get_next_request_id()},
+                    headers={"Content-Type": "application/json"},
                 )
 
                 if response.status_code == 200:
@@ -79,12 +73,8 @@ class DelugeAdapter(BaseServiceAdapter):
         async with httpx.AsyncClient(timeout=30.0, cookies=cookies) as client:
             response = await client.post(
                 f"{self.base_url}/json",
-                json={
-                    "method": method,
-                    "params": params,
-                    "id": self._get_next_request_id()
-                },
-                headers={"Content-Type": "application/json"}
+                json={"method": method, "params": params, "id": self._get_next_request_id()},
+                headers={"Content-Type": "application/json"},
             )
 
             if response.status_code == 200:
@@ -111,23 +101,18 @@ class DelugeAdapter(BaseServiceAdapter):
                     success=True,
                     message="Successfully connected to Deluge",
                     response_time_ms=response_time,
-                    details={
-                        "status": "connected",
-                        "host_info": info
-                    }
+                    details={"status": "connected", "host_info": info},
                 )
             else:
                 return ConnectionTestResult(
-                    success=False,
-                    message="Authentication failed - check password",
-                    details={"status": "auth_failed"}
+                    success=False, message="Authentication failed - check password", details={"status": "auth_failed"}
                 )
 
         except Exception as e:
             return ConnectionTestResult(
                 success=False,
                 message=f"Connection failed: {str(e)}",
-                details={"status": "connection_failed", "error": str(e)}
+                details={"status": "connection_failed", "error": str(e)},
             )
 
     async def get_service_info(self) -> Dict[str, Any]:
@@ -142,45 +127,51 @@ class DelugeAdapter(BaseServiceAdapter):
                 "download_location": config.get("download_location") if config else None,
                 "max_download_speed": config.get("max_download_speed") if config else None,
                 "max_upload_speed": config.get("max_upload_speed") if config else None,
-                "status": "online"
+                "status": "online",
             }
         except Exception as e:
-            return {
-                "service": "deluge",
-                "version": "unknown",
-                "status": "error",
-                "error": str(e)
-            }
+            return {"service": "deluge", "version": "unknown", "status": "error", "error": str(e)}
 
     async def get_torrents(self) -> List[Dict[str, Any]]:
         """Get list of torrents."""
         try:
             # Get torrent list with specific fields
             fields = [
-                "name", "state", "progress", "download_payload_rate",
-                "upload_payload_rate", "eta", "total_size", "total_done",
-                "ratio", "num_seeds", "num_peers", "time_added"
+                "name",
+                "state",
+                "progress",
+                "download_payload_rate",
+                "upload_payload_rate",
+                "eta",
+                "total_size",
+                "total_done",
+                "ratio",
+                "num_seeds",
+                "num_peers",
+                "time_added",
             ]
 
             torrents = await self._rpc_call("core.get_torrents_status", [{}, fields])
 
             result = []
             for torrent_id, data in (torrents or {}).items():
-                result.append({
-                    "id": torrent_id,
-                    "name": data.get("name"),
-                    "state": data.get("state"),
-                    "progress": round(data.get("progress", 0), 2),
-                    "download_speed": data.get("download_payload_rate", 0),
-                    "upload_speed": data.get("upload_payload_rate", 0),
-                    "eta": data.get("eta"),
-                    "total_size": data.get("total_size", 0),
-                    "total_done": data.get("total_done", 0),
-                    "ratio": round(data.get("ratio", 0), 2),
-                    "seeds": data.get("num_seeds", 0),
-                    "peers": data.get("num_peers", 0),
-                    "added": data.get("time_added")
-                })
+                result.append(
+                    {
+                        "id": torrent_id,
+                        "name": data.get("name"),
+                        "state": data.get("state"),
+                        "progress": round(data.get("progress", 0), 2),
+                        "download_speed": data.get("download_payload_rate", 0),
+                        "upload_speed": data.get("upload_payload_rate", 0),
+                        "eta": data.get("eta"),
+                        "total_size": data.get("total_size", 0),
+                        "total_done": data.get("total_done", 0),
+                        "ratio": round(data.get("ratio", 0), 2),
+                        "seeds": data.get("num_seeds", 0),
+                        "peers": data.get("num_peers", 0),
+                        "added": data.get("time_added"),
+                    }
+                )
 
             return result
         except Exception as e:
@@ -198,15 +189,9 @@ class DelugeAdapter(BaseServiceAdapter):
             else:
                 result = await self._rpc_call("core.add_torrent_url", [magnet_or_url, options])
 
-            return {
-                "success": True,
-                "torrent_id": result
-            }
+            return {"success": True, "torrent_id": result}
         except Exception as e:
-            return {
-                "success": False,
-                "error": str(e)
-            }
+            return {"success": False, "error": str(e)}
 
     async def pause_torrent(self, torrent_id: str) -> bool:
         """Pause a torrent."""
@@ -239,9 +224,9 @@ class DelugeAdapter(BaseServiceAdapter):
         """Get Deluge statistics."""
         try:
             torrents = await self.get_torrents()
-            session_status = await self._rpc_call("core.get_session_status", [[
-                "download_rate", "upload_rate", "dht_nodes"
-            ]])
+            session_status = await self._rpc_call(
+                "core.get_session_status", [["download_rate", "upload_rate", "dht_nodes"]]
+            )
 
             downloading = sum(1 for t in torrents if t.get("state") == "Downloading")
             seeding = sum(1 for t in torrents if t.get("state") == "Seeding")
@@ -256,7 +241,7 @@ class DelugeAdapter(BaseServiceAdapter):
                 "download_rate": session_status.get("download_rate", 0) if session_status else 0,
                 "upload_rate": session_status.get("upload_rate", 0) if session_status else 0,
                 "dht_nodes": session_status.get("dht_nodes", 0) if session_status else 0,
-                "total_size_gb": round(total_size / (1024**3), 2)
+                "total_size_gb": round(total_size / (1024**3), 2),
             }
         except Exception as e:
             self.logger.error(f"Failed to get statistics: {e}")
@@ -268,5 +253,5 @@ class DelugeAdapter(BaseServiceAdapter):
                 "download_rate": 0,
                 "upload_rate": 0,
                 "dht_nodes": 0,
-                "total_size_gb": 0
+                "total_size_gb": 0,
             }

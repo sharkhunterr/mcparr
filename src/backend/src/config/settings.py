@@ -1,6 +1,5 @@
 """Application settings and configuration."""
 
-import os
 from functools import lru_cache
 from typing import List
 
@@ -11,11 +10,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     """Application settings."""
 
-    model_config = SettingsConfigDict(
-        env_file=".env",
-        env_file_encoding="utf-8",
-        case_sensitive=True
-    )
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", case_sensitive=True)
 
     # Application
     app_name: str = Field(default="MCParr AI Gateway", alias="APP_NAME")
@@ -31,7 +26,7 @@ class Settings(BaseSettings):
     # Database
     database_url: str = Field(
         default="sqlite+aiosqlite:////home/jeremie/Documents/Dev/ia-homelab/ia-homelab/backend/data/mcparr.db",
-        alias="DATABASE_URL"
+        alias="DATABASE_URL",
     )
 
     # Redis (optional)
@@ -47,19 +42,13 @@ class Settings(BaseSettings):
             "http://192.168.1.21:5173",
             "http://192.168.1.21:5174",
         ],
-        alias="CORS_ORIGINS"
+        alias="CORS_ORIGINS",
     )
 
     # Security
-    secret_key: str = Field(
-        default="dev-secret-key-change-in-production",
-        alias="SECRET_KEY"
-    )
+    secret_key: str = Field(default="dev-secret-key-change-in-production", alias="SECRET_KEY")
     algorithm: str = Field(default="HS256", alias="ALGORITHM")
-    access_token_expire_minutes: int = Field(
-        default=30,
-        alias="ACCESS_TOKEN_EXPIRE_MINUTES"
-    )
+    access_token_expire_minutes: int = Field(default=30, alias="ACCESS_TOKEN_EXPIRE_MINUTES")
 
     # External Services
     plex_url: str = Field(default="", alias="PLEX_URL")
@@ -92,10 +81,7 @@ class Settings(BaseSettings):
     metrics_port: int = Field(default=9090, alias="METRICS_PORT")
 
     # Docker
-    docker_socket: str = Field(
-        default="/var/run/docker.sock",
-        alias="DOCKER_SOCKET"
-    )
+    docker_socket: str = Field(default="/var/run/docker.sock", alias="DOCKER_SOCKET")
 
     # Alerts
     alert_email_enabled: bool = Field(default=False, alias="ALERT_EMAIL_ENABLED")

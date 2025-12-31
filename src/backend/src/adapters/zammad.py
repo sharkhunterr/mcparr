@@ -1,21 +1,23 @@
 """Zammad helpdesk system adapter."""
 
-from typing import Dict, Any, List, Optional
-import httpx
 from datetime import datetime
 from enum import Enum
+from typing import Any, Dict, List, Optional
+
+import httpx
 
 from .base import (
-    TokenAuthAdapter,
-    ServiceCapability,
-    ConnectionTestResult,
     AdapterError,
-    AuthenticationError
+    AuthenticationError,
+    ConnectionTestResult,
+    ServiceCapability,
+    TokenAuthAdapter,
 )
 
 
 class TicketState(Enum):
     """Zammad ticket states."""
+
     NEW = "new"
     OPEN = "open"
     PENDING_REMINDER = "pending reminder"
@@ -25,6 +27,7 @@ class TicketState(Enum):
 
 class TicketPriority(Enum):
     """Zammad ticket priorities."""
+
     LOW = "1 low"
     NORMAL = "2 normal"
     HIGH = "3 high"
@@ -39,11 +42,7 @@ class ZammadAdapter(TokenAuthAdapter):
 
     @property
     def supported_capabilities(self) -> List[ServiceCapability]:
-        return [
-            ServiceCapability.TICKET_SYSTEM,
-            ServiceCapability.USER_MANAGEMENT,
-            ServiceCapability.API_ACCESS
-        ]
+        return [ServiceCapability.TICKET_SYSTEM, ServiceCapability.USER_MANAGEMENT, ServiceCapability.API_ACCESS]
 
     @property
     def token_config_key(self) -> str:
@@ -59,19 +58,19 @@ class ZammadAdapter(TokenAuthAdapter):
         We detect format based on token structure.
         """
         # JWT tokens typically have 3 parts separated by dots
-        if token.count('.') == 2:
+        if token.count(".") == 2:
             # Looks like a JWT token
             return {
                 "Authorization": f"Bearer {token}",
                 "Content-Type": "application/json",
-                "Accept": "application/json"
+                "Accept": "application/json",
             }
         else:
             # Standard Zammad API token
             return {
                 "Authorization": f"Token token={token}",
                 "Content-Type": "application/json",
-                "Accept": "application/json"
+                "Accept": "application/json",
             }
 
     async def test_connection(self) -> ConnectionTestResult:
@@ -92,18 +91,14 @@ class ZammadAdapter(TokenAuthAdapter):
                     success=True,
                     message="Successfully connected to Zammad",
                     response_time_ms=response_time,
-                    details={
-                        "status": "connected",
-                        "user_id": data.get("id"),
-                        "user_email": data.get("email")
-                    }
+                    details={"status": "connected", "user_id": data.get("id"), "user_email": data.get("email")},
                 )
             else:
                 return ConnectionTestResult(
                     success=False,
                     message="Connected but response doesn't appear to be from Zammad",
                     response_time_ms=response_time,
-                    details={"status": "invalid_response"}
+                    details={"status": "invalid_response"},
                 )
 
         except httpx.HTTPStatusError as e:
@@ -111,31 +106,31 @@ class ZammadAdapter(TokenAuthAdapter):
                 return ConnectionTestResult(
                     success=False,
                     message="Authentication failed - check token",
-                    details={"status": "auth_failed", "status_code": 401}
+                    details={"status": "auth_failed", "status_code": 401},
                 )
             elif e.response.status_code == 403:
                 return ConnectionTestResult(
                     success=False,
                     message="Access denied - insufficient permissions",
-                    details={"status": "access_denied", "status_code": 403}
+                    details={"status": "access_denied", "status_code": 403},
                 )
             else:
                 return ConnectionTestResult(
                     success=False,
                     message=f"HTTP error: {e.response.status_code}",
-                    details={"status": "http_error", "status_code": e.response.status_code}
+                    details={"status": "http_error", "status_code": e.response.status_code},
                 )
         except httpx.RequestError as e:
             return ConnectionTestResult(
                 success=False,
                 message=f"Connection failed: {str(e)}",
-                details={"status": "connection_failed", "error": str(e)}
+                details={"status": "connection_failed", "error": str(e)},
             )
         except Exception as e:
             return ConnectionTestResult(
                 success=False,
                 message=f"Unexpected error: {str(e)}",
-                details={"status": "unexpected_error", "error": str(e)}
+                details={"status": "unexpected_error", "error": str(e)},
             )
 
     async def get_service_info(self) -> Dict[str, Any]:
@@ -156,17 +151,17 @@ class ZammadAdapter(TokenAuthAdapter):
                     "email": user_data.get("email"),
                     "firstname": user_data.get("firstname"),
                     "lastname": user_data.get("lastname"),
-                    "roles": user_data.get("roles", [])
+                    "roles": user_data.get("roles", []),
                 },
-                "api_version": "v1"
+                "api_version": "v1",
             }
 
         except httpx.HTTPStatusError as e:
             if e.response.status_code == 401:
-                raise AuthenticationError("Invalid Zammad token")
-            raise AdapterError(f"HTTP error: {e.response.status_code}")
+                raise AuthenticationError("Invalid Zammad token") from e
+            raise AdapterError(f"HTTP error: {e.response.status_code}") from e
         except Exception as e:
-            raise AdapterError(f"Failed to get service info: {str(e)}")
+            raise AdapterError(f"Failed to get service info: {str(e)}") from e
 
     def _get_field_value(self, ticket: dict, field: str) -> Optional[str]:
         """Extract field value from ticket - handles both expanded (string) and non-expanded (object) format.
@@ -184,10 +179,7 @@ class ZammadAdapter(TokenAuthAdapter):
         return None
 
     async def get_tickets(
-        self,
-        page: int = 1,
-        per_page: int = 25,
-        state: Optional[TicketState] = None
+        self, page: int = 1, per_page: int = 25, state: Optional[TicketState] = None
     ) -> Dict[str, Any]:
         """Get tickets from Zammad."""
         try:
@@ -216,17 +208,13 @@ class ZammadAdapter(TokenAuthAdapter):
                     "created_at": ticket.get("created_at"),
                     "updated_at": ticket.get("updated_at"),
                     "close_at": ticket.get("close_at"),
-                    "article_count": ticket.get("article_count", 0)
+                    "article_count": ticket.get("article_count", 0),
                 }
                 processed_tickets.append(processed_ticket)
 
             return {
                 "tickets": processed_tickets,
-                "pagination": {
-                    "page": page,
-                    "per_page": per_page,
-                    "total": len(processed_tickets)
-                }
+                "pagination": {"page": page, "per_page": per_page, "total": len(processed_tickets)},
             }
 
         except Exception as e:
@@ -285,20 +273,22 @@ class ZammadAdapter(TokenAuthAdapter):
 
             users = []
             for user in data if isinstance(data, list) else []:
-                users.append({
-                    "id": user.get("id"),
-                    "email": user.get("email"),
-                    "firstname": user.get("firstname"),
-                    "lastname": user.get("lastname"),
-                    "login": user.get("login"),
-                    "phone": user.get("phone"),
-                    "active": user.get("active"),
-                    "verified": user.get("verified"),
-                    "roles": user.get("roles", []),
-                    "groups": user.get("groups", []),
-                    "created_at": user.get("created_at"),
-                    "updated_at": user.get("updated_at")
-                })
+                users.append(
+                    {
+                        "id": user.get("id"),
+                        "email": user.get("email"),
+                        "firstname": user.get("firstname"),
+                        "lastname": user.get("lastname"),
+                        "login": user.get("login"),
+                        "phone": user.get("phone"),
+                        "active": user.get("active"),
+                        "verified": user.get("verified"),
+                        "roles": user.get("roles", []),
+                        "groups": user.get("groups", []),
+                        "created_at": user.get("created_at"),
+                        "updated_at": user.get("updated_at"),
+                    }
+                )
 
             return users
 
@@ -314,17 +304,19 @@ class ZammadAdapter(TokenAuthAdapter):
 
             groups = []
             for group in data if isinstance(data, list) else []:
-                groups.append({
-                    "id": group.get("id"),
-                    "name": group.get("name"),
-                    "assignment_timeout": group.get("assignment_timeout"),
-                    "follow_up_possible": group.get("follow_up_possible"),
-                    "follow_up_assignment": group.get("follow_up_assignment"),
-                    "active": group.get("active"),
-                    "note": group.get("note"),
-                    "created_at": group.get("created_at"),
-                    "updated_at": group.get("updated_at")
-                })
+                groups.append(
+                    {
+                        "id": group.get("id"),
+                        "name": group.get("name"),
+                        "assignment_timeout": group.get("assignment_timeout"),
+                        "follow_up_possible": group.get("follow_up_possible"),
+                        "follow_up_assignment": group.get("follow_up_assignment"),
+                        "active": group.get("active"),
+                        "note": group.get("note"),
+                        "created_at": group.get("created_at"),
+                        "updated_at": group.get("updated_at"),
+                    }
+                )
 
             return groups
 
@@ -350,22 +342,24 @@ class ZammadAdapter(TokenAuthAdapter):
                 if isinstance(sender, dict):
                     sender = sender.get("name")
 
-                articles.append({
-                    "id": article.get("id"),
-                    "ticket_id": article.get("ticket_id"),
-                    "type": article_type,
-                    "sender": sender,
-                    "from": article.get("from"),
-                    "to": article.get("to"),
-                    "subject": article.get("subject"),
-                    "body": article.get("body"),
-                    "content_type": article.get("content_type"),
-                    "internal": article.get("internal", False),
-                    "created_by_id": article.get("created_by_id"),
-                    "created_by": article.get("created_by"),
-                    "created_at": article.get("created_at"),
-                    "updated_at": article.get("updated_at")
-                })
+                articles.append(
+                    {
+                        "id": article.get("id"),
+                        "ticket_id": article.get("ticket_id"),
+                        "type": article_type,
+                        "sender": sender,
+                        "from": article.get("from"),
+                        "to": article.get("to"),
+                        "subject": article.get("subject"),
+                        "body": article.get("body"),
+                        "content_type": article.get("content_type"),
+                        "internal": article.get("internal", False),
+                        "created_by_id": article.get("created_by_id"),
+                        "created_by": article.get("created_by"),
+                        "created_at": article.get("created_at"),
+                        "updated_at": article.get("updated_at"),
+                    }
+                )
 
             return articles
 
@@ -445,7 +439,7 @@ class ZammadAdapter(TokenAuthAdapter):
                 "closed_tickets": closed_tickets,
                 "total_users": len(users),
                 "total_groups": len(groups),
-                "recent_tickets": tickets[:10]
+                "recent_tickets": tickets[:10],
             }
 
         except Exception as e:
@@ -458,7 +452,7 @@ class ZammadAdapter(TokenAuthAdapter):
                 "closed_tickets": 0,
                 "total_users": 0,
                 "total_groups": 0,
-                "recent_tickets": []
+                "recent_tickets": [],
             }
 
     def validate_config(self) -> List[str]:

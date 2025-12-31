@@ -1,14 +1,16 @@
 """User mapping schemas for API validation and serialization."""
 
-from typing import List, Optional, Dict, Any
 from datetime import datetime
+from typing import Any, Dict, List, Optional
+
 from pydantic import BaseModel, Field
 
-from ..models.user_mapping import UserRole, MappingStatus
+from ..models.user_mapping import MappingStatus, UserRole
 
 
 class UserMappingCreate(BaseModel):
     """Schema for creating a new user mapping."""
+
     central_user_id: str = Field(..., description="Central user identifier")
     central_username: str = Field(..., description="Central username")
     central_email: Optional[str] = Field(None, description="Central user email")
@@ -24,6 +26,7 @@ class UserMappingCreate(BaseModel):
 
 class UserMappingUpdate(BaseModel):
     """Schema for updating an existing user mapping."""
+
     service_user_id: Optional[str] = Field(None, description="User ID in the service")
     service_username: Optional[str] = Field(None, description="Username in the service")
     service_email: Optional[str] = Field(None, description="Email in the service")
@@ -35,6 +38,7 @@ class UserMappingUpdate(BaseModel):
 
 class ServiceConfigInfo(BaseModel):
     """Basic service configuration info for user mapping responses."""
+
     id: str
     name: str
     service_type: str
@@ -43,6 +47,7 @@ class ServiceConfigInfo(BaseModel):
 
 class UserMappingResponse(BaseModel):
     """Schema for user mapping API responses."""
+
     id: str
     central_user_id: str
     central_username: str
@@ -84,16 +89,16 @@ class UserMappingResponse(BaseModel):
             "sync_attempts": obj.sync_attempts,
             "service_metadata": obj.service_metadata,
             "created_at": obj.created_at,
-            "updated_at": obj.updated_at
+            "updated_at": obj.updated_at,
         }
 
         # Add service config info if available
-        if hasattr(obj, 'service_config') and obj.service_config:
+        if hasattr(obj, "service_config") and obj.service_config:
             data["service_config"] = ServiceConfigInfo(
                 id=str(obj.service_config.id),
                 name=obj.service_config.name,
                 service_type=obj.service_config.service_type,
-                base_url=obj.service_config.base_url
+                base_url=obj.service_config.base_url,
             )
 
         return cls(**data)
@@ -101,6 +106,7 @@ class UserMappingResponse(BaseModel):
 
 class UserMappingListResponse(BaseModel):
     """Schema for paginated user mapping list responses."""
+
     mappings: List[UserMappingResponse]
     total: int
     skip: int
@@ -109,6 +115,7 @@ class UserMappingListResponse(BaseModel):
 
 class UserSyncRequest(BaseModel):
     """Schema for user synchronization requests."""
+
     central_user_id: str = Field(..., description="Central user identifier to sync")
     force_sync: bool = Field(False, description="Force sync even if recently synced")
     sync_services: Optional[List[str]] = Field(None, description="Specific service IDs to sync (all if None)")
@@ -116,6 +123,7 @@ class UserSyncRequest(BaseModel):
 
 class UserSyncServiceResult(BaseModel):
     """Result for a single service sync operation."""
+
     service_id: str
     service_name: str
     success: bool
@@ -125,6 +133,7 @@ class UserSyncServiceResult(BaseModel):
 
 class UserSyncResult(BaseModel):
     """Schema for user synchronization results."""
+
     central_user_id: str
     total_services: int
     successful_syncs: int
@@ -137,6 +146,7 @@ class UserSyncResult(BaseModel):
 
 class UserMappingStats(BaseModel):
     """User mapping statistics schema."""
+
     total_mappings: int
     unique_users: int
     status_breakdown: Dict[str, int]
@@ -146,6 +156,7 @@ class UserMappingStats(BaseModel):
 
 class BulkUserMappingCreate(BaseModel):
     """Schema for creating multiple user mappings at once."""
+
     mappings: List[UserMappingCreate] = Field(..., description="List of user mappings to create")
     skip_existing: bool = Field(True, description="Skip mappings that already exist")
     validate_services: bool = Field(True, description="Validate that all services exist")
@@ -153,6 +164,7 @@ class BulkUserMappingCreate(BaseModel):
 
 class BulkUserMappingResult(BaseModel):
     """Result of bulk user mapping creation."""
+
     total_requested: int
     created: int
     skipped: int
@@ -163,6 +175,7 @@ class BulkUserMappingResult(BaseModel):
 
 class UserServiceInfo(BaseModel):
     """Information about a user in a specific service."""
+
     service_id: str
     service_name: str
     service_type: str
@@ -177,6 +190,7 @@ class UserServiceInfo(BaseModel):
 
 class CentralUserProfile(BaseModel):
     """Complete profile of a central user across all services."""
+
     central_user_id: str
     display_name: Optional[str]
     email: Optional[str]

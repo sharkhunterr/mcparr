@@ -1,6 +1,7 @@
 """MCP tools for Overseerr integration."""
 
 from typing import List
+
 from .base import BaseTool, ToolDefinition, ToolParameter
 
 
@@ -74,7 +75,9 @@ class OverseerrTools(BaseTool):
                     ),
                     ToolParameter(
                         name="seasons",
-                        description="For TV shows, specify which seasons to request (comma-separated numbers, or 'all')",
+                        description=(
+                            "For TV shows, specify which seasons to request " "(comma-separated numbers, or 'all')"
+                        ),
                         type="string",
                         required=False,
                         default="all",
@@ -150,10 +153,7 @@ class OverseerrTools(BaseTool):
     async def execute(self, tool_name: str, arguments: dict) -> dict:
         """Execute an Overseerr tool."""
         if not self.service_config:
-            return {
-                "success": False,
-                "error": "Overseerr service not configured"
-            }
+            return {"success": False, "error": "Overseerr service not configured"}
 
         try:
             from src.adapters.overseerr import OverseerrAdapter
@@ -217,14 +217,20 @@ class OverseerrTools(BaseTool):
                     {
                         "title": item.get("title") or item.get("name"),
                         "type": "movie" if item.get("mediaType") == "movie" else "tv",
-                        "year": item.get("releaseDate", "")[:4] if item.get("releaseDate") else item.get("firstAirDate", "")[:4] if item.get("firstAirDate") else None,
-                        "overview": (item.get("overview", "")[:200] + "...") if item.get("overview") and len(item.get("overview", "")) > 200 else item.get("overview"),
+                        "year": item.get("releaseDate", "")[:4]
+                        if item.get("releaseDate")
+                        else item.get("firstAirDate", "")[:4]
+                        if item.get("firstAirDate")
+                        else None,
+                        "overview": (item.get("overview", "")[:200] + "...")
+                        if item.get("overview") and len(item.get("overview", "")) > 200
+                        else item.get("overview"),
                         "tmdb_id": item.get("id"),
                         "status": item.get("mediaInfo", {}).get("status") if item.get("mediaInfo") else "not_requested",
                     }
                     for item in results[:10]
-                ]
-            }
+                ],
+            },
         }
 
     async def _get_requests(self, adapter, arguments: dict) -> dict:
@@ -251,8 +257,8 @@ class OverseerrTools(BaseTool):
                         "requested_at": req.get("created_at"),
                     }
                     for req in requests_list
-                ]
-            }
+                ],
+            },
         }
 
     async def _request_media(self, adapter, arguments: dict) -> dict:
@@ -270,10 +276,7 @@ class OverseerrTools(BaseTool):
         results = await adapter.search_media(title, media_type=media_type)
 
         if not results:
-            return {
-                "success": False,
-                "error": f"No {media_type} found with title '{title}'"
-            }
+            return {"success": False, "error": f"No {media_type} found with title '{title}'"}
 
         media = results[0]
         tmdb_id = media.get("id")
@@ -283,21 +286,13 @@ class OverseerrTools(BaseTool):
         if media_info:
             status = media_info.get("status")
             if status == 5:  # Available
-                return {
-                    "success": False,
-                    "error": f"'{title}' is already available in the library"
-                }
+                return {"success": False, "error": f"'{title}' is already available in the library"}
             elif status in [2, 3, 4]:  # Pending, Processing, Partially Available
-                return {
-                    "success": False,
-                    "error": f"'{title}' has already been requested"
-                }
+                return {"success": False, "error": f"'{title}' has already been requested"}
 
         # Create the request
         result = await adapter.request_media(
-            tmdb_id=tmdb_id,
-            media_type=media_type,
-            seasons=seasons if media_type == "tv" else None
+            tmdb_id=tmdb_id, media_type=media_type, seasons=seasons if media_type == "tv" else None
         )
 
         return {
@@ -306,7 +301,7 @@ class OverseerrTools(BaseTool):
                 "message": f"Successfully requested '{title}'",
                 "request_id": result.get("id"),
                 "status": "pending",
-            }
+            },
         }
 
     async def _get_trending(self, adapter, arguments: dict) -> dict:
@@ -323,13 +318,19 @@ class OverseerrTools(BaseTool):
                     {
                         "title": item.get("title") or item.get("name"),
                         "type": "movie" if item.get("mediaType") == "movie" else "tv",
-                        "year": item.get("releaseDate", "")[:4] if item.get("releaseDate") else item.get("firstAirDate", "")[:4] if item.get("firstAirDate") else None,
-                        "overview": (item.get("overview", "")[:150] + "...") if item.get("overview") and len(item.get("overview", "")) > 150 else item.get("overview"),
+                        "year": item.get("releaseDate", "")[:4]
+                        if item.get("releaseDate")
+                        else item.get("firstAirDate", "")[:4]
+                        if item.get("firstAirDate")
+                        else None,
+                        "overview": (item.get("overview", "")[:150] + "...")
+                        if item.get("overview") and len(item.get("overview", "")) > 150
+                        else item.get("overview"),
                         "available": item.get("mediaInfo", {}).get("status") == 5 if item.get("mediaInfo") else False,
                     }
                     for item in items
                 ]
-            }
+            },
         }
 
     async def _check_availability(self, adapter, arguments: dict) -> dict:
@@ -343,19 +344,19 @@ class OverseerrTools(BaseTool):
         if year:
             filtered = []
             for item in results:
-                item_year = item.get("releaseDate", "")[:4] if item.get("releaseDate") else item.get("firstAirDate", "")[:4] if item.get("firstAirDate") else None
+                item_year = (
+                    item.get("releaseDate", "")[:4]
+                    if item.get("releaseDate")
+                    else item.get("firstAirDate", "")[:4]
+                    if item.get("firstAirDate")
+                    else None
+                )
                 if item_year and int(item_year) == year:
                     filtered.append(item)
             results = filtered or results  # Fall back to unfiltered if no year match
 
         if not results:
-            return {
-                "success": True,
-                "result": {
-                    "found": False,
-                    "message": f"No media found with title '{title}'"
-                }
-            }
+            return {"success": True, "result": {"found": False, "message": f"No media found with title '{title}'"}}
 
         media = results[0]
         media_info = media.get("mediaInfo")
@@ -378,11 +379,15 @@ class OverseerrTools(BaseTool):
                 "found": True,
                 "title": media.get("title") or media.get("name"),
                 "type": "movie" if media.get("mediaType") == "movie" else "tv",
-                "year": media.get("releaseDate", "")[:4] if media.get("releaseDate") else media.get("firstAirDate", "")[:4] if media.get("firstAirDate") else None,
+                "year": media.get("releaseDate", "")[:4]
+                if media.get("releaseDate")
+                else media.get("firstAirDate", "")[:4]
+                if media.get("firstAirDate")
+                else None,
                 "status": status,
                 "available": status == "available",
                 "can_request": status == "not_requested",
-            }
+            },
         }
 
     async def _get_users(self, adapter) -> dict:
@@ -403,8 +408,8 @@ class OverseerrTools(BaseTool):
                         "created_at": user.get("created_at"),
                     }
                     for user in users
-                ]
-            }
+                ],
+            },
         }
 
     async def _get_statistics(self, adapter) -> dict:
@@ -420,5 +425,5 @@ class OverseerrTools(BaseTool):
                 "available_requests": stats.get("available_requests", 0),
                 "declined_requests": stats.get("declined_requests", 0),
                 "total_users": stats.get("total_users", 0),
-            }
+            },
         }

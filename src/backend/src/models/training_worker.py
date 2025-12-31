@@ -2,16 +2,15 @@
 
 import enum
 from datetime import datetime
-from typing import Optional
 
-from sqlalchemy import Column, String, Boolean, DateTime, Enum, Text, Integer, Float, JSON
-from sqlalchemy.orm import relationship
+from sqlalchemy import JSON, Boolean, Column, DateTime, Enum, Float, Integer, String, Text
 
-from .base import Base, UUIDMixin, TimestampMixin
+from .base import Base, TimestampMixin, UUIDMixin
 
 
 class WorkerStatus(str, enum.Enum):
     """Worker status."""
+
     ONLINE = "online"
     OFFLINE = "offline"
     TRAINING = "training"

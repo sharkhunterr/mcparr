@@ -1,6 +1,7 @@
 """MCP tools for Prowlarr integration."""
 
 from typing import List
+
 from .base import BaseTool, ToolDefinition, ToolParameter
 
 
@@ -98,10 +99,7 @@ class ProwlarrTools(BaseTool):
     async def execute(self, tool_name: str, arguments: dict) -> dict:
         """Execute a Prowlarr tool."""
         if not self.service_config:
-            return {
-                "success": False,
-                "error": "Prowlarr service not configured"
-            }
+            return {"success": False, "error": "Prowlarr service not configured"}
 
         try:
             from src.adapters.prowlarr import ProwlarrAdapter
@@ -145,13 +143,7 @@ class ProwlarrTools(BaseTool):
         """Get indexers from Prowlarr."""
         indexers = await adapter.get_indexers()
 
-        return {
-            "success": True,
-            "result": {
-                "count": len(indexers),
-                "indexers": indexers
-            }
-        }
+        return {"success": True, "result": {"count": len(indexers), "indexers": indexers}}
 
     async def _search(self, adapter, arguments: dict) -> dict:
         """Search across indexers."""
@@ -165,44 +157,25 @@ class ProwlarrTools(BaseTool):
 
         results = await adapter.search(query, categories=categories, limit=limit)
 
-        return {
-            "success": True,
-            "result": {
-                "query": query,
-                "count": len(results),
-                "results": results
-            }
-        }
+        return {"success": True, "result": {"query": query, "count": len(results), "results": results}}
 
     async def _get_indexer_stats(self, adapter) -> dict:
         """Get indexer statistics."""
         stats = await adapter.get_indexer_stats()
 
-        return {
-            "success": True,
-            "result": stats
-        }
+        return {"success": True, "result": stats}
 
     async def _get_applications(self, adapter) -> dict:
         """Get connected applications."""
         apps = await adapter.get_applications()
 
-        return {
-            "success": True,
-            "result": {
-                "count": len(apps),
-                "applications": apps
-            }
-        }
+        return {"success": True, "result": {"count": len(apps), "applications": apps}}
 
     async def _get_statistics(self, adapter) -> dict:
         """Get statistics."""
         stats = await adapter.get_statistics()
 
-        return {
-            "success": True,
-            "result": stats
-        }
+        return {"success": True, "result": stats}
 
     async def _test_indexer(self, adapter, arguments: dict) -> dict:
         """Test a specific indexer."""
@@ -211,15 +184,9 @@ class ProwlarrTools(BaseTool):
             return {"success": False, "error": "indexer_id is required"}
 
         result = await adapter.test_indexer(int(indexer_id))
-        return {
-            "success": result.get("success", False),
-            "result": result
-        }
+        return {"success": result.get("success", False), "result": result}
 
     async def _test_all_indexers(self, adapter) -> dict:
         """Test all enabled indexers."""
         result = await adapter.test_all_indexers()
-        return {
-            "success": True,
-            "result": result
-        }
+        return {"success": True, "result": result}

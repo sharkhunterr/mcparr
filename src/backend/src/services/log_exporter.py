@@ -4,12 +4,12 @@ import csv
 import io
 import json
 from datetime import datetime
-from typing import List, Optional, Literal
+from typing import List, Literal, Optional
+
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.log_entry import LogEntry
 from src.services.log_service import log_service
-
 
 ExportFormat = Literal["json", "csv", "text"]
 
@@ -66,7 +66,7 @@ class LogExporter:
         data = {
             "exported_at": datetime.utcnow().isoformat(),
             "total_logs": len(logs),
-            "logs": [log.to_dict() for log in logs]
+            "logs": [log.to_dict() for log in logs],
         }
         return json.dumps(data, indent=2, default=str)
 
@@ -75,20 +75,31 @@ class LogExporter:
         output = io.StringIO()
 
         fieldnames = [
-            "id", "logged_at", "level", "source", "component", "message",
-            "correlation_id", "request_id", "user_id", "service_id",
-            "service_type", "exception_type", "exception_message",
-            "duration_ms", "created_at"
+            "id",
+            "logged_at",
+            "level",
+            "source",
+            "component",
+            "message",
+            "correlation_id",
+            "request_id",
+            "user_id",
+            "service_id",
+            "service_type",
+            "exception_type",
+            "exception_message",
+            "duration_ms",
+            "created_at",
         ]
 
-        writer = csv.DictWriter(output, fieldnames=fieldnames, extrasaction='ignore')
+        writer = csv.DictWriter(output, fieldnames=fieldnames, extrasaction="ignore")
         writer.writeheader()
 
         for log in logs:
             row = log.to_dict()
             # Flatten extra_data and stack_trace for CSV
-            row.pop('extra_data', None)
-            row.pop('stack_trace', None)
+            row.pop("extra_data", None)
+            row.pop("stack_trace", None)
             writer.writerow(row)
 
         return output.getvalue()
@@ -122,19 +133,15 @@ class LogExporter:
             if log.exception_type:
                 lines.append(f"    Exception: {log.exception_type}: {log.exception_message}")
                 if log.stack_trace:
-                    for trace_line in log.stack_trace.split('\n'):
+                    for trace_line in log.stack_trace.split("\n"):
                         lines.append(f"    {trace_line}")
 
-        return '\n'.join(lines)
+        return "\n".join(lines)
 
     def get_filename(self, format: ExportFormat) -> str:
         """Generate a filename for the export."""
         timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
-        extensions = {
-            "json": "json",
-            "csv": "csv",
-            "text": "log"
-        }
+        extensions = {"json": "json", "csv": "csv", "text": "log"}
         return f"mcparr_logs_{timestamp}.{extensions[format]}"
 
 

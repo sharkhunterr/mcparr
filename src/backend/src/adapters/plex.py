@@ -1,15 +1,16 @@
 """Plex Media Server adapter."""
 
-from typing import Dict, Any, List, Optional
-import httpx
 from datetime import datetime
+from typing import Any, Dict, List, Optional
+
+import httpx
 
 from .base import (
-    TokenAuthAdapter,
-    ServiceCapability,
-    ConnectionTestResult,
     AdapterError,
-    AuthenticationError
+    AuthenticationError,
+    ConnectionTestResult,
+    ServiceCapability,
+    TokenAuthAdapter,
 )
 
 
@@ -22,11 +23,7 @@ class PlexAdapter(TokenAuthAdapter):
 
     @property
     def supported_capabilities(self) -> List[ServiceCapability]:
-        return [
-            ServiceCapability.MEDIA_CONTENT,
-            ServiceCapability.USER_MANAGEMENT,
-            ServiceCapability.API_ACCESS
-        ]
+        return [ServiceCapability.MEDIA_CONTENT, ServiceCapability.USER_MANAGEMENT, ServiceCapability.API_ACCESS]
 
     @property
     def token_config_key(self) -> str:
@@ -48,10 +45,7 @@ class PlexAdapter(TokenAuthAdapter):
 
     def _format_token_header(self, token: str) -> Dict[str, str]:
         """Format Plex token header."""
-        return {
-            "X-Plex-Token": token,
-            "Accept": "application/json"
-        }
+        return {"X-Plex-Token": token, "Accept": "application/json"}
 
     async def test_connection(self) -> ConnectionTestResult:
         """Test connection to Plex server."""
@@ -70,14 +64,14 @@ class PlexAdapter(TokenAuthAdapter):
                     success=True,
                     message="Successfully connected to Plex server",
                     response_time_ms=response_time,
-                    details={"status": "connected", "server_type": "plex"}
+                    details={"status": "connected", "server_type": "plex"},
                 )
             else:
                 return ConnectionTestResult(
                     success=False,
                     message="Connected but response doesn't appear to be from Plex",
                     response_time_ms=response_time,
-                    details={"status": "invalid_response"}
+                    details={"status": "invalid_response"},
                 )
 
         except httpx.HTTPStatusError as e:
@@ -85,25 +79,25 @@ class PlexAdapter(TokenAuthAdapter):
                 return ConnectionTestResult(
                     success=False,
                     message="Authentication failed - check Plex token",
-                    details={"status": "auth_failed", "status_code": 401}
+                    details={"status": "auth_failed", "status_code": 401},
                 )
             else:
                 return ConnectionTestResult(
                     success=False,
                     message=f"HTTP error: {e.response.status_code}",
-                    details={"status": "http_error", "status_code": e.response.status_code}
+                    details={"status": "http_error", "status_code": e.response.status_code},
                 )
         except httpx.RequestError as e:
             return ConnectionTestResult(
                 success=False,
                 message=f"Connection failed: {str(e)}",
-                details={"status": "connection_failed", "error": str(e)}
+                details={"status": "connection_failed", "error": str(e)},
             )
         except Exception as e:
             return ConnectionTestResult(
                 success=False,
                 message=f"Unexpected error: {str(e)}",
-                details={"status": "unexpected_error", "error": str(e)}
+                details={"status": "unexpected_error", "error": str(e)},
             )
 
     async def get_service_info(self) -> Dict[str, Any]:
@@ -125,15 +119,15 @@ class PlexAdapter(TokenAuthAdapter):
                 "machine_identifier": container.get("machineIdentifier"),
                 "updated_at": container.get("updatedAt"),
                 "multiuser": container.get("multiuser", False),
-                "my_plex": container.get("myPlex", False)
+                "my_plex": container.get("myPlex", False),
             }
 
         except httpx.HTTPStatusError as e:
             if e.response.status_code == 401:
-                raise AuthenticationError("Invalid Plex token")
-            raise AdapterError(f"HTTP error: {e.response.status_code}")
+                raise AuthenticationError("Invalid Plex token") from e
+            raise AdapterError(f"HTTP error: {e.response.status_code}") from e
         except Exception as e:
-            raise AdapterError(f"Failed to get service info: {str(e)}")
+            raise AdapterError(f"Failed to get service info: {str(e)}") from e
 
     async def get_libraries(self) -> List[Dict[str, Any]]:
         """Get Plex libraries."""
@@ -148,16 +142,18 @@ class PlexAdapter(TokenAuthAdapter):
             libraries = []
 
             for directory in directories:
-                libraries.append({
-                    "key": directory.get("key"),
-                    "title": directory.get("title"),
-                    "type": directory.get("type"),
-                    "agent": directory.get("agent"),
-                    "language": directory.get("language"),
-                    "refreshing": directory.get("refreshing", False),
-                    "created_at": directory.get("createdAt"),
-                    "updated_at": directory.get("updatedAt")
-                })
+                libraries.append(
+                    {
+                        "key": directory.get("key"),
+                        "title": directory.get("title"),
+                        "type": directory.get("type"),
+                        "agent": directory.get("agent"),
+                        "language": directory.get("language"),
+                        "refreshing": directory.get("refreshing", False),
+                        "created_at": directory.get("createdAt"),
+                        "updated_at": directory.get("updatedAt"),
+                    }
+                )
 
             return libraries
 
@@ -179,15 +175,17 @@ class PlexAdapter(TokenAuthAdapter):
             users = []
 
             for account in accounts:
-                users.append({
-                    "id": account.get("id"),
-                    "name": account.get("name"),
-                    "email": account.get("email"),
-                    "thumb": account.get("thumb"),
-                    "home": account.get("home", False),
-                    "admin": account.get("admin", False),
-                    "guest": account.get("guest", False)
-                })
+                users.append(
+                    {
+                        "id": account.get("id"),
+                        "name": account.get("name"),
+                        "email": account.get("email"),
+                        "thumb": account.get("thumb"),
+                        "home": account.get("home", False),
+                        "admin": account.get("admin", False),
+                        "guest": account.get("guest", False),
+                    }
+                )
 
             return users
 
@@ -216,18 +214,20 @@ class PlexAdapter(TokenAuthAdapter):
                 user_info = session.get("User", [{}])[0] if session.get("User") else {}
                 player_info = session.get("Player", {})
 
-                active_sessions.append({
-                    "session_key": session.get("sessionKey"),
-                    "user_id": user_info.get("id"),
-                    "username": user_info.get("title"),
-                    "title": session.get("title"),
-                    "type": session.get("type"),
-                    "state": session.get("Player", {}).get("state"),
-                    "player": player_info.get("title"),
-                    "platform": player_info.get("platform"),
-                    "progress": session.get("viewOffset", 0),
-                    "duration": session.get("duration", 0)
-                })
+                active_sessions.append(
+                    {
+                        "session_key": session.get("sessionKey"),
+                        "user_id": user_info.get("id"),
+                        "username": user_info.get("title"),
+                        "title": session.get("title"),
+                        "type": session.get("type"),
+                        "state": session.get("Player", {}).get("state"),
+                        "player": player_info.get("title"),
+                        "platform": player_info.get("platform"),
+                        "progress": session.get("viewOffset", 0),
+                        "duration": session.get("duration", 0),
+                    }
+                )
 
             return active_sessions
 
@@ -251,20 +251,16 @@ class PlexAdapter(TokenAuthAdapter):
                     response = await self._make_request(
                         "GET",
                         f"/library/sections/{library['key']}/recentlyAdded",
-                        params={"X-Plex-Container-Size": str(limit)}
+                        params={"X-Plex-Container-Size": str(limit)},
                     )
                 else:
                     # Library not found, fall back to global recently added
                     response = await self._make_request(
-                        "GET",
-                        "/library/recentlyAdded",
-                        params={"X-Plex-Container-Size": str(limit)}
+                        "GET", "/library/recentlyAdded", params={"X-Plex-Container-Size": str(limit)}
                     )
             else:
                 response = await self._make_request(
-                    "GET",
-                    "/library/recentlyAdded",
-                    params={"X-Plex-Container-Size": str(limit)}
+                    "GET", "/library/recentlyAdded", params={"X-Plex-Container-Size": str(limit)}
                 )
 
             data = response.json()
@@ -276,19 +272,21 @@ class PlexAdapter(TokenAuthAdapter):
             recent_items = []
 
             for item in metadata:
-                recent_items.append({
-                    "key": item.get("key"),
-                    "title": item.get("title"),
-                    "type": item.get("type"),
-                    "year": item.get("year"),
-                    "rating": item.get("rating"),
-                    "duration": item.get("duration"),
-                    "addedAt": item.get("addedAt"),
-                    "updated_at": item.get("updatedAt"),
-                    "thumb": item.get("thumb"),
-                    "art": item.get("art"),
-                    "librarySectionTitle": item.get("librarySectionTitle")
-                })
+                recent_items.append(
+                    {
+                        "key": item.get("key"),
+                        "title": item.get("title"),
+                        "type": item.get("type"),
+                        "year": item.get("year"),
+                        "rating": item.get("rating"),
+                        "duration": item.get("duration"),
+                        "addedAt": item.get("addedAt"),
+                        "updated_at": item.get("updatedAt"),
+                        "thumb": item.get("thumb"),
+                        "art": item.get("art"),
+                        "librarySectionTitle": item.get("librarySectionTitle"),
+                    }
+                )
 
             return recent_items
 
@@ -299,11 +297,7 @@ class PlexAdapter(TokenAuthAdapter):
     async def search_content(self, query: str, limit: int = 20) -> List[Dict[str, Any]]:
         """Search for content in Plex."""
         try:
-            response = await self._make_request(
-                "GET",
-                "/search",
-                params={"query": query, "limit": str(limit)}
-            )
+            response = await self._make_request("GET", "/search", params={"query": query, "limit": str(limit)})
             data = response.json()
 
             if "MediaContainer" not in data:
@@ -313,15 +307,17 @@ class PlexAdapter(TokenAuthAdapter):
             search_results = []
 
             for item in metadata:
-                search_results.append({
-                    "key": item.get("key"),
-                    "title": item.get("title"),
-                    "type": item.get("type"),
-                    "year": item.get("year"),
-                    "score": item.get("score"),
-                    "library_section_title": item.get("librarySectionTitle"),
-                    "thumb": item.get("thumb")
-                })
+                search_results.append(
+                    {
+                        "key": item.get("key"),
+                        "title": item.get("title"),
+                        "type": item.get("type"),
+                        "year": item.get("year"),
+                        "score": item.get("score"),
+                        "library_section_title": item.get("librarySectionTitle"),
+                        "thumb": item.get("thumb"),
+                    }
+                )
 
             return search_results
 
@@ -341,14 +337,7 @@ class PlexAdapter(TokenAuthAdapter):
             params = {"query": query, "limit": str(limit)}
             if media_type:
                 # Map our media types to Plex types
-                type_map = {
-                    "movie": 1,
-                    "show": 2,
-                    "episode": 4,
-                    "artist": 8,
-                    "album": 9,
-                    "track": 10
-                }
+                type_map = {"movie": 1, "show": 2, "episode": 4, "artist": 8, "album": 9, "track": 10}
                 if media_type in type_map:
                     params["type"] = str(type_map[media_type])
 
@@ -362,23 +351,25 @@ class PlexAdapter(TokenAuthAdapter):
             search_results = []
 
             for item in metadata:
-                search_results.append({
-                    "key": item.get("key"),
-                    "title": item.get("title"),
-                    "type": item.get("type"),
-                    "year": item.get("year"),
-                    "summary": item.get("summary"),
-                    "rating": item.get("rating"),
-                    "duration": item.get("duration"),
-                    "contentRating": item.get("contentRating"),
-                    "librarySectionTitle": item.get("librarySectionTitle"),
-                    "thumb": item.get("thumb"),
-                    "Genre": [g.get("tag") for g in item.get("Genre", [])],
-                    "Director": [d.get("tag") for d in item.get("Director", [])],
-                    "Role": [r.get("tag") for r in item.get("Role", [])],
-                    "studio": item.get("studio"),
-                    "addedAt": item.get("addedAt")
-                })
+                search_results.append(
+                    {
+                        "key": item.get("key"),
+                        "title": item.get("title"),
+                        "type": item.get("type"),
+                        "year": item.get("year"),
+                        "summary": item.get("summary"),
+                        "rating": item.get("rating"),
+                        "duration": item.get("duration"),
+                        "contentRating": item.get("contentRating"),
+                        "librarySectionTitle": item.get("librarySectionTitle"),
+                        "thumb": item.get("thumb"),
+                        "Genre": [g.get("tag") for g in item.get("Genre", [])],
+                        "Director": [d.get("tag") for d in item.get("Director", [])],
+                        "Role": [r.get("tag") for r in item.get("Role", [])],
+                        "studio": item.get("studio"),
+                        "addedAt": item.get("addedAt"),
+                    }
+                )
 
             return search_results
 
@@ -393,11 +384,7 @@ class PlexAdapter(TokenAuthAdapter):
             limit: Maximum items to return
         """
         try:
-            response = await self._make_request(
-                "GET",
-                "/library/onDeck",
-                params={"X-Plex-Container-Size": str(limit)}
-            )
+            response = await self._make_request("GET", "/library/onDeck", params={"X-Plex-Container-Size": str(limit)})
             data = response.json()
 
             if "MediaContainer" not in data:
@@ -407,18 +394,20 @@ class PlexAdapter(TokenAuthAdapter):
             on_deck_items = []
 
             for item in metadata:
-                on_deck_items.append({
-                    "key": item.get("key"),
-                    "title": item.get("title"),
-                    "grandparentTitle": item.get("grandparentTitle"),  # Show name for episodes
-                    "type": item.get("type"),
-                    "year": item.get("year"),
-                    "viewOffset": item.get("viewOffset", 0),
-                    "duration": item.get("duration", 0),
-                    "thumb": item.get("thumb"),
-                    "art": item.get("art"),
-                    "librarySectionTitle": item.get("librarySectionTitle")
-                })
+                on_deck_items.append(
+                    {
+                        "key": item.get("key"),
+                        "title": item.get("title"),
+                        "grandparentTitle": item.get("grandparentTitle"),  # Show name for episodes
+                        "type": item.get("type"),
+                        "year": item.get("year"),
+                        "viewOffset": item.get("viewOffset", 0),
+                        "duration": item.get("duration", 0),
+                        "thumb": item.get("thumb"),
+                        "art": item.get("art"),
+                        "librarySectionTitle": item.get("librarySectionTitle"),
+                    }
+                )
 
             return on_deck_items
 
@@ -456,7 +445,7 @@ class PlexAdapter(TokenAuthAdapter):
                     "default": setting.get("default"),
                     "value": setting.get("value"),
                     "hidden": setting.get("hidden", False),
-                    "advanced": setting.get("advanced", False)
+                    "advanced": setting.get("advanced", False),
                 }
 
             return preferences
@@ -487,7 +476,7 @@ class PlexAdapter(TokenAuthAdapter):
                 "recent_additions": len(recent),
                 "libraries": libraries,
                 "sessions": sessions[:5],  # Limit for overview
-                "recent_items": recent
+                "recent_items": recent,
             }
 
         except Exception as e:
@@ -497,5 +486,5 @@ class PlexAdapter(TokenAuthAdapter):
                 "server_info": {},
                 "libraries_count": 0,
                 "active_sessions": 0,
-                "recent_additions": 0
+                "recent_additions": 0,
             }

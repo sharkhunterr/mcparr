@@ -1,7 +1,7 @@
 """Logs API router."""
 
 from datetime import datetime
-from typing import Optional, List
+from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import Response
@@ -9,15 +9,16 @@ from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.database.connection import get_db_session
-from src.services.log_service import log_service
-from src.services.log_exporter import log_exporter, ExportFormat
 from src.models.base import LogLevel
+from src.services.log_exporter import ExportFormat, log_exporter
+from src.services.log_service import log_service
 
 router = APIRouter(prefix="/api/logs")
 
 
 class LogEntryCreate(BaseModel):
     """Schema for creating a log entry."""
+
     level: str = Field(default=LogLevel.INFO.value)
     message: str
     source: str
@@ -36,6 +37,7 @@ class LogEntryCreate(BaseModel):
 
 class LogEntryResponse(BaseModel):
     """Schema for log entry response."""
+
     id: str
     level: str
     message: str
@@ -57,6 +59,7 @@ class LogEntryResponse(BaseModel):
 
 class LogListResponse(BaseModel):
     """Schema for paginated log list response."""
+
     items: List[LogEntryResponse]
     total: int
     skip: int
@@ -65,6 +68,7 @@ class LogListResponse(BaseModel):
 
 class LogStatsResponse(BaseModel):
     """Schema for log statistics response."""
+
     total: int
     by_level: dict
     by_source: dict
@@ -154,9 +158,7 @@ async def get_request_trace(
 @router.get("/levels/available")
 async def get_log_levels():
     """Get all available log levels."""
-    return {
-        "levels": [level.value for level in LogLevel]
-    }
+    return {"levels": [level.value for level in LogLevel]}
 
 
 @router.get("/export")
@@ -191,11 +193,7 @@ async def export_logs(
     filename = log_exporter.get_filename(format)
 
     return Response(
-        content=content,
-        media_type=content_type,
-        headers={
-            "Content-Disposition": f'attachment; filename="{filename}"'
-        }
+        content=content, media_type=content_type, headers={"Content-Disposition": f'attachment; filename="{filename}"'}
     )
 
 

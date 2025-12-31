@@ -1,16 +1,16 @@
 """Tautulli Plex analytics adapter."""
 
-from typing import Dict, Any, List, Optional
-import httpx
 from datetime import datetime
-from enum import Enum
+from typing import Any, Dict, List, Optional
+
+import httpx
 
 from .base import (
-    TokenAuthAdapter,
-    ServiceCapability,
-    ConnectionTestResult,
     AdapterError,
-    AuthenticationError
+    AuthenticationError,
+    ConnectionTestResult,
+    ServiceCapability,
+    TokenAuthAdapter,
 )
 
 
@@ -23,11 +23,7 @@ class TautulliAdapter(TokenAuthAdapter):
 
     @property
     def supported_capabilities(self) -> List[ServiceCapability]:
-        return [
-            ServiceCapability.MONITORING,
-            ServiceCapability.MEDIA_CONTENT,
-            ServiceCapability.API_ACCESS
-        ]
+        return [ServiceCapability.MONITORING, ServiceCapability.MEDIA_CONTENT, ServiceCapability.API_ACCESS]
 
     @property
     def token_config_key(self) -> str:
@@ -35,17 +31,11 @@ class TautulliAdapter(TokenAuthAdapter):
 
     def _format_token_header(self, token: str) -> Dict[str, str]:
         """Format Tautulli API key header."""
-        return {
-            "Accept": "application/json",
-            "Content-Type": "application/json"
-        }
+        return {"Accept": "application/json", "Content-Type": "application/json"}
 
     def get_auth_headers(self) -> Dict[str, str]:
         """Get authentication headers for Tautulli (uses query params, not headers)."""
-        return {
-            "Accept": "application/json",
-            "Content-Type": "application/json"
-        }
+        return {"Accept": "application/json", "Content-Type": "application/json"}
 
     def _get_auth_params(self) -> Dict[str, str]:
         """Get authentication parameters for Tautulli API."""
@@ -60,12 +50,7 @@ class TautulliAdapter(TokenAuthAdapter):
             return {}
         return {"apikey": token}
 
-    async def _make_request(
-        self,
-        method: str,
-        endpoint: str,
-        **kwargs
-    ) -> httpx.Response:
+    async def _make_request(self, method: str, endpoint: str, **kwargs) -> httpx.Response:
         """Override to add API key as query parameter."""
         # Add auth params to existing params
         params = kwargs.get("params", {})
@@ -96,17 +81,14 @@ class TautulliAdapter(TokenAuthAdapter):
                     success=True,
                     message="Successfully connected to Tautulli",
                     response_time_ms=response_time,
-                    details={
-                        "status": "connected",
-                        "message": data.get("response", {}).get("message", "")
-                    }
+                    details={"status": "connected", "message": data.get("response", {}).get("message", "")},
                 )
             else:
                 return ConnectionTestResult(
                     success=False,
                     message="Connected but Tautulli returned an error",
                     response_time_ms=response_time,
-                    details={"status": "api_error", "error": data.get("response", {}).get("message")}
+                    details={"status": "api_error", "error": data.get("response", {}).get("message")},
                 )
 
         except httpx.HTTPStatusError as e:
@@ -114,25 +96,25 @@ class TautulliAdapter(TokenAuthAdapter):
                 return ConnectionTestResult(
                     success=False,
                     message="Authentication failed - check API key",
-                    details={"status": "auth_failed", "status_code": 401}
+                    details={"status": "auth_failed", "status_code": 401},
                 )
             else:
                 return ConnectionTestResult(
                     success=False,
                     message=f"HTTP error: {e.response.status_code}",
-                    details={"status": "http_error", "status_code": e.response.status_code}
+                    details={"status": "http_error", "status_code": e.response.status_code},
                 )
         except httpx.RequestError as e:
             return ConnectionTestResult(
                 success=False,
                 message=f"Connection failed: {str(e)}",
-                details={"status": "connection_failed", "error": str(e)}
+                details={"status": "connection_failed", "error": str(e)},
             )
         except Exception as e:
             return ConnectionTestResult(
                 success=False,
                 message=f"Unexpected error: {str(e)}",
-                details={"status": "unexpected_error", "error": str(e)}
+                details={"status": "unexpected_error", "error": str(e)},
             )
 
     async def get_service_info(self) -> Dict[str, Any]:
@@ -155,15 +137,15 @@ class TautulliAdapter(TokenAuthAdapter):
                 "plex_platform": server_info.get("plex_platform"),
                 "plex_machine_identifier": server_info.get("plex_machine_identifier"),
                 "update_available": server_info.get("update_available", False),
-                "update_version": server_info.get("update_version")
+                "update_version": server_info.get("update_version"),
             }
 
         except httpx.HTTPStatusError as e:
             if e.response.status_code == 401:
-                raise AuthenticationError("Invalid Tautulli API key")
-            raise AdapterError(f"HTTP error: {e.response.status_code}")
+                raise AuthenticationError("Invalid Tautulli API key") from e
+            raise AdapterError(f"HTTP error: {e.response.status_code}") from e
         except Exception as e:
-            raise AdapterError(f"Failed to get service info: {str(e)}")
+            raise AdapterError(f"Failed to get service info: {str(e)}") from e
 
     async def get_activity(self) -> Dict[str, Any]:
         """Get current Plex activity from Tautulli."""
@@ -179,25 +161,27 @@ class TautulliAdapter(TokenAuthAdapter):
 
             processed_sessions = []
             for session in sessions:
-                processed_sessions.append({
-                    "session_key": session.get("session_key"),
-                    "user": session.get("user"),
-                    "friendly_name": session.get("friendly_name"),
-                    "title": session.get("title"),
-                    "parent_title": session.get("parent_title"),
-                    "grandparent_title": session.get("grandparent_title"),
-                    "media_type": session.get("media_type"),
-                    "state": session.get("state"),
-                    "progress_percent": session.get("progress_percent"),
-                    "duration": session.get("duration"),
-                    "view_offset": session.get("view_offset"),
-                    "player": session.get("player"),
-                    "platform": session.get("platform"),
-                    "product": session.get("product"),
-                    "quality_profile": session.get("quality_profile"),
-                    "bandwidth": session.get("bandwidth"),
-                    "location": session.get("location")
-                })
+                processed_sessions.append(
+                    {
+                        "session_key": session.get("session_key"),
+                        "user": session.get("user"),
+                        "friendly_name": session.get("friendly_name"),
+                        "title": session.get("title"),
+                        "parent_title": session.get("parent_title"),
+                        "grandparent_title": session.get("grandparent_title"),
+                        "media_type": session.get("media_type"),
+                        "state": session.get("state"),
+                        "progress_percent": session.get("progress_percent"),
+                        "duration": session.get("duration"),
+                        "view_offset": session.get("view_offset"),
+                        "player": session.get("player"),
+                        "platform": session.get("platform"),
+                        "product": session.get("product"),
+                        "quality_profile": session.get("quality_profile"),
+                        "bandwidth": session.get("bandwidth"),
+                        "location": session.get("location"),
+                    }
+                )
 
             return {
                 "sessions": processed_sessions,
@@ -207,19 +191,14 @@ class TautulliAdapter(TokenAuthAdapter):
                 "stream_count_transcode": activity_data.get("stream_count_transcode", 0),
                 "total_bandwidth": activity_data.get("total_bandwidth", 0),
                 "wan_bandwidth": activity_data.get("wan_bandwidth", 0),
-                "lan_bandwidth": activity_data.get("lan_bandwidth", 0)
+                "lan_bandwidth": activity_data.get("lan_bandwidth", 0),
             }
 
         except Exception as e:
             self.logger.warning(f"Failed to get activity: {e}")
             return {"sessions": [], "stream_count": 0}
 
-    async def get_history(
-        self,
-        length: int = 25,
-        start: int = 0,
-        user: Optional[str] = None
-    ) -> Dict[str, Any]:
+    async def get_history(self, length: int = 25, start: int = 0, user: Optional[str] = None) -> Dict[str, Any]:
         """Get play history from Tautulli."""
         try:
             params = {"cmd": "get_history", "length": str(length), "start": str(start)}
@@ -237,34 +216,36 @@ class TautulliAdapter(TokenAuthAdapter):
 
             processed_history = []
             for item in history_items:
-                processed_history.append({
-                    "id": item.get("id"),
-                    "date": item.get("date"),
-                    "started": item.get("started"),
-                    "stopped": item.get("stopped"),
-                    "duration": item.get("duration"),
-                    "watched_status": item.get("watched_status"),
-                    "user": item.get("user"),
-                    "friendly_name": item.get("friendly_name"),
-                    "title": item.get("title"),
-                    "parent_title": item.get("parent_title"),
-                    "grandparent_title": item.get("grandparent_title"),
-                    "media_type": item.get("media_type"),
-                    "rating_key": item.get("rating_key"),
-                    "parent_rating_key": item.get("parent_rating_key"),
-                    "grandparent_rating_key": item.get("grandparent_rating_key"),
-                    "year": item.get("year"),
-                    "player": item.get("player"),
-                    "ip_address": item.get("ip_address"),
-                    "paused_counter": item.get("paused_counter"),
-                    "percent_complete": item.get("percent_complete")
-                })
+                processed_history.append(
+                    {
+                        "id": item.get("id"),
+                        "date": item.get("date"),
+                        "started": item.get("started"),
+                        "stopped": item.get("stopped"),
+                        "duration": item.get("duration"),
+                        "watched_status": item.get("watched_status"),
+                        "user": item.get("user"),
+                        "friendly_name": item.get("friendly_name"),
+                        "title": item.get("title"),
+                        "parent_title": item.get("parent_title"),
+                        "grandparent_title": item.get("grandparent_title"),
+                        "media_type": item.get("media_type"),
+                        "rating_key": item.get("rating_key"),
+                        "parent_rating_key": item.get("parent_rating_key"),
+                        "grandparent_rating_key": item.get("grandparent_rating_key"),
+                        "year": item.get("year"),
+                        "player": item.get("player"),
+                        "ip_address": item.get("ip_address"),
+                        "paused_counter": item.get("paused_counter"),
+                        "percent_complete": item.get("percent_complete"),
+                    }
+                )
 
             return {
                 "history": processed_history,
                 "total_duration": history_data.get("total_duration", 0),
                 "filtered_from_grouping": history_data.get("filtered_from_grouping", 0),
-                "total_plays": len(processed_history)
+                "total_plays": len(processed_history),
             }
 
         except Exception as e:
@@ -284,28 +265,30 @@ class TautulliAdapter(TokenAuthAdapter):
             users = []
 
             for user in users_data:
-                users.append({
-                    "user_id": user.get("user_id"),
-                    "username": user.get("username"),
-                    "friendly_name": user.get("friendly_name"),
-                    "email": user.get("email"),
-                    "thumb": user.get("thumb"),
-                    "is_active": user.get("is_active"),
-                    "is_admin": user.get("is_admin"),
-                    "is_home_user": user.get("is_home_user"),
-                    "is_allow_sync": user.get("is_allow_sync"),
-                    "is_restricted": user.get("is_restricted"),
-                    "do_notify": user.get("do_notify"),
-                    "keep_history": user.get("keep_history"),
-                    "allow_guest": user.get("allow_guest"),
-                    "server_token": user.get("server_token"),
-                    "shared_libraries": user.get("shared_libraries", []),
-                    "filter_all": user.get("filter_all"),
-                    "filter_movies": user.get("filter_movies"),
-                    "filter_tv": user.get("filter_tv"),
-                    "filter_music": user.get("filter_music"),
-                    "filter_photos": user.get("filter_photos")
-                })
+                users.append(
+                    {
+                        "user_id": user.get("user_id"),
+                        "username": user.get("username"),
+                        "friendly_name": user.get("friendly_name"),
+                        "email": user.get("email"),
+                        "thumb": user.get("thumb"),
+                        "is_active": user.get("is_active"),
+                        "is_admin": user.get("is_admin"),
+                        "is_home_user": user.get("is_home_user"),
+                        "is_allow_sync": user.get("is_allow_sync"),
+                        "is_restricted": user.get("is_restricted"),
+                        "do_notify": user.get("do_notify"),
+                        "keep_history": user.get("keep_history"),
+                        "allow_guest": user.get("allow_guest"),
+                        "server_token": user.get("server_token"),
+                        "shared_libraries": user.get("shared_libraries", []),
+                        "filter_all": user.get("filter_all"),
+                        "filter_movies": user.get("filter_movies"),
+                        "filter_tv": user.get("filter_tv"),
+                        "filter_music": user.get("filter_music"),
+                        "filter_photos": user.get("filter_photos"),
+                    }
+                )
 
             return users
 
@@ -326,22 +309,24 @@ class TautulliAdapter(TokenAuthAdapter):
             libraries = []
 
             for library in libraries_data:
-                libraries.append({
-                    "section_id": library.get("section_id"),
-                    "section_name": library.get("section_name"),
-                    "section_type": library.get("section_type"),
-                    "agent": library.get("agent"),
-                    "thumb": library.get("thumb"),
-                    "art": library.get("art"),
-                    "count": library.get("count"),
-                    "parent_count": library.get("parent_count"),
-                    "child_count": library.get("child_count"),
-                    "is_active": library.get("is_active"),
-                    "do_notify": library.get("do_notify"),
-                    "do_notify_created": library.get("do_notify_created"),
-                    "keep_history": library.get("keep_history"),
-                    "deleted_section": library.get("deleted_section")
-                })
+                libraries.append(
+                    {
+                        "section_id": library.get("section_id"),
+                        "section_name": library.get("section_name"),
+                        "section_type": library.get("section_type"),
+                        "agent": library.get("agent"),
+                        "thumb": library.get("thumb"),
+                        "art": library.get("art"),
+                        "count": library.get("count"),
+                        "parent_count": library.get("parent_count"),
+                        "child_count": library.get("child_count"),
+                        "is_active": library.get("is_active"),
+                        "do_notify": library.get("do_notify"),
+                        "do_notify_created": library.get("do_notify_created"),
+                        "keep_history": library.get("keep_history"),
+                        "deleted_section": library.get("deleted_section"),
+                    }
+                )
 
             return libraries
 
@@ -379,7 +364,7 @@ class TautulliAdapter(TokenAuthAdapter):
                 "libraries_count": len(libraries),
                 "home_stats": stats_data[:5] if isinstance(stats_data, list) else {},
                 "libraries": libraries,
-                "recent_sessions": activity.get("sessions", [])[:5]
+                "recent_sessions": activity.get("sessions", [])[:5],
             }
 
         except Exception as e:
@@ -392,7 +377,7 @@ class TautulliAdapter(TokenAuthAdapter):
                 "libraries_count": 0,
                 "home_stats": [],
                 "libraries": [],
-                "recent_sessions": []
+                "recent_sessions": [],
             }
 
     async def get_recently_added(self, count: int = 25) -> List[Dict[str, Any]]:
@@ -409,19 +394,21 @@ class TautulliAdapter(TokenAuthAdapter):
             items = []
 
             for item in recently_added:
-                items.append({
-                    "added_at": item.get("added_at"),
-                    "title": item.get("title"),
-                    "parent_title": item.get("parent_title"),
-                    "grandparent_title": item.get("grandparent_title"),
-                    "media_type": item.get("media_type"),
-                    "year": item.get("year"),
-                    "rating": item.get("rating"),
-                    "section_id": item.get("section_id"),
-                    "library_name": item.get("library_name"),
-                    "thumb": item.get("thumb"),
-                    "art": item.get("art")
-                })
+                items.append(
+                    {
+                        "added_at": item.get("added_at"),
+                        "title": item.get("title"),
+                        "parent_title": item.get("parent_title"),
+                        "grandparent_title": item.get("grandparent_title"),
+                        "media_type": item.get("media_type"),
+                        "year": item.get("year"),
+                        "rating": item.get("rating"),
+                        "section_id": item.get("section_id"),
+                        "library_name": item.get("library_name"),
+                        "thumb": item.get("thumb"),
+                        "art": item.get("art"),
+                    }
+                )
 
             return items
 
@@ -435,7 +422,7 @@ class TautulliAdapter(TokenAuthAdapter):
         stats_type: str = "plays",
         stats_count: int = 10,
         stat_id: Optional[str] = None,
-        user_id: Optional[int] = None
+        user_id: Optional[int] = None,
     ) -> List[Dict[str, Any]]:
         """Get homepage watch statistics.
 
@@ -464,7 +451,7 @@ class TautulliAdapter(TokenAuthAdapter):
                 "cmd": "get_home_stats",
                 "time_range": str(time_range),
                 "stats_type": stats_type,
-                "stats_count": str(stats_count)
+                "stats_count": str(stats_count),
             }
 
             if stat_id:
@@ -486,11 +473,7 @@ class TautulliAdapter(TokenAuthAdapter):
             self.logger.warning(f"Failed to get home stats: {e}")
             return []
 
-    async def get_user_watch_time_stats(
-        self,
-        user_id: int,
-        query_days: Optional[List[int]] = None
-    ) -> Dict[str, Any]:
+    async def get_user_watch_time_stats(self, user_id: int, query_days: Optional[List[int]] = None) -> Dict[str, Any]:
         """Get a user's watch time statistics.
 
         Args:
@@ -532,10 +515,7 @@ class TautulliAdapter(TokenAuthAdapter):
             return []
 
     async def get_plays_by_date(
-        self,
-        time_range: int = 30,
-        y_axis: str = "plays",
-        user_id: Optional[int] = None
+        self, time_range: int = 30, y_axis: str = "plays", user_id: Optional[int] = None
     ) -> Dict[str, Any]:
         """Get play counts by date.
 
@@ -545,11 +525,7 @@ class TautulliAdapter(TokenAuthAdapter):
             user_id: Optional user_id filter
         """
         try:
-            params = {
-                "cmd": "get_plays_by_date",
-                "time_range": str(time_range),
-                "y_axis": y_axis
-            }
+            params = {"cmd": "get_plays_by_date", "time_range": str(time_range), "y_axis": y_axis}
 
             if user_id:
                 params["user_id"] = str(user_id)
@@ -567,10 +543,7 @@ class TautulliAdapter(TokenAuthAdapter):
             return {}
 
     async def get_plays_per_month(
-        self,
-        time_range: int = 12,
-        y_axis: str = "plays",
-        user_id: Optional[int] = None
+        self, time_range: int = 12, y_axis: str = "plays", user_id: Optional[int] = None
     ) -> Dict[str, Any]:
         """Get play counts per month.
 
@@ -580,11 +553,7 @@ class TautulliAdapter(TokenAuthAdapter):
             user_id: Optional user_id filter
         """
         try:
-            params = {
-                "cmd": "get_plays_per_month",
-                "time_range": str(time_range),
-                "y_axis": y_axis
-            }
+            params = {"cmd": "get_plays_per_month", "time_range": str(time_range), "y_axis": y_axis}
 
             if user_id:
                 params["user_id"] = str(user_id)
@@ -601,18 +570,10 @@ class TautulliAdapter(TokenAuthAdapter):
             self.logger.warning(f"Failed to get plays per month: {e}")
             return {}
 
-    async def get_stream_type_by_top_10_users(
-        self,
-        time_range: int = 30,
-        y_axis: str = "plays"
-    ) -> Dict[str, Any]:
+    async def get_stream_type_by_top_10_users(self, time_range: int = 30, y_axis: str = "plays") -> Dict[str, Any]:
         """Get stream type breakdown for top 10 users."""
         try:
-            params = {
-                "cmd": "get_stream_type_by_top_10_users",
-                "time_range": str(time_range),
-                "y_axis": y_axis
-            }
+            params = {"cmd": "get_stream_type_by_top_10_users", "time_range": str(time_range), "y_axis": y_axis}
 
             response = await self._make_request("GET", "", params=params)
             data = response.json()
@@ -646,8 +607,10 @@ class TautulliAdapter(TokenAuthAdapter):
         """Get user details by username."""
         users = await self.get_users()
         for user in users:
-            if user.get("username", "").lower() == username.lower() or \
-               user.get("friendly_name", "").lower() == username.lower():
+            if (
+                user.get("username", "").lower() == username.lower()
+                or user.get("friendly_name", "").lower() == username.lower()
+            ):
                 return user
         return None
 

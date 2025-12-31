@@ -1,12 +1,12 @@
 """Group models for access control and permissions."""
 
 from datetime import datetime
-from typing import Dict, Any, Optional, List
+from typing import List, Optional
 
-from sqlalchemy import String, Text, DateTime, Boolean, JSON, ForeignKey, Integer
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from .base import Base, UUIDMixin, TimestampMixin
+from .base import Base, TimestampMixin, UUIDMixin
 
 
 class Group(Base, UUIDMixin, TimestampMixin):
@@ -15,59 +15,30 @@ class Group(Base, UUIDMixin, TimestampMixin):
     __tablename__ = "groups"
 
     # Group identity
-    name: Mapped[str] = mapped_column(
-        String(100),
-        nullable=False,
-        unique=True,
-        index=True
-    )
-    description: Mapped[Optional[str]] = mapped_column(
-        Text,
-        nullable=True
-    )
+    name: Mapped[str] = mapped_column(String(100), nullable=False, unique=True, index=True)
+    description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
     # Display settings
     color: Mapped[Optional[str]] = mapped_column(
-        String(7),  # Hex color code #RRGGBB
-        nullable=True,
-        default="#6366f1"  # Indigo default
+        String(7), nullable=True, default="#6366f1"  # Hex color code #RRGGBB  # Indigo default
     )
-    icon: Mapped[Optional[str]] = mapped_column(
-        String(50),  # Icon name for frontend
-        nullable=True
-    )
+    icon: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)  # Icon name for frontend
 
     # Priority for permission resolution (higher = more priority)
-    priority: Mapped[int] = mapped_column(
-        Integer,
-        default=0,
-        nullable=False
-    )
+    priority: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
 
     # System groups cannot be deleted
-    is_system: Mapped[bool] = mapped_column(
-        Boolean,
-        default=False,
-        nullable=False
-    )
+    is_system: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
     # Group status
-    enabled: Mapped[bool] = mapped_column(
-        Boolean,
-        default=True,
-        nullable=False
-    )
+    enabled: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
     # Relationships
     memberships: Mapped[List["GroupMembership"]] = relationship(
-        "GroupMembership",
-        back_populates="group",
-        cascade="all, delete-orphan"
+        "GroupMembership", back_populates="group", cascade="all, delete-orphan"
     )
     tool_permissions: Mapped[List["GroupToolPermission"]] = relationship(
-        "GroupToolPermission",
-        back_populates="group",
-        cascade="all, delete-orphan"
+        "GroupToolPermission", back_populates="group", cascade="all, delete-orphan"
     )
 
     def __repr__(self) -> str:
@@ -90,45 +61,22 @@ class GroupMembership(Base, UUIDMixin, TimestampMixin):
     __tablename__ = "group_memberships"
 
     # Group reference
-    group_id: Mapped[str] = mapped_column(
-        String(36),
-        ForeignKey("groups.id"),
-        nullable=False,
-        index=True
-    )
+    group_id: Mapped[str] = mapped_column(String(36), ForeignKey("groups.id"), nullable=False, index=True)
 
     # User reference (central_user_id from UserMapping)
-    central_user_id: Mapped[str] = mapped_column(
-        String(100),
-        nullable=False,
-        index=True
-    )
+    central_user_id: Mapped[str] = mapped_column(String(100), nullable=False, index=True)
 
     # Membership status
-    enabled: Mapped[bool] = mapped_column(
-        Boolean,
-        default=True,
-        nullable=False
-    )
+    enabled: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
     # When membership was granted
-    granted_at: Mapped[datetime] = mapped_column(
-        DateTime,
-        default=datetime.utcnow,
-        nullable=False
-    )
+    granted_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
 
     # Who granted the membership (optional)
-    granted_by: Mapped[Optional[str]] = mapped_column(
-        String(100),
-        nullable=True
-    )
+    granted_by: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
 
     # Relationships
-    group: Mapped["Group"] = relationship(
-        "Group",
-        back_populates="memberships"
-    )
+    group: Mapped["Group"] = relationship("Group", back_populates="memberships")
 
     def __repr__(self) -> str:
         return f"<GroupMembership(group_id={self.group_id}, central_user_id={self.central_user_id})>"
@@ -140,47 +88,24 @@ class GroupToolPermission(Base, UUIDMixin, TimestampMixin):
     __tablename__ = "group_tool_permissions"
 
     # Group reference
-    group_id: Mapped[str] = mapped_column(
-        String(36),
-        ForeignKey("groups.id"),
-        nullable=False,
-        index=True
-    )
+    group_id: Mapped[str] = mapped_column(String(36), ForeignKey("groups.id"), nullable=False, index=True)
 
     # Tool identification
     # Can be specific tool name or "*" for all tools of a service
-    tool_name: Mapped[str] = mapped_column(
-        String(200),
-        nullable=False,
-        index=True
-    )
+    tool_name: Mapped[str] = mapped_column(String(200), nullable=False, index=True)
 
     # Optional service filter (if set, permission only applies to this service)
     # If None and tool_name is "*", means ALL tools from ALL services
-    service_type: Mapped[Optional[str]] = mapped_column(
-        String(50),
-        nullable=True,
-        index=True
-    )
+    service_type: Mapped[Optional[str]] = mapped_column(String(50), nullable=True, index=True)
 
     # Permission status
-    enabled: Mapped[bool] = mapped_column(
-        Boolean,
-        default=True,
-        nullable=False
-    )
+    enabled: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
     # Optional description for this permission
-    description: Mapped[Optional[str]] = mapped_column(
-        Text,
-        nullable=True
-    )
+    description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
     # Relationships
-    group: Mapped["Group"] = relationship(
-        "Group",
-        back_populates="tool_permissions"
-    )
+    group: Mapped["Group"] = relationship("Group", back_populates="tool_permissions")
 
     def __repr__(self) -> str:
         return f"<GroupToolPermission(group_id={self.group_id}, tool={self.tool_name}, service={self.service_type})>"

@@ -1,13 +1,14 @@
 """Ollama adapter for local LLM server integration."""
 
-from typing import Dict, Any, List
-import httpx
 from datetime import datetime
+from typing import Any, Dict, List
+
+import httpx
 
 from .base import (
     BaseServiceAdapter,
-    ServiceCapability,
     ConnectionTestResult,
+    ServiceCapability,
 )
 
 
@@ -31,16 +32,11 @@ class OllamaAdapter(BaseServiceAdapter):
 
     @property
     def supported_capabilities(self) -> List[ServiceCapability]:
-        return [
-            ServiceCapability.API_ACCESS
-        ]
+        return [ServiceCapability.API_ACCESS]
 
     def get_auth_headers(self) -> Dict[str, str]:
         """Ollama doesn't require authentication headers."""
-        return {
-            "Content-Type": "application/json",
-            "Accept": "application/json"
-        }
+        return {"Content-Type": "application/json", "Accept": "application/json"}
 
     def validate_config(self) -> List[str]:
         """Validate Ollama configuration."""
@@ -79,42 +75,39 @@ class OllamaAdapter(BaseServiceAdapter):
                         "status": "connected",
                         "version": data.get("version"),
                         "model_count": model_count,
-                        "models": models
-                    }
+                        "models": models,
+                    },
                 )
             else:
                 return ConnectionTestResult(
                     success=False,
                     message="Connected but response doesn't appear to be from Ollama",
                     response_time_ms=response_time,
-                    details={"status": "invalid_response"}
+                    details={"status": "invalid_response"},
                 )
 
         except httpx.HTTPStatusError as e:
             return ConnectionTestResult(
                 success=False,
                 message=f"HTTP error: {e.response.status_code}",
-                details={"status": "http_error", "status_code": e.response.status_code}
+                details={"status": "http_error", "status_code": e.response.status_code},
             )
         except httpx.RequestError as e:
             return ConnectionTestResult(
                 success=False,
                 message=f"Connection failed: {str(e)}",
-                details={"status": "connection_failed", "error": str(e)}
+                details={"status": "connection_failed", "error": str(e)},
             )
         except Exception as e:
             return ConnectionTestResult(
                 success=False,
                 message=f"Unexpected error: {str(e)}",
-                details={"status": "unexpected_error", "error": str(e)}
+                details={"status": "unexpected_error", "error": str(e)},
             )
 
     async def get_service_info(self) -> Dict[str, Any]:
         """Get Ollama service information."""
-        info = {
-            "service_type": self.service_type,
-            "base_url": self.base_url
-        }
+        info = {"service_type": self.service_type, "base_url": self.base_url}
 
         try:
             # Get version
@@ -131,7 +124,7 @@ class OllamaAdapter(BaseServiceAdapter):
                         "name": m.get("name"),
                         "size": m.get("size", 0),
                         "modified_at": m.get("modified_at"),
-                        "details": m.get("details", {})
+                        "details": m.get("details", {}),
                     }
                     for m in models
                 ]
@@ -152,11 +145,7 @@ class OllamaAdapter(BaseServiceAdapter):
 
     async def get_statistics(self) -> Dict[str, Any]:
         """Get Ollama statistics."""
-        stats = {
-            "models": [],
-            "running_models": [],
-            "total_size_bytes": 0
-        }
+        stats = {"models": [], "running_models": [], "total_size_bytes": 0}
 
         try:
             # Get models

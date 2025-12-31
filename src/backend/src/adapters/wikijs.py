@@ -4,16 +4,16 @@ WikiJS uses GraphQL API for all operations.
 Documentation: https://docs.requarks.io/dev/api
 """
 
-from typing import Dict, Any, List, Optional
 from datetime import datetime
+from typing import Any, Dict, List, Optional
+
 import httpx
 
 from .base import (
-    TokenAuthAdapter,
-    ServiceCapability,
-    ConnectionTestResult,
     AdapterError,
-    AuthenticationError
+    ConnectionTestResult,
+    ServiceCapability,
+    TokenAuthAdapter,
 )
 
 
@@ -41,11 +41,7 @@ class WikiJSAdapter(TokenAuthAdapter):
 
     def _format_token_header(self, token: str) -> Dict[str, str]:
         """Format WikiJS Bearer token header."""
-        return {
-            "Authorization": f"Bearer {token}",
-            "Content-Type": "application/json",
-            "Accept": "application/json"
-        }
+        return {"Authorization": f"Bearer {token}", "Content-Type": "application/json", "Accept": "application/json"}
 
     def _get_auth_header(self) -> Dict[str, str]:
         """Get auth header with Bearer token."""
@@ -53,25 +49,16 @@ class WikiJSAdapter(TokenAuthAdapter):
         if api_token:
             return self._format_token_header(api_token)
 
-        return {
-            "Content-Type": "application/json",
-            "Accept": "application/json"
-        }
+        return {"Content-Type": "application/json", "Accept": "application/json"}
 
     async def _graphql_request(
-        self,
-        query: str,
-        variables: Optional[Dict[str, Any]] = None,
-        timeout: float = 30.0
+        self, query: str, variables: Optional[Dict[str, Any]] = None, timeout: float = 30.0
     ) -> Dict[str, Any]:
         """Make GraphQL request to WikiJS API."""
         url = f"{self.base_url.rstrip('/')}/graphql"
         headers = self._get_auth_header()
 
-        payload = {
-            "query": query,
-            "variables": variables or {}
-        }
+        payload = {"query": query, "variables": variables or {}}
 
         async with httpx.AsyncClient(timeout=timeout) as client:
             response = await client.post(url, json=payload, headers=headers)
@@ -117,8 +104,8 @@ class WikiJSAdapter(TokenAuthAdapter):
                     "status": "connected",
                     "version": system_info.get("currentVersion"),
                     "hostname": system_info.get("hostname"),
-                    "os": system_info.get("operatingSystem")
-                }
+                    "os": system_info.get("operatingSystem"),
+                },
             )
 
         except httpx.HTTPStatusError as e:
@@ -126,24 +113,20 @@ class WikiJSAdapter(TokenAuthAdapter):
                 return ConnectionTestResult(
                     success=False,
                     message="Authentication failed - check API token",
-                    details={"status": "auth_failed", "status_code": 401}
+                    details={"status": "auth_failed", "status_code": 401},
                 )
             return ConnectionTestResult(
                 success=False,
                 message=f"HTTP error: {e.response.status_code}",
-                details={"status": "http_error", "status_code": e.response.status_code}
+                details={"status": "http_error", "status_code": e.response.status_code},
             )
         except AdapterError as e:
-            return ConnectionTestResult(
-                success=False,
-                message=str(e),
-                details={"status": "api_error"}
-            )
+            return ConnectionTestResult(success=False, message=str(e), details={"status": "api_error"})
         except Exception as e:
             return ConnectionTestResult(
                 success=False,
                 message=f"Connection failed: {str(e)}",
-                details={"status": "connection_failed", "error": str(e)}
+                details={"status": "connection_failed", "error": str(e)},
             )
 
     async def get_service_info(self) -> Dict[str, Any]:
@@ -187,15 +170,10 @@ class WikiJSAdapter(TokenAuthAdapter):
                 "node_version": system_info.get("nodeVersion"),
                 "site_title": site_config.get("title"),
                 "site_description": site_config.get("description"),
-                "status": "online"
+                "status": "online",
             }
         except Exception as e:
-            return {
-                "service": "wikijs",
-                "version": "unknown",
-                "status": "error",
-                "error": str(e)
-            }
+            return {"service": "wikijs", "version": "unknown", "status": "error", "error": str(e)}
 
     async def get_users(self) -> List[Dict[str, Any]]:
         """Get list of users."""
@@ -229,7 +207,7 @@ class WikiJSAdapter(TokenAuthAdapter):
                     "is_system": user.get("isSystem", False),
                     "is_active": user.get("isActive", True),
                     "created_at": user.get("createdAt"),
-                    "last_login": user.get("lastLoginAt")
+                    "last_login": user.get("lastLoginAt"),
                 }
                 for user in users
                 if not user.get("isSystem", False)  # Exclude system users
@@ -238,12 +216,7 @@ class WikiJSAdapter(TokenAuthAdapter):
             self.logger.error(f"Failed to get users: {e}")
             return []
 
-    async def get_pages(
-        self,
-        limit: int = 50,
-        order_by: str = "UPDATED",
-        locale: str = "en"
-    ) -> List[Dict[str, Any]]:
+    async def get_pages(self, limit: int = 50, order_by: str = "UPDATED", locale: str = "en") -> List[Dict[str, Any]]:
         """Get list of wiki pages."""
         try:
             # WikiJS 2.x schema - PageListItem has limited fields
@@ -264,11 +237,7 @@ class WikiJSAdapter(TokenAuthAdapter):
                 }
             }
             """
-            variables = {
-                "limit": limit,
-                "orderBy": order_by,
-                "locale": locale
-            }
+            variables = {"limit": limit, "orderBy": order_by, "locale": locale}
             data = await self._graphql_request(query, variables)
             pages = data.get("pages", {}).get("list", [])
 
@@ -282,7 +251,7 @@ class WikiJSAdapter(TokenAuthAdapter):
                     "is_published": page.get("isPublished", True),
                     "tags": page.get("tags", []),  # tags is already a string array
                     "created_at": page.get("createdAt"),
-                    "updated_at": page.get("updatedAt")
+                    "updated_at": page.get("updatedAt"),
                 }
                 for page in pages
             ]
@@ -337,17 +306,13 @@ class WikiJSAdapter(TokenAuthAdapter):
                 "tags": [t.get("tag") for t in page.get("tags", [])],
                 "toc": page.get("toc"),
                 "created_at": page.get("createdAt"),
-                "updated_at": page.get("updatedAt")
+                "updated_at": page.get("updatedAt"),
             }
         except Exception as e:
             self.logger.error(f"Failed to get page {page_id}: {e}")
             return None
 
-    async def search(
-        self,
-        query: str,
-        locale: str = "en"
-    ) -> List[Dict[str, Any]]:
+    async def search(self, query: str, locale: str = "en") -> List[Dict[str, Any]]:
         """Search wiki content."""
         try:
             gql_query = """
@@ -379,10 +344,10 @@ class WikiJSAdapter(TokenAuthAdapter):
                         "path": r.get("path"),
                         "title": r.get("title"),
                         "description": r.get("description"),
-                        "locale": r.get("locale")
+                        "locale": r.get("locale"),
                     }
                     for r in search_results.get("results", [])
-                ]
+                ],
             }
         except Exception as e:
             self.logger.error(f"Failed to search: {e}")
@@ -439,7 +404,7 @@ class WikiJSAdapter(TokenAuthAdapter):
                     "is_private": item.get("isPrivate", False),
                     "is_folder": item.get("isFolder", False),
                     "depth": item.get("depth", 0),
-                    "page_id": item.get("pageId")
+                    "page_id": item.get("pageId"),
                 }
                 for item in tree
             ]
@@ -472,7 +437,7 @@ class WikiJSAdapter(TokenAuthAdapter):
                     "tag": tag.get("tag"),
                     "title": tag.get("title"),
                     "created_at": tag.get("createdAt"),
-                    "updated_at": tag.get("updatedAt")
+                    "updated_at": tag.get("updatedAt"),
                 }
                 for tag in tags
             ]
@@ -513,7 +478,7 @@ class WikiJSAdapter(TokenAuthAdapter):
                 "total_tags": len(tags),
                 "active_users": len([u for u in users if u.get("is_active")]),
                 "published_pages": len([p for p in pages if p.get("isPublished")]),
-                "pages_by_locale": locales
+                "pages_by_locale": locales,
             }
         except Exception as e:
             self.logger.error(f"Failed to get statistics: {e}")
@@ -523,7 +488,7 @@ class WikiJSAdapter(TokenAuthAdapter):
                 "total_tags": 0,
                 "active_users": 0,
                 "published_pages": 0,
-                "pages_by_locale": {}
+                "pages_by_locale": {},
             }
 
     async def create_page(
@@ -535,7 +500,7 @@ class WikiJSAdapter(TokenAuthAdapter):
         locale: str = "en",
         is_published: bool = True,
         is_private: bool = False,
-        tags: Optional[List[str]] = None
+        tags: Optional[List[str]] = None,
     ) -> Dict[str, Any]:
         """Create a new wiki page."""
         try:
@@ -586,7 +551,7 @@ class WikiJSAdapter(TokenAuthAdapter):
                 "locale": locale,
                 "path": path,
                 "tags": tags or [],
-                "title": title
+                "title": title,
             }
             data = await self._graphql_request(mutation, variables)
             result = data.get("pages", {}).get("create", {})
@@ -596,17 +561,13 @@ class WikiJSAdapter(TokenAuthAdapter):
                 page = result.get("page", {})
                 return {
                     "success": True,
-                    "page": {
-                        "id": page.get("id"),
-                        "path": page.get("path"),
-                        "title": page.get("title")
-                    }
+                    "page": {"id": page.get("id"), "path": page.get("path"), "title": page.get("title")},
                 }
             else:
                 return {
                     "success": False,
                     "error": response.get("message", "Failed to create page"),
-                    "error_code": response.get("errorCode")
+                    "error_code": response.get("errorCode"),
                 }
         except Exception as e:
             self.logger.error(f"Failed to create page: {e}")

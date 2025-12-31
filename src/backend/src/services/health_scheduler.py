@@ -3,13 +3,12 @@
 import asyncio
 import logging
 from datetime import datetime
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
 
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..models.service_config import ServiceConfig
 from ..database.connection import get_db_manager
+from ..models.service_config import ServiceConfig
 from .service_tester import ServiceTester
 
 logger = logging.getLogger(__name__)
@@ -112,9 +111,7 @@ class HealthCheckScheduler:
             db_manager = get_db_manager()
             async with db_manager.session_factory() as session:
                 # Get all enabled services
-                result = await session.execute(
-                    select(ServiceConfig).where(ServiceConfig.enabled == True)
-                )
+                result = await session.execute(select(ServiceConfig).where(ServiceConfig.enabled is True))
                 services = result.scalars().all()
 
                 success_count = 0
@@ -122,9 +119,7 @@ class HealthCheckScheduler:
 
                 for service in services:
                     try:
-                        test_result = await ServiceTester.test_service_connection(
-                            service, db_session=session
-                        )
+                        test_result = await ServiceTester.test_service_connection(service, db_session=session)
                         if test_result.success:
                             success_count += 1
                         else:
@@ -133,9 +128,7 @@ class HealthCheckScheduler:
                         logger.error(f"Error testing service {service.name}: {e}")
                         error_count += 1
 
-                logger.info(
-                    f"Scheduled health checks completed: {success_count} success, {error_count} errors"
-                )
+                logger.info(f"Scheduled health checks completed: {success_count} success, {error_count} errors")
 
         except Exception as e:
             logger.error(f"Error running scheduled health checks: {e}")
@@ -148,10 +141,7 @@ class HealthCheckScheduler:
             return {"status": "already_running", "message": "Health checks are already running"}
 
         await self._run_health_checks()
-        return {
-            "status": "completed",
-            "last_run": self._last_run.isoformat() if self._last_run else None
-        }
+        return {"status": "completed", "last_run": self._last_run.isoformat() if self._last_run else None}
 
 
 # Global instance

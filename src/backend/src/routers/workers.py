@@ -4,23 +4,28 @@ from datetime import datetime, timedelta
 from typing import List, Optional
 
 import httpx
-from fastapi import APIRouter, Depends, HTTPException, Query, BackgroundTasks
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
-from sqlalchemy import select, desc
+from sqlalchemy import desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from loguru import logger
 
-from src.database.connection import get_db_session, async_session_maker
-from src.models import TrainingWorker, WorkerStatus, WorkerMetricsSnapshot, ServiceConfig, ServiceType
-
+from src.database.connection import async_session_maker, get_db_session
+from src.models import (
+    ServiceConfig,
+    TrainingWorker,
+    WorkerMetricsSnapshot,
+    WorkerStatus,
+)
 
 router = APIRouter(prefix="/api/workers", tags=["workers"])
 
 
 # ============= Pydantic Schemas =============
 
+
 class WorkerCreate(BaseModel):
     """Create a new worker."""
+
     name: str = Field(..., min_length=1, max_length=100)
     description: Optional[str] = None
     url: str = Field(..., description="Worker URL (e.g., http://192.168.1.100:8080)")
@@ -30,6 +35,7 @@ class WorkerCreate(BaseModel):
 
 class WorkerUpdate(BaseModel):
     """Update a worker."""
+
     name: Optional[str] = Field(None, min_length=1, max_length=100)
     description: Optional[str] = None
     url: Optional[str] = None
@@ -40,6 +46,7 @@ class WorkerUpdate(BaseModel):
 
 class WorkerResponse(BaseModel):
     """Worker response."""
+
     id: str
     name: str
     description: Optional[str]
@@ -65,6 +72,7 @@ class WorkerResponse(BaseModel):
 
 class WorkerMetricsResponse(BaseModel):
     """Worker metrics response."""
+
     worker_id: str
     recorded_at: str
     cpu_percent: Optional[float]
@@ -80,6 +88,7 @@ class WorkerMetricsResponse(BaseModel):
 
 class WorkerTestResult(BaseModel):
     """Result of testing a worker connection."""
+
     success: bool
     message: str
     worker_info: Optional[dict] = None
@@ -88,6 +97,7 @@ class WorkerTestResult(BaseModel):
 
 class TrainingStartRequest(BaseModel):
     """Request to start training on a worker."""
+
     session_id: str = Field(..., description="Training session ID from MCParr")
     base_model: str = Field(default="unsloth/llama-3.2-3b-instruct-bnb-4bit")
     output_model_name: str = Field(..., description="Output model name in Ollama")
@@ -106,11 +116,10 @@ class TrainingStartRequest(BaseModel):
 
 # ============= Helper Functions =============
 
+
 async def get_worker_or_404(worker_id: str, session: AsyncSession) -> TrainingWorker:
     """Get worker by ID or raise 404."""
-    result = await session.execute(
-        select(TrainingWorker).where(TrainingWorker.id == worker_id)
-    )
+    result = await session.execute(select(TrainingWorker).where(TrainingWorker.id == worker_id))
     worker = result.scalar_one_or_none()
     if not worker:
         raise HTTPException(status_code=404, detail="Worker not found")
@@ -140,7 +149,7 @@ def worker_to_response(worker: TrainingWorker) -> WorkerResponse:
         total_jobs_completed=worker.total_jobs_completed,
         total_training_time_seconds=worker.total_training_time_seconds,
         created_at=worker.created_at.isoformat(),
-        updated_at=worker.updated_at.isoformat()
+        updated_at=worker.updated_at.isoformat(),
     )
 
 
@@ -216,16 +225,14 @@ async def update_worker_status(worker: TrainingWorker, session: AsyncSession):
 
 # ============= Endpoints =============
 
+
 @router.get("", response_model=List[WorkerResponse])
-async def list_workers(
-    enabled_only: bool = Query(default=False),
-    session: AsyncSession = Depends(get_db_session)
-):
+async def list_workers(enabled_only: bool = Query(default=False), session: AsyncSession = Depends(get_db_session)):
     """List all training workers."""
     query = select(TrainingWorker).order_by(desc(TrainingWorker.created_at))
 
     if enabled_only:
-        query = query.where(TrainingWorker.enabled == True)
+        query = query.where(TrainingWorker.enabled is True)
 
     result = await session.execute(query)
     workers = result.scalars().all()
@@ -234,25 +241,20 @@ async def list_workers(
 
 
 @router.post("", response_model=WorkerResponse, status_code=201)
-async def create_worker(
-    data: WorkerCreate,
-    session: AsyncSession = Depends(get_db_session)
-):
+async def create_worker(data: WorkerCreate, session: AsyncSession = Depends(get_db_session)):
     """Create a new training worker."""
     # Check if URL already exists
-    result = await session.execute(
-        select(TrainingWorker).where(TrainingWorker.url == data.url)
-    )
+    result = await session.execute(select(TrainingWorker).where(TrainingWorker.url == data.url))
     if result.scalar_one_or_none():
         raise HTTPException(status_code=400, detail="Worker with this URL already exists")
 
     worker = TrainingWorker(
         name=data.name,
         description=data.description,
-        url=data.url.rstrip('/'),
+        url=data.url.rstrip("/"),
         api_key=data.api_key,
         ollama_service_id=data.ollama_service_id,
-        status=WorkerStatus.UNKNOWN
+        status=WorkerStatus.UNKNOWN,
     )
 
     session.add(worker)
@@ -266,21 +268,14 @@ async def create_worker(
 
 
 @router.get("/{worker_id}", response_model=WorkerResponse)
-async def get_worker(
-    worker_id: str,
-    session: AsyncSession = Depends(get_db_session)
-):
+async def get_worker(worker_id: str, session: AsyncSession = Depends(get_db_session)):
     """Get a specific worker."""
     worker = await get_worker_or_404(worker_id, session)
     return worker_to_response(worker)
 
 
 @router.patch("/{worker_id}", response_model=WorkerResponse)
-async def update_worker(
-    worker_id: str,
-    data: WorkerUpdate,
-    session: AsyncSession = Depends(get_db_session)
-):
+async def update_worker(worker_id: str, data: WorkerUpdate, session: AsyncSession = Depends(get_db_session)):
     """Update a worker."""
     worker = await get_worker_or_404(worker_id, session)
 
@@ -289,7 +284,7 @@ async def update_worker(
     if data.description is not None:
         worker.description = data.description
     if data.url is not None:
-        worker.url = data.url.rstrip('/')
+        worker.url = data.url.rstrip("/")
     if data.api_key is not None:
         worker.api_key = data.api_key
     if data.enabled is not None:
@@ -305,19 +300,13 @@ async def update_worker(
 
 
 @router.delete("/{worker_id}")
-async def delete_worker(
-    worker_id: str,
-    session: AsyncSession = Depends(get_db_session)
-):
+async def delete_worker(worker_id: str, session: AsyncSession = Depends(get_db_session)):
     """Delete a worker."""
     worker = await get_worker_or_404(worker_id, session)
 
     # Check if worker has an active job
     if worker.current_job_id:
-        raise HTTPException(
-            status_code=400,
-            detail="Cannot delete worker with active training job"
-        )
+        raise HTTPException(status_code=400, detail="Cannot delete worker with active training job")
 
     await session.delete(worker)
     await session.commit()
@@ -326,10 +315,7 @@ async def delete_worker(
 
 
 @router.post("/{worker_id}/test", response_model=WorkerTestResult)
-async def test_worker(
-    worker_id: str,
-    session: AsyncSession = Depends(get_db_session)
-):
+async def test_worker(worker_id: str, session: AsyncSession = Depends(get_db_session)):
     """Test connection to a worker."""
     worker = await get_worker_or_404(worker_id, session)
 
@@ -340,36 +326,19 @@ async def test_worker(
         await update_worker_status(worker, session)
 
         return WorkerTestResult(
-            success=True,
-            message=f"Connected to {info.get('worker_name', 'worker')}",
-            worker_info=info
+            success=True, message=f"Connected to {info.get('worker_name', 'worker')}", worker_info=info
         )
 
     except httpx.ConnectError as e:
-        return WorkerTestResult(
-            success=False,
-            message="Cannot connect to worker",
-            error=str(e)
-        )
+        return WorkerTestResult(success=False, message="Cannot connect to worker", error=str(e))
     except httpx.HTTPStatusError as e:
-        return WorkerTestResult(
-            success=False,
-            message=f"HTTP error: {e.response.status_code}",
-            error=str(e)
-        )
+        return WorkerTestResult(success=False, message=f"HTTP error: {e.response.status_code}", error=str(e))
     except Exception as e:
-        return WorkerTestResult(
-            success=False,
-            message="Connection failed",
-            error=str(e)
-        )
+        return WorkerTestResult(success=False, message="Connection failed", error=str(e))
 
 
 @router.post("/{worker_id}/refresh")
-async def refresh_worker_status(
-    worker_id: str,
-    session: AsyncSession = Depends(get_db_session)
-):
+async def refresh_worker_status(worker_id: str, session: AsyncSession = Depends(get_db_session)):
     """Refresh worker status."""
     worker = await get_worker_or_404(worker_id, session)
     await update_worker_status(worker, session)
@@ -377,10 +346,7 @@ async def refresh_worker_status(
 
 
 @router.get("/{worker_id}/metrics", response_model=WorkerMetricsResponse)
-async def get_worker_metrics(
-    worker_id: str,
-    session: AsyncSession = Depends(get_db_session)
-):
+async def get_worker_metrics(worker_id: str, session: AsyncSession = Depends(get_db_session)):
     """Get current metrics from a worker."""
     worker = await get_worker_or_404(worker_id, session)
 
@@ -404,11 +370,11 @@ async def get_worker_metrics(
             gpu_temperature_c=gpu_metrics.get("temperature_c"),
             gpu_power_draw_w=gpu_metrics.get("power_draw_w"),
             training_progress_percent=None,  # Will be set if training
-            training_loss=None
+            training_loss=None,
         )
 
     except Exception as e:
-        raise HTTPException(status_code=503, detail=f"Failed to get metrics: {e}")
+        raise HTTPException(status_code=503, detail=f"Failed to get metrics: {e}") from e
 
 
 @router.get("/{worker_id}/metrics/history")
@@ -416,10 +382,10 @@ async def get_worker_metrics_history(
     worker_id: str,
     limit: int = Query(default=100, le=1000),
     minutes: int = Query(default=60, le=1440),
-    session: AsyncSession = Depends(get_db_session)
+    session: AsyncSession = Depends(get_db_session),
 ):
     """Get historical metrics for a worker."""
-    worker = await get_worker_or_404(worker_id, session)
+    await get_worker_or_404(worker_id, session)
 
     since = datetime.utcnow() - timedelta(minutes=minutes)
 
@@ -444,10 +410,10 @@ async def get_worker_metrics_history(
                 "gpu_memory_percent": s.gpu_memory_percent,
                 "gpu_temperature_c": s.gpu_temperature_c,
                 "training_progress_percent": s.training_progress_percent,
-                "training_loss": s.training_loss
+                "training_loss": s.training_loss,
             }
             for s in snapshots
-        ]
+        ],
     }
 
 
@@ -456,10 +422,10 @@ async def start_training_on_worker(
     worker_id: str,
     request: TrainingStartRequest,
     background_tasks: BackgroundTasks,
-    session: AsyncSession = Depends(get_db_session)
+    session: AsyncSession = Depends(get_db_session),
 ):
     """Start training on a worker."""
-    from src.models import TrainingSession, TrainingPrompt, TrainingStatus
+    from src.models import TrainingPrompt, TrainingSession, TrainingStatus
 
     worker = await get_worker_or_404(worker_id, session)
 
@@ -472,21 +438,18 @@ async def start_training_on_worker(
         raise HTTPException(status_code=503, detail="Worker has no GPU available")
 
     # Get training session and prompts
-    result = await session.execute(
-        select(TrainingSession).where(TrainingSession.id == request.session_id)
-    )
+    result = await session.execute(select(TrainingSession).where(TrainingSession.id == request.session_id))
     training_session = result.scalar_one_or_none()
     if not training_session:
         raise HTTPException(status_code=404, detail="Training session not found")
 
     # Get prompts
     prompt_result = await session.execute(
-        select(TrainingPrompt)
-        .where(TrainingPrompt.id.in_(
-            select(TrainingPrompt.id)
-            .join(TrainingSession.prompts)
-            .where(TrainingSession.id == request.session_id)
-        ))
+        select(TrainingPrompt).where(
+            TrainingPrompt.id.in_(
+                select(TrainingPrompt.id).join(TrainingSession.prompts).where(TrainingSession.id == request.session_id)
+            )
+        )
     )
     prompts = prompt_result.scalars().all()
 
@@ -509,7 +472,7 @@ async def start_training_on_worker(
             "id": str(p.id),
             "system_prompt": p.system_prompt,
             "user_input": p.user_input,
-            "expected_output": p.expected_output
+            "expected_output": p.expected_output,
         }
         for p in prompts
     ]
@@ -549,11 +512,7 @@ async def start_training_on_worker(
             headers["X-API-Key"] = worker.api_key
 
         async with httpx.AsyncClient(timeout=30.0) as client:
-            response = await client.post(
-                f"{worker.url}/api/training/start",
-                headers=headers,
-                json=training_request
-            )
+            response = await client.post(f"{worker.url}/api/training/start", headers=headers, json=training_request)
             response.raise_for_status()
             result_data = response.json()
 
@@ -574,23 +533,17 @@ async def start_training_on_worker(
             "message": "Training started on worker",
             "worker_id": worker_id,
             "job_id": result_data.get("job_id"),
-            "session_id": request.session_id
+            "session_id": request.session_id,
         }
 
     except httpx.HTTPStatusError as e:
-        raise HTTPException(
-            status_code=e.response.status_code,
-            detail=f"Worker error: {e.response.text}"
-        )
+        raise HTTPException(status_code=e.response.status_code, detail=f"Worker error: {e.response.text}") from e
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to start training: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to start training: {e}") from e
 
 
 @router.get("/{worker_id}/training/status")
-async def get_worker_training_status(
-    worker_id: str,
-    session: AsyncSession = Depends(get_db_session)
-):
+async def get_worker_training_status(worker_id: str, session: AsyncSession = Depends(get_db_session)):
     """Get current training status from a worker."""
     worker = await get_worker_or_404(worker_id, session)
 
@@ -603,22 +556,16 @@ async def get_worker_training_status(
             headers["X-API-Key"] = worker.api_key
 
         async with httpx.AsyncClient(timeout=10.0) as client:
-            response = await client.get(
-                f"{worker.url}/training/status",
-                headers=headers
-            )
+            response = await client.get(f"{worker.url}/training/status", headers=headers)
             response.raise_for_status()
             return response.json()
 
     except Exception as e:
-        raise HTTPException(status_code=503, detail=f"Failed to get training status: {e}")
+        raise HTTPException(status_code=503, detail=f"Failed to get training status: {e}") from e
 
 
 @router.post("/{worker_id}/training/cancel")
-async def cancel_worker_training(
-    worker_id: str,
-    session: AsyncSession = Depends(get_db_session)
-):
+async def cancel_worker_training(worker_id: str, session: AsyncSession = Depends(get_db_session)):
     """Cancel training on a worker."""
     worker = await get_worker_or_404(worker_id, session)
 
@@ -631,10 +578,7 @@ async def cancel_worker_training(
             headers["X-API-Key"] = worker.api_key
 
         async with httpx.AsyncClient(timeout=10.0) as client:
-            response = await client.post(
-                f"{worker.url}/training/cancel",
-                headers=headers
-            )
+            response = await client.post(f"{worker.url}/training/cancel", headers=headers)
             response.raise_for_status()
 
         # Update worker status
@@ -647,14 +591,11 @@ async def cancel_worker_training(
         return {"message": "Training cancelled"}
 
     except Exception as e:
-        raise HTTPException(status_code=503, detail=f"Failed to cancel training: {e}")
+        raise HTTPException(status_code=503, detail=f"Failed to cancel training: {e}") from e
 
 
 @router.get("/{worker_id}/models")
-async def get_available_models(
-    worker_id: str,
-    session: AsyncSession = Depends(get_db_session)
-):
+async def get_available_models(worker_id: str, session: AsyncSession = Depends(get_db_session)):
     """Get available base models for training."""
     worker = await get_worker_or_404(worker_id, session)
 
@@ -664,33 +605,23 @@ async def get_available_models(
             headers["X-API-Key"] = worker.api_key
 
         async with httpx.AsyncClient(timeout=10.0) as client:
-            response = await client.get(
-                f"{worker.url}/models",
-                headers=headers
-            )
+            response = await client.get(f"{worker.url}/models", headers=headers)
             response.raise_for_status()
             return response.json()
 
     except Exception as e:
-        raise HTTPException(status_code=503, detail=f"Failed to get models: {e}")
+        raise HTTPException(status_code=503, detail=f"Failed to get models: {e}") from e
 
 
 @router.post("/refresh-all")
-async def refresh_all_workers(
-    background_tasks: BackgroundTasks,
-    session: AsyncSession = Depends(get_db_session)
-):
+async def refresh_all_workers(background_tasks: BackgroundTasks, session: AsyncSession = Depends(get_db_session)):
     """Refresh status of all enabled workers."""
-    result = await session.execute(
-        select(TrainingWorker).where(TrainingWorker.enabled == True)
-    )
+    result = await session.execute(select(TrainingWorker).where(TrainingWorker.enabled is True))
     workers = result.scalars().all()
 
     async def refresh_worker(worker_id: str):
         async with async_session_maker() as db_session:
-            result = await db_session.execute(
-                select(TrainingWorker).where(TrainingWorker.id == worker_id)
-            )
+            result = await db_session.execute(select(TrainingWorker).where(TrainingWorker.id == worker_id))
             worker = result.scalar_one_or_none()
             if worker:
                 await update_worker_status(worker, db_session)

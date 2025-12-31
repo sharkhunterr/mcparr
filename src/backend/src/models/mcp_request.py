@@ -1,17 +1,18 @@
 """MCP Request model for tracking AI interactions with homelab services."""
 
 from datetime import datetime
-from typing import Optional
 from enum import Enum
+from typing import Optional
 
-from sqlalchemy import String, Text, Integer, DateTime, Boolean, JSON, ForeignKey, Index
+from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, Index, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from .base import Base, UUIDMixin, TimestampMixin
+from .base import Base, TimestampMixin, UUIDMixin
 
 
 class McpRequestStatus(str, Enum):
     """Status of an MCP request."""
+
     PENDING = "pending"
     PROCESSING = "processing"
     COMPLETED = "completed"
@@ -21,12 +22,13 @@ class McpRequestStatus(str, Enum):
 
 class McpToolCategory(str, Enum):
     """Category of MCP tools."""
-    MEDIA = "media"           # Plex, Tautulli
-    MONITORING = "monitoring" # Tautulli stats, metrics
-    REQUESTS = "requests"     # Overseerr
-    SUPPORT = "support"       # Zammad
-    SYSTEM = "system"         # System monitoring, logs
-    USERS = "users"           # User management
+
+    MEDIA = "media"  # Plex, Tautulli
+    MONITORING = "monitoring"  # Tautulli stats, metrics
+    REQUESTS = "requests"  # Overseerr
+    SUPPORT = "support"  # Zammad
+    SYSTEM = "system"  # System monitoring, logs
+    USERS = "users"  # User management
 
 
 class McpRequest(Base, UUIDMixin, TimestampMixin):
@@ -40,22 +42,14 @@ class McpRequest(Base, UUIDMixin, TimestampMixin):
 
     # Tool information
     tool_name: Mapped[str] = mapped_column(String(100), nullable=False, index=True)
-    tool_category: Mapped[McpToolCategory] = mapped_column(
-        String(20),
-        default=McpToolCategory.SYSTEM,
-        index=True
-    )
+    tool_category: Mapped[McpToolCategory] = mapped_column(String(20), default=McpToolCategory.SYSTEM, index=True)
 
     # Request details
     input_params: Mapped[dict] = mapped_column(JSON, default=dict)
     output_result: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
 
     # Status tracking
-    status: Mapped[McpRequestStatus] = mapped_column(
-        String(20),
-        default=McpRequestStatus.PENDING,
-        index=True
-    )
+    status: Mapped[McpRequestStatus] = mapped_column(String(20), default=McpRequestStatus.PENDING, index=True)
 
     # Timing
     started_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
@@ -68,9 +62,7 @@ class McpRequest(Base, UUIDMixin, TimestampMixin):
 
     # Service reference (which homelab service was called)
     service_id: Mapped[Optional[str]] = mapped_column(
-        String(36),
-        ForeignKey("service_configs.id", ondelete="SET NULL"),
-        nullable=True
+        String(36), ForeignKey("service_configs.id", ondelete="SET NULL"), nullable=True
     )
 
     # User context (who triggered the request via AI)
@@ -90,9 +82,9 @@ class McpRequest(Base, UUIDMixin, TimestampMixin):
 
     # Indexes for common queries
     __table_args__ = (
-        Index('ix_mcp_requests_created_status', 'created_at', 'status'),
-        Index('ix_mcp_requests_tool_status', 'tool_name', 'status'),
-        Index('ix_mcp_requests_category_created', 'tool_category', 'created_at'),
+        Index("ix_mcp_requests_created_status", "created_at", "status"),
+        Index("ix_mcp_requests_tool_status", "tool_name", "status"),
+        Index("ix_mcp_requests_category_created", "tool_category", "created_at"),
     )
 
     def __repr__(self) -> str:
@@ -110,10 +102,10 @@ class McpRequest(Base, UUIDMixin, TimestampMixin):
             "correlation_id": self.correlation_id,
             "session_id": self.session_id,
             "tool_name": self.tool_name,
-            "tool_category": self.tool_category.value if hasattr(self.tool_category, 'value') else self.tool_category,
+            "tool_category": self.tool_category.value if hasattr(self.tool_category, "value") else self.tool_category,
             "input_params": self.input_params,
             "output_result": self.output_result,
-            "status": self.status.value if hasattr(self.status, 'value') else self.status,
+            "status": self.status.value if hasattr(self.status, "value") else self.status,
             "started_at": self.started_at.isoformat() if self.started_at else None,
             "completed_at": self.completed_at.isoformat() if self.completed_at else None,
             "duration_ms": self.duration_ms,

@@ -1,17 +1,21 @@
 """User mapping models for cross-service user management."""
 
 from datetime import datetime
-from typing import Dict, Any, Optional
 from enum import Enum
+from typing import TYPE_CHECKING, Any, Dict, Optional
 
-from sqlalchemy import String, Text, DateTime, Boolean, JSON, ForeignKey, Integer
+from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from .base import Base, UUIDMixin, TimestampMixin
+from .base import Base, TimestampMixin, UUIDMixin
+
+if TYPE_CHECKING:
+    from .service_config import ServiceConfig
 
 
 class UserRole(str, Enum):
     """User roles across services."""
+
     ADMIN = "admin"
     USER = "user"
     MODERATOR = "moderator"
@@ -21,6 +25,7 @@ class UserRole(str, Enum):
 
 class MappingStatus(str, Enum):
     """User mapping status."""
+
     ACTIVE = "active"
     INACTIVE = "inactive"
     PENDING = "pending"
@@ -34,106 +39,42 @@ class UserMapping(Base, UUIDMixin, TimestampMixin):
     __tablename__ = "user_mappings"
 
     # Central user identity
-    central_user_id: Mapped[str] = mapped_column(
-        String(100),
-        nullable=False,
-        index=True
-    )
-    central_username: Mapped[str] = mapped_column(
-        String(100),
-        nullable=False
-    )
-    central_email: Mapped[Optional[str]] = mapped_column(
-        String(255),
-        nullable=True
-    )
+    central_user_id: Mapped[str] = mapped_column(String(100), nullable=False, index=True)
+    central_username: Mapped[str] = mapped_column(String(100), nullable=False)
+    central_email: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
 
     # Service-specific mapping
     service_config_id: Mapped[str] = mapped_column(
-        String(36),
-        ForeignKey("service_configs.id"),
-        nullable=False,
-        index=True
+        String(36), ForeignKey("service_configs.id"), nullable=False, index=True
     )
-    service_user_id: Mapped[str] = mapped_column(
-        String(100),
-        nullable=False
-    )
-    service_username: Mapped[str] = mapped_column(
-        String(100),
-        nullable=False
-    )
-    service_email: Mapped[Optional[str]] = mapped_column(
-        String(255),
-        nullable=True
-    )
+    service_user_id: Mapped[str] = mapped_column(String(100), nullable=False)
+    service_username: Mapped[str] = mapped_column(String(100), nullable=False)
+    service_email: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
 
     # Role and permissions
-    role: Mapped[UserRole] = mapped_column(
-        String(20),
-        default=UserRole.USER,
-        nullable=False
-    )
-    permissions: Mapped[Dict[str, Any]] = mapped_column(
-        JSON,
-        default=dict,
-        nullable=False
-    )
+    role: Mapped[UserRole] = mapped_column(String(20), default=UserRole.USER, nullable=False)
+    permissions: Mapped[Dict[str, Any]] = mapped_column(JSON, default=dict, nullable=False)
 
     # Mapping status
-    status: Mapped[MappingStatus] = mapped_column(
-        String(20),
-        default=MappingStatus.ACTIVE,
-        nullable=False
-    )
-    enabled: Mapped[bool] = mapped_column(
-        Boolean,
-        default=True,
-        nullable=False
-    )
+    status: Mapped[MappingStatus] = mapped_column(String(20), default=MappingStatus.ACTIVE, nullable=False)
+    enabled: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
     # Synchronization tracking
-    last_sync_at: Mapped[Optional[datetime]] = mapped_column(
-        DateTime,
-        nullable=True
-    )
-    last_sync_success: Mapped[Optional[bool]] = mapped_column(
-        Boolean,
-        nullable=True
-    )
-    last_sync_error: Mapped[Optional[str]] = mapped_column(
-        Text,
-        nullable=True
-    )
+    last_sync_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    last_sync_success: Mapped[Optional[bool]] = mapped_column(Boolean, nullable=True)
+    last_sync_error: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
     # Service-specific metadata
-    service_metadata: Mapped[Dict[str, Any]] = mapped_column(
-        JSON,
-        default=dict,
-        nullable=False
-    )
+    service_metadata: Mapped[Dict[str, Any]] = mapped_column(JSON, default=dict, nullable=False)
 
     # Sync settings
-    sync_enabled: Mapped[bool] = mapped_column(
-        Boolean,
-        default=True,
-        nullable=False
-    )
-    sync_attempts: Mapped[int] = mapped_column(
-        Integer,
-        default=0,
-        nullable=False
-    )
+    sync_enabled: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    sync_attempts: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
 
     # Relationships
-    service_config: Mapped["ServiceConfig"] = relationship(
-        "ServiceConfig",
-        back_populates="user_mappings"
-    )
+    service_config: Mapped["ServiceConfig"] = relationship("ServiceConfig", back_populates="user_mappings")
     sync_logs: Mapped[list["UserSync"]] = relationship(
-        "UserSync",
-        back_populates="user_mapping",
-        cascade="all, delete-orphan"
+        "UserSync", back_populates="user_mapping", cascade="all, delete-orphan"
     )
 
     def __repr__(self) -> str:
@@ -148,11 +89,7 @@ class UserMapping(Base, UUIDMixin, TimestampMixin):
     @property
     def is_active(self) -> bool:
         """Check if mapping is active and healthy."""
-        return (
-            self.status == MappingStatus.ACTIVE and
-            self.enabled and
-            self.last_sync_success is not False
-        )
+        return self.status == MappingStatus.ACTIVE and self.enabled and self.last_sync_success is not False
 
     def update_sync_result(self, success: bool, error: Optional[str] = None) -> None:
         """Update synchronization result."""
@@ -184,37 +121,17 @@ class UserMapping(Base, UUIDMixin, TimestampMixin):
 
     def get_service_permissions(self) -> Dict[str, Any]:
         """Get service-specific permissions."""
-        base_permissions = {
-            "read": True,
-            "write": False,
-            "admin": False
-        }
+        base_permissions = {"read": True, "write": False, "admin": False}
 
         # Override with role-based permissions
         if self.role == UserRole.ADMIN:
-            base_permissions.update({
-                "read": True,
-                "write": True,
-                "admin": True
-            })
+            base_permissions.update({"read": True, "write": True, "admin": True})
         elif self.role == UserRole.MODERATOR:
-            base_permissions.update({
-                "read": True,
-                "write": True,
-                "admin": False
-            })
+            base_permissions.update({"read": True, "write": True, "admin": False})
         elif self.role == UserRole.USER:
-            base_permissions.update({
-                "read": True,
-                "write": True,
-                "admin": False
-            })
+            base_permissions.update({"read": True, "write": True, "admin": False})
         elif self.role == UserRole.VIEWER:
-            base_permissions.update({
-                "read": True,
-                "write": False,
-                "admin": False
-            })
+            base_permissions.update({"read": True, "write": False, "admin": False})
 
         # Merge with custom permissions
         base_permissions.update(self.permissions)
@@ -230,43 +147,19 @@ class UserSync(Base, UUIDMixin, TimestampMixin):
 
     __tablename__ = "user_syncs"
 
-    user_mapping_id: Mapped[str] = mapped_column(
-        String(36),
-        ForeignKey("user_mappings.id"),
-        nullable=False,
-        index=True
-    )
+    user_mapping_id: Mapped[str] = mapped_column(String(36), ForeignKey("user_mappings.id"), nullable=False, index=True)
 
     # Sync details
-    sync_type: Mapped[str] = mapped_column(
-        String(50),
-        nullable=False  # "create", "update", "delete", "check"
-    )
-    success: Mapped[bool] = mapped_column(
-        Boolean,
-        nullable=False
-    )
-    error_message: Mapped[Optional[str]] = mapped_column(
-        Text,
-        nullable=True
-    )
-    sync_duration_ms: Mapped[Optional[int]] = mapped_column(
-        Integer,
-        nullable=True
-    )
+    sync_type: Mapped[str] = mapped_column(String(50), nullable=False)  # "create", "update", "delete", "check"
+    success: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    error_message: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    sync_duration_ms: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
 
     # Changed data
-    changes: Mapped[Dict[str, Any]] = mapped_column(
-        JSON,
-        default=dict,
-        nullable=False
-    )
+    changes: Mapped[Dict[str, Any]] = mapped_column(JSON, default=dict, nullable=False)
 
     # Relationships
-    user_mapping: Mapped["UserMapping"] = relationship(
-        "UserMapping",
-        back_populates="sync_logs"
-    )
+    user_mapping: Mapped["UserMapping"] = relationship("UserMapping", back_populates="sync_logs")
 
     def __repr__(self) -> str:
         return (

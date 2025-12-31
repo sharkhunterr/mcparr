@@ -1,6 +1,7 @@
 """MCP tools for Zammad integration."""
 
 from typing import List
+
 from .base import BaseTool, ToolDefinition, ToolParameter
 
 
@@ -170,10 +171,7 @@ class ZammadTools(BaseTool):
     async def execute(self, tool_name: str, arguments: dict) -> dict:
         """Execute a Zammad tool."""
         if not self.service_config:
-            return {
-                "success": False,
-                "error": "Zammad service not configured"
-            }
+            return {"success": False, "error": "Zammad service not configured"}
 
         try:
             from src.adapters.zammad import ZammadAdapter
@@ -222,13 +220,7 @@ class ZammadTools(BaseTool):
         result = await adapter.get_tickets(per_page=limit)
         tickets = result.get("tickets", [])
 
-        return {
-            "success": True,
-            "result": {
-                "count": len(tickets),
-                "tickets": tickets
-            }
-        }
+        return {"success": True, "result": {"count": len(tickets), "tickets": tickets}}
 
     async def _get_ticket_details(self, adapter, arguments: dict) -> dict:
         """Get ticket details with articles."""
@@ -242,10 +234,7 @@ class ZammadTools(BaseTool):
             ticket = await adapter.get_ticket_by_number(str(ticket_id_or_number))
 
         if ticket is None:
-            return {
-                "success": False,
-                "error": f"Ticket {ticket_id_or_number} not found (searched by ID and number)"
-            }
+            return {"success": False, "error": f"Ticket {ticket_id_or_number} not found (searched by ID and number)"}
 
         # Use the actual ticket ID for fetching articles
         actual_ticket_id = ticket.get("id")
@@ -278,8 +267,8 @@ class ZammadTools(BaseTool):
                         "from": article.get("from"),
                     }
                     for article in articles
-                ]
-            }
+                ],
+            },
         }
 
     async def _search_tickets(self, adapter, arguments: dict) -> dict:
@@ -303,8 +292,8 @@ class ZammadTools(BaseTool):
                         "created_at": ticket.get("created_at"),
                     }
                     for ticket in tickets
-                ]
-            }
+                ],
+            },
         }
 
     async def _create_ticket(self, adapter, arguments: dict) -> dict:
@@ -336,7 +325,7 @@ class ZammadTools(BaseTool):
                 "body": body,
                 "type": "note",
                 "internal": False,
-            }
+            },
         }
 
         # Add customer_id if available (required for ticket creation)
@@ -346,10 +335,7 @@ class ZammadTools(BaseTool):
         ticket = await adapter.create_ticket(ticket_data)
 
         if not ticket:
-            return {
-                "success": False,
-                "error": "Failed to create ticket - check Zammad API logs for details"
-            }
+            return {"success": False, "error": "Failed to create ticket - check Zammad API logs for details"}
 
         return {
             "success": True,
@@ -357,7 +343,7 @@ class ZammadTools(BaseTool):
                 "message": f"Ticket #{ticket.get('number')} created successfully",
                 "ticket_id": ticket.get("id"),
                 "ticket_number": ticket.get("number"),
-            }
+            },
         }
 
     async def _add_comment(self, adapter, arguments: dict) -> dict:
@@ -373,10 +359,7 @@ class ZammadTools(BaseTool):
         )
 
         if not article:
-            return {
-                "success": False,
-                "error": f"Failed to add comment to ticket #{ticket_id}"
-            }
+            return {"success": False, "error": f"Failed to add comment to ticket #{ticket_id}"}
 
         return {
             "success": True,
@@ -384,7 +367,7 @@ class ZammadTools(BaseTool):
                 "message": f"Comment added to ticket #{ticket_id}",
                 "article_id": article.get("id"),
                 "internal": internal,
-            }
+            },
         }
 
     async def _update_ticket_status(self, adapter, arguments: dict) -> dict:
@@ -404,10 +387,7 @@ class ZammadTools(BaseTool):
         success = await adapter.update_ticket(ticket_id, {"state_id": state_id})
 
         if not success:
-            return {
-                "success": False,
-                "error": f"Failed to update ticket #{ticket_id} status"
-            }
+            return {"success": False, "error": f"Failed to update ticket #{ticket_id} status"}
 
         return {
             "success": True,
@@ -415,7 +395,7 @@ class ZammadTools(BaseTool):
                 "message": f"Ticket #{ticket_id} status updated to {status}",
                 "ticket_id": ticket_id,
                 "new_status": status,
-            }
+            },
         }
 
     async def _get_ticket_stats(self, adapter) -> dict:
@@ -432,5 +412,5 @@ class ZammadTools(BaseTool):
                 "total_tickets": stats.get("total_tickets", 0),
                 "total_users": stats.get("total_users", 0),
                 "total_groups": stats.get("total_groups", 0),
-            }
+            },
         }

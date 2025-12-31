@@ -1,6 +1,7 @@
 """MCP tools for Deluge integration."""
 
 from typing import List
+
 from .base import BaseTool, ToolDefinition, ToolParameter
 
 
@@ -98,10 +99,7 @@ class DelugeTools(BaseTool):
     async def execute(self, tool_name: str, arguments: dict) -> dict:
         """Execute a Deluge tool."""
         if not self.service_config:
-            return {
-                "success": False,
-                "error": "Deluge service not configured"
-            }
+            return {"success": False, "error": "Deluge service not configured"}
 
         try:
             from src.adapters.deluge import DelugeAdapter
@@ -143,49 +141,28 @@ class DelugeTools(BaseTool):
         """Get torrents from Deluge."""
         torrents = await adapter.get_torrents()
 
-        return {
-            "success": True,
-            "result": {
-                "count": len(torrents),
-                "torrents": torrents
-            }
-        }
+        return {"success": True, "result": {"count": len(torrents), "torrents": torrents}}
 
     async def _add_torrent(self, adapter, arguments: dict) -> dict:
         """Add a torrent."""
         magnet_or_url = arguments.get("magnet_or_url")
         result = await adapter.add_torrent(magnet_or_url)
 
-        return {
-            "success": result.get("success", False),
-            "result": result
-        }
+        return {"success": result.get("success", False), "result": result}
 
     async def _pause_torrent(self, adapter, arguments: dict) -> dict:
         """Pause a torrent."""
         torrent_id = arguments.get("torrent_id")
         success = await adapter.pause_torrent(torrent_id)
 
-        return {
-            "success": success,
-            "result": {
-                "torrent_id": torrent_id,
-                "action": "paused" if success else "failed"
-            }
-        }
+        return {"success": success, "result": {"torrent_id": torrent_id, "action": "paused" if success else "failed"}}
 
     async def _resume_torrent(self, adapter, arguments: dict) -> dict:
         """Resume a torrent."""
         torrent_id = arguments.get("torrent_id")
         success = await adapter.resume_torrent(torrent_id)
 
-        return {
-            "success": success,
-            "result": {
-                "torrent_id": torrent_id,
-                "action": "resumed" if success else "failed"
-            }
-        }
+        return {"success": success, "result": {"torrent_id": torrent_id, "action": "resumed" if success else "failed"}}
 
     async def _remove_torrent(self, adapter, arguments: dict) -> dict:
         """Remove a torrent."""
@@ -198,15 +175,12 @@ class DelugeTools(BaseTool):
             "result": {
                 "torrent_id": torrent_id,
                 "action": "removed" if success else "failed",
-                "data_removed": remove_data if success else False
-            }
+                "data_removed": remove_data if success else False,
+            },
         }
 
     async def _get_statistics(self, adapter) -> dict:
         """Get statistics."""
         stats = await adapter.get_statistics()
 
-        return {
-            "success": True,
-            "result": stats
-        }
+        return {"success": True, "result": stats}

@@ -1,12 +1,12 @@
 """System health and metrics endpoints."""
 
 from datetime import datetime, timedelta
-from typing import Dict, Any, List, Optional
 from enum import Enum
+from typing import List, Optional
 
-from fastapi import APIRouter, Depends, Query, HTTPException
-from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.database.connection import get_db_session
 from src.services.system_monitor import SystemMonitorService
@@ -19,6 +19,7 @@ router = APIRouter(prefix="/api/v1/system")
 
 class HealthCheck(BaseModel):
     """Health check details."""
+
     name: str
     status: str
     message: str
@@ -27,12 +28,14 @@ class HealthCheck(BaseModel):
 
 class HealthStatus(BaseModel):
     """System health status."""
+
     status: str
     checks: List[HealthCheck]
 
 
 class SystemMetrics(BaseModel):
     """System metrics response."""
+
     timestamps: List[str]
     cpu: List[float]
     memory: List[float]
@@ -43,6 +46,7 @@ class SystemMetrics(BaseModel):
 
 class MetricsDuration(str, Enum):
     """Available metrics duration options."""
+
     ONE_MINUTE = "1m"
     FIVE_MINUTES = "5m"
     FIFTEEN_MINUTES = "15m"
@@ -51,18 +55,10 @@ class MetricsDuration(str, Enum):
 
 
 @router.get("/health", response_model=HealthStatus)
-async def get_system_health(
-    db: AsyncSession = Depends(get_db_session)
-) -> HealthStatus:
+async def get_system_health(db: AsyncSession = Depends(get_db_session)) -> HealthStatus:
     """Get detailed system health status."""
 
-    logger.info(
-        "System health check requested",
-        extra={
-            "component": "system",
-            "action": "health_check"
-        }
-    )
+    logger.info("System health check requested", extra={"component": "system", "action": "health_check"})
 
     system_monitor = SystemMonitorService()
 
@@ -72,19 +68,20 @@ async def get_system_health(
     try:
         # Simple query to test database
         await db.execute("SELECT 1")
-        checks.append(HealthCheck(
-            name="database",
-            status="healthy",
-            message="Database connection successful",
-            response_time_ms=5.2
-        ))
+        checks.append(
+            HealthCheck(
+                name="database", status="healthy", message="Database connection successful", response_time_ms=5.2
+            )
+        )
     except Exception as e:
-        checks.append(HealthCheck(
-            name="database",
-            status="unhealthy",
-            message=f"Database connection failed: {str(e)}",
-            response_time_ms=None
-        ))
+        checks.append(
+            HealthCheck(
+                name="database",
+                status="unhealthy",
+                message=f"Database connection failed: {str(e)}",
+                response_time_ms=None,
+            )
+        )
 
     # System resources check
     try:
@@ -100,42 +97,34 @@ async def get_system_health(
             status = "healthy"
             message = "System resources within normal range"
 
-        checks.append(HealthCheck(
-            name="system_resources",
-            status=status,
-            message=message,
-            response_time_ms=2.1
-        ))
+        checks.append(HealthCheck(name="system_resources", status=status, message=message, response_time_ms=2.1))
     except Exception as e:
-        checks.append(HealthCheck(
-            name="system_resources",
-            status="unhealthy",
-            message=f"Failed to get system resources: {str(e)}"
-        ))
+        checks.append(
+            HealthCheck(
+                name="system_resources", status="unhealthy", message=f"Failed to get system resources: {str(e)}"
+            )
+        )
 
     # Docker health check
     try:
         docker_status = await system_monitor.get_docker_status()
-        checks.append(HealthCheck(
-            name="docker",
-            status="healthy",
-            message=f"Docker running with {docker_status.get('containers_running', 0)} containers",
-            response_time_ms=15.3
-        ))
+        checks.append(
+            HealthCheck(
+                name="docker",
+                status="healthy",
+                message=f"Docker running with {docker_status.get('containers_running', 0)} containers",
+                response_time_ms=15.3,
+            )
+        )
     except Exception as e:
-        checks.append(HealthCheck(
-            name="docker",
-            status="degraded",
-            message=f"Docker status unknown: {str(e)}"
-        ))
+        checks.append(HealthCheck(name="docker", status="degraded", message=f"Docker status unknown: {str(e)}"))
 
     # External services check (would be implemented when services are configured)
-    checks.append(HealthCheck(
-        name="external_services",
-        status="degraded",
-        message="No services configured yet",
-        response_time_ms=None
-    ))
+    checks.append(
+        HealthCheck(
+            name="external_services", status="degraded", message="No services configured yet", response_time_ms=None
+        )
+    )
 
     # Determine overall status
     statuses = [check.status for check in checks]
@@ -152,26 +141,24 @@ async def get_system_health(
             "component": "system",
             "action": "health_check_completed",
             "overall_status": overall_status,
-            "checks_count": len(checks)
-        }
+            "checks_count": len(checks),
+        },
     )
 
-    return HealthStatus(
-        status=overall_status,
-        checks=checks
-    )
+    return HealthStatus(status=overall_status, checks=checks)
 
 
 @router.get("/system-metrics")
 async def get_current_system_metrics():
     """Get current system metrics in frontend-compatible format."""
-    import psutil
     import time
+
+    import psutil
 
     try:
         cpu_usage = psutil.cpu_percent(interval=0.1)
         memory = psutil.virtual_memory()
-        disk = psutil.disk_usage('/')
+        disk = psutil.disk_usage("/")
         network = psutil.net_io_counters()
 
         # Get boot time for uptime calculation
@@ -180,7 +167,7 @@ async def get_current_system_metrics():
 
         return {
             "cpu_usage": cpu_usage,
-            "cpu_load_avg": psutil.getloadavg()[0] if hasattr(psutil, 'getloadavg') else 0,
+            "cpu_load_avg": psutil.getloadavg()[0] if hasattr(psutil, "getloadavg") else 0,
             "memory_usage": memory.percent,
             "memory_used": memory.used,
             "memory_total": memory.total,
@@ -190,28 +177,23 @@ async def get_current_system_metrics():
             "network_bytes_sent": network.bytes_sent,
             "network_bytes_recv": network.bytes_recv,
             "services_running": 5,  # Mock data
-            "services_total": 6,    # Mock data
-            "uptime": uptime
+            "services_total": 6,  # Mock data
+            "uptime": uptime,
         }
     except Exception as e:
         logger.error(f"Failed to get system metrics: {e}")
-        raise HTTPException(status_code=500, detail="Failed to retrieve system metrics")
+        raise HTTPException(status_code=500, detail="Failed to retrieve system metrics") from e
 
 
 @router.get("/metrics", response_model=SystemMetrics)
 async def get_system_metrics(
-    duration: MetricsDuration = Query(default=MetricsDuration.FIVE_MINUTES),
-    db: AsyncSession = Depends(get_db_session)
+    duration: MetricsDuration = Query(default=MetricsDuration.FIVE_MINUTES), db: AsyncSession = Depends(get_db_session)
 ) -> SystemMetrics:
     """Get system metrics for specified duration."""
 
     logger.info(
         f"System metrics requested for duration: {duration}",
-        extra={
-            "component": "system",
-            "action": "get_metrics",
-            "duration": duration
-        }
+        extra={"component": "system", "action": "get_metrics", "duration": duration},
     )
 
     system_monitor = SystemMonitorService()
@@ -235,10 +217,7 @@ async def get_system_metrics(
     # Generate timestamps
     intervals = 30  # Number of data points
     interval_seconds = time_delta.total_seconds() / intervals
-    timestamps = [
-        (start_time + timedelta(seconds=i * interval_seconds)).isoformat()
-        for i in range(intervals)
-    ]
+    timestamps = [(start_time + timedelta(seconds=i * interval_seconds)).isoformat() for i in range(intervals)]
 
     logger.info(
         f"Generated {len(timestamps)} data points for metrics",
@@ -246,8 +225,8 @@ async def get_system_metrics(
             "component": "system",
             "action": "metrics_generated",
             "data_points": len(timestamps),
-            "duration": duration
-        }
+            "duration": duration,
+        },
     )
 
     return SystemMetrics(
@@ -256,5 +235,5 @@ async def get_system_metrics(
         memory=metrics_data.get("memory", [0.0] * intervals),
         disk=metrics_data.get("disk", [0.0] * intervals),
         network_sent=metrics_data.get("network_sent", [0.0] * intervals),
-        network_recv=metrics_data.get("network_recv", [0.0] * intervals)
+        network_recv=metrics_data.get("network_recv", [0.0] * intervals),
     )

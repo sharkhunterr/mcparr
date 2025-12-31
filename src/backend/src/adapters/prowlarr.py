@@ -1,15 +1,14 @@
 """Prowlarr indexer management adapter."""
 
-from typing import Dict, Any, List, Optional
 from datetime import datetime
+from typing import Any, Dict, List, Optional
+
 import httpx
 
 from .base import (
-    TokenAuthAdapter,
-    ServiceCapability,
     ConnectionTestResult,
-    AdapterError,
-    AuthenticationError
+    ServiceCapability,
+    TokenAuthAdapter,
 )
 
 
@@ -22,9 +21,7 @@ class ProwlarrAdapter(TokenAuthAdapter):
 
     @property
     def supported_capabilities(self) -> List[ServiceCapability]:
-        return [
-            ServiceCapability.API_ACCESS
-        ]
+        return [ServiceCapability.API_ACCESS]
 
     @property
     def token_config_key(self) -> str:
@@ -32,11 +29,7 @@ class ProwlarrAdapter(TokenAuthAdapter):
 
     def _format_token_header(self, token: str) -> Dict[str, str]:
         """Format Prowlarr API key header."""
-        return {
-            "X-Api-Key": token,
-            "Content-Type": "application/json",
-            "Accept": "application/json"
-        }
+        return {"X-Api-Key": token, "Content-Type": "application/json", "Accept": "application/json"}
 
     async def test_connection(self) -> ConnectionTestResult:
         """Test connection to Prowlarr."""
@@ -58,15 +51,15 @@ class ProwlarrAdapter(TokenAuthAdapter):
                         "status": "connected",
                         "version": data.get("version"),
                         "app_name": data.get("appName", "Prowlarr"),
-                        "branch": data.get("branch")
-                    }
+                        "branch": data.get("branch"),
+                    },
                 )
             else:
                 return ConnectionTestResult(
                     success=False,
                     message="Connected but response doesn't appear to be from Prowlarr",
                     response_time_ms=response_time,
-                    details={"status": "invalid_response"}
+                    details={"status": "invalid_response"},
                 )
 
         except httpx.HTTPStatusError as e:
@@ -74,18 +67,18 @@ class ProwlarrAdapter(TokenAuthAdapter):
                 return ConnectionTestResult(
                     success=False,
                     message="Authentication failed - check API key",
-                    details={"status": "auth_failed", "status_code": 401}
+                    details={"status": "auth_failed", "status_code": 401},
                 )
             return ConnectionTestResult(
                 success=False,
                 message=f"HTTP error: {e.response.status_code}",
-                details={"status": "http_error", "status_code": e.response.status_code}
+                details={"status": "http_error", "status_code": e.response.status_code},
             )
         except Exception as e:
             return ConnectionTestResult(
                 success=False,
                 message=f"Connection failed: {str(e)}",
-                details={"status": "connection_failed", "error": str(e)}
+                details={"status": "connection_failed", "error": str(e)},
             )
 
     async def get_service_info(self) -> Dict[str, Any]:
@@ -100,15 +93,10 @@ class ProwlarrAdapter(TokenAuthAdapter):
                 "app_name": data.get("appName", "Prowlarr"),
                 "branch": data.get("branch"),
                 "build_time": data.get("buildTime"),
-                "status": "online"
+                "status": "online",
             }
         except Exception as e:
-            return {
-                "service": "prowlarr",
-                "version": "unknown",
-                "status": "error",
-                "error": str(e)
-            }
+            return {"service": "prowlarr", "version": "unknown", "status": "error", "error": str(e)}
 
     async def get_indexers(self) -> List[Dict[str, Any]]:
         """Get list of configured indexers."""
@@ -125,7 +113,7 @@ class ProwlarrAdapter(TokenAuthAdapter):
                     "enable": indexer.get("enable", False),
                     "priority": indexer.get("priority", 25),
                     "supports_rss": indexer.get("supportsRss", False),
-                    "supports_search": indexer.get("supportsSearch", False)
+                    "supports_search": indexer.get("supportsSearch", False),
                 }
                 for indexer in indexers
             ]
@@ -146,7 +134,7 @@ class ProwlarrAdapter(TokenAuthAdapter):
                     "average_response_time": stat.get("averageResponseTime"),
                     "number_of_queries": stat.get("numberOfQueries"),
                     "number_of_grabs": stat.get("numberOfGrabs"),
-                    "number_of_failures": stat.get("numberOfFailures")
+                    "number_of_failures": stat.get("numberOfFailures"),
                 }
                 for stat in stats.get("indexers", [])
             ]
@@ -174,7 +162,7 @@ class ProwlarrAdapter(TokenAuthAdapter):
                     "seeders": result.get("seeders"),
                     "leechers": result.get("leechers"),
                     "categories": result.get("categories", []),
-                    "download_url": result.get("downloadUrl")
+                    "download_url": result.get("downloadUrl"),
                 }
                 for result in results[:limit]
             ]
@@ -194,7 +182,7 @@ class ProwlarrAdapter(TokenAuthAdapter):
                     "name": app.get("name"),
                     "sync_level": app.get("syncLevel"),
                     "implementation": app.get("implementation"),
-                    "config_contract": app.get("configContract")
+                    "config_contract": app.get("configContract"),
                 }
                 for app in apps
             ]
@@ -221,7 +209,9 @@ class ProwlarrAdapter(TokenAuthAdapter):
                 "total_queries": total_queries,
                 "total_grabs": total_grabs,
                 "total_failures": total_failures,
-                "success_rate": round((total_queries - total_failures) / total_queries * 100, 2) if total_queries > 0 else 100
+                "success_rate": round((total_queries - total_failures) / total_queries * 100, 2)
+                if total_queries > 0
+                else 100,
             }
         except Exception as e:
             self.logger.error(f"Failed to get statistics: {e}")
@@ -232,7 +222,7 @@ class ProwlarrAdapter(TokenAuthAdapter):
                 "total_queries": 0,
                 "total_grabs": 0,
                 "total_failures": 0,
-                "success_rate": 0
+                "success_rate": 0,
             }
 
     async def test_indexer(self, indexer_id: int) -> Dict[str, Any]:
@@ -244,18 +234,13 @@ class ProwlarrAdapter(TokenAuthAdapter):
             indexer_name = indexer_config.get("name", f"Indexer {indexer_id}")
 
             # Then test it
-            test_response = await self._make_request(
-                "POST",
-                "/api/v1/indexer/test",
-                json=indexer_config,
-                timeout=60.0
-            )
+            await self._make_request("POST", "/api/v1/indexer/test", json=indexer_config, timeout=60.0)
 
             return {
                 "success": True,
                 "indexer_id": indexer_id,
                 "indexer_name": indexer_name,
-                "message": "Indexer test passed"
+                "message": "Indexer test passed",
             }
         except httpx.HTTPStatusError as e:
             error_msg = "Test failed"
@@ -268,17 +253,9 @@ class ProwlarrAdapter(TokenAuthAdapter):
             except Exception:
                 error_msg = str(e)
 
-            return {
-                "success": False,
-                "indexer_id": indexer_id,
-                "error": error_msg
-            }
+            return {"success": False, "indexer_id": indexer_id, "error": error_msg}
         except Exception as e:
-            return {
-                "success": False,
-                "indexer_id": indexer_id,
-                "error": str(e)
-            }
+            return {"success": False, "indexer_id": indexer_id, "error": str(e)}
 
     async def test_all_indexers(self) -> Dict[str, Any]:
         """Test all enabled indexers."""
@@ -296,5 +273,5 @@ class ProwlarrAdapter(TokenAuthAdapter):
             "total_tested": len(results),
             "success_count": success_count,
             "failed_count": len(results) - success_count,
-            "results": results
+            "results": results,
         }

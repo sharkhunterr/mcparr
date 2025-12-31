@@ -3,14 +3,15 @@
 import asyncio
 import random
 import time
-from datetime import datetime, timedelta
-from typing import Dict, List, Any, Optional
+from datetime import datetime
+from typing import Any, Dict, List, Optional
 
 import psutil
 from loguru import logger
 
 try:
     import docker
+
     DOCKER_AVAILABLE = True
 except ImportError:
     DOCKER_AVAILABLE = False
@@ -41,7 +42,7 @@ class SystemMonitorService:
             memory_percent = memory.percent
 
             # Disk usage
-            disk = psutil.disk_usage('/')
+            disk = psutil.disk_usage("/")
             disk_used_gb = round(disk.used / 1024 / 1024 / 1024, 2)
             disk_total_gb = round(disk.total / 1024 / 1024 / 1024, 2)
             disk_percent = round((disk.used / disk.total) * 100, 1)
@@ -101,9 +102,9 @@ class SystemMonitorService:
             images = self.docker_client.images.list()
             volumes = self.docker_client.volumes.list()
 
-            running = sum(1 for c in containers if c.status == 'running')
-            stopped = sum(1 for c in containers if c.status in ['exited', 'stopped'])
-            paused = sum(1 for c in containers if c.status == 'paused')
+            running = sum(1 for c in containers if c.status == "running")
+            stopped = sum(1 for c in containers if c.status in ["exited", "stopped"])
+            paused = sum(1 for c in containers if c.status == "paused")
 
             return {
                 "containers_running": running,
@@ -127,19 +128,21 @@ class SystemMonitorService:
         """Get list of running processes."""
         try:
             processes = []
-            for proc in psutil.process_iter(['pid', 'name', 'cpu_percent', 'memory_percent']):
+            for proc in psutil.process_iter(["pid", "name", "cpu_percent", "memory_percent"]):
                 try:
-                    processes.append({
-                        "pid": proc.info['pid'],
-                        "name": proc.info['name'],
-                        "cpu_percent": proc.info['cpu_percent'] or 0,
-                        "memory_percent": proc.info['memory_percent'] or 0,
-                    })
+                    processes.append(
+                        {
+                            "pid": proc.info["pid"],
+                            "name": proc.info["name"],
+                            "cpu_percent": proc.info["cpu_percent"] or 0,
+                            "memory_percent": proc.info["memory_percent"] or 0,
+                        }
+                    )
                 except (psutil.NoSuchProcess, psutil.AccessDenied):
                     continue
 
             # Sort by CPU usage and return top N
-            processes.sort(key=lambda x: x['cpu_percent'], reverse=True)
+            processes.sort(key=lambda x: x["cpu_percent"], reverse=True)
             return processes[:limit]
 
         except Exception as e:
@@ -147,10 +150,7 @@ class SystemMonitorService:
             return []
 
     async def get_metrics_history(
-        self,
-        start_time: datetime,
-        end_time: datetime,
-        interval_seconds: int = 60
+        self, start_time: datetime, end_time: datetime, interval_seconds: int = 60
     ) -> Dict[str, List[float]]:
         """Get historical metrics data (mock implementation for now)."""
         # For now, generate realistic mock data
@@ -170,7 +170,7 @@ class SystemMonitorService:
         network_sent_data = []
         network_recv_data = []
 
-        for i in range(points):
+        for _i in range(points):
             # Add some realistic variation
             cpu_variation = random.uniform(-10, 10)
             memory_variation = random.uniform(-5, 5)
@@ -200,11 +200,7 @@ class SystemMonitorService:
             "collected_at": datetime.utcnow().isoformat(),
         }
 
-    async def start_metrics_collection(
-        self,
-        interval_seconds: int = 60,
-        callback: Optional[callable] = None
-    ):
+    async def start_metrics_collection(self, interval_seconds: int = 60, callback: Optional[callable] = None):
         """Start background metrics collection."""
         logger.info(f"Starting metrics collection with {interval_seconds}s interval")
 
@@ -222,7 +218,7 @@ class SystemMonitorService:
                         "action": "metrics_collected",
                         "cpu_percent": metrics.get("cpu_percent"),
                         "memory_percent": metrics.get("memory_percent"),
-                    }
+                    },
                 )
 
             except Exception as e:

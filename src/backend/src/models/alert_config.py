@@ -1,19 +1,18 @@
 """Alert configuration model for monitoring and notifications."""
 
 from datetime import datetime
-from typing import Optional, Dict, Any, List
+from typing import Any, Dict, List, Optional
 
-from sqlalchemy import DateTime, String, Text, JSON, Boolean, Integer, Float
+from sqlalchemy import JSON, Boolean, DateTime, Float, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from .base import (
-    Base,
-    UUIDMixin,
-    TimestampMixin,
     AlertSeverity,
+    Base,
     MetricType,
     ThresholdOperator,
-    DestinationType
+    TimestampMixin,
+    UUIDMixin,
 )
 
 
@@ -28,93 +27,44 @@ class AlertConfiguration(Base, UUIDMixin, TimestampMixin):
     enabled: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
     # Alert type and severity
-    severity: Mapped[str] = mapped_column(
-        String(20),
-        nullable=False,
-        default=AlertSeverity.MEDIUM.value
-    )
+    severity: Mapped[str] = mapped_column(String(20), nullable=False, default=AlertSeverity.MEDIUM.value)
 
-    metric_type: Mapped[str] = mapped_column(
-        String(50),
-        nullable=False,
-        default=MetricType.CPU.value
-    )
+    metric_type: Mapped[str] = mapped_column(String(50), nullable=False, default=MetricType.CPU.value)
 
     # Threshold configuration
-    threshold_operator: Mapped[str] = mapped_column(
-        String(10),
-        nullable=False,
-        default=ThresholdOperator.GT.value
-    )
+    threshold_operator: Mapped[str] = mapped_column(String(10), nullable=False, default=ThresholdOperator.GT.value)
 
-    threshold_value: Mapped[float] = mapped_column(
-        Float,
-        nullable=False
-    )
+    threshold_value: Mapped[float] = mapped_column(Float, nullable=False)
 
     # Duration before triggering (in seconds)
-    duration_seconds: Mapped[int] = mapped_column(
-        Integer,
-        nullable=False,
-        default=60
-    )
+    duration_seconds: Mapped[int] = mapped_column(Integer, nullable=False, default=60)
 
     # Service-specific alert (optional)
-    service_id: Mapped[Optional[str]] = mapped_column(
-        String(36),
-        nullable=True,
-        index=True
-    )
+    service_id: Mapped[Optional[str]] = mapped_column(String(36), nullable=True, index=True)
 
-    service_type: Mapped[Optional[str]] = mapped_column(
-        String(50),
-        nullable=True
-    )
+    service_type: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
 
     # Notification settings
     notification_channels: Mapped[List[str]] = mapped_column(
-        JSON,
-        nullable=False,
-        default=list
+        JSON, nullable=False, default=list
     )  # List of destination types: ["email", "webhook", "slack"]
 
     notification_config: Mapped[Dict[str, Any]] = mapped_column(
-        JSON,
-        nullable=False,
-        default=dict
+        JSON, nullable=False, default=dict
     )  # Channel-specific config (emails, webhook URLs, etc.)
 
     # Cooldown to prevent alert spam
-    cooldown_minutes: Mapped[int] = mapped_column(
-        Integer,
-        nullable=False,
-        default=15
-    )
+    cooldown_minutes: Mapped[int] = mapped_column(Integer, nullable=False, default=15)
 
     # Alert state
-    last_triggered_at: Mapped[Optional[datetime]] = mapped_column(
-        DateTime,
-        nullable=True
-    )
+    last_triggered_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
 
-    trigger_count: Mapped[int] = mapped_column(
-        Integer,
-        nullable=False,
-        default=0
-    )
+    trigger_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
 
-    is_firing: Mapped[bool] = mapped_column(
-        Boolean,
-        nullable=False,
-        default=False
-    )
+    is_firing: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
     # Additional metadata
-    tags: Mapped[Dict[str, str]] = mapped_column(
-        JSON,
-        nullable=False,
-        default=dict
-    )
+    tags: Mapped[Dict[str, str]] = mapped_column(JSON, nullable=False, default=dict)
 
     def __repr__(self) -> str:
         return f"<AlertConfiguration {self.id[:8]} {self.name} [{self.severity}]>"
@@ -171,32 +121,17 @@ class AlertHistory(Base, UUIDMixin, TimestampMixin):
     __tablename__ = "alert_history"
 
     # Reference to alert configuration
-    alert_config_id: Mapped[str] = mapped_column(
-        String(36),
-        nullable=False,
-        index=True
-    )
+    alert_config_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
 
     alert_name: Mapped[str] = mapped_column(String(100), nullable=False)
     severity: Mapped[str] = mapped_column(String(20), nullable=False)
 
     # Trigger details
-    triggered_at: Mapped[datetime] = mapped_column(
-        DateTime,
-        nullable=False,
-        default=datetime.utcnow
-    )
+    triggered_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=datetime.utcnow)
 
-    resolved_at: Mapped[Optional[datetime]] = mapped_column(
-        DateTime,
-        nullable=True
-    )
+    resolved_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
 
-    is_resolved: Mapped[bool] = mapped_column(
-        Boolean,
-        nullable=False,
-        default=False
-    )
+    is_resolved: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
     # Values at time of trigger
     metric_value: Mapped[float] = mapped_column(Float, nullable=False)
@@ -207,17 +142,9 @@ class AlertHistory(Base, UUIDMixin, TimestampMixin):
     message: Mapped[str] = mapped_column(Text, nullable=False)
 
     # Notification status
-    notifications_sent: Mapped[bool] = mapped_column(
-        Boolean,
-        nullable=False,
-        default=False
-    )
+    notifications_sent: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
-    notification_details: Mapped[Dict[str, Any]] = mapped_column(
-        JSON,
-        nullable=False,
-        default=dict
-    )
+    notification_details: Mapped[Dict[str, Any]] = mapped_column(JSON, nullable=False, default=dict)
 
     def __repr__(self) -> str:
         status = "resolved" if self.is_resolved else "firing"

@@ -1,6 +1,7 @@
 """MCP tools for Audiobookshelf integration."""
 
 from typing import List
+
 from .base import BaseTool, ToolDefinition, ToolParameter
 
 
@@ -147,10 +148,7 @@ class AudiobookshelfTools(BaseTool):
     async def execute(self, tool_name: str, arguments: dict) -> dict:
         """Execute an Audiobookshelf tool."""
         if not self.service_config:
-            return {
-                "success": False,
-                "error": "Audiobookshelf service not configured"
-            }
+            return {"success": False, "error": "Audiobookshelf service not configured"}
 
         try:
             from src.adapters.audiobookshelf import AudiobookshelfAdapter
@@ -198,13 +196,7 @@ class AudiobookshelfTools(BaseTool):
         """Get libraries from Audiobookshelf."""
         libraries = await adapter.get_libraries()
 
-        return {
-            "success": True,
-            "result": {
-                "count": len(libraries),
-                "libraries": libraries
-            }
-        }
+        return {"success": True, "result": {"count": len(libraries), "libraries": libraries}}
 
     async def _get_library_items(self, adapter, arguments: dict) -> dict:
         """Get library items from Audiobookshelf."""
@@ -212,16 +204,9 @@ class AudiobookshelfTools(BaseTool):
         limit = arguments.get("limit", 50)
         page = arguments.get("page", 0)
 
-        result = await adapter.get_library_items(
-            library_id=library_id,
-            limit=limit,
-            page=page
-        )
+        result = await adapter.get_library_items(library_id=library_id, limit=limit, page=page)
 
-        return {
-            "success": True,
-            "result": result
-        }
+        return {"success": True, "result": result}
 
     async def _get_item(self, adapter, arguments: dict) -> dict:
         """Get a specific item from Audiobookshelf."""
@@ -229,15 +214,9 @@ class AudiobookshelfTools(BaseTool):
         item = await adapter.get_item(item_id)
 
         if item:
-            return {
-                "success": True,
-                "result": item
-            }
+            return {"success": True, "result": item}
         else:
-            return {
-                "success": False,
-                "error": f"Item not found: {item_id}"
-            }
+            return {"success": False, "error": f"Item not found: {item_id}"}
 
     async def _search(self, adapter, arguments: dict) -> dict:
         """Search in Audiobookshelf."""
@@ -256,61 +235,37 @@ class AudiobookshelfTools(BaseTool):
                 "podcasts_count": len(results.get("podcast", [])),
                 "authors_count": len(results.get("authors", [])),
                 "series_count": len(results.get("series", [])),
-                "results": results
-            }
+                "results": results,
+            },
         }
 
     async def _get_users(self, adapter) -> dict:
         """Get users from Audiobookshelf."""
         users = await adapter.get_users()
 
-        return {
-            "success": True,
-            "result": {
-                "count": len(users),
-                "users": users
-            }
-        }
+        return {"success": True, "result": {"count": len(users), "users": users}}
 
     async def _get_listening_stats(self, adapter, arguments: dict) -> dict:
         """Get listening statistics."""
         user_id = arguments.get("user_id")
         stats = await adapter.get_listening_stats(user_id=user_id)
 
-        return {
-            "success": True,
-            "result": stats
-        }
+        return {"success": True, "result": stats}
 
     async def _get_media_progress(self, adapter, arguments: dict) -> dict:
         """Get media progress."""
         library_item_id = arguments.get("library_item_id")
         episode_id = arguments.get("episode_id")
 
-        progress = await adapter.get_media_progress(
-            library_item_id=library_item_id,
-            episode_id=episode_id
-        )
+        progress = await adapter.get_media_progress(library_item_id=library_item_id, episode_id=episode_id)
 
         if progress:
-            return {
-                "success": True,
-                "result": progress
-            }
+            return {"success": True, "result": progress}
         else:
-            return {
-                "success": True,
-                "result": {
-                    "message": "No progress found for this item",
-                    "progress": 0
-                }
-            }
+            return {"success": True, "result": {"message": "No progress found for this item", "progress": 0}}
 
     async def _get_statistics(self, adapter) -> dict:
         """Get statistics."""
         stats = await adapter.get_statistics()
 
-        return {
-            "success": True,
-            "result": stats
-        }
+        return {"success": True, "result": stats}

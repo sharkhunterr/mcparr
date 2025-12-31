@@ -1,17 +1,16 @@
 """WebSocket service for real-time training updates."""
 
-import asyncio
-import json
 from datetime import datetime
-from typing import Any, Callable, Dict, List, Optional, Set
 from enum import Enum
+from typing import Any, Callable, Dict, List, Set
 
-from fastapi import WebSocket, WebSocketDisconnect
+from fastapi import WebSocket
 from loguru import logger
 
 
 class WSMessageType(str, Enum):
     """WebSocket message types."""
+
     # Worker → Backend
     CONNECTED = "connected"
     PROGRESS_UPDATE = "progress_update"
@@ -70,11 +69,14 @@ class ConnectionManager:
 
     async def cancel_worker_job(self, job_id: str):
         """Send cancel request to worker."""
-        await self.send_to_worker(job_id, {
-            "type": WSMessageType.CANCEL_JOB.value,
-            "job_id": job_id,
-            "timestamp": datetime.utcnow().isoformat(),
-        })
+        await self.send_to_worker(
+            job_id,
+            {
+                "type": WSMessageType.CANCEL_JOB.value,
+                "job_id": job_id,
+                "timestamp": datetime.utcnow().isoformat(),
+            },
+        )
 
     # ============= Frontend Connections =============
 
@@ -173,22 +175,27 @@ class ConnectionManager:
         metrics = message.get("data", {}).get("metrics", {})
 
         # Forward to frontend subscribers
-        await self.send_to_session_subscribers(session_id, {
-            "type": WSMessageType.SESSION_UPDATE.value,
-            "session_id": session_id,
-            "update_type": "progress",
-            "data": metrics,
-            "timestamp": datetime.utcnow().isoformat(),
-        })
+        await self.send_to_session_subscribers(
+            session_id,
+            {
+                "type": WSMessageType.SESSION_UPDATE.value,
+                "session_id": session_id,
+                "update_type": "progress",
+                "data": metrics,
+                "timestamp": datetime.utcnow().isoformat(),
+            },
+        )
 
         # Also broadcast to all frontend clients
-        await self.broadcast_to_frontend({
-            "type": WSMessageType.SESSION_UPDATE.value,
-            "session_id": session_id,
-            "update_type": "progress",
-            "data": metrics,
-            "timestamp": datetime.utcnow().isoformat(),
-        })
+        await self.broadcast_to_frontend(
+            {
+                "type": WSMessageType.SESSION_UPDATE.value,
+                "session_id": session_id,
+                "update_type": "progress",
+                "data": metrics,
+                "timestamp": datetime.utcnow().isoformat(),
+            }
+        )
 
         # Trigger callbacks for database update
         for callback in self._session_update_callbacks:
@@ -201,36 +208,44 @@ class ConnectionManager:
         """Handle metrics update from worker."""
         metrics = message.get("data", {}).get("metrics", {})
 
-        await self.send_to_session_subscribers(session_id, {
-            "type": WSMessageType.SESSION_UPDATE.value,
-            "session_id": session_id,
-            "update_type": "metrics",
-            "data": metrics,
-            "timestamp": datetime.utcnow().isoformat(),
-        })
+        await self.send_to_session_subscribers(
+            session_id,
+            {
+                "type": WSMessageType.SESSION_UPDATE.value,
+                "session_id": session_id,
+                "update_type": "metrics",
+                "data": metrics,
+                "timestamp": datetime.utcnow().isoformat(),
+            },
+        )
 
     async def _handle_log_line(self, session_id: str, message: Dict[str, Any]):
         """Handle log line from worker."""
         log = message.get("data", {}).get("log", {})
 
-        await self.send_to_session_subscribers(session_id, {
-            "type": WSMessageType.LOG_LINE.value,
-            "session_id": session_id,
-            "data": log,
-            "timestamp": datetime.utcnow().isoformat(),
-        })
+        await self.send_to_session_subscribers(
+            session_id,
+            {
+                "type": WSMessageType.LOG_LINE.value,
+                "session_id": session_id,
+                "data": log,
+                "timestamp": datetime.utcnow().isoformat(),
+            },
+        )
 
     async def _handle_job_started(self, session_id: str, message: Dict[str, Any]):
         """Handle job started notification."""
         data = message.get("data", {})
 
-        await self.broadcast_to_frontend({
-            "type": WSMessageType.SESSION_UPDATE.value,
-            "session_id": session_id,
-            "update_type": "started",
-            "data": data,
-            "timestamp": datetime.utcnow().isoformat(),
-        })
+        await self.broadcast_to_frontend(
+            {
+                "type": WSMessageType.SESSION_UPDATE.value,
+                "session_id": session_id,
+                "update_type": "started",
+                "data": data,
+                "timestamp": datetime.utcnow().isoformat(),
+            }
+        )
 
         for callback in self._session_update_callbacks:
             try:
@@ -242,13 +257,15 @@ class ConnectionManager:
         """Handle job completed notification."""
         data = message.get("data", {})
 
-        await self.broadcast_to_frontend({
-            "type": WSMessageType.SESSION_UPDATE.value,
-            "session_id": session_id,
-            "update_type": "completed",
-            "data": data,
-            "timestamp": datetime.utcnow().isoformat(),
-        })
+        await self.broadcast_to_frontend(
+            {
+                "type": WSMessageType.SESSION_UPDATE.value,
+                "session_id": session_id,
+                "update_type": "completed",
+                "data": data,
+                "timestamp": datetime.utcnow().isoformat(),
+            }
+        )
 
         for callback in self._session_update_callbacks:
             try:
@@ -260,13 +277,15 @@ class ConnectionManager:
         """Handle job failed notification."""
         data = message.get("data", {})
 
-        await self.broadcast_to_frontend({
-            "type": WSMessageType.SESSION_UPDATE.value,
-            "session_id": session_id,
-            "update_type": "failed",
-            "data": data,
-            "timestamp": datetime.utcnow().isoformat(),
-        })
+        await self.broadcast_to_frontend(
+            {
+                "type": WSMessageType.SESSION_UPDATE.value,
+                "session_id": session_id,
+                "update_type": "failed",
+                "data": data,
+                "timestamp": datetime.utcnow().isoformat(),
+            }
+        )
 
         for callback in self._session_update_callbacks:
             try:
@@ -278,13 +297,15 @@ class ConnectionManager:
         """Handle job cancelled notification."""
         data = message.get("data", {})
 
-        await self.broadcast_to_frontend({
-            "type": WSMessageType.SESSION_UPDATE.value,
-            "session_id": session_id,
-            "update_type": "cancelled",
-            "data": data,
-            "timestamp": datetime.utcnow().isoformat(),
-        })
+        await self.broadcast_to_frontend(
+            {
+                "type": WSMessageType.SESSION_UPDATE.value,
+                "session_id": session_id,
+                "update_type": "cancelled",
+                "data": data,
+                "timestamp": datetime.utcnow().isoformat(),
+            }
+        )
 
         for callback in self._session_update_callbacks:
             try:

@@ -1,6 +1,7 @@
 """MCP tools for Plex integration."""
 
-from typing import List, Optional
+from typing import List
+
 from .base import BaseTool, ToolDefinition, ToolParameter
 
 
@@ -119,10 +120,7 @@ class PlexTools(BaseTool):
     async def execute(self, tool_name: str, arguments: dict) -> dict:
         """Execute a Plex tool."""
         if not self.service_config:
-            return {
-                "success": False,
-                "error": "Plex service not configured"
-            }
+            return {"success": False, "error": "Plex service not configured"}
 
         try:
             # Import adapter here to avoid circular imports
@@ -177,7 +175,7 @@ class PlexTools(BaseTool):
                     }
                     for lib in libraries
                 ]
-            }
+            },
         }
 
     async def _search_media(self, adapter, arguments: dict) -> dict:
@@ -198,13 +196,15 @@ class PlexTools(BaseTool):
                         "title": item.get("title"),
                         "type": item.get("type"),
                         "year": item.get("year"),
-                        "summary": item.get("summary", "")[:200] + "..." if item.get("summary") and len(item.get("summary", "")) > 200 else item.get("summary"),
+                        "summary": item.get("summary", "")[:200] + "..."
+                        if item.get("summary") and len(item.get("summary", "")) > 200
+                        else item.get("summary"),
                         "rating": item.get("rating"),
                         "duration_minutes": item.get("duration", 0) // 60000 if item.get("duration") else None,
                     }
                     for item in results[:limit]
-                ]
-            }
+                ],
+            },
         }
 
     async def _get_recently_added(self, adapter, arguments: dict) -> dict:
@@ -227,8 +227,8 @@ class PlexTools(BaseTool):
                         "library": item.get("librarySectionTitle"),
                     }
                     for item in items
-                ]
-            }
+                ],
+            },
         }
 
     async def _get_on_deck(self, adapter, arguments: dict) -> dict:
@@ -248,11 +248,13 @@ class PlexTools(BaseTool):
                         "type": item.get("type"),
                         "view_offset": item.get("viewOffset"),
                         "duration": item.get("duration"),
-                        "progress_percent": round((item.get("viewOffset", 0) / item.get("duration", 1)) * 100) if item.get("duration") else 0,
+                        "progress_percent": round((item.get("viewOffset", 0) / item.get("duration", 1)) * 100)
+                        if item.get("duration")
+                        else 0,
                     }
                     for item in items
-                ]
-            }
+                ],
+            },
         }
 
     async def _get_media_details(self, adapter, arguments: dict) -> dict:
@@ -270,7 +272,7 @@ class PlexTools(BaseTool):
         if not results:
             return {
                 "success": False,
-                "error": f"No media found with title '{title}'" + (f" and year {year}" if year else "")
+                "error": f"No media found with title '{title}'" + (f" and year {year}" if year else ""),
             }
 
         item = results[0]
@@ -290,7 +292,7 @@ class PlexTools(BaseTool):
                 "actors": item.get("Role", [])[:5],  # Limit actors
                 "studio": item.get("studio"),
                 "added_at": item.get("addedAt"),
-            }
+            },
         }
 
     async def _get_active_sessions(self, adapter) -> dict:
@@ -309,9 +311,11 @@ class PlexTools(BaseTool):
                         "type": session.get("type"),
                         "player": session.get("Player", {}).get("title"),
                         "state": session.get("Player", {}).get("state"),
-                        "progress_percent": round((session.get("viewOffset", 0) / session.get("duration", 1)) * 100) if session.get("duration") else 0,
+                        "progress_percent": round((session.get("viewOffset", 0) / session.get("duration", 1)) * 100)
+                        if session.get("duration")
+                        else 0,
                     }
                     for session in sessions
-                ]
-            }
+                ],
+            },
         }

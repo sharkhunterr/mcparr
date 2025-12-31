@@ -87,7 +87,7 @@ def log_request(
             "correlation_id": correlation_id,
             "user_agent": user_agent,
             "ip_address": ip_address,
-        }
+        },
     )
 
 
@@ -106,7 +106,7 @@ def log_error(
             "error_message": str(error),
             "correlation_id": correlation_id,
             "context": context or {},
-        }
+        },
     )
 
 
@@ -134,5 +134,5 @@ def log_service_call(
             "duration_ms": duration_ms,
             "correlation_id": correlation_id,
             "details": details or {},
-        }
+        },
     )

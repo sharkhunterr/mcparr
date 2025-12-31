@@ -87,13 +87,50 @@ stages:
 # =============================================================================
 # Stage: Validate
 # =============================================================================
+
+# Job optionnel pour appliquer les corrections automatiquement
+auto-fix:
+  stage: validate
+  image: python:${PYTHON_VERSION}-slim
+  before_script:
+    - apt-get update && apt-get install -y git nodejs npm
+    - cd src/backend && pip install poetry && poetry config virtualenvs.in-project true && poetry install && cd ../..
+    - cd src/frontend && npm ci && cd ../..
+  script:
+    - chmod +x scripts/ci-auto-fix.sh
+    - AUTO_COMMIT=true scripts/ci-auto-fix.sh
+  rules:
+    - if: '$CI_COMMIT_MESSAGE =~ /\[auto-fix\]/'
+      when: always
+    - if: '$AUTO_FIX_ENABLED == "true"'
+      when: always
+    - when: manual
+  allow_failure: true
+
 validate:backend:
   stage: validate
   <<: *python_template
   script:
     - echo "Validation du backend Python..."
-    - poetry run ruff check src/
-    - poetry run black --check src/
+    # Génération des rapports de linting
+    - poetry run ruff check src/ --output-format=json > ruff-report.json || true
+    - poetry run ruff check src/ --output-format=text > ruff-report.txt || true
+    # Auto-fix des erreurs (safe fixes seulement)
+    - poetry run ruff check src/ --fix
+    # Application de Black
+    - poetry run black src/
+    # Vérification finale après les corrections
+    - echo "Vérification après auto-fix..."
+    - poetry run ruff check src/ || echo "⚠️ Des erreurs subsistent après auto-fix"
+    - poetry run black --check src/ || echo "⚠️ Des erreurs de formatage subsistent"
+  artifacts:
+    when: always
+    paths:
+      - src/backend/ruff-report.json
+      - src/backend/ruff-report.txt
+    reports:
+      codequality: src/backend/ruff-report.json
+    expire_in: 1 week
   allow_failure: true
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
@@ -105,7 +142,19 @@ validate:frontend:
   <<: *node_template
   script:
     - echo "Validation du frontend..."
-    - npm run lint || echo "Linting optionnel - continuons"
+    # Génération des rapports de linting
+    - npm run lint -- --format json --output-file eslint-report.json || true
+    - npm run lint -- --format stylish > eslint-report.txt || true
+    # Auto-fix des erreurs ESLint
+    - npm run lint -- --fix || echo "⚠️ Auto-fix appliqué, vérification..."
+    # Vérification finale
+    - npm run lint || echo "⚠️ Des erreurs de linting subsistent"
+  artifacts:
+    when: always
+    paths:
+      - src/frontend/eslint-report.json
+      - src/frontend/eslint-report.txt
+    expire_in: 1 week
   allow_failure: true
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'

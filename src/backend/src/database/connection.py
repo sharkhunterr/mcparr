@@ -4,20 +4,14 @@ import os
 from typing import AsyncGenerator
 
 from sqlalchemy.ext.asyncio import (
+    AsyncEngine,
     AsyncSession,
     async_sessionmaker,
     create_async_engine,
-    AsyncEngine,
 )
-from sqlalchemy.orm import sessionmaker
 
-from src.models.base import Base
 # Import all models to register them with Base.metadata
-from src.models import (
-    SystemMetric, ConfigurationSetting, ServiceConfig, ServiceHealthHistory,
-    UserMapping, UserSync, LogEntry, AlertConfiguration, AlertHistory,
-    TrainingWorker, WorkerMetricsSnapshot
-)
+from src.models.base import Base
 
 
 class DatabaseManager:
@@ -68,10 +62,7 @@ database_manager: DatabaseManager = None
 
 def get_database_url() -> str:
     """Get database URL from environment."""
-    return os.getenv(
-        "DATABASE_URL",
-        "sqlite+aiosqlite:///./data/mcparr.db"
-    )
+    return os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./data/mcparr.db")
 
 
 def init_database() -> DatabaseManager:

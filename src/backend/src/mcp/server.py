@@ -8,7 +8,7 @@ import asyncio
 import json
 import sys
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, List, Optional
 from uuid import uuid4
 
 from .tools.base import ToolRegistry
@@ -38,19 +38,19 @@ class MCPServer:
         Args:
             service_configs: List of enabled service configurations from database
         """
-        from .tools.plex_tools import PlexTools
-        from .tools.overseerr_tools import OverseerrTools
-        from .tools.zammad_tools import ZammadTools
-        from .tools.tautulli_tools import TautulliTools
-        from .tools.system_tools import SystemTools
-        from .tools.openwebui_tools import OpenWebUITools
-        from .tools.radarr_tools import RadarrTools
-        from .tools.sonarr_tools import SonarrTools
-        from .tools.prowlarr_tools import ProwlarrTools
-        from .tools.jackett_tools import JackettTools
         from .tools.deluge_tools import DelugeTools
+        from .tools.jackett_tools import JackettTools
         from .tools.komga_tools import KomgaTools
+        from .tools.openwebui_tools import OpenWebUITools
+        from .tools.overseerr_tools import OverseerrTools
+        from .tools.plex_tools import PlexTools
+        from .tools.prowlarr_tools import ProwlarrTools
+        from .tools.radarr_tools import RadarrTools
         from .tools.romm_tools import RommTools
+        from .tools.sonarr_tools import SonarrTools
+        from .tools.system_tools import SystemTools
+        from .tools.tautulli_tools import TautulliTools
+        from .tools.zammad_tools import ZammadTools
 
         # Build service config lookup from enabled services only
         configs_by_type = {}
@@ -123,14 +123,12 @@ class MCPServer:
 
     async def _handle_initialize(self, params: dict) -> dict:
         """Handle initialize request."""
-        client_info = params.get("clientInfo", {})
+        params.get("clientInfo", {})
 
         return {
             "protocolVersion": self.PROTOCOL_VERSION,
             "capabilities": {
-                "tools": {
-                    "listChanged": False  # We don't support dynamic tool changes
-                },
+                "tools": {"listChanged": False},  # We don't support dynamic tool changes
             },
             "serverInfo": {
                 "name": self.SERVER_NAME,
@@ -181,22 +179,12 @@ class MCPServer:
         # Format response according to MCP spec
         if result.get("success", False):
             return {
-                "content": [
-                    {
-                        "type": "text",
-                        "text": json.dumps(result.get("result", {}), indent=2, default=str)
-                    }
-                ],
+                "content": [{"type": "text", "text": json.dumps(result.get("result", {}), indent=2, default=str)}],
                 "isError": False,
             }
         else:
             return {
-                "content": [
-                    {
-                        "type": "text",
-                        "text": f"Error: {result.get('error', 'Unknown error')}"
-                    }
-                ],
+                "content": [{"type": "text", "text": f"Error: {result.get('error', 'Unknown error')}"}],
                 "isError": True,
             }
 
@@ -215,7 +203,9 @@ class MCPServer:
                 request = McpRequest(
                     session_id=self._session_id,
                     tool_name=tool_name,
-                    tool_category=McpToolCategory(category) if category in [e.value for e in McpToolCategory] else McpToolCategory.SYSTEM,
+                    tool_category=McpToolCategory(category)
+                    if category in [e.value for e in McpToolCategory]
+                    else McpToolCategory.SYSTEM,
                     input_params=arguments,
                     status=McpRequestStatus.PROCESSING,
                     is_mutation=is_mutation,
@@ -238,8 +228,9 @@ class MCPServer:
     ) -> None:
         """Log the completion of an MCP request."""
         try:
-            from src.models import McpRequest, McpRequestStatus
             from sqlalchemy import select
+
+            from src.models import McpRequest
 
             async with self.db_session_factory() as session:
                 stmt = select(McpRequest).where(McpRequest.id == request_id)
@@ -252,7 +243,7 @@ class MCPServer:
                     else:
                         request.mark_failed(
                             error_message=result.get("error", "Unknown error"),
-                            error_type=result.get("error_type", "Error")
+                            error_type=result.get("error_type", "Error"),
                         )
                     request.duration_ms = duration_ms
                     await session.commit()
@@ -285,9 +276,7 @@ class MCPServer:
         while True:
             try:
                 # Read line from stdin
-                line = await asyncio.get_event_loop().run_in_executor(
-                    None, sys.stdin.readline
-                )
+                line = await asyncio.get_event_loop().run_in_executor(None, sys.stdin.readline)
 
                 if not line:
                     break

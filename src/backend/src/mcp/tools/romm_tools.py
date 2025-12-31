@@ -1,6 +1,7 @@
 """MCP tools for RomM integration."""
 
 from typing import List
+
 from .base import BaseTool, ToolDefinition, ToolParameter
 
 
@@ -84,10 +85,7 @@ class RommTools(BaseTool):
     async def execute(self, tool_name: str, arguments: dict) -> dict:
         """Execute a RomM tool."""
         if not self.service_config:
-            return {
-                "success": False,
-                "error": "RomM service not configured"
-            }
+            return {"success": False, "error": "RomM service not configured"}
 
         try:
             from src.adapters.romm import RommAdapter
@@ -131,13 +129,7 @@ class RommTools(BaseTool):
         """Get platforms from RomM."""
         platforms = await adapter.get_platforms()
 
-        return {
-            "success": True,
-            "result": {
-                "count": len(platforms),
-                "platforms": platforms
-            }
-        }
+        return {"success": True, "result": {"count": len(platforms), "platforms": platforms}}
 
     async def _get_roms(self, adapter, arguments: dict) -> dict:
         """Get ROMs from RomM."""
@@ -145,57 +137,29 @@ class RommTools(BaseTool):
         limit = arguments.get("limit", 50)
         roms = await adapter.get_roms(platform_id=platform_id, limit=limit)
 
-        return {
-            "success": True,
-            "result": {
-                "count": len(roms),
-                "roms": roms
-            }
-        }
+        return {"success": True, "result": {"count": len(roms), "roms": roms}}
 
     async def _search_roms(self, adapter, arguments: dict) -> dict:
         """Search for ROMs."""
         query = arguments.get("query")
         results = await adapter.search_roms(query)
 
-        return {
-            "success": True,
-            "result": {
-                "query": query,
-                "count": len(results),
-                "results": results
-            }
-        }
+        return {"success": True, "result": {"query": query, "count": len(results), "results": results}}
 
     async def _get_collections(self, adapter) -> dict:
         """Get collections from RomM."""
         collections = await adapter.get_collections()
 
-        return {
-            "success": True,
-            "result": {
-                "count": len(collections),
-                "collections": collections
-            }
-        }
+        return {"success": True, "result": {"count": len(collections), "collections": collections}}
 
     async def _get_users(self, adapter) -> dict:
         """Get users from RomM."""
         users = await adapter.get_users()
 
-        return {
-            "success": True,
-            "result": {
-                "count": len(users),
-                "users": users
-            }
-        }
+        return {"success": True, "result": {"count": len(users), "users": users}}
 
     async def _get_statistics(self, adapter) -> dict:
         """Get statistics."""
         stats = await adapter.get_statistics()
 
-        return {
-            "success": True,
-            "result": stats
-        }
+        return {"success": True, "result": stats}

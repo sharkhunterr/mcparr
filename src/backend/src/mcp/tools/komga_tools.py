@@ -1,6 +1,7 @@
 """MCP tools for Komga integration."""
 
 from typing import List
+
 from .base import BaseTool, ToolDefinition, ToolParameter
 
 
@@ -98,10 +99,7 @@ class KomgaTools(BaseTool):
     async def execute(self, tool_name: str, arguments: dict) -> dict:
         """Execute a Komga tool."""
         if not self.service_config:
-            return {
-                "success": False,
-                "error": "Komga service not configured"
-            }
+            return {"success": False, "error": "Komga service not configured"}
 
         try:
             from src.adapters.komga import KomgaAdapter
@@ -145,13 +143,7 @@ class KomgaTools(BaseTool):
         """Get libraries from Komga."""
         libraries = await adapter.get_libraries()
 
-        return {
-            "success": True,
-            "result": {
-                "count": len(libraries),
-                "libraries": libraries
-            }
-        }
+        return {"success": True, "result": {"count": len(libraries), "libraries": libraries}}
 
     async def _get_series(self, adapter, arguments: dict) -> dict:
         """Get series from Komga."""
@@ -159,13 +151,7 @@ class KomgaTools(BaseTool):
         limit = arguments.get("limit", 50)
         series = await adapter.get_series(library_id=library_id, limit=limit)
 
-        return {
-            "success": True,
-            "result": {
-                "count": len(series),
-                "series": series
-            }
-        }
+        return {"success": True, "result": {"count": len(series), "series": series}}
 
     async def _get_books(self, adapter, arguments: dict) -> dict:
         """Get books from Komga."""
@@ -173,13 +159,7 @@ class KomgaTools(BaseTool):
         limit = arguments.get("limit", 50)
         books = await adapter.get_books(series_id=series_id, limit=limit)
 
-        return {
-            "success": True,
-            "result": {
-                "count": len(books),
-                "books": books
-            }
-        }
+        return {"success": True, "result": {"count": len(books), "books": books}}
 
     async def _search(self, adapter, arguments: dict) -> dict:
         """Search in Komga."""
@@ -192,27 +172,18 @@ class KomgaTools(BaseTool):
                 "query": query,
                 "series_count": len(results.get("series", [])),
                 "books_count": len(results.get("books", [])),
-                "results": results
-            }
+                "results": results,
+            },
         }
 
     async def _get_users(self, adapter) -> dict:
         """Get users from Komga."""
         users = await adapter.get_users()
 
-        return {
-            "success": True,
-            "result": {
-                "count": len(users),
-                "users": users
-            }
-        }
+        return {"success": True, "result": {"count": len(users), "users": users}}
 
     async def _get_statistics(self, adapter) -> dict:
         """Get statistics."""
         stats = await adapter.get_statistics()
 
-        return {
-            "success": True,
-            "result": stats
-        }
+        return {"success": True, "result": stats}

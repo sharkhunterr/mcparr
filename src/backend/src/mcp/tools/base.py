@@ -2,13 +2,13 @@
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, List, Optional, Type
-import json
+from typing import Any, Dict, List, Optional, Type
 
 
 @dataclass
 class ToolParameter:
     """Definition of a tool parameter."""
+
     name: str
     description: str
     type: str  # "string", "number", "boolean", "array", "object"
@@ -20,6 +20,7 @@ class ToolParameter:
 @dataclass
 class ToolDefinition:
     """Complete definition of an MCP tool."""
+
     name: str
     description: str
     parameters: List[ToolParameter] = field(default_factory=list)
@@ -54,7 +55,7 @@ class ToolDefinition:
                 "type": "object",
                 "properties": properties,
                 "required": required,
-            }
+            },
         }
 
 
@@ -135,17 +136,10 @@ class ToolRegistry:
         """Execute a tool by name with arguments."""
         tool = self.get_tool(tool_name)
         if not tool:
-            return {
-                "success": False,
-                "error": f"Unknown tool: {tool_name}"
-            }
+            return {"success": False, "error": f"Unknown tool: {tool_name}"}
 
         try:
             result = await tool.execute(tool_name, arguments)
             return result
         except Exception as e:
-            return {
-                "success": False,
-                "error": str(e),
-                "error_type": type(e).__name__
-            }
+            return {"success": False, "error": str(e), "error_type": type(e).__name__}

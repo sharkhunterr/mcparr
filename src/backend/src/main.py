@@ -1,6 +1,5 @@
 """MCParr AI Gateway - Main FastAPI application."""
 
-import os
 import traceback
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
@@ -11,18 +10,15 @@ from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import JSONResponse
 
 from src.config.settings import get_settings
-from src.database.connection import init_database, get_db_manager
-from src.middleware.logging import LoggingMiddleware, setup_logging
+from src.database.connection import get_db_manager, init_database
 from src.middleware.correlation_id import CorrelationIdMiddleware
+from src.middleware.logging import LoggingMiddleware
+from src.utils.logging import setup_logging
 from src.routers import health
 from src.services.log_service import log_service
 
 
-async def log_error_to_db(
-    request: Request,
-    exc: Exception,
-    status_code: int = 500
-) -> None:
+async def log_error_to_db(request: Request, exc: Exception, status_code: int = 500) -> None:
     """Log error to database for visibility in web UI."""
     try:
         db_manager = get_db_manager()
@@ -43,7 +39,7 @@ async def log_error_to_db(
                     "path": str(request.url.path),
                     "query": str(request.url.query) if request.url.query else None,
                     "status_code": status_code,
-                }
+                },
             )
     except Exception as log_err:
         # Don't let logging errors break the response
@@ -64,7 +60,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     await db_manager.create_tables()
 
     print(f"🚀 MCParr AI Gateway started on port {settings.api_port}")
-    print(f"📊 Web UI: http://localhost:3000")
+    print("📊 Web UI: http://localhost:3000")
     print(f"🔗 API Docs: http://localhost:{settings.api_port}/docs")
     print(f"🤖 MCP Server: http://localhost:{settings.mcp_port}")
 
@@ -90,10 +86,7 @@ def create_app() -> FastAPI:
     )
 
     # Middleware setup
-    app.add_middleware(
-        TrustedHostMiddleware,
-        allowed_hosts=["*"]  # Local network trust model
-    )
+    app.add_middleware(TrustedHostMiddleware, allowed_hosts=["*"])  # Local network trust model
 
     app.add_middleware(
         CORSMiddleware,
@@ -117,8 +110,8 @@ def create_app() -> FastAPI:
             content={
                 "error": exc.detail,
                 "status_code": exc.status_code,
-                "correlation_id": getattr(request.state, "correlation_id", "unknown")
-            }
+                "correlation_id": getattr(request.state, "correlation_id", "unknown"),
+            },
         )
 
     @app.exception_handler(Exception)
@@ -130,15 +123,16 @@ def create_app() -> FastAPI:
             content={
                 "error": "Internal server error",
                 "message": str(exc) if settings.debug else "An error occurred",
-                "correlation_id": getattr(request.state, "correlation_id", "unknown")
-            }
+                "correlation_id": getattr(request.state, "correlation_id", "unknown"),
+            },
         )
 
     # Include routers
     app.include_router(health.router, tags=["Health"])
 
     # Import and include other routers
-    from src.routers import dashboard, system, config, services
+    from src.routers import config, dashboard, services, system
+
     app.include_router(dashboard.router, tags=["Dashboard"])
     app.include_router(system.router, tags=["System"])
     app.include_router(config.router, tags=["Configuration"])
@@ -146,40 +140,48 @@ def create_app() -> FastAPI:
 
     # Users router
     from src.routers import users
+
     app.include_router(users.router, tags=["Users"])
 
     # Groups router
     from src.routers import groups
+
     app.include_router(groups.router, tags=["Groups"])
 
     # Observability routers
-    from src.routers import logs, alerts
+    from src.routers import alerts, logs
+
     app.include_router(logs.router, tags=["Logs"])
     app.include_router(alerts.router, tags=["Alerts"])
 
     # MCP router
     from src.routers import mcp
+
     app.include_router(mcp.router, tags=["MCP"])
 
     # Training router
     from src.routers import training
+
     app.include_router(training.router, tags=["Training"])
 
     # Workers router (GPU training workers)
     from src.routers import workers
+
     app.include_router(workers.router, tags=["Workers"])
 
     # OpenAPI Tools router for Open WebUI integration
     from src.routers import openapi_tools
+
     app.include_router(openapi_tools.router)
 
     # Backup/Restore router
     from src.routers import backup
+
     app.include_router(backup.router, tags=["Backup"])
 
     # WebSocket endpoints
-    from src.websocket.system import handle_system_websocket
     from src.websocket.logs import websocket_logs_endpoint
+    from src.websocket.system import handle_system_websocket
     from src.websocket.training import handle_training_websocket
 
     @app.websocket("/ws/system")
