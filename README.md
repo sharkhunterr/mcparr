@@ -1,189 +1,282 @@
-# MCParr AI Gateway
+# 🤖 MCParr AI Gateway
 
-An MCP (Model Context Protocol) server with a modern web administration interface for managing homelab service integration with AI.
+> **AI-powered homelab management with MCP server and web administration**
 
-## 🚀 Features
+MCParr is a unified gateway for managing homelab services through AI. It provides a modern web interface and MCP (Model Context Protocol) server to control your self-hosted services with natural language commands.
 
-- **Web Interface**: Modern, responsive admin dashboard (UI-First approach)
-- **Service Management**: Centralized configuration for Plex, Overseerr, Zammad, Tautulli, Authentik
-- **Real-time Observability**: Live logs, metrics, and request tracing
-- **AI Training**: Custom Ollama model training with progress tracking
-- **MCP Server**: Open WebUI integration for AI-powered homelab interactions
-- **User Mapping**: Automatic user identity synchronization across services
+## ✨ Features
+
+🎯 **Unified Service Management**
+- Configure and control 15+ homelab services (Plex, Radarr, Sonarr, Overseerr, Prowlarr, etc.)
+- Centralized configuration and monitoring
+- Real-time health checks and status
+
+📊 **Real-time Observability**
+- Live logs with WebSocket streaming
+- System metrics and performance monitoring
+- Alert management with customizable rules
+- Correlation IDs for request tracing
+
+🤖 **AI Training & Integration**
+- Custom Ollama model training with GPU support
+- Training progress tracking and session management
+- MCP server for AI-powered homelab automation
+- Open WebUI compatible tools
+
+👥 **User Management**
+- Automatic user mapping across services
+- Centralized identity management
+- Group-based permissions for AI tools
+- Service-specific authentication
+
+🔧 **Developer Friendly**
+- Complete REST API with OpenAPI documentation
+- WebSocket endpoints for real-time updates
+- Comprehensive logging and observability
+- Prometheus-compatible metrics
+
+## 🏗️ Architecture
+
+```
+mcparr/
+├── src/
+│   ├── backend/           # FastAPI backend
+│   │   ├── src/
+│   │   │   ├── adapters/  # Service integrations (15+ services)
+│   │   │   ├── mcp/       # MCP server and AI tools
+│   │   │   ├── models/    # SQLAlchemy ORM models
+│   │   │   ├── routers/   # API endpoints (12 routers)
+│   │   │   ├── services/  # Business logic
+│   │   │   ├── websocket/ # Real-time WebSocket handlers
+│   │   │   ├── middleware/# Logging and correlation
+│   │   │   └── schemas/   # Pydantic validation
+│   │   ├── alembic/       # Database migrations
+│   │   └── tests/         # Backend tests
+│   └── frontend/          # React + TypeScript frontend
+│       └── src/
+│           ├── components/ # Reusable UI components
+│           ├── pages/      # Main pages (7 pages)
+│           ├── contexts/   # React contexts
+│           ├── hooks/      # Custom hooks
+│           └── lib/        # Utilities (API client, WebSocket)
+├── docker/                 # Docker configuration
+├── scripts/                # Utility scripts (testing, linting, setup)
+└── docs/                   # Documentation
+```
 
 ## 📋 Requirements
 
-- Docker & Docker Compose
-- Node.js 18+ (for local development)
-- Python 3.11+ (for local development)
+### For Docker Deployment (Recommended)
+- Docker 24+
+- Docker Compose 2.20+
 - 4GB RAM minimum
 - 10GB disk space
 
-## 🚀 Démarrage rapide
+### For Local Development
+- Python 3.11+
+- Node.js 20+ (Vite requirement)
+- Poetry (Python dependency management)
+- SQLite (default) or PostgreSQL
 
-### Script de gestion automatique (Recommandé)
+## 🚀 Quick Start
+
+### Docker Deployment (Production)
 
 ```bash
-# Première installation (installe toutes les dépendances)
-./manage.sh install
+# Pull and run the unified Docker image
+docker pull sharkhunterr/mcparr:latest
 
-# Démarrer les services
-./manage.sh start
+# Using Docker Compose (recommended)
+curl -o docker-compose.yml https://raw.githubusercontent.com/sharkhunterr/mcparr/master/docker/docker-compose.yml
+docker compose up -d
 
-# Arrêter les services
-./manage.sh stop
-
-# Redémarrer les services
-./manage.sh restart
-
-# Voir le statut
-./manage.sh status
+# Or via npm scripts
+npm run docker        # Build and start
+npm start            # Start in production mode
+npm stop             # Stop services
+npm run logs         # View logs
 ```
 
-### Accès aux services :
-
-- 🌐 **Interface Web**: http://localhost:5173
-- 🔧 **API Backend**: http://localhost:8000
-- 📚 **Documentation**: http://localhost:8000/docs
-
-### Installation manuelle (Development)
-
-#### Prérequis
-- **Node.js** 20+ (Vite requirement)
-- **Python** 3.9+
-
-#### Backend Setup
+### Local Development
 
 ```bash
-cd backend
-python3 -m venv venv
-source venv/bin/activate
-pip install fastapi uvicorn sqlalchemy alembic psycopg2-binary python-multipart websockets psutil python-dotenv pydantic-settings
-python3 src/main.py
-```
+# Setup (first time only - installs Poetry and dependencies)
+npm run setup
 
-#### Frontend Setup
-
-```bash
-cd frontend
-npm install
+# Start backend and frontend concurrently
 npm run dev
+
+# Or start separately
+npm run dev:backend   # Backend on port 8000
+npm run dev:frontend  # Frontend on port 3000
+
+# Testing and linting
+npm test              # Run all tests
+npm run lint          # Run all linters
+npm run fix           # Auto-fix linting issues
+npm run reports       # Generate test/lint reports
 ```
 
-## 📁 Project Structure
+### Access Your Gateway
 
-```
-mcparr-gateway/
-├── backend/          # FastAPI backend application
-│   ├── src/         # Source code
-│   │   ├── adapters/    # Service adapters
-│   │   ├── models/      # Database models
-│   │   ├── routers/     # API endpoints
-│   │   ├── services/    # Business logic
-│   │   └── websocket/   # WebSocket handlers
-│   ├── alembic/     # Database migrations
-│   └── tests/       # Backend tests
-├── frontend/        # React TypeScript frontend
-│   ├── src/        # Source code
-│   │   ├── components/  # React components
-│   │   ├── pages/      # Page components
-│   │   ├── hooks/      # Custom hooks
-│   │   └── lib/        # Utilities
-│   └── public/     # Static assets
-├── docker/         # Docker configurations
-├── docs/          # Documentation
-└── scripts/       # Utility scripts
-```
+- 🌐 **Web UI**: http://localhost:3000
+- 📡 **API Docs**: http://localhost:8000/docs
+- 📗 **ReDoc**: http://localhost:8000/redoc
+- 🤖 **MCP Server**: http://localhost:8001
 
-## 🔌 Service Configuration
+## 📚 Documentation
 
-Configure your homelab services in the `.env` file:
+- 📦 [Installation Guide](docs/INSTALLATION.md) - Complete installation and setup
+- ⚙️ [Configuration Guide](docs/CONFIGURATION.md) - Environment variables and service config
+- 🔌 [API Reference](docs/API.md) - REST API endpoint documentation
+- 🛠️ [MCP Integration](docs/MCP.md) - Connect to Claude Desktop and AI assistants
+- 👥 [User Guide](docs/USER_GUIDE.md) - End-user documentation
 
-### Plex
-```env
-PLEX_URL=http://your-plex-server:32400
-PLEX_TOKEN=your-plex-token
-```
+## 🔧 Supported Services
 
-### Overseerr
-```env
-OVERSEERR_URL=http://your-overseerr:5055
-OVERSEERR_API_KEY=your-api-key
-```
+MCParr integrates with 15+ homelab services:
 
-### Other Services
-See `.env.example` for complete configuration options.
+**Media Management**
+| Service | Description | MCP Tools |
+|---------|-------------|-----------|
+| 🎬 Plex | Media server | Search libraries, get playback info |
+| 📥 Overseerr | Request management | Request movies/TV shows |
+| 🎥 Radarr | Movie management | Add, search, manage movies |
+| 📺 Sonarr | TV management | Add, search, manage series |
+| 📊 Tautulli | Plex analytics | View history, stats, users |
+| 🔍 Prowlarr | Indexer manager | Search across indexers |
 
-## 🎯 User Stories & MVP
+**Downloads & Storage**
+| Service | Description | MCP Tools |
+|---------|-------------|-----------|
+| ⬇️ Deluge | Torrent client | Manage torrents, view status |
+| 🔎 Jackett | Torrent indexer | Search torrents |
 
-The system is built following these prioritized user stories:
+**Books & Games**
+| Service | Description | MCP Tools |
+|---------|-------------|-----------|
+| 📚 Komga | Comics library | Browse, read comics |
+| 🎧 Audiobookshelf | Audiobook library | Manage audiobooks, playback |
+| 🎮 ROMM | ROM manager | Manage game ROMs |
 
-1. **Web Interface (P1)** - Complete admin dashboard ✅
-2. **Service Management (P1)** - Configure and test homelab services
-3. **Observability (P1)** - Real-time logs and metrics
-4. **AI Training (P2)** - Custom Ollama model training
-5. **MCP Server (P2)** - Open WebUI integration
+**Utilities**
+| Service | Description | MCP Tools |
+|---------|-------------|-----------|
+| 📖 Wiki.js | Documentation | Search pages, create content |
+| 🎫 Zammad | Ticketing system | Manage tickets, users |
+| 🔑 Authentik | Identity provider | Manage users, groups, auth |
+| 💬 Open WebUI | AI chat interface | Manage models, chats |
+| 🤖 Ollama | Local LLM hosting | List models, generate text |
 
-## 🧪 Testing
+## 🤝 MCP Integration
 
-### Manual Testing
+MCParr exposes all homelab services as AI-callable tools via MCP.
 
-Each user story includes independent test scenarios:
+### Claude Desktop Configuration
 
-```bash
-# Test dashboard loads under 2 seconds
-curl -w "@curl-format.txt" http://localhost:8000/api/v1/dashboard/overview
+Add to `~/.config/claude/claude_desktop_config.json`:
 
-# Test WebSocket connection
-wscat -c ws://localhost:8000/ws/logs
-```
-
-### Automated Tests
-
-```bash
-# Backend tests
-cd backend && pytest
-
-# Frontend tests
-cd frontend && npm test
+```json
+{
+  "mcpServers": {
+    "mcparr": {
+      "command": "curl",
+      "args": ["-N", "http://YOUR_MCPARR_HOST:8001/sse"]
+    }
+  }
+}
 ```
 
-## 📊 Monitoring
+### Available Tools
+
+Once connected, you can ask Claude to:
+- "Search for movies in Plex about space exploration"
+- "Request the latest season of Breaking Bad in Overseerr"
+- "Check Tautulli for users currently watching"
+- "Add a torrent to Deluge for the latest Linux ISO"
+- "Create a ticket in Zammad for server maintenance"
+
+See [MCP.md](docs/MCP.md) for complete tool documentation.
+
+## 📊 Monitoring & Observability
 
 - **Metrics**: Prometheus-compatible metrics at `/metrics`
 - **Health Check**: `/health` endpoint for Docker/Kubernetes
 - **Logs**: Structured JSON logging with correlation IDs
+- **WebSocket**: Real-time log streaming at `/ws/logs`
+- **Alerts**: Customizable alert rules and notifications
+
+## 🧪 Testing
+
+```bash
+# Run all tests
+npm test
+
+# Backend tests (pytest)
+npm run test:back
+
+# Frontend tests (build verification)
+npm run test:front
+
+# Generate coverage reports
+npm run reports
+```
 
 ## 🔒 Security
 
-- No authentication required on local network (configurable)
-- All secrets in environment variables
+- Local network trust model (no auth required by default)
+- Configurable CORS origins
+- All API keys in environment variables
 - Input validation and sanitization
 - Rate limiting and circuit breakers
+- Secure service-to-service communication
 
-## 📝 API Documentation
+## 🐳 Docker Configuration
 
-- Interactive API docs: http://localhost:8000/docs
-- OpenAPI schema: http://localhost:8000/openapi.json
-- MCP protocol docs: http://localhost:8001/docs
+MCParr uses a **single unified Docker image** containing both backend (FastAPI + MCP) and frontend (React):
+
+```yaml
+version: '3.8'
+services:
+  mcparr:
+    image: sharkhunterr/mcparr:latest
+    ports:
+      - "3000:3000"  # Web UI (nginx)
+      - "8000:8000"  # API (FastAPI)
+      - "8001:8001"  # MCP Server
+    volumes:
+      - mcparr-data:/app/data
+    environment:
+      - LOG_LEVEL=INFO
+      - DATABASE_URL=sqlite:///data/mcparr.db
+    restart: unless-stopped
+
+volumes:
+  mcparr-data:
+```
+
+See [docker/DOCKERHUB.md](docker/DOCKERHUB.md) for complete Docker documentation.
 
 ## 🤝 Contributing
 
+Contributions are welcome! Please:
+
 1. Fork the repository
 2. Create a feature branch
-3. Follow the task structure in `tasks.md`
-4. Submit a pull request
+3. Make your changes
+4. Run tests and linting: `npm run lint && npm test`
+5. Submit a pull request
 
 ## 📄 License
 
-MIT License - see LICENSE file for details
+MIT License - see [LICENSE](LICENSE) file for details
 
 ## 🆘 Support
 
-- Documentation: `/docs` directory
-- Issues: GitHub Issues
-- Discord: [Join our server](https://discord.gg/mcparr)
+- 📘 [GitHub Repository](https://github.com/sharkhunterr/mcparr)
+- 📖 [Documentation](docs/)
+- 🐛 [Issues](https://github.com/sharkhunterr/mcparr/issues)
 
 ---
 
-Built with ❤️ following UI-First principles for the homelab community
+**Built with** ❤️ **for the homelab community**

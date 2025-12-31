@@ -13,9 +13,9 @@ from src.config.settings import get_settings
 from src.database.connection import get_db_manager, init_database
 from src.middleware.correlation_id import CorrelationIdMiddleware
 from src.middleware.logging import LoggingMiddleware
-from src.utils.logging import setup_logging
 from src.routers import health
 from src.services.log_service import log_service
+from src.utils.logging import setup_logging
 
 
 async def log_error_to_db(request: Request, exc: Exception, status_code: int = 500) -> None:
