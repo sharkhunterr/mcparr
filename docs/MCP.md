@@ -32,14 +32,56 @@ MCP (Model Context Protocol) is a standard for connecting AI assistants to exter
 
 Ensure MCParr backend is running:
 ```bash
-python -m uvicorn src.main:app --host 0.0.0.0 --port 8002
+python -m uvicorn src.main:app --host 0.0.0.0 --port 8000
 ```
 
-The MCP server runs on port **8001** by default.
+MCParr exposes tools via:
+- **OpenAPI** (port 8000): For Open WebUI and other OpenAPI-compatible tools
+- **MCP Server** (port 8001): For Claude Desktop and MCP-compatible assistants
 
 ### 2. Configure Your AI Assistant
 
-#### Claude Desktop
+#### Open WebUI (Recommended - OpenAPI Integration)
+
+Open WebUI is the primary use case for MCParr. It uses the **OpenAPI** endpoint to integrate tools.
+
+**Step 1: Add MCParr Tools to Open WebUI**
+
+1. Go to **Open WebUI** → **Settings** → **Admin Settings** → **Tools** (or **Outils**)
+2. Click **"+ Add Tool"** or **"+ Nouvelle Connexion"**
+3. Configure the connection:
+   - **Type**: Select **"OpenAPI"**
+   - **URL**: `http://YOUR_MCPARR_HOST:8000` (API port, not MCP port)
+   - **OpenAPI Spec**: Select `/tools/openapi.json` from dropdown
+   - **Auth**: Select **"Session"**
+   - **Username**: "MCParr Homelab Tools"
+   - **Description**: "Outils serveur Homelab"
+   - **Visibility**: "Public" (to share with all users)
+4. Click **Save**
+
+**Important:**
+- Use port **8000** (API/OpenAPI endpoint), NOT port 8001 (MCP endpoint)
+- For Docker: `host.docker.internal:8000` (macOS/Windows) or your IP like `192.168.1.21:8000` (Linux)
+
+**Step 2: Enable Tools in Chat**
+
+1. Start a new chat in Open WebUI
+2. Click the **Tools** icon (wrench) in the chat input
+3. Enable MCParr tools you want to use
+4. Start chatting with access to your homelab!
+
+**Example Chat:**
+```
+User: Search for science fiction movies in Plex
+Assistant: [Uses plex_search tool] Found 42 sci-fi movies including...
+
+User: Request the latest season of The Expanse
+Assistant: [Uses overseerr_request_tv tool] I've requested Season 6...
+```
+
+#### Claude Desktop (MCP Integration)
+
+For Claude Desktop, use the **MCP** endpoint on port 8001.
 
 Edit `~/.config/claude/claude_desktop_config.json`:
 
@@ -55,39 +97,6 @@ Edit `~/.config/claude/claude_desktop_config.json`:
 ```
 
 Restart Claude Desktop to apply changes.
-
-#### Open WebUI (Recommended)
-
-Open WebUI is the primary use case for MCParr. It provides a ChatGPT-like interface with MCP tool integration.
-
-**Step 1: Configure MCParr as MCP Server in Open WebUI**
-
-1. Go to **Open WebUI** → **Settings** → **Admin Settings** → **Tools**
-2. Click **"+ Add Tool"** or **"MCP Servers"**
-3. Add MCParr MCP server:
-   ```json
-   {
-     "name": "mcparr",
-     "url": "http://YOUR_MCPARR_HOST:8001",
-     "type": "mcp"
-   }
-   ```
-
-**Step 2: Enable Tools in Chat**
-
-1. Start a new chat in Open WebUI
-2. Click the **Tools** icon in the chat input
-3. Enable MCParr tools you want to use
-4. Start chatting with access to your homelab!
-
-**Example Chat:**
-```
-User: Search for science fiction movies in Plex
-Assistant: [Uses plex_search tool] Found 42 sci-fi movies including...
-
-User: Request the latest season of The Expanse
-Assistant: [Uses overseerr_request_tv tool] I've requested Season 6...
-```
 
 #### Other MCP-Compatible Assistants
 

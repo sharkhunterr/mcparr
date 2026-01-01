@@ -73,20 +73,21 @@ docker run -d -p 3001:8080 \
   ghcr.io/open-webui/open-webui:main
 ```
 
-### 2. Add MCParr MCP Server
+### 2. Add MCParr Tools
 
 In Open WebUI:
-1. **Settings** → **Admin Settings** → **Tools** → **MCP Servers**
-2. Click **"+ Add MCP Server"**
+1. **Settings** → **Admin Settings** → **Tools**
+2. Click **"+ Add Tool"**
 3. Configure:
-   ```json
-   {
-     "name": "MCParr",
-     "url": "http://host.docker.internal:8001",
-     "enabled": true
-   }
-   ```
-   **Note**: Use `host.docker.internal` to access MCParr from Open WebUI container
+   - **Type**: Select **"OpenAPI"**
+   - **URL**: `http://host.docker.internal:8000` (or your MCParr IP)
+   - **OpenAPI Spec**: Select `/tools/openapi.json`
+   - **Auth**: Select **"Session"**
+   - **Username**: "MCParr Homelab"
+   - **Visibility**: "Public"
+4. Click **Save**
+
+**Note**: Use `host.docker.internal` to access MCParr from Open WebUI container on macOS/Windows. On Linux, use your machine's IP (e.g., `192.168.1.21`).
 
 ### 3. Start Chatting!
 

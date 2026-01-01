@@ -163,35 +163,37 @@ docker run -d -p 3000:8080 \
 
 Access Open WebUI at http://localhost:3000
 
-#### Configure MCParr MCP Server in Open WebUI
+#### Add MCParr Tools to Open WebUI
 
 1. **Open Open WebUI** → **Settings** (gear icon)
-2. **Admin Settings** → **Tools** → **MCP Servers**
-3. Click **"+ Add MCP Server"**
-4. Configure MCParr:
-   ```json
-   {
-     "name": "MCParr Homelab",
-     "url": "http://YOUR_MCPARR_HOST:8001",
-     "enabled": true
-   }
-   ```
-   Replace `YOUR_MCPARR_HOST` with:
-   - `localhost` if running locally
-   - `host.docker.internal` if Open WebUI is in Docker (Linux: use your machine's IP)
-   - Your server IP/hostname for remote access
+2. **Admin Settings** → **Tools** (or **Outils**)
+3. Click **"+ Add Tool"** or **"+ Nouvelle Connexion"**
+4. Configure the connection:
+   - **Type**: Select **"OpenAPI"** from the dropdown
+   - **URL**: Enter your MCParr backend URL:
+     - `http://localhost:8000` if running locally
+     - `http://host.docker.internal:8000` if Open WebUI is in Docker (macOS/Windows)
+     - `http://192.168.1.21:8000` (Linux Docker - use your machine's actual IP)
+     - `http://YOUR_SERVER_IP:8000` for remote access
+   - **OpenAPI Spec**: Select `/tools/openapi.json` from the dropdown
+   - **Auth**: Select **"Session"**
+   - **Headers**: Leave empty (optional additional headers in JSON format)
+   - **ID**: Leave empty (optional)
+   - **Username** (Nom d'utilisateur): Give it a descriptive name like "MCParr Homelab Tools"
+   - **Description**: Optional description like "Outils serveur Homelab"
+   - **Function Name Filter List**: Leave empty (optional tool filtering)
+   - **Visibility** (Visibilité): Choose **"Public"** to share with all users
+5. Click **Save** to add the tools
 
-5. Click **Save** and **Test Connection**
-6. If successful, you'll see "Connected" with a list of available tools
+**Important:**
+- The port is **8000** (MCParr API port), not 8001 (MCP port)
+- On Linux with Docker, `host.docker.internal` doesn't work - use your machine's IP address
 
 #### Enable Tools in Chat
 
 1. Start a **new chat** in Open WebUI
 2. Click the **tools icon** (wrench) in the chat input bar
-3. You'll see MCParr tools grouped by category:
-   - **Media**: plex_search, overseerr_request_movie, overseerr_request_tv
-   - **Management**: radarr_add_movie, sonarr_add_series, prowlarr_search
-   - **System**: get_system_status, get_service_status
+3. You'll see MCParr tools available to enable
 4. **Enable the tools** you want to use
 5. Start chatting! The AI can now control your homelab
 

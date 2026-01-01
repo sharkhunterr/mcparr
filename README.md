@@ -183,21 +183,35 @@ docker run -d -p 3000:8080 \
   ghcr.io/open-webui/open-webui:main
 ```
 
-**2. Configure MCParr MCP Server**
+**2. Add MCParr Tools to Open WebUI**
 
 In Open WebUI:
-1. Go to **Settings** → **Admin Settings** → **Tools** → **MCP Servers**
-2. Add MCParr:
-   ```json
-   {
-     "name": "MCParr Homelab",
-     "url": "http://YOUR_MCPARR_HOST:8001",
-     "enabled": true
-   }
-   ```
-3. Enable tools in your chat and start controlling your homelab!
+1. Go to **Settings** → **Admin Settings** → **Tools** (or **Outils**)
+2. Click **"+ Add Tool"** or **"+ Nouvelle Connexion"**
+3. Configure the connection:
+   - **Type**: Select **"OpenAPI"**
+   - **URL**: `http://YOUR_MCPARR_HOST:8000` (replace with your MCParr IP/hostname)
+   - **OpenAPI Spec**: Select `/tools/openapi.json` from dropdown
+   - **Auth**: Select **"Session"**
+   - **Username**: Give it a descriptive name like "MCParr Homelab Tools"
+   - **Description**: Optional description like "Outils serveur Homelab"
+   - **Visibility**: Choose **"Public"** to share with all users
+4. Click **Save** to add the tools
 
-**3. Example Conversations**
+**Important Notes:**
+- Use `localhost` if Open WebUI is running on the same machine
+- Use `host.docker.internal` if Open WebUI is in Docker on macOS/Windows
+- On Linux with Docker, use your machine's IP address (e.g., `192.168.1.21`)
+- The port is `8000` (API port), not `8001` (MCP port)
+
+**3. Enable Tools in Chat**
+
+1. Start a new chat in Open WebUI
+2. Click the **tools icon** (wrench) in the chat input bar
+3. Enable the MCParr tools you want to use
+4. Start chatting! The AI can now control your homelab
+
+**4. Example Conversations**
 
 ```
 You: What movies do I have about space?
