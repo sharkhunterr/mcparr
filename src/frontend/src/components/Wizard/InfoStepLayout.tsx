@@ -1,10 +1,11 @@
-import { ArrowRight, ArrowLeft, ExternalLink, LucideIcon } from 'lucide-react';
+import { ArrowRight, ArrowLeft, ExternalLink } from 'lucide-react';
 import { useWizard } from '../../contexts/WizardContext';
+import type { FC } from 'react';
 
 interface InfoStepLayoutProps {
   title: string;
   subtitle: string;
-  icon: LucideIcon;
+  icon: FC<{ className?: string }>;
   iconColor: string;
   description: string;
   steps: Array<{ text: string }>;
