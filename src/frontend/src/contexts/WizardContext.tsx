@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 
-export type WizardStep = 'welcome' | 'services' | 'users' | 'groups' | 'complete';
+export type WizardStep = 'welcome' | 'services' | 'users' | 'groups' | 'mcp' | 'training' | 'monitoring' | 'config' | 'complete';
 
 interface WizardState {
   currentStep: WizardStep;
@@ -20,7 +20,7 @@ const WizardContext = createContext<WizardContextType | undefined>(undefined);
 
 const WIZARD_KEY = 'mcparr-wizard-completed';
 
-const stepOrder: WizardStep[] = ['welcome', 'services', 'users', 'groups', 'complete'];
+const stepOrder: WizardStep[] = ['welcome', 'services', 'users', 'groups', 'mcp', 'training', 'monitoring', 'config', 'complete'];
 
 const defaultState: WizardState = {
   currentStep: 'welcome',
