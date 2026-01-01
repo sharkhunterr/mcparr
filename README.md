@@ -1,8 +1,27 @@
+<div align="center">
+
 # 🤖 MCParr AI Gateway
 
-> **AI-powered homelab management with MCP server and web administration**
+**AI-powered homelab management with MCP server and web administration**
 
-MCParr is a unified gateway for managing homelab services through AI. It provides a modern web interface and MCP (Model Context Protocol) server to control your self-hosted services with natural language commands.
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Docker](https://img.shields.io/badge/docker-ready-brightgreen.svg)](https://hub.docker.com/r/sharkhunterr/mcparr)
+[![Python](https://img.shields.io/badge/python-3.11+-blue.svg)](https://python.org)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.104+-009688.svg)](https://fastapi.tiangolo.com)
+[![React](https://img.shields.io/badge/React-18+-61DAFB.svg)](https://reactjs.org)
+
+![MCParr Dashboard](docs/images/02-dashboard.png)
+
+[Features](#-features) •
+[Quick Start](#-quick-start) •
+[Documentation](#-documentation) •
+[Screenshots](#-screenshots)
+
+</div>
+
+---
+
+MCParr is your unified gateway for managing homelab services through AI. Built with FastAPI and React, it combines a powerful MCP (Model Context Protocol) server with a modern web interface for seamless AI-driven automation.
 
 ## ✨ Features
 
@@ -37,32 +56,77 @@ MCParr is a unified gateway for managing homelab services through AI. It provide
 
 ## 🏗️ Architecture
 
+```mermaid
+graph TB
+    subgraph "Client Layer"
+        WebUI[🌐 Web UI<br/>React + TypeScript]
+        OpenWebUI[💬 Open WebUI<br/>AI Chat Interface]
+    end
+
+    subgraph "MCParr Gateway"
+        API[⚡ FastAPI Backend<br/>Port 8000]
+        MCP[🤖 MCP Server<br/>Port 8001]
+        WS[📡 WebSocket<br/>Real-time Updates]
+
+        API --> DB[(🗄️ SQLite<br/>Configuration)]
+        API --> Cache[(⚡ Redis<br/>Cache)]
+    end
+
+    subgraph "Service Adapters"
+        Media[🎬 Media Services<br/>Plex, Overseerr, Tautulli]
+        Arr[📥 Arr Stack<br/>Radarr, Sonarr, Prowlarr]
+        DL[⬇️ Downloads<br/>Deluge, Jackett]
+        Books[📚 Books & Games<br/>Komga, Audiobookshelf, ROMM]
+        Utils[🔧 Utilities<br/>Authentik, Wiki.js, Zammad]
+        AI[🧠 AI Services<br/>Ollama, Open WebUI]
+    end
+
+    WebUI --> API
+    WebUI --> WS
+    OpenWebUI --> MCP
+    MCP --> API
+
+    API --> Media
+    API --> Arr
+    API --> DL
+    API --> Books
+    API --> Utils
+    API --> AI
+
+    style WebUI fill:#61dafb
+    style OpenWebUI fill:#ab68ff
+    style API fill:#009688
+    style MCP fill:#ff6b6b
+    style WS fill:#ffd93d
 ```
-mcparr/
-├── src/
-│   ├── backend/           # FastAPI backend
-│   │   ├── src/
-│   │   │   ├── adapters/  # Service integrations (15+ services)
-│   │   │   ├── mcp/       # MCP server and AI tools
-│   │   │   ├── models/    # SQLAlchemy ORM models
-│   │   │   ├── routers/   # API endpoints (12 routers)
-│   │   │   ├── services/  # Business logic
-│   │   │   ├── websocket/ # Real-time WebSocket handlers
-│   │   │   ├── middleware/# Logging and correlation
-│   │   │   └── schemas/   # Pydantic validation
-│   │   ├── alembic/       # Database migrations
-│   │   └── tests/         # Backend tests
-│   └── frontend/          # React + TypeScript frontend
-│       └── src/
-│           ├── components/ # Reusable UI components
-│           ├── pages/      # Main pages (7 pages)
-│           ├── contexts/   # React contexts
-│           ├── hooks/      # Custom hooks
-│           └── lib/        # Utilities (API client, WebSocket)
-├── docker/                 # Docker configuration
-├── scripts/                # Utility scripts (testing, linting, setup)
-└── docs/                   # Documentation
-```
+
+### Technology Stack
+
+<table>
+<tr>
+<td width="50%">
+
+**Backend**
+- 🐍 Python 3.11+ with FastAPI
+- 🗄️ SQLAlchemy ORM + Alembic migrations
+- ⚡ Redis for caching
+- 📡 WebSocket for real-time updates
+- 🔌 15+ service adapters
+- 🤖 MCP server implementation
+
+</td>
+<td width="50%">
+
+**Frontend**
+- ⚛️ React 18 + TypeScript
+- 🎨 Tailwind CSS + shadcn/ui
+- 📊 Recharts for visualization
+- 🔄 Real-time WebSocket integration
+- 📱 Responsive dark/light themes
+
+</td>
+</tr>
+</table>
 
 ## 📋 Requirements
 
@@ -171,6 +235,25 @@ MCParr integrates with 15+ homelab services:
 ## 🤝 AI Integration with Open WebUI
 
 MCParr is designed to work seamlessly with **Open WebUI**, providing a ChatGPT-like interface to control your entire homelab through natural language.
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant OpenWebUI
+    participant MCParr
+    participant Services
+
+    User->>OpenWebUI: "Request the movie Inception"
+    OpenWebUI->>MCParr: POST /tools/overseerr_request_movie
+    MCParr->>Services: Search TMDB API
+    Services-->>MCParr: Movie ID: 27205
+    MCParr->>Services: POST to Overseerr API
+    Services-->>MCParr: Request created
+    MCParr-->>OpenWebUI: {status: "success", id: 123}
+    OpenWebUI-->>User: "✅ Requested Inception via Overseerr!"
+
+    Note over User,Services: AI automatically uses the right tools
+```
 
 ### Quick Setup with Open WebUI
 
@@ -317,6 +400,66 @@ volumes:
 ```
 
 See [docker/DOCKERHUB.md](docker/DOCKERHUB.md) for complete Docker documentation.
+
+## 📸 Screenshots
+
+<details open>
+<summary><b>🎯 Services Management</b></summary>
+
+![Services List](docs/images/03-services-list.png)
+*Manage 15+ homelab services with health monitoring and connection testing*
+
+![Add Service](docs/images/06-add-service.png)
+*Easy service configuration with automatic health checks*
+
+</details>
+
+<details>
+<summary><b>👥 User & Group Management</b></summary>
+
+![User Auto-Detection](docs/images/07-users-auto-detection.png)
+*Automatic user discovery across all services*
+
+![Group Permissions](docs/images/09-groups-tools-permissions.png)
+*Granular tool permissions per group (112 MCP tools available)*
+
+</details>
+
+<details>
+<summary><b>🤖 AI Training with Ollama</b></summary>
+
+![Training Overview](docs/images/11-training-overview.png)
+*Monitor training sessions with GPU support*
+
+![Training Prompts](docs/images/14-training-prompts.png)
+*94 validated prompts for fine-tuning models*
+
+![Training Workers](docs/images/16-training-workers.png)
+*GPU workers for distributed training*
+
+</details>
+
+<details>
+<summary><b>📊 Monitoring & Observability</b></summary>
+
+![System Metrics](docs/images/18-monitoring-metrics.png)
+*Real-time system metrics with auto-refresh*
+
+![Log Viewer](docs/images/19-monitoring-logs.png)
+*Advanced log filtering and search (1700+ logs tracked)*
+
+</details>
+
+<details>
+<summary><b>⚙️ Configuration</b></summary>
+
+![Appearance Settings](docs/images/21-config-appearance.png)
+*Light/Dark/System theme options*
+
+![Backup & Restore](docs/images/26-config-backup.png)
+*Complete configuration backup with selective export*
+
+</details>
 
 ## 🤝 Contributing
 
