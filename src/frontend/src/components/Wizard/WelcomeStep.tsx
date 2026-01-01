@@ -100,10 +100,10 @@ export default function WelcomeStep() {
       });
       setImportResult(result);
 
-      // If import successful, automatically move to next step after a short delay
+      // If import successful, complete the wizard after a short delay
       if (result.success) {
         setTimeout(() => {
-          nextStep();
+          skipWizard();
         }, 2000);
       }
     } catch (error) {

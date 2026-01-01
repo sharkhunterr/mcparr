@@ -5,7 +5,7 @@ from typing import Any, Dict, List
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -659,3 +659,71 @@ async def preview_export(
         stats["training_workers"] = len(result.scalars().all())
 
     return stats
+
+
+class ResetAllResult(BaseModel):
+    """Result of reset-all operation."""
+
+    success: bool
+    deleted: Dict[str, int]
+    message: str
+
+
+@router.post("/reset-all", response_model=ResetAllResult)
+async def reset_all_data(db: AsyncSession = Depends(get_db_session)) -> ResetAllResult:
+    """Delete all data from the database. This operation is irreversible."""
+    logger.warning("Reset all data operation requested - this will delete ALL data")
+
+    deleted = {}
+
+    try:
+        # Delete in order to respect foreign key constraints
+        # Start with child tables first
+
+        # 1. Delete group memberships and permissions (depend on groups)
+        result = await db.execute(delete(GroupMembership))
+        deleted["group_memberships"] = result.rowcount
+
+        result = await db.execute(delete(GroupToolPermission))
+        deleted["group_permissions"] = result.rowcount
+
+        # 2. Delete groups
+        result = await db.execute(delete(Group))
+        deleted["groups"] = result.rowcount
+
+        # 3. Delete user mappings (depend on services)
+        result = await db.execute(delete(UserMapping))
+        deleted["user_mappings"] = result.rowcount
+
+        # 4. Delete services
+        result = await db.execute(delete(ServiceConfig))
+        deleted["services"] = result.rowcount
+
+        # 5. Delete training data
+        result = await db.execute(delete(TrainingPrompt))
+        deleted["training_prompts"] = result.rowcount
+
+        result = await db.execute(delete(PromptTemplate))
+        deleted["prompt_templates"] = result.rowcount
+
+        result = await db.execute(delete(TrainingWorker))
+        deleted["training_workers"] = result.rowcount
+
+        # 6. Delete configuration settings
+        result = await db.execute(delete(ConfigurationSetting))
+        deleted["configuration_settings"] = result.rowcount
+
+        # Commit all deletions
+        await db.commit()
+
+        total_deleted = sum(deleted.values())
+        message = f"Successfully deleted all data ({total_deleted} total records)"
+
+        logger.warning(f"Reset all data completed: {deleted}")
+
+        return ResetAllResult(success=True, deleted=deleted, message=message)
+
+    except Exception as e:
+        await db.rollback()
+        logger.error(f"Reset all data failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Reset failed: {str(e)}") from e
