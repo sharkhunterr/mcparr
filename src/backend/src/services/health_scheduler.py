@@ -111,7 +111,7 @@ class HealthCheckScheduler:
             db_manager = get_db_manager()
             async with db_manager.session_factory() as session:
                 # Get all enabled services
-                result = await session.execute(select(ServiceConfig).where(ServiceConfig.enabled is True))
+                result = await session.execute(select(ServiceConfig).where(ServiceConfig.enabled == True))
                 services = result.scalars().all()
 
                 success_count = 0
