@@ -26,6 +26,8 @@ import {
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useSettings, type LogLevel } from '../contexts/SettingsContext';
+import { useWizard } from '../contexts/WizardContext';
+import { useNavigate } from 'react-router-dom';
 import { api } from '../lib/api';
 
 type TabId = 'appearance' | 'general' | 'logs' | 'notifications' | 'dashboard' | 'backup';
@@ -290,39 +292,72 @@ export default function Configuration() {
     </div>
   );
 
-  const renderGeneralTab = () => (
-    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-4 sm:p-6 space-y-4">
-      <div className="flex items-center justify-between py-2">
-        <div>
-          <p className="text-sm font-medium text-gray-900 dark:text-white">Actualisation automatique</p>
-          <p className="text-xs text-gray-500 dark:text-gray-400">Rafraichir les donnees automatiquement</p>
-        </div>
-        <Toggle
-          enabled={settings.autoRefresh}
-          onChange={(value) => updateSettings({ autoRefresh: value })}
-        />
-      </div>
+  const renderGeneralTab = () => {
+    const { resetWizard } = useWizard();
+    const navigate = useNavigate();
 
-      {settings.autoRefresh && (
-        <div className="flex items-center justify-between py-2">
-          <div>
-            <p className="text-sm font-medium text-gray-900 dark:text-white">Intervalle</p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Frequence de rafraichissement</p>
+    const handleResetWizard = () => {
+      if (window.confirm('Voulez-vous vraiment réinitialiser le guide de configuration ? Cela vous redirigera vers le wizard.')) {
+        resetWizard();
+        navigate('/wizard');
+      }
+    };
+
+    return (
+      <div className="space-y-6">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-4 sm:p-6 space-y-4">
+          <div className="flex items-center justify-between py-2">
+            <div>
+              <p className="text-sm font-medium text-gray-900 dark:text-white">Actualisation automatique</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Rafraichir les donnees automatiquement</p>
+            </div>
+            <Toggle
+              enabled={settings.autoRefresh}
+              onChange={(value) => updateSettings({ autoRefresh: value })}
+            />
           </div>
-          <select
-            value={settings.refreshInterval}
-            onChange={(e) => updateSettings({ refreshInterval: Number(e.target.value) })}
-            className="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-          >
-            <option value={5}>5s</option>
-            <option value={10}>10s</option>
-            <option value={30}>30s</option>
-            <option value={60}>1min</option>
-          </select>
+
+          {settings.autoRefresh && (
+            <div className="flex items-center justify-between py-2">
+              <div>
+                <p className="text-sm font-medium text-gray-900 dark:text-white">Intervalle</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Frequence de rafraichissement</p>
+              </div>
+              <select
+                value={settings.refreshInterval}
+                onChange={(e) => updateSettings({ refreshInterval: Number(e.target.value) })}
+                className="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              >
+                <option value={5}>5s</option>
+                <option value={10}>10s</option>
+                <option value={30}>30s</option>
+                <option value={60}>1min</option>
+              </select>
+            </div>
+          )}
         </div>
-      )}
-    </div>
-  );
+
+        {/* Wizard section */}
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-4 sm:p-6">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-900 dark:text-white">Guide de configuration</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                Réafficher le guide de première configuration
+              </p>
+            </div>
+            <button
+              onClick={handleResetWizard}
+              className="flex items-center gap-2 px-3 py-1.5 text-sm text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+            >
+              <RotateCcw className="w-4 h-4" />
+              Réinitialiser
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   const renderLogsTab = () => (
     <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-4 sm:p-6 space-y-4">
