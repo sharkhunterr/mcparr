@@ -56,6 +56,39 @@ Edit `~/.config/claude/claude_desktop_config.json`:
 
 Restart Claude Desktop to apply changes.
 
+#### Open WebUI (Recommended)
+
+Open WebUI is the primary use case for MCParr. It provides a ChatGPT-like interface with MCP tool integration.
+
+**Step 1: Configure MCParr as MCP Server in Open WebUI**
+
+1. Go to **Open WebUI** → **Settings** → **Admin Settings** → **Tools**
+2. Click **"+ Add Tool"** or **"MCP Servers"**
+3. Add MCParr MCP server:
+   ```json
+   {
+     "name": "mcparr",
+     "url": "http://YOUR_MCPARR_HOST:8001",
+     "type": "mcp"
+   }
+   ```
+
+**Step 2: Enable Tools in Chat**
+
+1. Start a new chat in Open WebUI
+2. Click the **Tools** icon in the chat input
+3. Enable MCParr tools you want to use
+4. Start chatting with access to your homelab!
+
+**Example Chat:**
+```
+User: Search for science fiction movies in Plex
+Assistant: [Uses plex_search tool] Found 42 sci-fi movies including...
+
+User: Request the latest season of The Expanse
+Assistant: [Uses overseerr_request_tv tool] I've requested Season 6...
+```
+
 #### Other MCP-Compatible Assistants
 
 Use the SSE endpoint:

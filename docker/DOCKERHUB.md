@@ -60,6 +60,49 @@ docker compose up -d
 - 📡 API Docs: http://localhost:8000/docs
 - 🤖 MCP Server: http://localhost:8001
 
+## 🤖 Connect to Open WebUI
+
+MCParr is designed for **Open WebUI** - use AI to control your entire homelab through chat!
+
+### 1. Install Open WebUI
+
+```bash
+docker run -d -p 3001:8080 \
+  -v open-webui:/app/backend/data \
+  --name open-webui \
+  ghcr.io/open-webui/open-webui:main
+```
+
+### 2. Add MCParr MCP Server
+
+In Open WebUI:
+1. **Settings** → **Admin Settings** → **Tools** → **MCP Servers**
+2. Click **"+ Add MCP Server"**
+3. Configure:
+   ```json
+   {
+     "name": "MCParr",
+     "url": "http://host.docker.internal:8001",
+     "enabled": true
+   }
+   ```
+   **Note**: Use `host.docker.internal` to access MCParr from Open WebUI container
+
+### 3. Start Chatting!
+
+Enable MCParr tools in your chat and control your homelab:
+
+```
+You: What's in my Plex library?
+AI: You have 1,234 movies, 89 TV shows, and 456 albums
+
+You: Request the new season of The Expanse
+AI: Requested The Expanse Season 6 via Overseerr!
+
+You: How are my downloads?
+AI: 3 movies downloading in Radarr, 5 episodes in Sonarr
+```
+
 ## 🏷️ Tags
 
 | Tag | Description |

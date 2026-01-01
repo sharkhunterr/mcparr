@@ -145,9 +145,81 @@ docker-compose exec backend alembic upgrade head
 2. Map your users across different services
 3. Create groups with appropriate permissions
 
-### 3. Connect AI Assistant
+### 3. Connect to Open WebUI
 
-See [MCP Integration Guide](MCP.md) for connecting to Claude or other AI assistants.
+Open WebUI is the primary interface for using MCParr with AI.
+
+#### Install Open WebUI
+
+If you don't have Open WebUI yet:
+
+```bash
+# Using Docker (recommended)
+docker run -d -p 3000:8080 \
+  -v open-webui:/app/backend/data \
+  --name open-webui \
+  ghcr.io/open-webui/open-webui:main
+```
+
+Access Open WebUI at http://localhost:3000
+
+#### Configure MCParr MCP Server in Open WebUI
+
+1. **Open Open WebUI** → **Settings** (gear icon)
+2. **Admin Settings** → **Tools** → **MCP Servers**
+3. Click **"+ Add MCP Server"**
+4. Configure MCParr:
+   ```json
+   {
+     "name": "MCParr Homelab",
+     "url": "http://YOUR_MCPARR_HOST:8001",
+     "enabled": true
+   }
+   ```
+   Replace `YOUR_MCPARR_HOST` with:
+   - `localhost` if running locally
+   - `host.docker.internal` if Open WebUI is in Docker (Linux: use your machine's IP)
+   - Your server IP/hostname for remote access
+
+5. Click **Save** and **Test Connection**
+6. If successful, you'll see "Connected" with a list of available tools
+
+#### Enable Tools in Chat
+
+1. Start a **new chat** in Open WebUI
+2. Click the **tools icon** (wrench) in the chat input bar
+3. You'll see MCParr tools grouped by category:
+   - **Media**: plex_search, overseerr_request_movie, overseerr_request_tv
+   - **Management**: radarr_add_movie, sonarr_add_series, prowlarr_search
+   - **System**: get_system_status, get_service_status
+4. **Enable the tools** you want to use
+5. Start chatting! The AI can now control your homelab
+
+#### Example Chat Session
+
+```
+You: What sci-fi movies do I have in Plex?
+AI: [Uses plex_search tool]
+    You have 47 sci-fi movies including Interstellar, The Matrix,
+    Inception, Blade Runner 2049, and Dune.
+
+You: Request the latest season of The Expanse
+AI: [Uses overseerr_request_tv tool]
+    I've requested The Expanse Season 6. It should be available
+    in Plex within a few hours once downloaded.
+
+You: How are my services doing?
+AI: [Uses get_system_status tool]
+    All 10 services are healthy:
+    ✅ Plex - 3 active streams
+    ✅ Radarr - 5 movies downloading
+    ✅ Sonarr - 2 episodes in queue
+    ✅ Overseerr - 12 pending requests
+```
+
+### 4. Connect Other AI Assistants (Optional)
+
+See [MCP Integration Guide](MCP.md) for connecting to Claude Desktop or other AI assistants.
 
 ---
 

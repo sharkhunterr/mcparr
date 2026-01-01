@@ -168,11 +168,53 @@ MCParr integrates with 15+ homelab services:
 | 💬 Open WebUI | AI chat interface | Manage models, chats |
 | 🤖 Ollama | Local LLM hosting | List models, generate text |
 
-## 🤝 MCP Integration
+## 🤝 AI Integration with Open WebUI
 
-MCParr exposes all homelab services as AI-callable tools via MCP.
+MCParr is designed to work seamlessly with **Open WebUI**, providing a ChatGPT-like interface to control your entire homelab through natural language.
 
-### Claude Desktop Configuration
+### Quick Setup with Open WebUI
+
+**1. Install Open WebUI (if not already installed)**
+
+```bash
+docker run -d -p 3000:8080 \
+  -v open-webui:/app/backend/data \
+  --name open-webui \
+  ghcr.io/open-webui/open-webui:main
+```
+
+**2. Configure MCParr MCP Server**
+
+In Open WebUI:
+1. Go to **Settings** → **Admin Settings** → **Tools** → **MCP Servers**
+2. Add MCParr:
+   ```json
+   {
+     "name": "MCParr Homelab",
+     "url": "http://YOUR_MCPARR_HOST:8001",
+     "enabled": true
+   }
+   ```
+3. Enable tools in your chat and start controlling your homelab!
+
+**3. Example Conversations**
+
+```
+You: What movies do I have about space?
+AI: [Searches Plex] You have 23 space movies including Interstellar, The Martian...
+
+You: Request the new season of Foundation
+AI: [Uses Overseerr] I've requested Foundation Season 2 for you!
+
+You: How are my downloads?
+AI: [Checks Radarr/Sonarr] You have 3 movies and 5 episodes downloading...
+```
+
+### Other AI Assistants
+
+MCParr also works with Claude Desktop and other MCP-compatible assistants.
+
+**Claude Desktop Configuration:**
 
 Add to `~/.config/claude/claude_desktop_config.json`:
 
@@ -187,16 +229,21 @@ Add to `~/.config/claude/claude_desktop_config.json`:
 }
 ```
 
-### Available Tools
+### Available MCP Tools
 
-Once connected, you can ask Claude to:
-- "Search for movies in Plex about space exploration"
-- "Request the latest season of Breaking Bad in Overseerr"
-- "Check Tautulli for users currently watching"
-- "Add a torrent to Deluge for the latest Linux ISO"
-- "Create a ticket in Zammad for server maintenance"
+Once connected, AI assistants can:
+- 🎬 **Search Plex** libraries for movies, TV shows, music
+- 📥 **Request media** via Overseerr with automatic quality selection
+- 🎥 **Manage downloads** in Radarr, Sonarr, Prowlarr
+- ⬇️ **Control torrents** in Deluge
+- 📚 **Browse libraries** in Komga, Audiobookshelf, ROMM
+- 🎫 **Create tickets** in Zammad
+- 👥 **Manage users** in Authentik
+- 📖 **Search documentation** in Wiki.js
+- 🤖 **Interact with Ollama** for local AI models
+- 📊 **Monitor system** health and metrics
 
-See [MCP.md](docs/MCP.md) for complete tool documentation.
+See [MCP Integration Guide](docs/MCP.md) for complete tool documentation and advanced configuration.
 
 ## 📊 Monitoring & Observability
 
