@@ -75,3 +75,13 @@ data/
 
 # Poetry lock (optional - uncomment if you want to commit it)
 # poetry.lock
+
+# Old code backup
+new/
+
+# Reports and linting output
+reports/
+htmlcov/
+*.coverage
+.coverage
+coverage.xml
