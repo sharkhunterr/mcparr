@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Sparkles, ArrowRight, X, Upload, Database, AlertCircle, CheckCircle, Loader2, Server, Users, Shield, Brain, Wrench, Check } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useWizard } from '../../contexts/WizardContext';
 import { api } from '../../lib/api';
 
@@ -41,6 +42,7 @@ interface ImportOptions {
 }
 
 export default function WelcomeStep() {
+  const navigate = useNavigate();
   const { nextStep, skipWizard } = useWizard();
   const [showImport, setShowImport] = useState(false);
   const [importing, setImporting] = useState(false);
@@ -119,13 +121,18 @@ export default function WelcomeStep() {
     }
   };
 
+  const handleSkip = () => {
+    skipWizard();
+    navigate('/');
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
       <div className="max-w-3xl w-full">
         {/* Skip button */}
         <div className="flex justify-end mb-4">
           <button
-            onClick={skipWizard}
+            onClick={handleSkip}
             className="flex items-center gap-2 px-4 py-2 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
           >
             <X className="w-4 h-4" />

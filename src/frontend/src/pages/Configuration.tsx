@@ -231,6 +231,7 @@ export default function Configuration() {
 
       // Redirect to wizard or reload page
       if (showWizardAfterReset) {
+        resetWizard();
         navigate('/wizard');
       } else {
         window.location.reload();
