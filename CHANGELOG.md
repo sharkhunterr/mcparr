@@ -1,22 +1,26 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
+All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+### [0.2.8](https://github.com/sharkhunterr/mcparr/-/compare/v0.2.7...v0.2.8) (2026-01-01)
 
----
 
-## [Unreleased]
+### Features
 
-### 📚 Documentation
-- Comprehensive user guide with 26 screenshots covering all features
-- Modern README with Mermaid architecture diagrams and badges
-- Corrected Open WebUI integration to use OpenAPI (port 8000) instead of MCP
-- Added step-by-step Open WebUI configuration guide
-- Enhanced Docker Hub overview with "What's New" section
+* add data reset functionality and wizard improvements ([53dc604](https://github.com/sharkhunterr/mcparr/-/commit/53dc60400109c7a47cbce413ac9117182bef0220))
+* add simple information-based wizard with navigation links ([d90350a](https://github.com/sharkhunterr/mcparr/-/commit/d90350a7b3ac721f95a1867ceb643ddfcc24f2dd))
+* add wizard reset option in Configuration page ([a1f1a65](https://github.com/sharkhunterr/mcparr/-/commit/a1f1a6561ec67dcfd4fc50cda348097e79037e8c))
+* modernize wizard with complete steps and new design ([1c7cd9c](https://github.com/sharkhunterr/mcparr/-/commit/1c7cd9c95d43ad074098160e43ed7665c23254ad))
+* **wizard:** integrate backup import into welcome step ([70a8634](https://github.com/sharkhunterr/mcparr/-/commit/70a8634c61d4ddbcd8a26d0db70d6cf6a15f4bad))
 
----
+
+### Bug Fixes
+
+* **backend:** correct all SQLAlchemy boolean comparisons ([cc99c1a](https://github.com/sharkhunterr/mcparr/-/commit/cc99c1a49ce2be983d5d66391640c541a2d0002c))
+* **backend:** correct SQLAlchemy boolean comparison in user_mapper ([2f8ab18](https://github.com/sharkhunterr/mcparr/-/commit/2f8ab188dc23689141813337bbdc25dd3cba9f3e))
+* correct initial version from 1.0.0 to 0.1.0 in CHANGELOG ([4996009](https://github.com/sharkhunterr/mcparr/-/commit/499600987e5daed78ca8e9f4a959d6f0422d28cc))
+* correct lucide-react icon type import in InfoStepLayout ([25bd85d](https://github.com/sharkhunterr/mcparr/-/commit/25bd85dd3d6421805aae52e431c73eeb1a16e6ee))
+* wizard navigation improvements ([50aa45b](https://github.com/sharkhunterr/mcparr/-/commit/50aa45b4cdb3f35622a74a0311ac9d672225b8be))
 
 ## [0.2.7] - 2026-01-01
 
