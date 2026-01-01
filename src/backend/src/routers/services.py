@@ -30,7 +30,7 @@ async def list_services(
         query = query.where(ServiceConfig.service_type == service_type)
 
     if enabled_only:
-        query = query.where(ServiceConfig.enabled is True)
+        query = query.where(ServiceConfig.enabled == True)
 
     result = await db.execute(query)
     services = result.scalars().all()
@@ -188,7 +188,7 @@ async def get_all_services_health_history(hours: int = 24, db: AsyncSession = De
     since = datetime.utcnow() - timedelta(hours=hours)
 
     # Get all enabled services
-    services_result = await db.execute(select(ServiceConfig).where(ServiceConfig.enabled is True))
+    services_result = await db.execute(select(ServiceConfig).where(ServiceConfig.enabled == True))
     services = services_result.scalars().all()
 
     result = []

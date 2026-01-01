@@ -64,7 +64,7 @@ class AlertService:
         query = select(AlertConfiguration)
 
         if enabled_only:
-            query = query.where(AlertConfiguration.enabled is True)
+            query = query.where(AlertConfiguration.enabled == True)
         if service_id:
             query = query.where(AlertConfiguration.service_id == service_id)
         if severity:

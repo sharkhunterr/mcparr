@@ -188,7 +188,7 @@ class SystemTools(BaseTool):
             from src.models.service_config import ServiceConfig
 
             async with async_session_maker() as session:
-                result = await session.execute(select(ServiceConfig).where(ServiceConfig.enabled is True))
+                result = await session.execute(select(ServiceConfig).where(ServiceConfig.enabled == True))
                 services = result.scalars().all()
                 for svc in services:
                     status = svc.status.value if hasattr(svc.status, "value") else str(svc.status)

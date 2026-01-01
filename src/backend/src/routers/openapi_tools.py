@@ -1856,7 +1856,7 @@ MUTATION_TOOLS = {
 
 async def get_tool_registry(session: AsyncSession) -> ToolRegistry:
     """Get tool registry with enabled services."""
-    result = await session.execute(select(ServiceConfig).where(ServiceConfig.enabled is True))
+    result = await session.execute(select(ServiceConfig).where(ServiceConfig.enabled == True))
     enabled_services = result.scalars().all()
 
     configs_by_type = {}
@@ -2362,7 +2362,7 @@ async def get_user_tautulli_mapping(session: AsyncSession, openwebui_user: dict)
 
     # Now find the Tautulli service config
     tautulli_service = await session.execute(
-        select(ServiceConfig).where(ServiceConfig.service_type == "tautulli", ServiceConfig.enabled is True)
+        select(ServiceConfig).where(ServiceConfig.service_type == "tautulli", ServiceConfig.enabled == True)
     )
     tautulli_config = tautulli_service.scalar_one_or_none()
 
@@ -2374,7 +2374,7 @@ async def get_user_tautulli_mapping(session: AsyncSession, openwebui_user: dict)
         select(UserMapping).where(
             UserMapping.central_user_id == central_user_id,
             UserMapping.service_config_id == str(tautulli_config.id),
-            UserMapping.enabled is True,
+            UserMapping.enabled == True,
         )
     )
     mapping = tautulli_mapping.scalar_one_or_none()
@@ -2439,7 +2439,7 @@ async def tautulli_get_my_stats(
     try:
         # Get Tautulli service config
         tautulli_service = await session.execute(
-            select(ServiceConfig).where(ServiceConfig.service_type == "tautulli", ServiceConfig.enabled is True)
+            select(ServiceConfig).where(ServiceConfig.service_type == "tautulli", ServiceConfig.enabled == True)
         )
         tautulli_config = tautulli_service.scalar_one_or_none()
 

@@ -550,5 +550,9 @@ export const api = {
         merge_mode?: boolean;
       };
     }) => apiClient.post('/api/backup/import', data),
+    resetAll: () => apiClient.post('/api/backup/reset-all'),
   },
+
+  // Expose baseURL for legacy code
+  baseURL: apiClient['baseUrl'],
 };

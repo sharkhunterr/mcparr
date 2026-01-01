@@ -96,7 +96,7 @@ async def get_all_tools_with_groups(db: AsyncSession = Depends(get_db)):
     result = await db.execute(
         select(GroupToolPermission, Group)
         .join(Group, GroupToolPermission.group_id == Group.id)
-        .where(and_(GroupToolPermission.enabled is True, Group.enabled is True))
+        .where(and_(GroupToolPermission.enabled == True, Group.enabled == True))
     )
     rows = result.all()
 
@@ -125,7 +125,7 @@ async def get_user_groups(central_user_id: str, db: AsyncSession = Depends(get_d
     # Get all memberships for this user
     memberships_result = await db.execute(
         select(GroupMembership).where(
-            and_(GroupMembership.central_user_id == central_user_id, GroupMembership.enabled is True)
+            and_(GroupMembership.central_user_id == central_user_id, GroupMembership.enabled == True)
         )
     )
     memberships = memberships_result.scalars().all()
@@ -138,7 +138,7 @@ async def get_user_groups(central_user_id: str, db: AsyncSession = Depends(get_d
     groups_result = await db.execute(
         select(Group)
         .options(selectinload(Group.memberships), selectinload(Group.tool_permissions))
-        .where(and_(Group.id.in_(group_ids), Group.enabled is True))
+        .where(and_(Group.id.in_(group_ids), Group.enabled == True))
         .order_by(Group.priority.desc())
     )
     groups = groups_result.scalars().all()

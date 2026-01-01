@@ -26,6 +26,8 @@ import {
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useSettings, type LogLevel } from '../contexts/SettingsContext';
+import { useWizard } from '../contexts/WizardContext';
+import { useNavigate } from 'react-router-dom';
 import { api } from '../lib/api';
 
 type TabId = 'appearance' | 'general' | 'logs' | 'notifications' | 'dashboard' | 'backup';
@@ -101,6 +103,8 @@ export default function Configuration() {
   const [activeTab, setActiveTab] = useState<TabId>('appearance');
   const { theme, setTheme } = useTheme();
   const { settings, updateSettings, resetSettings } = useSettings();
+  const { resetWizard } = useWizard();
+  const navigate = useNavigate();
   const [showResetConfirm, setShowResetConfirm] = useState(false);
 
   // Backup states
@@ -131,6 +135,9 @@ export default function Configuration() {
   } | null>(null);
   const [importFile, setImportFile] = useState<any>(null);
   const [importFileName, setImportFileName] = useState<string>('');
+  const [showResetAllConfirm, setShowResetAllConfirm] = useState(false);
+  const [resetting, setResetting] = useState(false);
+  const [showWizardAfterReset, setShowWizardAfterReset] = useState(true);
 
   // Fetch preview stats when backup tab is selected or options change
   useEffect(() => {
@@ -212,43 +219,30 @@ export default function Configuration() {
     }
   };
 
-  const handleExportSettings = () => {
-    const exportData = {
-      theme,
-      settings,
-      exportedAt: new Date().toISOString(),
-      version: '1.0',
-    };
-    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `mcparr-settings-${new Date().toISOString().split('T')[0]}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
+  const handleResetAll = async () => {
+    setResetting(true);
+    try {
+      // Call API to reset all data
+      const result = await api.backup.resetAll();
+      console.log('Reset result:', result);
 
-  const handleImportSettings = () => {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.json';
-    input.onchange = (e) => {
-      const file = (e.target as HTMLInputElement).files?.[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          try {
-            const data = JSON.parse(event.target?.result as string);
-            if (data.theme) setTheme(data.theme);
-            if (data.settings) updateSettings(data.settings);
-          } catch {
-            console.error('Invalid settings file');
-          }
-        };
-        reader.readAsText(file);
+      // Show success message
+      alert('Toutes les données ont été supprimées avec succès.');
+
+      // Redirect to wizard or reload page
+      if (showWizardAfterReset) {
+        resetWizard();
+        navigate('/wizard');
+      } else {
+        window.location.reload();
       }
-    };
-    input.click();
+    } catch (error) {
+      console.error('Reset failed:', error);
+      alert(`Erreur lors de la réinitialisation: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setResetting(false);
+      setShowResetAllConfirm(false);
+    }
   };
 
   const renderAppearanceTab = () => (
@@ -290,37 +284,65 @@ export default function Configuration() {
     </div>
   );
 
-  const renderGeneralTab = () => (
-    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-4 sm:p-6 space-y-4">
-      <div className="flex items-center justify-between py-2">
-        <div>
-          <p className="text-sm font-medium text-gray-900 dark:text-white">Actualisation automatique</p>
-          <p className="text-xs text-gray-500 dark:text-gray-400">Rafraichir les donnees automatiquement</p>
-        </div>
-        <Toggle
-          enabled={settings.autoRefresh}
-          onChange={(value) => updateSettings({ autoRefresh: value })}
-        />
-      </div>
+  const handleResetWizard = () => {
+    if (window.confirm('Voulez-vous vraiment réinitialiser le guide de configuration ? Cela vous redirigera vers le wizard.')) {
+      resetWizard();
+      navigate('/wizard');
+    }
+  };
 
-      {settings.autoRefresh && (
+  const renderGeneralTab = () => (
+    <div className="space-y-6">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-4 sm:p-6 space-y-4">
         <div className="flex items-center justify-between py-2">
           <div>
-            <p className="text-sm font-medium text-gray-900 dark:text-white">Intervalle</p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Frequence de rafraichissement</p>
+            <p className="text-sm font-medium text-gray-900 dark:text-white">Actualisation automatique</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Rafraichir les donnees automatiquement</p>
           </div>
-          <select
-            value={settings.refreshInterval}
-            onChange={(e) => updateSettings({ refreshInterval: Number(e.target.value) })}
-            className="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-          >
-            <option value={5}>5s</option>
-            <option value={10}>10s</option>
-            <option value={30}>30s</option>
-            <option value={60}>1min</option>
-          </select>
+          <Toggle
+            enabled={settings.autoRefresh}
+            onChange={(value) => updateSettings({ autoRefresh: value })}
+          />
         </div>
-      )}
+
+        {settings.autoRefresh && (
+          <div className="flex items-center justify-between py-2">
+            <div>
+              <p className="text-sm font-medium text-gray-900 dark:text-white">Intervalle</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Frequence de rafraichissement</p>
+            </div>
+            <select
+              value={settings.refreshInterval}
+              onChange={(e) => updateSettings({ refreshInterval: Number(e.target.value) })}
+              className="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            >
+              <option value={5}>5s</option>
+              <option value={10}>10s</option>
+              <option value={30}>30s</option>
+              <option value={60}>1min</option>
+            </select>
+          </div>
+        )}
+      </div>
+
+      {/* Wizard section */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-4 sm:p-6">
+        <div className="flex items-start justify-between">
+          <div>
+            <p className="text-sm font-medium text-gray-900 dark:text-white">Guide de configuration</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              Réafficher le guide de première configuration
+            </p>
+          </div>
+          <button
+            onClick={handleResetWizard}
+            className="flex items-center gap-2 px-3 py-1.5 text-sm text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+          >
+            <RotateCcw className="w-4 h-4" />
+            Réinitialiser
+          </button>
+        </div>
+      </div>
     </div>
   );
 
@@ -723,6 +745,99 @@ export default function Configuration() {
           </div>
         )}
       </div>
+
+      {/* Reset All Section */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-red-200 dark:border-red-800 p-4 sm:p-6">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="p-2 rounded-lg bg-red-100 dark:bg-red-900/30">
+            <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
+          </div>
+          <div>
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Zone de danger</h3>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Supprimer toutes les donnees de l'application</p>
+          </div>
+        </div>
+
+        <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-4 mb-4">
+          <p className="text-sm text-red-800 dark:text-red-200 mb-2 font-medium">
+            ⚠️ Action irreversible
+          </p>
+          <p className="text-xs text-red-700 dark:text-red-300">
+            Cette action supprimera definitivement toutes les donnees :
+          </p>
+          <ul className="text-xs text-red-700 dark:text-red-300 mt-2 space-y-1 ml-4">
+            <li>• Tous les services configures</li>
+            <li>• Tous les mappings utilisateurs</li>
+            <li>• Tous les groupes et permissions</li>
+            <li>• Tous les prompts d'entrainement</li>
+            <li>• Toute la configuration du site</li>
+          </ul>
+          <p className="text-xs text-red-700 dark:text-red-300 mt-2 font-medium">
+            Cette action ne peut pas etre annulee. Assurez-vous d'avoir exporte vos donnees si necessaire.
+          </p>
+        </div>
+
+        {!showResetAllConfirm ? (
+          <button
+            onClick={() => setShowResetAllConfirm(true)}
+            className="w-full px-4 py-3 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+          >
+            <AlertCircle className="w-5 h-5" />
+            Reinitialiser toutes les donnees
+          </button>
+        ) : (
+          <div className="space-y-3">
+            <div className="bg-amber-50 dark:bg-amber-900/20 rounded-lg p-3 border border-amber-200 dark:border-amber-800">
+              <p className="text-sm text-amber-800 dark:text-amber-200 font-medium mb-2">
+                Confirmation requise
+              </p>
+              <p className="text-xs text-amber-700 dark:text-amber-300">
+                Etes-vous absolument certain de vouloir supprimer toutes les donnees ? Cette action est irreversible.
+              </p>
+            </div>
+
+            {/* Option to show wizard after reset */}
+            <label className="flex items-center gap-2 cursor-pointer p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
+              <input
+                type="checkbox"
+                checked={showWizardAfterReset}
+                onChange={(e) => setShowWizardAfterReset(e.target.checked)}
+                className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+              />
+              <span className="text-sm text-blue-800 dark:text-blue-200">
+                Afficher le wizard de configuration apres la reinitialisation
+              </span>
+            </label>
+
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShowResetAllConfirm(false)}
+                disabled={resetting}
+                className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={handleResetAll}
+                disabled={resetting}
+                className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {resetting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Suppression...
+                  </>
+                ) : (
+                  <>
+                    <AlertCircle className="w-4 h-4" />
+                    Confirmer la suppression
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 
@@ -757,30 +872,6 @@ export default function Configuration() {
           <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
             Parametres de l'application
           </p>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <button
-            onClick={handleImportSettings}
-            className="p-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-            title="Importer"
-          >
-            <Upload className="w-4 h-4" />
-          </button>
-          <button
-            onClick={handleExportSettings}
-            className="p-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-            title="Exporter"
-          >
-            <Download className="w-4 h-4" />
-          </button>
-          <button
-            onClick={() => setShowResetConfirm(true)}
-            className="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-            title="Reinitialiser"
-          >
-            <RotateCcw className="w-4 h-4" />
-          </button>
         </div>
       </div>
 
