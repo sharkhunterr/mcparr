@@ -23,7 +23,37 @@
 
 MCParr is your unified gateway for managing homelab services through AI. Built with FastAPI and React, it combines a powerful MCP (Model Context Protocol) server with a modern web interface for seamless AI-driven automation.
 
+## 💡 Project Story
+
+### The Need
+As a homelab enthusiast managing services for family and friends, I found myself constantly receiving messages for simple requests: "Can you add this movie?", "I can't find that show", "Can you create my account?". Each request required manual intervention and back-and-forth communication.
+
+**The Goal**: Provide an AI assistant (via Open WebUI) that could handle all these requests autonomously, allowing my users to interact directly with the homelab without requiring my intervention for every small task.
+
+### Why Vibe Code?
+This project was developed **100% using Claude Code (Anthropic's CLI) and GitHub's Spec-Kit** for a simple reason: **lack of time and technical expertise, but a growing need to do things right**.
+
+As my homelab grew, so did the complexity and the number of user requests. I needed a robust, maintainable solution but lacked:
+- Deep knowledge of FastAPI, React, and modern web development
+- Time to learn all the best practices and architectural patterns
+- Experience with AI integration and MCP protocol
+
+**Claude Code enabled me to**:
+- Build a production-grade application despite limited technical knowledge
+- Implement complex features (MCP server, real-time monitoring, AI training) that would have taken months to learn
+- Follow best practices and modern patterns guided by AI assistance
+- Iterate quickly on features based on actual user needs
+- Maintain high code quality with automated testing and linting
+
+The result is a fully functional, well-documented homelab management platform that would have been impossible to build alone in a reasonable timeframe. This demonstrates how AI-assisted development can democratize software creation, allowing anyone with a vision to build complex systems regardless of their initial skill level.
+
 ## ✨ Features
+
+🧙 **Setup Wizard & Configuration**
+- Interactive first-time setup wizard
+- Import/export complete configuration
+- Guided step-by-step service configuration
+- One-click data reset with wizard restart option
 
 🎯 **Unified Service Management**
 - Configure and control 15+ homelab services (Plex, Radarr, Sonarr, Overseerr, Prowlarr, etc.)
@@ -187,6 +217,39 @@ npm run reports       # Generate test/lint reports
 - 📡 **API Docs**: http://localhost:8000/docs
 - 📗 **ReDoc**: http://localhost:8000/redoc
 - 🤖 **MCP Server**: http://localhost:8001
+
+## 🧙 First-Time Setup Wizard
+
+When you first access MCParr, you'll be greeted with an interactive setup wizard that guides you through the initial configuration:
+
+### Wizard Features
+
+**1. Welcome Screen**
+- Option to import an existing configuration (skip all manual setup)
+- Or start fresh with guided configuration
+
+**2. Guided Steps**
+- **Services**: Configure your homelab services (Plex, Radarr, Sonarr, etc.)
+- **User Mapping**: Automatic user discovery across all services
+- **Groups & Permissions**: Set up access control for AI tools
+- **Information Pages**: Learn about MCP, Training, Monitoring, and Configuration features
+
+**3. Configuration Import/Export**
+- **Import at Welcome**: Upload a backup file to restore complete configuration
+- **Export Anytime**: Backup your entire setup (services, users, groups, prompts, settings)
+- **Selective Restore**: Choose which data categories to import
+- **Merge Mode**: Import without overwriting existing data
+
+**4. Data Reset**
+- Complete application reset via Configuration → Backup tab
+- Double confirmation to prevent accidental deletion
+- Option to launch wizard after reset
+- Deletes all services, user mappings, groups, training prompts, and settings
+
+### Skip or Complete Later
+- Click "Passer le guide" (Skip) to access the interface immediately
+- Wizard completion is saved - it won't show again after first setup
+- Access wizard anytime via Configuration → General → "Reinitialiser le guide"
 
 ## 📚 Documentation
 
@@ -470,6 +533,35 @@ Contributions are welcome! Please:
 3. Make your changes
 4. Run tests and linting: `npm run lint && npm test`
 5. Submit a pull request
+
+## 🛠️ Development Tools
+
+This project was built using modern AI-assisted development tools:
+
+### Claude Code by Anthropic
+**100% of the codebase** was developed using [Claude Code](https://claude.ai/claude-code), Anthropic's CLI tool for AI-assisted development. This enabled rapid iteration, best-practice implementation, and complex feature development without requiring deep expertise in every technology.
+
+**Key benefits experienced:**
+- Faster development cycle (features that would take weeks completed in hours)
+- Consistent code quality and architecture across frontend/backend
+- Automated testing and documentation generation
+- Real-time problem-solving and debugging assistance
+- Learning while building - understanding patterns through implementation
+
+### GitHub Spec-Kit
+Project planning and architecture were designed using [GitHub's Spec-Kit](https://github.com/github/spec-kit), enabling clear specification of features and requirements before implementation.
+
+### Why This Matters
+This project demonstrates that **AI-assisted development democratizes software creation**. You don't need to be an expert in React, FastAPI, Docker, WebSockets, MCP protocol, or any specific technology to build production-grade applications. With the right tools and a clear vision, anyone can create complex, maintainable software systems.
+
+**If you're considering AI-assisted development:**
+- ✅ You can build features you don't fully understand yet
+- ✅ Best practices are enforced automatically
+- ✅ Documentation writes itself alongside code
+- ✅ Testing becomes integrated from day one
+- ✅ Learning happens through building, not before
+
+The entire MCParr project - from initial concept to production deployment - was built by someone with limited web development experience, proving that AI tools have fundamentally changed what's possible for individual developers.
 
 ## 📄 License
 
