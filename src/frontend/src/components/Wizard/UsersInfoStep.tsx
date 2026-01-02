@@ -12,7 +12,7 @@ export default function UsersInfoStep() {
       icon={Users}
       iconColor="bg-gradient-to-br from-purple-500 to-pink-600"
       description={t('steps.users.description')}
-      steps={t('steps.users.steps', { returnObjects: true }).map((text: string) => ({ text }))}
+      steps={(t('steps.users.steps', { returnObjects: true }) as string[]).map((text: string) => ({ text }))}
       linkText={t('steps.users.linkText')}
       linkUrl="/users"
       tip={t('steps.users.tip')}

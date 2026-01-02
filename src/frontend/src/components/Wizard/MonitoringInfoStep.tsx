@@ -12,7 +12,7 @@ export default function MonitoringInfoStep() {
       icon={Activity}
       iconColor="bg-gradient-to-br from-cyan-500 to-blue-600"
       description={t('steps.monitoring.description')}
-      steps={t('steps.monitoring.steps', { returnObjects: true }).map((text: string) => ({ text }))}
+      steps={(t('steps.monitoring.steps', { returnObjects: true }) as string[]).map((text: string) => ({ text }))}
       linkText={t('steps.monitoring.linkText')}
       linkUrl="/monitoring"
       tip={t('steps.monitoring.tip')}

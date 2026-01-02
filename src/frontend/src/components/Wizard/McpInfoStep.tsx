@@ -12,7 +12,7 @@ export default function McpInfoStep() {
       icon={Workflow}
       iconColor="bg-gradient-to-br from-emerald-500 to-teal-600"
       description={t('steps.mcp.description')}
-      steps={t('steps.mcp.steps', { returnObjects: true }).map((text: string) => ({ text }))}
+      steps={(t('steps.mcp.steps', { returnObjects: true }) as string[]).map((text: string) => ({ text }))}
       linkText={t('steps.mcp.linkText')}
       linkUrl="/mcp"
       tip={t('steps.mcp.tip')}

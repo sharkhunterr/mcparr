@@ -12,7 +12,7 @@ export default function TrainingInfoStep() {
       icon={Brain}
       iconColor="bg-gradient-to-br from-violet-500 to-purple-600"
       description={t('steps.training.description')}
-      steps={t('steps.training.steps', { returnObjects: true }).map((text: string) => ({ text }))}
+      steps={(t('steps.training.steps', { returnObjects: true }) as string[]).map((text: string) => ({ text }))}
       linkText={t('steps.training.linkText')}
       linkUrl="/training"
       tip={t('steps.training.tip')}

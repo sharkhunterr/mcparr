@@ -12,7 +12,7 @@ export default function ConfigInfoStep() {
       icon={Settings}
       iconColor="bg-gradient-to-br from-slate-500 to-gray-600"
       description={t('steps.config.description')}
-      steps={t('steps.config.steps', { returnObjects: true }).map((text: string) => ({ text }))}
+      steps={(t('steps.config.steps', { returnObjects: true }) as string[]).map((text: string) => ({ text }))}
       linkText={t('steps.config.linkText')}
       linkUrl="/configuration"
       tip={t('steps.config.tip')}

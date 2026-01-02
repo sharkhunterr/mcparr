@@ -12,7 +12,7 @@ export default function GroupsInfoStep() {
       icon={Shield}
       iconColor="bg-gradient-to-br from-orange-500 to-red-600"
       description={t('steps.groups.description')}
-      steps={t('steps.groups.steps', { returnObjects: true }).map((text: string) => ({ text }))}
+      steps={(t('steps.groups.steps', { returnObjects: true }) as string[]).map((text: string) => ({ text }))}
       linkText={t('steps.groups.linkText')}
       linkUrl="/groups"
       tip={t('steps.groups.tip')}

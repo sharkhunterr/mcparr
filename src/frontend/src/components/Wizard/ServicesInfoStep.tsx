@@ -12,7 +12,7 @@ export default function ServicesInfoStep() {
       icon={Server}
       iconColor="bg-gradient-to-br from-blue-500 to-indigo-600"
       description={t('steps.services.description')}
-      steps={t('steps.services.steps', { returnObjects: true }).map((text: string) => ({ text }))}
+      steps={(t('steps.services.steps', { returnObjects: true }) as string[]).map((text: string) => ({ text }))}
       linkText={t('steps.services.linkText')}
       linkUrl="/services"
     />
