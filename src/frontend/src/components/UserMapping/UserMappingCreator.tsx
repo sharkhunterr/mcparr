@@ -8,6 +8,7 @@ import {
   RefreshCw,
   User
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { getApiBaseUrl } from '../../lib/api';
 import { getServiceColor } from '../../lib/serviceColors';
 
@@ -63,6 +64,7 @@ interface UserMappingCreatorProps {
 const UserMappingCreator: FC<UserMappingCreatorProps> = ({
   onMappingCreated
 }) => {
+  const { t } = useTranslation('users');
   const [loading, setLoading] = useState(false);
   const [enumerationData, setEnumerationData] = useState<EnumerationData | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -86,7 +88,7 @@ const UserMappingCreator: FC<UserMappingCreatorProps> = ({
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.detail || 'Failed to enumerate users');
+        throw new Error(errorData.detail || t('errors.enumerateFailed'));
       }
 
       const data = await response.json();
@@ -154,7 +156,7 @@ const UserMappingCreator: FC<UserMappingCreatorProps> = ({
 
   const createMappingFromSelection = async () => {
     if (selectedUsers.length === 0) {
-      setError('Please select at least one user');
+      setError(t('creator.selectOneUser'));
       return;
     }
 
@@ -249,7 +251,7 @@ const UserMappingCreator: FC<UserMappingCreatorProps> = ({
       const failCount = results.filter(r => !r.success).length;
 
       if (successCount > 0) {
-        setSuccess(`Successfully created ${successCount} mapping${successCount > 1 ? 's' : ''} for user "${primaryUsername}"`);
+        setSuccess(t('creator.createSuccess', { count: successCount, username: primaryUsername }));
         // Clear selection
         setSelectedUsers([]);
         resetUsernameModal();
@@ -261,7 +263,7 @@ const UserMappingCreator: FC<UserMappingCreatorProps> = ({
       }
 
       if (failCount > 0) {
-        setError(`Failed to create ${failCount} mapping${failCount > 1 ? 's' : ''}`);
+        setError(t('creator.createFailed', { count: failCount }));
       }
 
     } catch (err) {
@@ -292,7 +294,7 @@ const UserMappingCreator: FC<UserMappingCreatorProps> = ({
 
   const handleCreateMappingClick = () => {
     if (selectedUsers.length === 0) {
-      setError('Please select at least one user');
+      setError(t('creator.selectOneUser'));
       return;
     }
 
@@ -434,7 +436,7 @@ const UserMappingCreator: FC<UserMappingCreatorProps> = ({
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 sm:p-6">
         <div className="flex items-center justify-center">
           <RefreshCw className="w-5 h-5 sm:w-6 sm:h-6 text-blue-500 animate-spin mr-2 sm:mr-3" />
-          <span className="text-sm sm:text-lg text-gray-600 dark:text-gray-400">Chargement des utilisateurs...</span>
+          <span className="text-sm sm:text-lg text-gray-600 dark:text-gray-400">{t('creator.loading')}</span>
         </div>
       </div>
     );
@@ -449,10 +451,10 @@ const UserMappingCreator: FC<UserMappingCreatorProps> = ({
             <Link className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600 flex-shrink-0" />
             <div className="min-w-0">
               <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">
-                Mapping manuel
+                {t('creator.title')}
               </h3>
               <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-                Lier les comptes utilisateurs entre services
+                {t('creator.description')}
               </p>
             </div>
           </div>
@@ -463,7 +465,7 @@ const UserMappingCreator: FC<UserMappingCreatorProps> = ({
             className="w-full sm:w-auto flex items-center justify-center space-x-2 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 transition-colors"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-            <span>Actualiser</span>
+            <span>{t('creator.refresh')}</span>
           </button>
         </div>
       </div>
@@ -494,28 +496,28 @@ const UserMappingCreator: FC<UserMappingCreatorProps> = ({
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3 sm:mb-4">
             <h4 className="font-semibold text-gray-900 dark:text-white flex items-center text-sm sm:text-base">
               <User className="w-4 h-4 mr-2 text-blue-600" />
-              Sélectionnés ({selectedUsers.length})
+              {t('creator.selected', { count: selectedUsers.length })}
             </h4>
             <div className="flex items-center gap-2">
               <button
                 onClick={clearSelection}
                 className="px-2 sm:px-3 py-1.5 text-xs sm:text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
               >
-                Effacer
+                {t('creator.clear')}
               </button>
               <button
                 onClick={handleCreateMappingClick}
                 disabled={creating}
                 className="px-3 sm:px-4 py-1.5 sm:py-2 bg-blue-600 text-white text-xs sm:text-sm rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
               >
-                {creating ? 'Création...' : 'Créer'}
+                {creating ? t('creator.creating') : t('creator.create')}
               </button>
             </div>
           </div>
 
           {/* Preview usernames and emails */}
           <div className="mb-3 sm:mb-4 p-2 sm:p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
-            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-2">Aperçu - ID basé sur :</p>
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-2">{t('creator.previewBased')}</p>
             <div className="flex flex-wrap gap-1.5 sm:gap-2">
               {selectedUsers.filter(u => u.email).length > 0 && (
                 <span className="px-2 py-0.5 sm:py-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400 rounded text-xs sm:text-sm truncate max-w-full">
@@ -528,7 +530,7 @@ const UserMappingCreator: FC<UserMappingCreatorProps> = ({
                 </span>
               ))}
               {getSuggestedUsernames().length === 0 && !selectedUsers.some(u => u.email) && (
-                <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-500">Aucun email/username</span>
+                <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-500">{t('creator.noEmailUsername')}</span>
               )}
             </div>
           </div>
@@ -563,7 +565,7 @@ const UserMappingCreator: FC<UserMappingCreatorProps> = ({
               <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
-                placeholder="Rechercher..."
+                placeholder={t('creator.search')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-3 py-2 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -575,7 +577,7 @@ const UserMappingCreator: FC<UserMappingCreatorProps> = ({
               onChange={(e) => setSelectedServiceFilter(e.target.value)}
               className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
-              <option value="all">Tous les services</option>
+              <option value="all">{t('creator.allServices')}</option>
               {Object.entries(enumerationData.services).map(([serviceId, serviceData]) => (
                 <option key={serviceId} value={serviceId}>
                   {serviceData.service_name} ({serviceData.user_count})
@@ -589,7 +591,7 @@ const UserMappingCreator: FC<UserMappingCreatorProps> = ({
       {/* Services and Users */}
       {enumerationData && (
         <div className="space-y-4">
-            <h4 className="font-semibold text-gray-900 dark:text-white text-sm sm:text-base">Utilisateurs par service</h4>
+            <h4 className="font-semibold text-gray-900 dark:text-white text-sm sm:text-base">{t('creator.usersByService')}</h4>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
             {filteredServices.map(([serviceId, serviceData]) => (
               <div key={serviceId} className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
@@ -598,7 +600,7 @@ const UserMappingCreator: FC<UserMappingCreatorProps> = ({
                     <div className={`w-3 h-3 rounded-full flex-shrink-0 ${getServiceColor(serviceData.service_type).dot}`}></div>
                     <div className="min-w-0">
                       <h3 className="font-medium text-gray-900 dark:text-white text-sm sm:text-base truncate">{serviceData.service_name}</h3>
-                      <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">{serviceData.user_count} utilisateurs</p>
+                      <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">{t('creator.users', { count: serviceData.user_count })}</p>
                     </div>
                   </div>
                 </div>
@@ -713,7 +715,7 @@ const UserMappingCreator: FC<UserMappingCreatorProps> = ({
       {/* Enumeration Errors */}
       {enumerationData?.errors && enumerationData.errors.length > 0 && (
         <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3 sm:p-4">
-          <h4 className="font-medium text-yellow-800 dark:text-yellow-400 mb-2 text-sm">Avertissements</h4>
+          <h4 className="font-medium text-yellow-800 dark:text-yellow-400 mb-2 text-sm">{t('creator.warnings')}</h4>
           <div className="space-y-1">
             {enumerationData.errors.map((error, index) => (
               <p key={index} className="text-xs sm:text-sm text-yellow-700 dark:text-yellow-400">{error}</p>
@@ -727,10 +729,10 @@ const UserMappingCreator: FC<UserMappingCreatorProps> = ({
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white dark:bg-gray-800 rounded-lg p-4 sm:p-6 max-w-md w-full">
             <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4">
-              Choisir le nom d'utilisateur
+              {t('creator.chooseUsername')}
             </h3>
             <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-3 sm:mb-4">
-              Plusieurs noms d'utilisateurs ont été trouvés. Choisissez celui à utiliser :
+              {t('creator.multipleUsernamesFound')}
             </p>
 
             <div className="space-y-2 sm:space-y-3 mb-4 sm:mb-6 max-h-64 overflow-y-auto">
@@ -745,9 +747,9 @@ const UserMappingCreator: FC<UserMappingCreatorProps> = ({
                   className="text-blue-600 focus:ring-blue-500"
                 />
                 <div className="min-w-0">
-                  <div className="font-medium text-gray-900 dark:text-white text-sm">Auto</div>
+                  <div className="font-medium text-gray-900 dark:text-white text-sm">{t('creator.auto')}</div>
                   <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 truncate">
-                    {getSuggestedUsernames()[0] || 'auto-généré'}
+                    {getSuggestedUsernames()[0] || t('creator.autoGenerated')}
                   </div>
                 </div>
               </label>
@@ -771,7 +773,7 @@ const UserMappingCreator: FC<UserMappingCreatorProps> = ({
                     />
                     <div className="min-w-0">
                       <div className="font-medium text-gray-900 dark:text-white text-sm truncate">{username}</div>
-                      <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 truncate">De: {serviceNames}</div>
+                      <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 truncate">{t('creator.from', { services: serviceNames })}</div>
                     </div>
                   </label>
                 );
@@ -788,11 +790,11 @@ const UserMappingCreator: FC<UserMappingCreatorProps> = ({
                   className="text-blue-600 focus:ring-blue-500"
                 />
                 <div className="flex-1 min-w-0">
-                  <div className="font-medium text-gray-900 dark:text-white text-sm">Personnalisé</div>
+                  <div className="font-medium text-gray-900 dark:text-white text-sm">{t('creator.custom')}</div>
                   {selectedUsernameOption === 'custom' && (
                     <input
                       type="text"
-                      placeholder="Entrer un nom..."
+                      placeholder={t('creator.enterName')}
                       value={customUsernameInput}
                       onChange={(e) => setCustomUsernameInput(e.target.value)}
                       className="mt-2 w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -808,14 +810,14 @@ const UserMappingCreator: FC<UserMappingCreatorProps> = ({
                 onClick={resetUsernameModal}
                 className="px-3 sm:px-4 py-2 text-sm text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
               >
-                Annuler
+                {t('creator.cancel')}
               </button>
               <button
                 onClick={proceedWithMappingCreation}
                 disabled={!selectedUsernameOption || (selectedUsernameOption === 'custom' && !customUsernameInput.trim())}
                 className="px-3 sm:px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
               >
-                Créer
+                {t('creator.create')}
               </button>
             </div>
           </div>

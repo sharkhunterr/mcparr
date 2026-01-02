@@ -6,6 +6,7 @@ import {
   Link,
   Shield
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 import UserMappingDetector from './UserMappingDetector';
 import UserMappingList from './UserMappingList';
@@ -19,6 +20,7 @@ interface UserMappingDashboardProps {
 const UserMappingDashboard: FC<UserMappingDashboardProps> = ({
   onEditMapping
 }) => {
+  const { t } = useTranslation('users');
   const [activeTab, setActiveTab] = useState<'detector' | 'manual' | 'list' | 'groups'>('detector');
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
@@ -37,26 +39,26 @@ const UserMappingDashboard: FC<UserMappingDashboardProps> = ({
   const tabs = [
     {
       id: 'detector' as const,
-      label: 'Auto',
-      labelFull: 'Auto-Détection',
+      label: t('tabs.detector.label'),
+      labelFull: t('tabs.detector.labelFull'),
       icon: Search
     },
     {
       id: 'manual' as const,
-      label: 'Manuel',
-      labelFull: 'Mapping Manuel',
+      label: t('tabs.manual.label'),
+      labelFull: t('tabs.manual.labelFull'),
       icon: Link
     },
     {
       id: 'list' as const,
-      label: 'Liste',
-      labelFull: 'Mappings',
+      label: t('tabs.list.label'),
+      labelFull: t('tabs.list.labelFull'),
       icon: Users
     },
     {
       id: 'groups' as const,
-      label: 'Groupes',
-      labelFull: 'Gestion des Groupes',
+      label: t('tabs.groups.label'),
+      labelFull: t('tabs.groups.labelFull'),
       icon: Shield
     }
   ];
@@ -68,10 +70,10 @@ const UserMappingDashboard: FC<UserMappingDashboardProps> = ({
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
             <Users className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600" />
-            Utilisateurs
+            {t('title')}
           </h1>
           <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-            Gestion des mappings utilisateurs
+            {t('description')}
           </p>
         </div>
 

@@ -12,6 +12,7 @@ import {
   User,
   Link
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { getApiBaseUrl } from '../../lib/api';
 import { getServiceColor } from '../../lib/serviceColors';
 
@@ -96,6 +97,7 @@ const UserMappingList: FC<UserMappingListProps> = ({
   onEditMapping,
   onCreateMapping
 }) => {
+  const { t } = useTranslation('users');
   const [mappings, setMappings] = useState<UserMapping[]>([]);
   const [groupedMappings, setGroupedMappings] = useState<GroupedUserMapping[]>([]);
   const [loading, setLoading] = useState(true);
@@ -161,7 +163,7 @@ const UserMappingList: FC<UserMappingListProps> = ({
   };
 
   const deleteMapping = async (mappingId: string) => {
-    if (!confirm('Are you sure you want to delete this user mapping?')) {
+    if (!confirm(t('list.deleteConfirm'))) {
       return;
     }
 
@@ -205,7 +207,7 @@ const UserMappingList: FC<UserMappingListProps> = ({
   };
 
   const formatLastSync = (timestamp?: string) => {
-    if (!timestamp) return 'Never';
+    if (!timestamp) return t('list.never');
 
     const date = new Date(timestamp);
     const now = new Date();
@@ -213,9 +215,9 @@ const UserMappingList: FC<UserMappingListProps> = ({
     const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
     const diffMins = Math.floor(diffMs / (1000 * 60));
 
-    if (diffMins < 1) return 'Just now';
-    if (diffMins < 60) return `${diffMins}m ago`;
-    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffMins < 1) return t('list.justNow');
+    if (diffMins < 60) return t('list.minsAgo', { count: diffMins });
+    if (diffHours < 24) return t('list.hoursAgo', { count: diffHours });
     return date.toLocaleDateString();
   };
 
@@ -277,7 +279,7 @@ const UserMappingList: FC<UserMappingListProps> = ({
   };
 
   const deleteUserGroup = async (centralUserId: string) => {
-    if (!confirm('Are you sure you want to delete all mappings for this user? This action cannot be undone.')) {
+    if (!confirm(t('list.deleteUserConfirm'))) {
       return;
     }
 
@@ -429,7 +431,7 @@ const UserMappingList: FC<UserMappingListProps> = ({
   };
 
   const removeMappingFromEditModal = async (mappingId: string) => {
-    if (!confirm('Are you sure you want to remove this service mapping?')) return;
+    if (!confirm(t('list.removeServiceConfirm'))) return;
 
     try {
       const response = await fetch(`${getApiBaseUrl()}/api/users/${mappingId}`, {
@@ -505,10 +507,10 @@ const UserMappingList: FC<UserMappingListProps> = ({
             <Users className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600 flex-shrink-0" />
             <div className="min-w-0">
               <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">
-                Mappings
+                {t('list.title')}
               </h3>
               <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-                {total} mapping{total > 1 ? 's' : ''}
+                {t('list.count', { count: total })}
               </p>
             </div>
           </div>
@@ -520,7 +522,7 @@ const UserMappingList: FC<UserMappingListProps> = ({
               className="flex items-center space-x-2 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 transition-colors"
             >
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-              <span className="hidden sm:inline">Actualiser</span>
+              <span className="hidden sm:inline">{t('list.refresh')}</span>
             </button>
             {onCreateMapping && (
               <button
@@ -528,7 +530,7 @@ const UserMappingList: FC<UserMappingListProps> = ({
                 className="flex items-center space-x-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-blue-600 text-white text-xs sm:text-sm rounded-lg hover:bg-blue-700 transition-colors"
               >
                 <Plus className="w-4 h-4" />
-                <span className="hidden sm:inline">Ajouter</span>
+                <span className="hidden sm:inline">{t('list.add')}</span>
               </button>
             )}
           </div>
@@ -542,7 +544,7 @@ const UserMappingList: FC<UserMappingListProps> = ({
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <input
               type="text"
-              placeholder="Rechercher..."
+              placeholder={t('list.search')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-3 py-2 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -554,11 +556,11 @@ const UserMappingList: FC<UserMappingListProps> = ({
             onChange={(e) => setStatusFilter(e.target.value)}
             className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
-            <option value="all">Tous statuts</option>
-            <option value="active">Actif</option>
-            <option value="pending">En attente</option>
-            <option value="failed">Échoué</option>
-            <option value="syncing">Synchro</option>
+            <option value="all">{t('list.allStatus')}</option>
+            <option value="active">{t('list.statusActive')}</option>
+            <option value="pending">{t('list.statusPending')}</option>
+            <option value="failed">{t('list.statusFailed')}</option>
+            <option value="syncing">{t('list.statusSyncing')}</option>
           </select>
 
           <select
@@ -566,7 +568,7 @@ const UserMappingList: FC<UserMappingListProps> = ({
             onChange={(e) => setServiceFilter(e.target.value)}
             className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
-            <option value="all">Tous services</option>
+            <option value="all">{t('list.allServices')}</option>
           </select>
         </div>
 
@@ -596,7 +598,7 @@ const UserMappingList: FC<UserMappingListProps> = ({
                   <div className="min-w-0 flex-1">
                     <h3 className="font-medium text-sm sm:text-base text-gray-900 dark:text-white truncate">{userGroup.central_username}</h3>
                     <p className="text-xs text-gray-600 dark:text-gray-400">
-                      {userGroup.active_services}/{userGroup.total_services} actif
+                      {t('list.activeServices', { active: userGroup.active_services, total: userGroup.total_services })}
                     </p>
                   </div>
                 </div>
@@ -621,7 +623,7 @@ const UserMappingList: FC<UserMappingListProps> = ({
 
               {/* Last Activity */}
               <div className="text-xs text-gray-500 dark:text-gray-400 mb-3">
-                Dernière activité: {formatLastSync(userGroup.last_activity)}
+                {t('list.lastActivity')}: {formatLastSync(userGroup.last_activity)}
               </div>
 
               {/* Service Badges */}
@@ -665,7 +667,7 @@ const UserMappingList: FC<UserMappingListProps> = ({
               {/* Service Details (expandable) */}
               <details className="mt-3">
                 <summary className="cursor-pointer text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white">
-                  Voir les détails
+                  {t('list.viewDetails')}
                 </summary>
                 <div className="mt-2 space-y-2 pl-4 border-l-2 border-gray-200 dark:border-gray-600">
                   {userGroup.mappings.map((mapping) => (
@@ -689,7 +691,7 @@ const UserMappingList: FC<UserMappingListProps> = ({
                               : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-400'
                           }`}
                         >
-                          {mapping.sync_enabled ? 'Sync On' : 'Sync Off'}
+                          {mapping.sync_enabled ? t('list.syncOn') : t('list.syncOff')}
                         </button>
 
                         {onEditMapping && (
@@ -720,11 +722,11 @@ const UserMappingList: FC<UserMappingListProps> = ({
         {groupedMappings.length === 0 && !loading && (
           <div className="text-center py-8 sm:py-12 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
             <Users className="w-10 h-10 sm:w-12 sm:h-12 text-gray-400 mx-auto mb-3 sm:mb-4" />
-            <h3 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white mb-2">Aucun mapping</h3>
+            <h3 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white mb-2">{t('list.noMappings')}</h3>
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 px-4">
               {searchTerm || statusFilter !== 'all' || serviceFilter !== 'all'
-                ? 'Aucun mapping ne correspond aux filtres.'
-                : 'Commencez par détecter ou créer des mappings.'
+                ? t('list.noMappingsFiltered')
+                : t('list.noMappingsStart')
               }
             </p>
             {onCreateMapping && (
@@ -733,7 +735,7 @@ const UserMappingList: FC<UserMappingListProps> = ({
                 className="inline-flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
               >
                 <Plus className="w-4 h-4" />
-                <span>Créer un mapping</span>
+                <span>{t('list.createMapping')}</span>
               </button>
             )}
           </div>
@@ -743,7 +745,7 @@ const UserMappingList: FC<UserMappingListProps> = ({
         {total > limit && (
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
             <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-              {groupedMappings.length} utilisateurs / {total} mappings
+              {t('list.paginationInfo', { users: groupedMappings.length, mappings: total })}
             </div>
 
             <div className="flex items-center space-x-2">
@@ -752,14 +754,14 @@ const UserMappingList: FC<UserMappingListProps> = ({
                 disabled={page === 0}
                 className="px-3 py-1.5 sm:py-2 text-xs sm:text-sm border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 transition-colors"
               >
-                Précédent
+                {t('list.previous')}
               </button>
               <button
                 onClick={() => setPage(page + 1)}
                 disabled={(page + 1) * limit >= total}
                 className="px-3 py-1.5 sm:py-2 text-xs sm:text-sm border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 transition-colors"
               >
-                Suivant
+                {t('list.next')}
               </button>
             </div>
           </div>
@@ -771,21 +773,21 @@ const UserMappingList: FC<UserMappingListProps> = ({
             <div className="bg-white dark:bg-gray-800 rounded-lg p-4 sm:p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
               <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
                 <Edit className="w-5 h-5 mr-2 text-blue-600" />
-                Éditer: {editingUser.central_username}
+                {t('list.editUser')}: {editingUser.central_username}
               </h3>
 
               <div className="space-y-4 mb-6">
                 {/* Central Username */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Nom d'utilisateur
+                    {t('list.username')}
                   </label>
                   <input
                     type="text"
                     value={editUsername}
                     onChange={(e) => setEditUsername(e.target.value)}
                     className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Entrer un nom..."
+                    placeholder={t('list.usernamePlaceholder')}
                   />
                 </div>
 
@@ -793,7 +795,7 @@ const UserMappingList: FC<UserMappingListProps> = ({
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Services connectés ({editingUser.mappings.length})
+                      {t('list.connectedServices', { count: editingUser.mappings.length })}
                     </label>
                     {getUnmappedServices().length > 0 && (
                       <button
@@ -801,7 +803,7 @@ const UserMappingList: FC<UserMappingListProps> = ({
                         className="flex items-center space-x-1 px-2 py-1 text-sm text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded transition-colors"
                       >
                         <Plus className="w-4 h-4" />
-                        <span>Ajouter</span>
+                        <span>{t('list.add')}</span>
                       </button>
                     )}
                   </div>
@@ -833,7 +835,7 @@ const UserMappingList: FC<UserMappingListProps> = ({
 
                     {editingUser.mappings.length === 0 && (
                       <div className="text-center py-4 text-gray-500 dark:text-gray-400 text-sm">
-                        Aucun mapping. Ajoutez-en un ci-dessous.
+                        {t('list.noMappingsAddOne')}
                       </div>
                     )}
                   </div>
@@ -844,20 +846,20 @@ const UserMappingList: FC<UserMappingListProps> = ({
                   <div className="p-3 sm:p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
                     <h4 className="font-medium text-gray-900 dark:text-white mb-3 flex items-center text-sm">
                       <Link className="w-4 h-4 mr-2 text-blue-600" />
-                      Ajouter un service
+                      {t('list.addService')}
                     </h4>
 
                     {loadingEnumeration ? (
                       <div className="flex items-center justify-center py-4">
                         <RefreshCw className="w-5 h-5 text-blue-500 animate-spin mr-2" />
-                        <span className="text-sm text-gray-600 dark:text-gray-400">Chargement...</span>
+                        <span className="text-sm text-gray-600 dark:text-gray-400">{t('list.loading')}</span>
                       </div>
                     ) : (
                       <div className="space-y-3">
                         {/* Service Selection */}
                         <div>
                           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            Service
+                            {t('list.service')}
                           </label>
                           <select
                             value={selectedServiceId}
@@ -867,7 +869,7 @@ const UserMappingList: FC<UserMappingListProps> = ({
                             }}
                             className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                           >
-                            <option value="">Choisir un service...</option>
+                            <option value="">{t('list.chooseService')}</option>
                             {getUnmappedServices().map(([serviceId, serviceData]) => (
                               <option key={serviceId} value={serviceId}>
                                 {serviceData.service_name} ({serviceData.user_count})
@@ -880,7 +882,7 @@ const UserMappingList: FC<UserMappingListProps> = ({
                         {selectedServiceId && enumerationData?.services[selectedServiceId] && (
                           <div>
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                              Utilisateur
+                              {t('list.user')}
                             </label>
                             <div className="max-h-40 overflow-y-auto border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800">
                               {enumerationData.services[selectedServiceId].users.map((user, index) => (
@@ -920,7 +922,7 @@ const UserMappingList: FC<UserMappingListProps> = ({
                             }}
                             className="px-3 py-1.5 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
                           >
-                            Annuler
+                            {t('list.cancel')}
                           </button>
                           <button
                             onClick={addServiceMapping}
@@ -930,12 +932,12 @@ const UserMappingList: FC<UserMappingListProps> = ({
                             {addingMapping ? (
                               <>
                                 <RefreshCw className="w-4 h-4 mr-1 animate-spin" />
-                                Ajout...
+                                {t('list.adding')}
                               </>
                             ) : (
                               <>
                                 <Plus className="w-4 h-4 mr-1" />
-                                Ajouter
+                                {t('list.add')}
                               </>
                             )}
                           </button>
@@ -947,8 +949,8 @@ const UserMappingList: FC<UserMappingListProps> = ({
 
                 {/* User Info */}
                 <div className="text-xs text-gray-500 dark:text-gray-400 pt-2 border-t border-gray-200 dark:border-gray-700">
-                  <p><strong>ID:</strong> {editingUser.central_user_id}</p>
-                  <p><strong>Services:</strong> {editingUser.total_services} ({editingUser.active_services} actifs)</p>
+                  <p><strong>{t('list.id')}:</strong> {editingUser.central_user_id}</p>
+                  <p><strong>{t('list.servicesLabel')}:</strong> {t('list.servicesCount', { total: editingUser.total_services, active: editingUser.active_services })}</p>
                 </div>
               </div>
 
@@ -957,14 +959,14 @@ const UserMappingList: FC<UserMappingListProps> = ({
                   onClick={closeEditModal}
                   className="px-3 sm:px-4 py-2 text-sm text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                 >
-                  Fermer
+                  {t('list.close')}
                 </button>
                 <button
                   onClick={saveUserEdit}
                   disabled={!editUsername.trim()}
                   className="px-3 sm:px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
                 >
-                  Sauvegarder
+                  {t('list.save')}
                 </button>
               </div>
             </div>

@@ -14,6 +14,7 @@ import {
   Search,
   Zap
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { api } from '../../lib/api';
 import type { Group, GroupDetail as GroupDetailType, AvailableToolsResponse } from '../../types/api';
 import { getServiceColor } from '../../lib/serviceColors';
@@ -31,6 +32,7 @@ interface CentralUser {
 }
 
 const GroupDetail: FC<GroupDetailProps> = ({ group, onClose, onUpdated }) => {
+  const { t } = useTranslation('groups');
   const [groupDetail, setGroupDetail] = useState<GroupDetailType | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -144,7 +146,7 @@ const GroupDetail: FC<GroupDetailProps> = ({ group, onClose, onUpdated }) => {
   };
 
   const handleRemoveMember = async (membershipId: string) => {
-    if (!confirm('Remove this member from the group?')) return;
+    if (!confirm(t('detail.members.removeConfirm'))) return;
     try {
       await api.groups.members.remove(group.id, membershipId);
       fetchGroupDetail();
@@ -316,7 +318,7 @@ const GroupDetail: FC<GroupDetailProps> = ({ group, onClose, onUpdated }) => {
   if (!groupDetail) {
     return (
       <div className="h-full flex items-center justify-center text-gray-500">
-        Groupe non trouvé
+        {t('detail.notFound')}
       </div>
     );
   }
@@ -335,7 +337,7 @@ const GroupDetail: FC<GroupDetailProps> = ({ group, onClose, onUpdated }) => {
           </h2>
           {groupDetail.is_system && (
             <span className="px-2 py-0.5 text-xs bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded">
-              Système
+              {t('detail.system')}
             </span>
           )}
         </div>
@@ -350,9 +352,9 @@ const GroupDetail: FC<GroupDetailProps> = ({ group, onClose, onUpdated }) => {
       {/* Tabs */}
       <div className="flex border-b border-gray-200 dark:border-gray-700">
         {[
-          { id: 'info', label: 'Informations', icon: Shield },
-          { id: 'members', label: `Membres (${groupDetail.member_count})`, icon: Users },
-          { id: 'permissions', label: `Outils (${groupDetail.tool_count})`, icon: Wrench }
+          { id: 'info', label: t('detail.tabs.info'), icon: Shield },
+          { id: 'members', label: t('detail.tabs.members', { count: groupDetail.member_count }), icon: Users },
+          { id: 'permissions', label: t('detail.tabs.permissions', { count: groupDetail.tool_count }), icon: Wrench }
         ].map(tab => (
           <button
             key={tab.id}
@@ -383,7 +385,7 @@ const GroupDetail: FC<GroupDetailProps> = ({ group, onClose, onUpdated }) => {
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Nom
+                {t('detail.info.name')}
               </label>
               <input
                 type="text"
@@ -396,7 +398,7 @@ const GroupDetail: FC<GroupDetailProps> = ({ group, onClose, onUpdated }) => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Description
+                {t('detail.info.description')}
               </label>
               <textarea
                 value={editDescription}
@@ -409,7 +411,7 @@ const GroupDetail: FC<GroupDetailProps> = ({ group, onClose, onUpdated }) => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Couleur
+                  {t('detail.info.color')}
                 </label>
                 <div className="flex items-center space-x-2">
                   <input
@@ -429,7 +431,7 @@ const GroupDetail: FC<GroupDetailProps> = ({ group, onClose, onUpdated }) => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Priorité
+                  {t('detail.info.priority')}
                 </label>
                 <input
                   type="number"
@@ -438,7 +440,7 @@ const GroupDetail: FC<GroupDetailProps> = ({ group, onClose, onUpdated }) => {
                   className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-indigo-500"
                 />
                 <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                  Priorité plus élevée = résolution en premier
+                  {t('detail.info.priorityHelp')}
                 </p>
               </div>
             </div>
@@ -454,7 +456,7 @@ const GroupDetail: FC<GroupDetailProps> = ({ group, onClose, onUpdated }) => {
                 ) : (
                   <Save className="w-4 h-4" />
                 )}
-                <span>Sauvegarder</span>
+                <span>{t('detail.info.save')}</span>
               </button>
             </div>
           </div>
@@ -465,14 +467,14 @@ const GroupDetail: FC<GroupDetailProps> = ({ group, onClose, onUpdated }) => {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Membres du groupe
+                {t('detail.members.title')}
               </h3>
               <button
                 onClick={() => setShowAddMember(!showAddMember)}
                 className="flex items-center space-x-1 px-3 py-1.5 text-sm text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-colors"
               >
                 <Plus className="w-4 h-4" />
-                <span>Ajouter</span>
+                <span>{t('detail.members.add')}</span>
               </button>
             </div>
 
@@ -483,7 +485,7 @@ const GroupDetail: FC<GroupDetailProps> = ({ group, onClose, onUpdated }) => {
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                   <input
                     type="text"
-                    placeholder="Rechercher un utilisateur..."
+                    placeholder={t('detail.members.search')}
                     value={memberSearchTerm}
                     onChange={(e) => setMemberSearchTerm(e.target.value)}
                     className="w-full pl-9 pr-3 py-2 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg"
@@ -515,7 +517,7 @@ const GroupDetail: FC<GroupDetailProps> = ({ group, onClose, onUpdated }) => {
                     ))}
                     {filteredUsersToAdd.length === 0 && (
                       <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
-                        Aucun utilisateur disponible
+                        {t('detail.members.noUsers')}
                       </p>
                     )}
                   </div>
@@ -555,7 +557,7 @@ const GroupDetail: FC<GroupDetailProps> = ({ group, onClose, onUpdated }) => {
               {groupDetail.memberships.length === 0 && (
                 <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                   <Users className="w-10 h-10 mx-auto mb-2 opacity-50" />
-                  <p className="text-sm">Aucun membre</p>
+                  <p className="text-sm">{t('detail.members.noMembers')}</p>
                 </div>
               )}
             </div>
@@ -573,7 +575,7 @@ const GroupDetail: FC<GroupDetailProps> = ({ group, onClose, onUpdated }) => {
                   <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
                   <input
                     type="text"
-                    placeholder="Rechercher..."
+                    placeholder={t('detail.permissions.search')}
                     value={toolSearchQuery}
                     onChange={(e) => setToolSearchQuery(e.target.value)}
                     className="w-full pl-8 pr-7 py-1.5 text-xs border border-gray-300 dark:border-gray-600 bg-transparent dark:text-white rounded-md focus:ring-1 focus:ring-indigo-500"
@@ -592,7 +594,7 @@ const GroupDetail: FC<GroupDetailProps> = ({ group, onClose, onUpdated }) => {
                   className="flex items-center gap-1 px-2 py-1.5 text-xs font-medium bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors whitespace-nowrap"
                 >
                   <Zap className="w-3 h-3" />
-                  Tout
+                  {t('detail.permissions.all')}
                 </button>
                 <span className="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
                   {groupDetail.tool_count}/{availableTools?.total_tools || 0}
@@ -646,7 +648,7 @@ const GroupDetail: FC<GroupDetailProps> = ({ group, onClose, onUpdated }) => {
                               }}
                               className="px-2 py-0.5 text-xs font-medium text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition-colors"
                             >
-                              Aucun
+                              {t('detail.permissions.none')}
                             </button>
                           ) : (
                             <button
@@ -656,7 +658,7 @@ const GroupDetail: FC<GroupDetailProps> = ({ group, onClose, onUpdated }) => {
                               }}
                               className="px-2 py-0.5 text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 rounded transition-colors"
                             >
-                              Tous
+                              {t('detail.permissions.all')}
                             </button>
                           )}
                           {isExpanded ? (
@@ -725,7 +727,7 @@ const GroupDetail: FC<GroupDetailProps> = ({ group, onClose, onUpdated }) => {
               <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                 <Wrench className="w-10 h-10 mx-auto mb-2 opacity-50" />
                 <p className="text-sm">
-                  {toolSearchQuery ? 'Aucun outil ne correspond à la recherche' : 'Aucun outil disponible'}
+                  {toolSearchQuery ? t('detail.permissions.noToolsFound') : t('detail.permissions.noTools')}
                 </p>
               </div>
             )}

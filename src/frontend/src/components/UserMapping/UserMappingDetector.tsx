@@ -6,6 +6,7 @@ import {
   Activity,
   Filter
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { getApiBaseUrl } from '../../lib/api';
 import { getServiceColor } from '../../lib/serviceColors';
 
@@ -46,6 +47,7 @@ interface UserMappingDetectorProps {
 const UserMappingDetector: FC<UserMappingDetectorProps> = ({
   onDetectionComplete
 }) => {
+  const { t } = useTranslation('users');
   const [detecting, setDetecting] = useState(false);
   const [results, setResults] = useState<DetectionResults | null>(null);
   const [availableServices, setAvailableServices] = useState<any[]>([]);
@@ -75,7 +77,7 @@ const UserMappingDetector: FC<UserMappingDetectorProps> = ({
 
   const startDetection = async () => {
     if (availableServices.length < 2) {
-      setError('You need at least 2 enabled services to detect user mappings');
+      setError(t('detector.needTwoServices'));
       return;
     }
 
@@ -96,7 +98,7 @@ const UserMappingDetector: FC<UserMappingDetectorProps> = ({
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.detail || 'Detection failed');
+        throw new Error(errorData.detail || t('errors.detectFailed'));
       }
 
       const detectionResults = await response.json();
@@ -152,7 +154,7 @@ const UserMappingDetector: FC<UserMappingDetectorProps> = ({
 
   const createMappingsFromSelected = async () => {
     if (!results || selectedSuggestions.size === 0) {
-      setError('Please select at least one suggestion to create mappings');
+      setError(t('detector.selectOne'));
       return;
     }
 
@@ -174,7 +176,7 @@ const UserMappingDetector: FC<UserMappingDetectorProps> = ({
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.detail || 'Failed to create mappings');
+        throw new Error(errorData.detail || t('errors.createFailed'));
       }
 
       const createResults = await response.json();
@@ -185,7 +187,7 @@ const UserMappingDetector: FC<UserMappingDetectorProps> = ({
       setError(null);
 
       // Optionally refresh detection results
-      alert(`Successfully created ${createResults.created_mappings} user mappings!`);
+      alert(t('detector.createSuccess', { count: createResults.created_mappings }));
 
     } catch (err) {
       console.error('❌ Failed to create mappings:', err);
@@ -201,9 +203,9 @@ const UserMappingDetector: FC<UserMappingDetectorProps> = ({
   };
 
   const getConfidenceBadge = (score: number) => {
-    if (score >= 0.9) return 'HIGH';
-    if (score >= 0.7) return 'MED';
-    return 'LOW';
+    if (score >= 0.9) return t('detector.confidence.high');
+    if (score >= 0.7) return t('detector.confidence.medium');
+    return t('detector.confidence.low');
   };
 
   const getFilteredSuggestions = () => {
@@ -254,10 +256,10 @@ const UserMappingDetector: FC<UserMappingDetectorProps> = ({
             <Search className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600 flex-shrink-0" />
             <div className="min-w-0">
               <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">
-                Détection automatique
+                {t('detector.title')}
               </h3>
               <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-                Scanner les services pour détecter les mappings
+                {t('detector.description')}
               </p>
             </div>
           </div>
@@ -266,14 +268,14 @@ const UserMappingDetector: FC<UserMappingDetectorProps> = ({
             onClick={startDetection}
             disabled={detecting || availableServices.length < 2}
             className="w-full sm:w-auto flex items-center justify-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
-            title={availableServices.length < 2 ? 'Need at least 2 services' : 'Start detection'}
+            title={availableServices.length < 2 ? t('detector.needTwoServices') : t('detector.detect')}
           >
             {detecting ? (
               <Activity className="w-4 h-4 animate-pulse" />
             ) : (
               <Search className="w-4 h-4" />
             )}
-            <span>{detecting ? 'Scan...' : 'Détecter'}</span>
+            <span>{detecting ? t('detector.scanning') : t('detector.detect')}</span>
           </button>
         </div>
       </div>
@@ -282,7 +284,7 @@ const UserMappingDetector: FC<UserMappingDetectorProps> = ({
         {/* Available Services Display - Compact */}
         <div className="mb-3">
           <div className="flex items-center flex-wrap gap-2">
-            <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Services ({availableServices.length}):</span>
+            <span className="text-xs font-medium text-gray-500 dark:text-gray-400">{t('detector.servicesLabel', { count: availableServices.length })}:</span>
             {availableServices.length > 0 ? (
               availableServices.map((service) => (
                 <span
@@ -294,7 +296,7 @@ const UserMappingDetector: FC<UserMappingDetectorProps> = ({
                 </span>
               ))
             ) : (
-              <span className="text-xs text-gray-500 dark:text-gray-400 italic">Aucun service configuré</span>
+              <span className="text-xs text-gray-500 dark:text-gray-400 italic">{t('detector.noServices')}</span>
             )}
           </div>
         </div>
@@ -315,7 +317,7 @@ const UserMappingDetector: FC<UserMappingDetectorProps> = ({
             <div className="flex items-center">
               <Activity className="w-5 h-5 text-blue-500 mr-2 animate-spin" />
               <span className="text-sm text-blue-700 dark:text-blue-400">
-                Scan en cours des services configurés...
+                {t('detector.scanInProgress')}
               </span>
             </div>
           </div>
@@ -333,10 +335,10 @@ const UserMappingDetector: FC<UserMappingDetectorProps> = ({
                   onChange={(e) => setConfidenceFilter(e.target.value as any)}
                   className="px-2 py-1.5 text-xs sm:text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded"
                 >
-                  <option value="all">Tous ({results.total_suggestions})</option>
-                  <option value="high">Haute ({results.high_confidence_suggestions.length})</option>
-                  <option value="medium">Moyenne ({results.medium_confidence_suggestions.length})</option>
-                  <option value="low">Basse ({results.low_confidence_suggestions.length})</option>
+                  <option value="all">{t('detector.allFilter', { count: results.total_suggestions })}</option>
+                  <option value="high">{t('detector.highFilter', { count: results.high_confidence_suggestions.length })}</option>
+                  <option value="medium">{t('detector.mediumFilter', { count: results.medium_confidence_suggestions.length })}</option>
+                  <option value="low">{t('detector.lowFilter', { count: results.low_confidence_suggestions.length })}</option>
                 </select>
               </div>
 
@@ -345,14 +347,14 @@ const UserMappingDetector: FC<UserMappingDetectorProps> = ({
                   onClick={() => selectAllByConfidence('high')}
                   className="px-2 sm:px-3 py-1.5 text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded hover:bg-green-200 dark:hover:bg-green-900/50 transition-colors"
                 >
-                  Sélect. haute conf.
+                  {t('detector.selectHighConf')}
                 </button>
                 <button
                   onClick={createMappingsFromSelected}
                   disabled={selectedSuggestions.size === 0}
                   className="px-3 py-1.5 text-xs sm:text-sm bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 transition-colors"
                 >
-                  Créer ({selectedSuggestions.size})
+                  {t('detector.create', { count: selectedSuggestions.size })}
                 </button>
               </div>
             </div>
@@ -406,7 +408,7 @@ const UserMappingDetector: FC<UserMappingDetectorProps> = ({
                             {getConfidenceBadge(userGroup.avgConfidence)} {Math.round(userGroup.avgConfidence * 100)}%
                           </span>
                           <span className="px-2 py-1 text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded">
-                            {userGroup.suggestions.length} services
+                            {t('detector.services', { count: userGroup.suggestions.length })}
                           </span>
                         </div>
                       </div>
@@ -463,14 +465,14 @@ const UserMappingDetector: FC<UserMappingDetectorProps> = ({
                             key={idx}
                             className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-700"
                           >
-                            {attr === 'id_exact' && '🎯 Same ID'}
-                            {attr === 'username_exact' && '👤 Same Username'}
-                            {attr === 'email_exact' && '📧 Same Email'}
-                            {attr === 'friendly_name_exact' && '🏷️ Same Display Name'}
-                            {attr === 'username_friendly_match' && '🔗 Username/Name Match'}
-                            {attr === 'username_fuzzy' && '👤 Similar Username'}
-                            {attr === 'email_fuzzy' && '📧 Similar Email'}
-                            {attr === 'name_fuzzy' && '🏷️ Similar Name'}
+                            {attr === 'id_exact' && t('matching.sameId')}
+                            {attr === 'username_exact' && t('matching.sameUsername')}
+                            {attr === 'email_exact' && t('matching.sameEmail')}
+                            {attr === 'friendly_name_exact' && t('matching.sameDisplayName')}
+                            {attr === 'username_friendly_match' && t('matching.usernameFriendlyMatch')}
+                            {attr === 'username_fuzzy' && t('matching.usernameFuzzy')}
+                            {attr === 'email_fuzzy' && t('matching.emailFuzzy')}
+                            {attr === 'name_fuzzy' && t('matching.nameFuzzy')}
                           </span>
                         ))}
                       </div>
@@ -482,12 +484,12 @@ const UserMappingDetector: FC<UserMappingDetectorProps> = ({
             ) : (
               <div className="text-center py-6 sm:py-8 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
                 <Search className="w-10 h-10 sm:w-12 sm:h-12 text-gray-400 mx-auto mb-3 sm:mb-4" />
-                <h3 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white mb-2">Aucun mapping détecté</h3>
+                <h3 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white mb-2">{t('detector.noMappings')}</h3>
                 <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 sm:mb-4 px-4">
-                  Aucun utilisateur avec des identifiants correspondants n'a été trouvé.
+                  {t('detector.noMappingsDesc')}
                 </p>
                 <p className="text-sm text-blue-600 dark:text-blue-400">
-                  Créez des mappings manuellement via l'onglet "Manual Mapping".
+                  {t('detector.useManual')}
                 </p>
               </div>
             )}
@@ -495,7 +497,7 @@ const UserMappingDetector: FC<UserMappingDetectorProps> = ({
             {/* Errors */}
             {results.errors.length > 0 && (
               <div className="space-y-2">
-                <h4 className="text-sm font-medium text-gray-900 dark:text-white">Erreurs de détection</h4>
+                <h4 className="text-sm font-medium text-gray-900 dark:text-white">{t('detector.detectionErrors')}</h4>
                 {results.errors.map((error, index) => (
                   <div key={index} className="p-2 bg-red-50 dark:bg-red-900/20 rounded text-red-700 dark:text-red-400 text-sm">
                     {error}

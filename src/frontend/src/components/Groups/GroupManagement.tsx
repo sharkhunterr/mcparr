@@ -1,12 +1,14 @@
 import { useState, useCallback } from 'react';
 import type { FC } from 'react';
 import { Shield } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import GroupList from './GroupList';
 import GroupDetail from './GroupDetail';
 import GroupCreateModal from './GroupCreateModal';
 import type { Group } from '../../types/api';
 
 const GroupManagement: FC = () => {
+  const { t } = useTranslation('groups');
   const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -62,10 +64,9 @@ const GroupManagement: FC = () => {
           ) : (
             <div className="h-full flex flex-col items-center justify-center text-gray-400 dark:text-gray-500">
               <Shield className="w-16 h-16 mb-4 opacity-50" />
-              <p className="text-lg font-medium">Gestion des Groupes</p>
+              <p className="text-lg font-medium">{t('management.title')}</p>
               <p className="text-sm mt-2 max-w-md text-center">
-                Sélectionnez un groupe pour voir ses détails ou créez-en un nouveau.
-                Les groupes définissent l'accès aux outils MCP pour les utilisateurs.
+                {t('management.description')}
               </p>
             </div>
           )}

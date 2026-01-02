@@ -11,6 +11,7 @@ import {
   AlertCircle,
   CheckCircle
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { getApiBaseUrl } from '../../lib/api';
 import { getServiceColor } from '../../lib/serviceColors';
 
@@ -53,6 +54,7 @@ const CentralizedUserDashboard: FC<CentralizedUserDashboardProps> = ({
   centralUserId,
   onUserSelect
 }) => {
+  const { t } = useTranslation('users');
   const [userData, setUserData] = useState<CentralizedUserData | null>(null);
   const [allUsers, setAllUsers] = useState<CentralizedUserData[]>([]);
   const [userGroups, setUserGroups] = useState<UserGroup[]>([]);
@@ -187,7 +189,7 @@ const CentralizedUserDashboard: FC<CentralizedUserDashboardProps> = ({
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 sm:p-6">
         <div className="flex items-center justify-center">
           <RefreshCw className="w-5 h-5 sm:w-6 sm:h-6 text-blue-500 animate-spin mr-2 sm:mr-3" />
-          <span className="text-sm sm:text-lg text-gray-600 dark:text-gray-400">Chargement...</span>
+          <span className="text-sm sm:text-lg text-gray-600 dark:text-gray-400">{t('centralized.loading')}</span>
         </div>
       </div>
     );
@@ -202,10 +204,10 @@ const CentralizedUserDashboard: FC<CentralizedUserDashboardProps> = ({
             <Database className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600 flex-shrink-0" />
             <div className="min-w-0">
               <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">
-                Données centralisées
+                {t('centralized.title')}
               </h3>
               <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-                Vue unifiée de tous les services
+                {t('centralized.subtitle')}
               </p>
             </div>
           </div>
@@ -218,7 +220,7 @@ const CentralizedUserDashboard: FC<CentralizedUserDashboardProps> = ({
                 className="flex items-center space-x-2 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 transition-colors"
               >
                 <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-                <span className="hidden sm:inline">Actualiser</span>
+                <span className="hidden sm:inline">{t('centralized.refresh')}</span>
               </button>
 
               <button
@@ -227,7 +229,7 @@ const CentralizedUserDashboard: FC<CentralizedUserDashboardProps> = ({
                 className="flex items-center space-x-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-blue-600 text-white text-xs sm:text-sm rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
               >
                 <Database className={`w-4 h-4 ${syncing ? 'animate-pulse' : ''}`} />
-                <span>{syncing ? 'Sync...' : 'Sync'}</span>
+                <span>{syncing ? t('centralized.syncing') : t('centralized.sync')}</span>
               </button>
             </div>
           )}
@@ -248,7 +250,7 @@ const CentralizedUserDashboard: FC<CentralizedUserDashboardProps> = ({
         {/* User Selection Panel */}
         {!centralUserId && (
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-3 sm:p-4">
-            <h4 className="font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4 text-sm sm:text-base">Sélectionner</h4>
+            <h4 className="font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4 text-sm sm:text-base">{t('centralized.selectUser')}</h4>
             <div className="space-y-2 max-h-64 sm:max-h-96 overflow-y-auto">
               {allUsers.map((user) => (
                 <div
@@ -267,7 +269,7 @@ const CentralizedUserDashboard: FC<CentralizedUserDashboardProps> = ({
                       </p>
                       <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 truncate">{user.primary_email}</p>
                       <div className="flex items-center space-x-2 mt-1">
-                        <span className="text-xs text-gray-500 dark:text-gray-500">{user.service_count} services</span>
+                        <span className="text-xs text-gray-500 dark:text-gray-500">{t('centralized.stats.services', { count: user.service_count })}</span>
                         {user.is_admin_anywhere && (
                           <Shield className="w-3 h-3 text-red-500" />
                         )}
@@ -300,7 +302,7 @@ const CentralizedUserDashboard: FC<CentralizedUserDashboardProps> = ({
                       {userData.is_admin_anywhere && (
                         <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400">
                           <Shield className="w-3 h-3 mr-1" />
-                          Admin
+                          {t('centralized.admin')}
                         </span>
                       )}
                     </div>
@@ -327,7 +329,7 @@ const CentralizedUserDashboard: FC<CentralizedUserDashboardProps> = ({
                 </div>
 
                 <div className="text-right">
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Last Updated</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">{t('centralized.lastUpdated')}</p>
                   <p className="text-sm font-medium text-gray-900 dark:text-white">
                     {formatDateTime(userData.last_updated)}
                   </p>
@@ -338,25 +340,25 @@ const CentralizedUserDashboard: FC<CentralizedUserDashboardProps> = ({
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="text-center p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                   <Users className="w-6 h-6 text-blue-600 mx-auto mb-1" />
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Services</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">{t('centralized.stats.services')}</p>
                   <p className="text-xl font-bold text-blue-600">{userData.service_count}</p>
                 </div>
 
                 <div className="text-center p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
                   <Mail className="w-6 h-6 text-green-600 mx-auto mb-1" />
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Emails</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">{t('centralized.stats.emails')}</p>
                   <p className="text-xl font-bold text-green-600">{userData.emails.length}</p>
                 </div>
 
                 <div className="text-center p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
                   <User className="w-6 h-6 text-purple-600 mx-auto mb-1" />
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Usernames</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">{t('centralized.stats.usernames')}</p>
                   <p className="text-xl font-bold text-purple-600">{userData.usernames.length}</p>
                 </div>
 
                 <div className="text-center p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
                   <Shield className="w-6 h-6 text-orange-600 mx-auto mb-1" />
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Admin Access</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">{t('centralized.stats.adminAccess')}</p>
                   <p className="text-xl font-bold text-orange-600">
                     {Object.values(userData.roles).filter(r => r === 'admin').length}
                   </p>
@@ -369,14 +371,14 @@ const CentralizedUserDashboard: FC<CentralizedUserDashboardProps> = ({
               <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
                 <h4 className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
                   <Mail className="w-4 h-4 mr-2 text-green-600" />
-                  All Emails ({userData.emails.length})
+                  {t('centralized.allEmails', { count: userData.emails.length })}
                 </h4>
                 <div className="space-y-2">
                   {userData.emails.map((email, index) => (
                     <div key={index} className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-800/50 rounded">
                       <span className="text-sm text-gray-900 dark:text-white">{email}</span>
                       {email === userData.primary_email && (
-                        <span className="text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-2 py-1 rounded">Primary</span>
+                        <span className="text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-2 py-1 rounded">{t('centralized.primary')}</span>
                       )}
                     </div>
                   ))}
@@ -386,14 +388,14 @@ const CentralizedUserDashboard: FC<CentralizedUserDashboardProps> = ({
               <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
                 <h4 className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
                   <User className="w-4 h-4 mr-2 text-purple-600" />
-                  All Usernames ({userData.usernames.length})
+                  {t('centralized.allUsernames', { count: userData.usernames.length })}
                 </h4>
                 <div className="space-y-2">
                   {userData.usernames.map((username, index) => (
                     <div key={index} className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-800/50 rounded">
                       <span className="text-sm text-gray-900 dark:text-white">{username}</span>
                       {username === userData.primary_username && (
-                        <span className="text-xs bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 px-2 py-1 rounded">Primary</span>
+                        <span className="text-xs bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 px-2 py-1 rounded">{t('centralized.primary')}</span>
                       )}
                     </div>
                   ))}
@@ -405,7 +407,7 @@ const CentralizedUserDashboard: FC<CentralizedUserDashboardProps> = ({
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
               <h4 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
                 <Database className="w-4 h-4 mr-2 text-blue-600" />
-                Service Details ({userData.service_count})
+                {t('centralized.serviceDetails', { count: userData.service_count })}
               </h4>
               <div className="space-y-4">
                 {Object.entries(userData.service_data).map(([serviceId, serviceInfo]) => (
@@ -435,15 +437,15 @@ const CentralizedUserDashboard: FC<CentralizedUserDashboardProps> = ({
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
                       <div>
-                        <span className="text-gray-600 dark:text-gray-400">User ID:</span>
+                        <span className="text-gray-600 dark:text-gray-400">{t('centralized.userId')}:</span>
                         <p className="font-medium text-gray-900 dark:text-white">{serviceInfo.user_data.user_id || 'N/A'}</p>
                       </div>
                       <div>
-                        <span className="text-gray-600 dark:text-gray-400">Username:</span>
+                        <span className="text-gray-600 dark:text-gray-400">{t('centralized.username')}:</span>
                         <p className="font-medium text-gray-900 dark:text-white">{serviceInfo.user_data.username || 'N/A'}</p>
                       </div>
                       <div>
-                        <span className="text-gray-600 dark:text-gray-400">Email:</span>
+                        <span className="text-gray-600 dark:text-gray-400">{t('centralized.email')}:</span>
                         <p className="font-medium text-gray-900 dark:text-white">{serviceInfo.user_data.email || 'N/A'}</p>
                       </div>
                     </div>
@@ -452,7 +454,7 @@ const CentralizedUserDashboard: FC<CentralizedUserDashboardProps> = ({
                       <div className="mt-3 p-3 bg-green-50 dark:bg-green-900/20 rounded">
                         <div className="flex items-center space-x-2">
                           <CheckCircle className="w-4 h-4 text-green-600" />
-                          <span className="text-sm text-green-700 dark:text-green-400">Fresh data available from service</span>
+                          <span className="text-sm text-green-700 dark:text-green-400">{t('centralized.freshData')}</span>
                           <Clock className="w-3 h-3 text-green-600" />
                           <span className="text-xs text-green-600 dark:text-green-400">
                             {formatDateTime(serviceInfo.user_data.last_fetched)}

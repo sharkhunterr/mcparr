@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { FC } from 'react';
 import { X, Shield, RefreshCw } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { api } from '../../lib/api';
 
 interface GroupCreateModalProps {
@@ -9,6 +10,7 @@ interface GroupCreateModalProps {
 }
 
 const GroupCreateModal: FC<GroupCreateModalProps> = ({ onClose, onCreated }) => {
+  const { t } = useTranslation('groups');
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [color, setColor] = useState('#6366f1');
@@ -19,7 +21,7 @@ const GroupCreateModal: FC<GroupCreateModalProps> = ({ onClose, onCreated }) => 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) {
-      setError('Le nom est requis');
+      setError(t('create.nameRequired'));
       return;
     }
 
@@ -62,7 +64,7 @@ const GroupCreateModal: FC<GroupCreateModalProps> = ({ onClose, onCreated }) => 
           <div className="flex items-center space-x-2">
             <Shield className="w-5 h-5 text-indigo-600" />
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-              Nouveau groupe
+              {t('create.title')}
             </h2>
           </div>
           <button
@@ -83,13 +85,13 @@ const GroupCreateModal: FC<GroupCreateModalProps> = ({ onClose, onCreated }) => 
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Nom *
+              {t('create.nameLabel')}
             </label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Ex: Admin, User, Beta..."
+              placeholder={t('create.namePlaceholder')}
               className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
               autoFocus
             />
@@ -97,12 +99,12 @@ const GroupCreateModal: FC<GroupCreateModalProps> = ({ onClose, onCreated }) => 
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Description
+              {t('create.descriptionLabel')}
             </label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Description du groupe..."
+              placeholder={t('create.descriptionPlaceholder')}
               rows={3}
               className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
             />
@@ -110,7 +112,7 @@ const GroupCreateModal: FC<GroupCreateModalProps> = ({ onClose, onCreated }) => 
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Couleur
+              {t('create.colorLabel')}
             </label>
             <div className="flex items-center space-x-2 mb-2">
               {presetColors.map((presetColor) => (
@@ -143,7 +145,7 @@ const GroupCreateModal: FC<GroupCreateModalProps> = ({ onClose, onCreated }) => 
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Priorité
+              {t('create.priorityLabel')}
             </label>
             <input
               type="number"
@@ -152,7 +154,7 @@ const GroupCreateModal: FC<GroupCreateModalProps> = ({ onClose, onCreated }) => 
               className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
             />
             <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              Priorité plus élevée = permissions résolues en premier
+              {t('create.priorityHelp')}
             </p>
           </div>
 
@@ -163,7 +165,7 @@ const GroupCreateModal: FC<GroupCreateModalProps> = ({ onClose, onCreated }) => 
               onClick={onClose}
               className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
             >
-              Annuler
+              {t('create.cancel')}
             </button>
             <button
               type="submit"
@@ -175,7 +177,7 @@ const GroupCreateModal: FC<GroupCreateModalProps> = ({ onClose, onCreated }) => 
               ) : (
                 <Shield className="w-4 h-4" />
               )}
-              <span>Créer</span>
+              <span>{t('create.create')}</span>
             </button>
           </div>
         </form>
