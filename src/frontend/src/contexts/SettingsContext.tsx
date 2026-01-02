@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import i18n from '../i18n';
 
 export type LogLevel = 'debug' | 'info' | 'warning' | 'error' | 'critical';
 export type Language = 'fr' | 'en';
@@ -66,6 +67,10 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+    // Sync language with i18n
+    if (settings.language !== i18n.language) {
+      i18n.changeLanguage(settings.language);
+    }
   }, [settings]);
 
   const updateSettings = (updates: Partial<AppSettings>) => {

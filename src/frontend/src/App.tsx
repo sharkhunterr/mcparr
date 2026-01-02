@@ -14,6 +14,7 @@ import { logger } from './lib/logger';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { SettingsProvider } from './contexts/SettingsContext';
 import { WizardProvider, useWizard } from './contexts/WizardContext';
+import './i18n';
 
 function AppRoutes() {
   const { state } = useWizard();

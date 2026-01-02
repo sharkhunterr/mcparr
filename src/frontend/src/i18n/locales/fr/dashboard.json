@@ -1,0 +1,68 @@
+{
+  "title": "Dashboard",
+  "autoRefresh": "Auto",
+  "systemActive": "Système actif",
+  "uptime": "Uptime",
+  "cpu": "CPU",
+  "memory": "Mémoire",
+  "disk": "Disque",
+  "network": "Réseau",
+  "services": {
+    "title": "Services",
+    "healthy": "{{healthy}}/{{enabled}}",
+    "noServices": "Aucun service configuré",
+    "off": "off"
+  },
+  "mcp": {
+    "title": "MCP Gateway",
+    "requests": "requêtes",
+    "success": "succès",
+    "avgDuration": "ms moy.",
+    "byService": "Par Service",
+    "byUser": "Par Utilisateur",
+    "noRequests": "Aucune requête",
+    "noUsers": "Aucun utilisateur"
+  },
+  "users": {
+    "title": "Utilisateurs & Groupes",
+    "totalUsers": "utilisateurs",
+    "totalGroups": "groupes",
+    "totalMappings": "mappings",
+    "mcpGroups": "Groupes MCP",
+    "userCount": "{{count}} usr",
+    "toolCount": "{{count}} outils",
+    "moreGroups": "+{{count}} autres groupes",
+    "noGroups": "Aucun groupe configuré",
+    "createGroup": "Créer un groupe"
+  },
+  "training": {
+    "title": "AI Training",
+    "active": "{{count}} actif",
+    "actives": "{{count}} actifs",
+    "prompts": "prompts",
+    "validated": "validés",
+    "sessions": "sessions",
+    "completed": "terminées",
+    "workers": "workers",
+    "byService": "Prompts par Service",
+    "gpuWorkers": "Workers GPU",
+    "noPrompts": "Aucun prompt avec tag service",
+    "noWorkers": "Aucun worker configuré",
+    "ready": "Ready",
+    "training": "Training",
+    "offline": "Offline",
+    "successRate": "Taux de réussite des sessions",
+    "completedSessions": "Terminées",
+    "failedSessions": "Échouées",
+    "activeSessions": "En cours"
+  },
+  "observability": {
+    "title": "Observabilité",
+    "period": "24h",
+    "logs": "Logs",
+    "errorRate": "Taux d'erreur",
+    "network": "Réseau",
+    "alerts": "Alertes",
+    "totalPeriod": "Total 24h"
+  }
+}

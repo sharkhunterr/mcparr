@@ -296,6 +296,21 @@ export default function Configuration() {
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-4 sm:p-6 space-y-4">
         <div className="flex items-center justify-between py-2">
           <div>
+            <p className="text-sm font-medium text-gray-900 dark:text-white">Langue</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Choisir la langue de l'interface</p>
+          </div>
+          <select
+            value={settings.language}
+            onChange={(e) => updateSettings({ language: e.target.value as 'fr' | 'en' })}
+            className="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+          >
+            <option value="fr">Français</option>
+            <option value="en">English</option>
+          </select>
+        </div>
+
+        <div className="flex items-center justify-between py-2">
+          <div>
             <p className="text-sm font-medium text-gray-900 dark:text-white">Actualisation automatique</p>
             <p className="text-xs text-gray-500 dark:text-gray-400">Rafraichir les donnees automatiquement</p>
           </div>
