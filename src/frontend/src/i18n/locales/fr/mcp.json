@@ -1,6 +1,7 @@
 {
   "title": "MCP Gateway",
   "subtitle": "Passerelle pour outils MCP (Model Context Protocol)",
+  "refresh": "Actualiser",
 
   "tabs": {
     "stats": "Statistiques",

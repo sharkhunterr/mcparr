@@ -541,7 +541,7 @@ const GroupDetail: FC<GroupDetailProps> = ({ group, onClose, onUpdated }) => {
                         {member.central_username || member.central_user_id}
                       </p>
                       <p className="text-xs text-gray-500 dark:text-gray-400">
-                        Ajouté le {new Date(member.granted_at).toLocaleDateString()}
+                        {t('detail.members.addedOn', { date: new Date(member.granted_at).toLocaleDateString() })}
                       </p>
                     </div>
                   </div>

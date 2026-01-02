@@ -1,6 +1,7 @@
 {
   "title": "MCP Gateway",
   "subtitle": "Gateway for MCP tools (Model Context Protocol)",
+  "refresh": "Refresh",
 
   "tabs": {
     "stats": "Statistics",

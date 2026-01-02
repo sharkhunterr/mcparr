@@ -1,6 +1,7 @@
 {
   "title": "AI Training",
   "subtitle": "AI model training and fine-tuning",
+  "refresh": "Refresh",
 
   "tabs": {
     "overview": "Overview",

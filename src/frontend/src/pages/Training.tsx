@@ -2685,7 +2685,7 @@ export default function Training() {
           className="p-2 sm:px-4 sm:py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-2"
         >
           <RefreshCw className="w-4 h-4" />
-          <span className="hidden sm:inline">Actualiser</span>
+          <span className="hidden sm:inline">{t('refresh')}</span>
         </button>
       </div>
 
