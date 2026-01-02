@@ -3,6 +3,7 @@
  */
 
 import { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { apiClient } from '../../lib/api';
 import { FileText, Download, RefreshCw, X, Radio } from 'lucide-react';
 
@@ -21,6 +22,8 @@ export default function SessionLogsModal({
   isOpen,
   onClose,
 }: SessionLogsModalProps) {
+  const { t } = useTranslation('training');
+
   // Only allow live refresh for running/preparing sessions (status is lowercase from API)
   const isSessionRunning = sessionStatus === 'running' || sessionStatus === 'preparing';
   const [logs, setLogs] = useState<string | null>(null);
@@ -56,7 +59,7 @@ export default function SessionLogsModal({
       const error = err as { message?: string };
       // Only show error on initial load, ignore errors during silent refresh
       if (!silent) {
-        setError(error.message || 'Erreur lors du chargement des logs');
+        setError(error.message || t('logs.error'));
       }
     } finally {
       setLoading(false);
@@ -140,7 +143,7 @@ export default function SessionLogsModal({
             <div className="flex items-center gap-3">
               <FileText className="w-5 h-5 text-gray-500" />
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Logs de la session
+                {t('logs.title')}
               </h2>
               {sessionName && (
                 <span className="text-sm text-gray-500 dark:text-gray-400">
@@ -158,7 +161,7 @@ export default function SessionLogsModal({
                       ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
                       : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
                   }`}
-                  title={autoRefresh ? 'Désactiver le rafraîchissement automatique' : 'Activer le rafraîchissement automatique'}
+                  title={autoRefresh ? t('logs.disableAutoRefresh') : t('logs.enableAutoRefresh')}
                 >
                   <Radio className={`w-3.5 h-3.5 ${autoRefresh ? 'animate-pulse' : ''}`} />
                   Live
@@ -168,7 +171,7 @@ export default function SessionLogsModal({
                 onClick={() => fetchLogs(false)}
                 disabled={loading || refreshing}
                 className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 disabled:opacity-50"
-                title="Rafraîchir"
+                title={t('logs.refresh')}
               >
                 <RefreshCw className={`w-5 h-5 ${loading || refreshing ? 'animate-spin' : ''}`} />
               </button>
@@ -176,7 +179,7 @@ export default function SessionLogsModal({
                 <button
                   onClick={downloadLogs}
                   className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                  title="Télécharger"
+                  title={t('logs.download')}
                 >
                   <Download className="w-5 h-5" />
                 </button>
@@ -207,9 +210,9 @@ export default function SessionLogsModal({
             {!loading && !error && logs === null && (
               <div className="text-center py-12 text-gray-500 dark:text-gray-400">
                 <FileText className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                <p>Aucun log disponible pour cette session</p>
+                <p>{t('logs.noLogs')}</p>
                 <p className="text-sm mt-2">
-                  Les logs sont enregistrés à la fin de l'entraînement
+                  {t('logs.logsNote')}
                 </p>
               </div>
             )}
@@ -227,7 +230,7 @@ export default function SessionLogsModal({
           {/* Footer */}
           <div className="flex justify-between items-center px-6 py-4 border-t dark:border-gray-700">
             <div className="text-sm text-gray-500 dark:text-gray-400">
-              {logs && `${logs.split('\n').length} lignes`}
+              {logs && `${logs.split('\n').length} ${t('logs.lines')}`}
             </div>
             <div className="flex gap-2">
               {logs && (
@@ -235,14 +238,14 @@ export default function SessionLogsModal({
                   onClick={scrollToBottom}
                   className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
                 >
-                  Aller à la fin
+                  {t('logs.goToEnd')}
                 </button>
               )}
               <button
                 onClick={onClose}
                 className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
               >
-                Fermer
+                {t('logs.close')}
               </button>
             </div>
           </div>

@@ -394,6 +394,7 @@ const ToolTestModal = ({
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [duration, setDuration] = useState<number | null>(null);
+  const { t } = useTranslation('mcp');
 
   // Initialize params with default values when tool changes
   useEffect(() => {
@@ -453,7 +454,7 @@ const ToolTestModal = ({
       setResult(response);
     } catch (err: any) {
       setDuration(Date.now() - startTime);
-      setError(err.message || 'Erreur lors de l\'execution de l\'outil');
+      setError(err.message || t('errors.toolExecutionFailed'));
     } finally {
       setLoading(false);
     }
@@ -621,10 +622,11 @@ const getUserColor = (index: number) => USER_COLORS[index % USER_COLORS.length];
 
 // User Stats Bar Chart - Horizontal bars with user names
 const UserStatsChart = ({ data }: { data: McpUserStats[] }) => {
+  const { t } = useTranslation('mcp');
   if (!data || data.length === 0) {
     return (
       <div className="flex items-center justify-center h-40 text-gray-500 dark:text-gray-400 text-sm">
-        Aucune donnée utilisateur
+        {t('stats.noData')}
       </div>
     );
   }
@@ -671,10 +673,11 @@ const UserStatsChart = ({ data }: { data: McpUserStats[] }) => {
 
 // User Service Breakdown - Horizontal stacked bars
 const UserServiceChart = ({ data }: { data: McpUserServiceStats[] }) => {
+  const { t } = useTranslation('mcp');
   if (!data || data.length === 0) {
     return (
       <div className="flex items-center justify-center h-40 text-gray-500 dark:text-gray-400 text-sm">
-        Aucune donnée utilisateur/service
+        {t('stats.noData')}
       </div>
     );
   }
@@ -753,6 +756,7 @@ const UserServiceChart = ({ data }: { data: McpUserServiceStats[] }) => {
 
 // Stacked Bar Chart - Hourly usage by user
 const HourlyUserStackedChart = ({ data, timeRange }: { data: McpHourlyUserUsage[]; timeRange: number }) => {
+  const { t } = useTranslation('mcp');
   // Get unique users and assign colors
   const users = [...new Set(data.map(d => d.user_id))];
   const userColorMap: Record<string, { displayName: string; color: typeof USER_COLORS[0] }> = {};
@@ -797,7 +801,7 @@ const HourlyUserStackedChart = ({ data, timeRange }: { data: McpHourlyUserUsage[
           Requêtes par utilisateur (temps)
         </h3>
         <div className="flex items-center justify-center h-32 text-gray-500 dark:text-gray-400 text-sm">
-          Aucune donnée disponible
+          {t('stats.noData')}
         </div>
       </div>
     );
@@ -1963,7 +1967,7 @@ export default function MCP() {
                         })}
                     </div>
                   ) : (
-                    <p className="text-gray-500 dark:text-gray-400">Aucune donnée d'utilisation</p>
+                    <p className="text-gray-500 dark:text-gray-400">{t('stats.noUsageData')}</p>
                   )}
                 </div>
               </div>
@@ -1979,7 +1983,7 @@ export default function MCP() {
                     <StatusDonutChart data={stats.by_status} total={stats.total} />
                   ) : (
                     <div className="flex items-center justify-center h-24">
-                      <p className="text-sm text-gray-500 dark:text-gray-400">Aucune donnée</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">{t('stats.noData')}</p>
                     </div>
                   )}
                 </div>
@@ -2039,7 +2043,7 @@ export default function MCP() {
                     </div>
                   ) : (
                     <div className="flex items-center justify-center h-24">
-                      <p className="text-sm text-gray-500 dark:text-gray-400">Aucune donnée</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">{t('stats.noData')}</p>
                     </div>
                   )}
                 </div>
@@ -2223,7 +2227,7 @@ export default function MCP() {
                   ))
                 ) : (
                   <div className="text-center py-12 text-gray-500 dark:text-gray-400">
-                    Aucune requete MCP trouvee
+                    {t('history.noRequests')}
                   </div>
                 )}
               </div>
@@ -2300,7 +2304,7 @@ export default function MCP() {
                       ) : (
                         <tr>
                           <td colSpan={7} className="px-4 py-12 text-center text-gray-500 dark:text-gray-400">
-                            Aucune requete MCP trouvee
+                            {t('history.noRequests')}
                           </td>
                         </tr>
                       )}
@@ -2455,7 +2459,7 @@ export default function MCP() {
                   );
                 })
               ) : (
-                <div className="text-center py-12 text-gray-500">Aucun outil disponible</div>
+                <div className="text-center py-12 text-gray-500">{t('tools.noTools')}</div>
               )}
             </div>
           )}

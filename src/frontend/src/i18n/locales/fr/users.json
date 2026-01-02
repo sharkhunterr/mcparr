@@ -109,6 +109,7 @@
     "connectedServices": "Services connectés ({{count}})",
     "addService": "Ajouter",
     "addServiceTitle": "Ajouter un service",
+    "deleteMapping": "Supprimer ce mapping",
     "service": "Service",
     "chooseService": "Choisir un service...",
     "user": "Utilisateur",

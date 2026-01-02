@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { FC } from 'react';
 import { Activity, FileText, Bell, RefreshCw, Wifi, WifiOff, CheckCircle, XCircle, Clock, Play, Pause, Settings, Loader2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { api, apiClient, getApiBaseUrl } from '../lib/api';
 import { LogViewer } from '../components/Observability/LogViewer';
 import { AlertManager } from '../components/Observability/AlertManager';
@@ -132,6 +133,7 @@ const ServiceUptimeChart: React.FC<{
   healthHistory: ServiceHealthHistory[];
   intervalMinutes: number;
 }> = ({ healthHistory, intervalMinutes }) => {
+  const { t } = useTranslation('monitoring');
   // Number of bars to display - show enough to cover ~24h worth of tests
   const maxBars = Math.min(Math.ceil((24 * 60) / intervalMinutes), 48);
 
@@ -139,10 +141,10 @@ const ServiceUptimeChart: React.FC<{
     return (
       <div className="bg-white dark:bg-gray-800 rounded-lg p-4 sm:p-6 shadow">
         <h2 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white mb-4">
-          Continuité des Services
+          {t('serviceContinuity.title')}
         </h2>
         <p className="text-gray-500 dark:text-gray-400 text-center py-4">
-          Aucun historique disponible. Testez vos services pour générer des données.
+          {t('serviceContinuity.noHistory')}
         </p>
       </div>
     );
@@ -152,16 +154,16 @@ const ServiceUptimeChart: React.FC<{
     <div className="bg-white dark:bg-gray-800 rounded-lg p-4 sm:p-6 shadow">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white">
-          Continuité des Services
+          {t('serviceContinuity.title')}
         </h2>
         <div className="flex items-center gap-3 text-xs">
           <div className="flex items-center gap-1">
             <div className="w-3 h-3 rounded-sm bg-green-500" />
-            <span className="text-gray-500 dark:text-gray-400">OK</span>
+            <span className="text-gray-500 dark:text-gray-400">{t('serviceContinuity.ok')}</span>
           </div>
           <div className="flex items-center gap-1">
             <div className="w-3 h-3 rounded-sm bg-red-500" />
-            <span className="text-gray-500 dark:text-gray-400">Erreur</span>
+            <span className="text-gray-500 dark:text-gray-400">{t('serviceContinuity.error')}</span>
           </div>
         </div>
       </div>
@@ -222,7 +224,7 @@ const ServiceUptimeChart: React.FC<{
                     const timestamp = test.tested_at.endsWith('Z') ? test.tested_at : test.tested_at + 'Z';
                     const date = new Date(timestamp);
                     const time = date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-                    const status = test.success ? 'OK' : 'Erreur';
+                    const status = test.success ? t('serviceContinuity.ok') : t('status.error');
                     const tooltip = `${time} - ${status}`;
 
                     return (
@@ -248,15 +250,16 @@ const SchedulerControls: React.FC<{
   scheduler: SchedulerStatus | null;
   onRefresh: () => void;
 }> = ({ scheduler, onRefresh }) => {
+  const { t } = useTranslation('monitoring');
   const [loading, setLoading] = useState(false);
   const [selectedInterval, setSelectedInterval] = useState(15);
   const [showSettings, setShowSettings] = useState(false);
 
   const intervalOptions = [
-    { value: 5, label: '5 min' },
-    { value: 15, label: '15 min' },
-    { value: 30, label: '30 min' },
-    { value: 60, label: '1 heure' },
+    { value: 5, label: t('scheduler.intervals.5min') },
+    { value: 15, label: t('scheduler.intervals.15min') },
+    { value: 30, label: t('scheduler.intervals.30min') },
+    { value: 60, label: t('scheduler.intervals.1hour') },
   ];
 
   const handleToggle = async () => {
@@ -303,7 +306,7 @@ const SchedulerControls: React.FC<{
   };
 
   const formatLastRun = (lastRun: string | null) => {
-    if (!lastRun) return 'Jamais';
+    if (!lastRun) return t('scheduler.never');
     const date = new Date(lastRun);
     return date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
   };
@@ -317,13 +320,13 @@ const SchedulerControls: React.FC<{
           </div>
           <div>
             <h3 className="text-sm font-medium text-gray-900 dark:text-white">
-              Tests automatiques
+              {t('scheduler.title')}
             </h3>
             <p className="text-xs text-gray-500 dark:text-gray-400">
               {scheduler?.enabled
-                ? `Actif - toutes les ${scheduler.interval_minutes} min`
-                : 'Désactivé'}
-              {scheduler?.last_run && ` • Dernier: ${formatLastRun(scheduler.last_run)}`}
+                ? t('scheduler.active', { interval: scheduler.interval_minutes })
+                : t('scheduler.disabled')}
+              {scheduler?.last_run && ` • ${t('scheduler.lastRun')}: ${formatLastRun(scheduler.last_run)}`}
             </p>
           </div>
         </div>
@@ -337,7 +340,7 @@ const SchedulerControls: React.FC<{
                 ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
                 : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500'
             }`}
-            title="Paramètres"
+            title={t('scheduler.settings')}
           >
             <Settings className="w-4 h-4" />
           </button>
@@ -353,7 +356,7 @@ const SchedulerControls: React.FC<{
             ) : (
               <Play className="w-4 h-4" />
             )}
-            Tester
+            {t('scheduler.test')}
           </button>
 
           {/* Toggle button */}
@@ -369,12 +372,12 @@ const SchedulerControls: React.FC<{
             {scheduler?.enabled ? (
               <>
                 <Pause className="w-4 h-4" />
-                Arrêter
+                {t('scheduler.stop')}
               </>
             ) : (
               <>
                 <Play className="w-4 h-4" />
-                Activer
+                {t('scheduler.enable')}
               </>
             )}
           </button>
@@ -385,7 +388,7 @@ const SchedulerControls: React.FC<{
       {showSettings && (
         <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
           <div className="flex items-center gap-4">
-            <span className="text-sm text-gray-600 dark:text-gray-400">Intervalle:</span>
+            <span className="text-sm text-gray-600 dark:text-gray-400">{t('scheduler.interval')}:</span>
             <div className="flex gap-2">
               {intervalOptions.map(option => (
                 <button
@@ -437,11 +440,12 @@ const MetricsTab: React.FC<{
   scheduler: SchedulerStatus | null;
   onRefresh: () => void;
 }> = ({ metrics, services, healthHistory, alertStats, logStats, loading, scheduler, onRefresh }) => {
+  const { t } = useTranslation('monitoring');
   const healthyServices = services.filter(s => s.healthy && s.enabled).length;
   const enabledServices = services.filter(s => s.enabled).length;
 
   if (loading) {
-    return <div className="text-center py-12 text-gray-500">Chargement des metriques...</div>;
+    return <div className="text-center py-12 text-gray-500">{t('metrics.loadingMetrics')}</div>;
   }
 
   return (
@@ -449,13 +453,13 @@ const MetricsTab: React.FC<{
       {/* System Resources */}
       <div className="bg-white dark:bg-gray-800 rounded-lg p-4 sm:p-6 shadow">
         <h2 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white mb-4">
-          Ressources Systeme
+          {t('systemResources.title')}
         </h2>
         {metrics ? (
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
             <div>
               <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-2">
-                <span className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">CPU</span>
+                <span className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">{t('systemResources.cpu')}</span>
                 <span className="text-xs sm:text-sm text-gray-500">{metrics.cpu_usage.toFixed(1)}%</span>
               </div>
               <ProgressBar value={metrics.cpu_usage} color="blue" showLabel={false} />
@@ -463,7 +467,7 @@ const MetricsTab: React.FC<{
 
             <div>
               <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-2">
-                <span className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">Memoire</span>
+                <span className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">{t('systemResources.memory')}</span>
                 <span className="text-xs sm:text-sm text-gray-500 truncate">
                   {(metrics.memory_used / (1024 ** 3)).toFixed(1)}/{(metrics.memory_total / (1024 ** 3)).toFixed(0)}GB
                 </span>
@@ -473,7 +477,7 @@ const MetricsTab: React.FC<{
 
             <div>
               <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-2">
-                <span className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">Disque</span>
+                <span className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">{t('systemResources.disk')}</span>
                 <span className="text-xs sm:text-sm text-gray-500 truncate">
                   {(metrics.disk_used / (1024 ** 3)).toFixed(0)}/{(metrics.disk_total / (1024 ** 3)).toFixed(0)}GB
                 </span>
@@ -483,7 +487,7 @@ const MetricsTab: React.FC<{
 
             <div>
               <div className="flex justify-between items-center mb-2">
-                <span className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">Uptime</span>
+                <span className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">{t('systemResources.uptime')}</span>
               </div>
               <p className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white">
                 {formatUptime(metrics.uptime)}
@@ -491,34 +495,34 @@ const MetricsTab: React.FC<{
             </div>
           </div>
         ) : (
-          <p className="text-gray-500 dark:text-gray-400">Impossible de recuperer les metriques systeme</p>
+          <p className="text-gray-500 dark:text-gray-400">{t('systemResources.failed')}</p>
         )}
       </div>
 
       {/* Quick Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <MetricCard
-          title="Services"
+          title={t('metrics.services')}
           value={`${healthyServices}/${enabledServices}`}
-          subtitle="en bonne sante"
+          subtitle={t('metrics.healthyServices')}
           color={healthyServices === enabledServices ? 'green' : 'yellow'}
         />
         <MetricCard
-          title="Alertes Actives"
+          title={t('metrics.activeAlerts')}
           value={alertStats?.active || 0}
-          subtitle={`${alertStats?.total || 0} configs`}
+          subtitle={`${alertStats?.total || 0} ${t('metrics.configs')}`}
           color={(alertStats?.active || 0) > 0 ? 'red' : 'green'}
         />
         <MetricCard
-          title="Logs (24h)"
+          title={t('metrics.logs24h')}
           value={logStats?.total?.toLocaleString() || 0}
-          subtitle={`${logStats?.error_rate?.toFixed(1) || 0}% erreurs`}
+          subtitle={`${logStats?.error_rate?.toFixed(1) || 0}% ${t('metrics.errorRate')}`}
           color={(logStats?.error_rate || 0) > 10 ? 'red' : 'blue'}
         />
         <MetricCard
-          title="Reseau I/O"
+          title={t('metrics.networkIO')}
           value={metrics ? formatBytes(metrics.network_bytes_recv + metrics.network_bytes_sent) : '-'}
-          subtitle="Total transfere"
+          subtitle={t('metrics.totalTransferred')}
           color="purple"
         />
       </div>
@@ -532,7 +536,7 @@ const MetricsTab: React.FC<{
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
           <div className="bg-white dark:bg-gray-800 rounded-lg p-4 sm:p-6 shadow">
             <h2 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white mb-4">
-              Logs par Niveau (24h)
+              {t('logDistribution.byLevel')}
             </h2>
             <div className="space-y-3">
               {Object.entries(logStats.by_level).map(([level, count]) => {
@@ -568,7 +572,7 @@ const MetricsTab: React.FC<{
 
           <div className="bg-white dark:bg-gray-800 rounded-lg p-4 sm:p-6 shadow">
             <h2 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white mb-4">
-              Logs par Source (24h)
+              {t('logDistribution.bySource')}
             </h2>
             <div className="space-y-3">
               {Object.entries(logStats.by_source).map(([source, count]) => {
@@ -600,7 +604,7 @@ const MetricsTab: React.FC<{
       {alertStats && alertStats.active > 0 && (
         <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 sm:p-6">
           <h2 className="text-base sm:text-lg font-medium text-red-900 dark:text-red-100 mb-4">
-            Alertes Actives ({alertStats.active})
+            {t('alertSummary.title', { count: alertStats.active })}
           </h2>
           <div className="flex flex-wrap gap-2 sm:gap-4">
             {Object.entries(alertStats.by_severity || {}).map(([severity, count]) => {
@@ -626,7 +630,7 @@ const MetricsTab: React.FC<{
             })}
           </div>
           <p className="text-xs sm:text-sm text-red-700 dark:text-red-300 mt-4">
-            {alertStats.resolved_last_24h} alertes resolues dans les dernieres 24 heures
+            {t('alertSummary.resolved24h', { count: alertStats.resolved_last_24h })}
           </p>
         </div>
       )}
@@ -635,6 +639,7 @@ const MetricsTab: React.FC<{
 };
 
 const Monitoring: FC = () => {
+  const { t } = useTranslation('monitoring');
   const [activeTab, setActiveTab] = useState<TabType>('metrics');
   const [metrics, setMetrics] = useState<SystemMetrics | null>(null);
   const [services, setServices] = useState<ServiceHealth[]>([]);
@@ -704,9 +709,9 @@ const Monitoring: FC = () => {
   }, [autoRefresh, fetchData, activeTab]);
 
   const tabs = [
-    { id: 'metrics' as TabType, label: 'Metriques', icon: Activity },
-    { id: 'logs' as TabType, label: 'Logs', icon: FileText },
-    { id: 'alerts' as TabType, label: 'Alertes', icon: Bell, badge: alertStats?.active },
+    { id: 'metrics' as TabType, label: t('tabs.metrics'), icon: Activity },
+    { id: 'logs' as TabType, label: t('tabs.logs'), icon: FileText },
+    { id: 'alerts' as TabType, label: t('tabs.alerts'), icon: Bell, badge: alertStats?.active },
   ];
 
   return (
@@ -716,10 +721,10 @@ const Monitoring: FC = () => {
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
             <Activity className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600" />
-            Monitoring
+            {t('title')}
           </h1>
           <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-            Surveillance système en temps réel
+            {t('subtitle')}
           </p>
         </div>
 
@@ -731,7 +736,7 @@ const Monitoring: FC = () => {
               ) : (
                 <WifiOff className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
               )}
-              <span className="hidden sm:inline">Mis à jour:</span> {lastUpdated.toLocaleTimeString()}
+              <span className="hidden sm:inline">{t('updatedAt')}:</span> {lastUpdated.toLocaleTimeString()}
             </span>
           )}
           {activeTab === 'metrics' && (
@@ -742,7 +747,7 @@ const Monitoring: FC = () => {
                 onChange={(e) => setAutoRefresh(e.target.checked)}
                 className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
               />
-              <span className="hidden sm:inline">Auto</span>
+              <span className="hidden sm:inline">{t('autoRefresh')}</span>
             </label>
           )}
           <button
@@ -750,7 +755,7 @@ const Monitoring: FC = () => {
             className="p-2 sm:px-4 sm:py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-2"
           >
             <RefreshCw className="w-4 h-4" />
-            <span className="hidden sm:inline">Actualiser</span>
+            <span className="hidden sm:inline">{t('actions.refresh')}</span>
           </button>
         </div>
       </div>

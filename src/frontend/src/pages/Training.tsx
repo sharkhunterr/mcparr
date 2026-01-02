@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Brain,
   RefreshCw,
@@ -332,6 +333,7 @@ const SessionsTab = ({
   onViewLogs: (id: string, name?: string, status?: string) => void;
 }) => {
   const [expandedSession, setExpandedSession] = useState<string | null>(null);
+  const { t } = useTranslation('training');
 
   const formatDate = (date: string | undefined): string => {
     if (!date) return '-';
@@ -506,7 +508,7 @@ const SessionsTab = ({
                         className="px-3 py-1.5 bg-orange-600 text-white text-sm rounded-lg hover:bg-orange-700 flex items-center gap-1"
                       >
                         <Square className="w-3.5 h-3.5" />
-                        Annuler
+                        {t('sessions.cancel')}
                       </button>
                     )}
                     {!['running', 'preparing'].includes(session.status) && (
@@ -518,7 +520,7 @@ const SessionsTab = ({
                         className="px-3 py-1.5 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 flex items-center gap-1"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
-                        Supprimer
+                        {t('sessions.delete')}
                       </button>
                     )}
                     <button
@@ -562,7 +564,7 @@ const SessionsTab = ({
       ) : (
         <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg shadow">
           <Brain className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-500 dark:text-gray-400">Aucune session d'entraînement</p>
+          <p className="text-gray-500 dark:text-gray-400">{t('sessions.noSessions')}</p>
           <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
             Créez une nouvelle session pour commencer
           </p>
@@ -594,6 +596,7 @@ const ModelsTab = ({
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [loadingModel, setLoadingModel] = useState<string | null>(null);
+  const { t } = useTranslation('training');
 
   const isModelRunning = (modelName: string) => {
     return runningModels.some(m => m.name === modelName || m.name.startsWith(modelName + ':'));
@@ -656,7 +659,7 @@ const ModelsTab = ({
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
               type="text"
-              placeholder="Rechercher un modèle..."
+              placeholder={t('models.searchPlaceholder')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-9 pr-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500"
@@ -674,12 +677,12 @@ const ModelsTab = ({
 
       {/* Models List */}
       {loading ? (
-        <div className="text-center py-12 text-gray-500">Chargement...</div>
+        <div className="text-center py-12 text-gray-500">{t('models.loading')}</div>
       ) : filteredModels.length === 0 ? (
         <div className="bg-white dark:bg-gray-800 rounded-lg p-8 text-center">
           <Brain className="w-12 h-12 mx-auto text-gray-300 dark:text-gray-600 mb-3" />
           <p className="text-gray-500 dark:text-gray-400">
-            {searchQuery ? 'Aucun modèle trouvé' : 'Aucun modèle installé'}
+            {searchQuery ? t('models.noModelsFound') : t('models.noModels')}
           </p>
         </div>
       ) : (
@@ -752,7 +755,7 @@ const ModelsTab = ({
                   <td className="px-4 py-3 text-right">
                     {confirmDelete === model.name ? (
                       <div className="flex items-center justify-end gap-2">
-                        <span className="text-xs text-red-600 dark:text-red-400">Confirmer ?</span>
+                        <span className="text-xs text-red-600 dark:text-red-400">{t('models.confirmQuestion')}</span>
                         <button
                           onClick={() => handleDelete(model.name)}
                           disabled={deleting === model.name}
@@ -782,7 +785,7 @@ const ModelsTab = ({
                               ? 'text-green-500 hover:text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-900/20'
                               : 'text-gray-400 hover:text-green-500 hover:bg-green-50 dark:hover:bg-green-900/20'
                           }`}
-                          title={isModelRunning(model.name) ? 'Décharger le modèle' : 'Charger le modèle'}
+                          title={isModelRunning(model.name) ? t('models.unload') : t('models.load')}
                         >
                           {loadingModel === model.name ? (
                             <RefreshCw className="w-4 h-4 animate-spin" />
@@ -796,7 +799,7 @@ const ModelsTab = ({
                         <button
                           onClick={() => setConfirmDelete(model.name)}
                           className="p-1.5 text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-colors"
-                          title="Supprimer le modèle"
+                          title={t('models.delete')}
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -844,6 +847,7 @@ const PromptsTab = ({
   onEdit: (prompt: TrainingPrompt) => void;
 }) => {
   const [expandedPrompt, setExpandedPrompt] = useState<string | null>(null);
+  const { t } = useTranslation('training');
 
   // Filtrer les prompts par service côté client
   const filteredPrompts = serviceFilter
@@ -867,7 +871,7 @@ const PromptsTab = ({
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
             type="text"
-            placeholder="Rechercher..."
+            placeholder={t('prompts.search')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-9 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
@@ -893,7 +897,7 @@ const PromptsTab = ({
           <button
             onClick={() => onSeed(true)}
             className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center gap-2"
-            title="Supprimer tous les prompts et recharger les prompts homelab"
+            title={t('prompts.deleteAll')}
           >
             <Zap className="w-4 h-4" />
             Reset Prompts
@@ -1038,7 +1042,7 @@ const PromptsTab = ({
                       className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 flex items-center gap-1"
                     >
                       <Edit className="w-3.5 h-3.5" />
-                      Modifier
+                      {t('prompts.edit')}
                     </button>
                     {!prompt.is_validated && (
                       <button
@@ -1060,7 +1064,7 @@ const PromptsTab = ({
                       className="px-3 py-1.5 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 flex items-center gap-1"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
-                      Supprimer
+                      {t('prompts.delete')}
                     </button>
                   </div>
                 </div>
@@ -1071,7 +1075,7 @@ const PromptsTab = ({
       ) : (
         <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg shadow">
           <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-500 dark:text-gray-400">Aucun prompt d'entraînement</p>
+          <p className="text-gray-500 dark:text-gray-400">{t('prompts.noPrompts')}</p>
           <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
             Ajoutez des prompts pour entraîner vos modèles
           </p>
@@ -1120,6 +1124,7 @@ const SessionModal = ({
   ];
   const [workers, setWorkers] = useState<TrainingWorker[]>([]);
   const [loadingWorkers, setLoadingWorkers] = useState(false);
+  const { t } = useTranslation('training');
 
   // LoRA adapters for incremental training
   interface LoraAdapter {
@@ -1428,7 +1433,7 @@ const SessionModal = ({
                   {loadingAdapters ? (
                     <span className="flex items-center gap-1">
                       <RefreshCw className="w-3 h-3 animate-spin" />
-                      Chargement des adaptateurs...
+                      {t('form.loadingAdapters')}
                     </span>
                   ) : formData.base_adapter_path ? (
                     <span className="text-blue-500 dark:text-blue-400">
@@ -1465,13 +1470,13 @@ const SessionModal = ({
               {loadingWorkers ? (
                 <div className="flex items-center gap-2 p-3 text-gray-500 dark:text-gray-400">
                   <RefreshCw className="w-4 h-4 animate-spin" />
-                  Chargement des workers...
+                  {t('workers.loading')}
                 </div>
               ) : workers.length === 0 ? (
                 <div className="p-3 border border-gray-300 dark:border-gray-600 rounded-lg">
                   <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
                     <Server className="w-4 h-4" />
-                    <span>Aucun worker configuré</span>
+                    <span>{t('workers.noWorkers')}</span>
                   </div>
                   <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
                     Configurez un worker dans les paramètres pour activer l'entraînement.
@@ -1591,7 +1596,7 @@ const SessionModal = ({
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <input
                     type="text"
-                    placeholder="Rechercher..."
+                    placeholder={t('prompts.searchPlaceholder')}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="w-full pl-9 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
@@ -1671,7 +1676,7 @@ const SessionModal = ({
               ) : (
                 <div className="text-center py-12">
                   <FileText className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-                  <p className="text-gray-500 dark:text-gray-400">Aucun prompt trouvé</p>
+                  <p className="text-gray-500 dark:text-gray-400">{t('prompts.noPromptsFound')}</p>
                 </div>
               )}
             </div>
@@ -1694,7 +1699,7 @@ const SessionModal = ({
                   onClick={handleClose}
                   className="px-4 py-2 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
                 >
-                  Annuler
+                  {t('sessions.cancel')}
                 </button>
                 <button
                   onClick={() => setStep(2)}
@@ -1722,12 +1727,12 @@ const SessionModal = ({
                   {submitting ? (
                     <>
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                      Création...
+                      {t('prompts.creating')}
                     </>
                   ) : (
                     <>
                       <Check className="w-4 h-4" />
-                      Créer ({selectedPrompts.size} prompts)
+                      {t('prompts.createMultiple', { count: selectedPrompts.size })}
                     </>
                   )}
                 </button>
@@ -1769,6 +1774,7 @@ const PromptModal = ({
   });
   const [submitting, setSubmitting] = useState(false);
   const [useToolCalling, setUseToolCalling] = useState(false);
+  const { t } = useTranslation('training');
 
   // Populate form when editing
   useEffect(() => {
@@ -1850,7 +1856,7 @@ const PromptModal = ({
             parsedArgs = JSON.parse(formData.tool_call_arguments);
           }
         } catch {
-          alert('Les arguments du tool call doivent être un JSON valide');
+          alert(t('form.jsonValidationError'));
           setSubmitting(false);
           return;
         }
@@ -1860,7 +1866,7 @@ const PromptModal = ({
         try {
           parsedResponse = JSON.parse(formData.tool_response);
         } catch {
-          alert('La réponse du tool doit être un JSON valide');
+          alert(t('form.jsonResponseError'));
           setSubmitting(false);
           return;
         }
@@ -1890,7 +1896,7 @@ const PromptModal = ({
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
           <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-            {editingPrompt ? 'Modifier le prompt' : 'Nouveau prompt d\'entraînement'}
+            {editingPrompt ? t('prompts.editPrompt') : t('prompts.newPrompt')}
           </h3>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
             <X className="w-5 h-5" />
@@ -1899,14 +1905,14 @@ const PromptModal = ({
         <form onSubmit={handleSubmit} className="p-4 space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nom *</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('form.nameRequired')}</label>
               <input
                 type="text"
                 required
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                placeholder="Nom du prompt"
+                placeholder={t('form.namePlaceholder')}
               />
             </div>
             <div>
@@ -1925,7 +1931,7 @@ const PromptModal = ({
 
           {/* Services Selection */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Services concernés *</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('form.servicesRequired')}</label>
             <div className="flex flex-wrap gap-2">
               {availableServices.map((service) => (
                 <button
@@ -1944,7 +1950,7 @@ const PromptModal = ({
               ))}
             </div>
             {formData.services.length === 0 && (
-              <p className="text-xs text-red-500 mt-1">Sélectionnez au moins un service</p>
+              <p className="text-xs text-red-500 mt-1">{t('prompts.selectAtLeastOne')}</p>
             )}
           </div>
 
@@ -2079,7 +2085,7 @@ const PromptModal = ({
               onClick={onClose}
               className="px-4 py-2 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
             >
-              Annuler
+              {t('prompts.cancel')}
             </button>
             <button
               type="submit"
@@ -2087,8 +2093,8 @@ const PromptModal = ({
               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
             >
               {submitting
-                ? (editingPrompt ? 'Enregistrement...' : 'Création...')
-                : (editingPrompt ? 'Enregistrer' : 'Créer le prompt')}
+                ? (editingPrompt ? t('prompts.saving') : t('prompts.creating'))
+                : (editingPrompt ? t('prompts.save') : t('prompts.create'))}
             </button>
           </div>
         </form>
@@ -2117,6 +2123,7 @@ const SessionPromptsModal = ({
   const [saving, setSaving] = useState(false);
   const [_sessionPrompts, setSessionPrompts] = useState<TrainingPrompt[]>([]);
   const [loadingSessionPrompts, setLoadingSessionPrompts] = useState(true);
+  const { t } = useTranslation('training');
 
   // Load current session prompts on open
   useEffect(() => {
@@ -2214,7 +2221,7 @@ const SessionPromptsModal = ({
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input
                 type="text"
-                placeholder="Rechercher..."
+                placeholder={t('prompts.searchPlaceholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-9 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
@@ -2313,7 +2320,7 @@ const SessionPromptsModal = ({
           ) : (
             <div className="text-center py-12">
               <FileText className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-              <p className="text-gray-500 dark:text-gray-400">Aucun prompt trouvé</p>
+              <p className="text-gray-500 dark:text-gray-400">{t('prompts.noPromptsFound')}</p>
             </div>
           )}
         </div>
@@ -2328,7 +2335,7 @@ const SessionPromptsModal = ({
               onClick={onClose}
               className="px-4 py-2 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
             >
-              Annuler
+              {t('prompts.cancel')}
             </button>
             <button
               onClick={handleSave}
@@ -2338,12 +2345,12 @@ const SessionPromptsModal = ({
               {saving ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  Enregistrement...
+                  {t('prompts.saving')}
                 </>
               ) : (
                 <>
                   <Check className="w-4 h-4" />
-                  Enregistrer ({selectedPrompts.size})
+                  {t('prompts.saveMultiple', { count: selectedPrompts.size })}
                 </>
               )}
             </button>
@@ -2356,6 +2363,7 @@ const SessionPromptsModal = ({
 
 // Main Component
 export default function Training() {
+  const { t } = useTranslation('training');
   const [activeTab, setActiveTab] = useState<'overview' | 'sessions' | 'prompts' | 'workers' | 'models'>('overview');
   const [ollamaStatus, setOllamaStatus] = useState<OllamaStatus | null>(null);
   const [_ollamaMetrics, _setOllamaMetrics] = useState<OllamaMetrics | null>(null);
@@ -2624,7 +2632,7 @@ export default function Training() {
       alert('Prompts importés avec succès');
     } catch (error) {
       console.error('Failed to import prompts:', error);
-      alert('Erreur lors de l\'import des prompts');
+      alert(t('errors.importFailed'));
     }
     e.target.value = '';
   };
@@ -2641,7 +2649,7 @@ export default function Training() {
       URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Failed to export prompts:', error);
-      alert('Erreur lors de l\'export des prompts');
+      alert(t('errors.exportFailed'));
     }
   };
 
@@ -2655,7 +2663,7 @@ export default function Training() {
       fetchData();
     } catch (error) {
       console.error('Failed to seed prompts:', error);
-      alert('Erreur lors du chargement des prompts homelab');
+      alert(t('errors.loadHomelabFailed'));
     }
   };
 
@@ -2715,7 +2723,7 @@ export default function Training() {
 
       {/* Tab Content */}
       {loading && activeTab === 'overview' ? (
-        <div className="text-center py-12 text-gray-500">Chargement...</div>
+        <div className="text-center py-12 text-gray-500">{t('models.loading')}</div>
       ) : (
         <>
           {activeTab === 'overview' && (

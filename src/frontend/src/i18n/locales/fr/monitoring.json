@@ -41,6 +41,16 @@
     "noTest": "Pas de test"
   },
 
+  "status": {
+    "error": "Erreur"
+  },
+
+  "activate": "Activer",
+
+  "actions": {
+    "refresh": "Actualiser"
+  },
+
   "scheduler": {
     "title": "Tests automatiques",
     "active": "Actif - toutes les {{interval}} min",

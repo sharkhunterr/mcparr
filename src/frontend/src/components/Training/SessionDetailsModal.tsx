@@ -3,6 +3,7 @@
  */
 
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { apiClient } from '../../lib/api';
 
 interface LossDataPoint {
@@ -111,10 +112,12 @@ function formatNumber(num: number | null | undefined, decimals: number = 4): str
 
 // Simple SVG Line Chart for Loss Evolution
 function LossChart({ data }: { data: LossDataPoint[] }) {
+  const { t } = useTranslation('training');
+
   if (!data || data.length < 2) {
     return (
       <div className="flex items-center justify-center h-32 text-gray-400 dark:text-gray-500 text-sm">
-        Pas assez de donnees pour afficher le graphique
+        {t('details.notEnoughData')}
       </div>
     );
   }
@@ -252,6 +255,7 @@ export default function SessionDetailsModal({
   isOpen,
   onClose,
 }: SessionDetailsModalProps) {
+  const { t } = useTranslation('training');
   const [summary, setSummary] = useState<SessionSummary | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -291,7 +295,7 @@ export default function SessionDetailsModal({
           {/* Header */}
           <div className="flex items-center justify-between px-6 py-4 border-b dark:border-gray-700">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-              Details de la session
+              {t('details.title')}
             </h2>
             <button
               onClick={onClose}
@@ -333,13 +337,13 @@ export default function SessionDetailsModal({
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
-                      Nom
+                      {t('details.name')}
                     </h3>
                     <p className="text-gray-900 dark:text-white font-medium">{summary.name}</p>
                   </div>
                   <div>
                     <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
-                      Status
+                      {t('details.status')}
                     </h3>
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(summary.status)}`}>
                       {summary.status}
@@ -347,7 +351,7 @@ export default function SessionDetailsModal({
                   </div>
                   <div>
                     <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
-                      Modele de base
+                      {t('details.baseModel')}
                     </h3>
                     <p className="text-gray-900 dark:text-white text-sm font-mono">
                       {summary.base_model}
@@ -355,7 +359,7 @@ export default function SessionDetailsModal({
                   </div>
                   <div>
                     <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
-                      Modele de sortie
+                      {t('details.outputModel')}
                     </h3>
                     <p className="text-gray-900 dark:text-white text-sm font-mono">
                       {summary.output_model || '-'}
@@ -366,23 +370,23 @@ export default function SessionDetailsModal({
                 {/* Timing */}
                 <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
                   <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
-                    Timing
+                    {t('details.timing')}
                   </h3>
                   <div className="grid grid-cols-3 gap-4 text-sm">
                     <div>
-                      <p className="text-gray-500 dark:text-gray-400">Debut</p>
+                      <p className="text-gray-500 dark:text-gray-400">{t('details.start')}</p>
                       <p className="text-gray-900 dark:text-white font-medium">
                         {formatDate(summary.started_at)}
                       </p>
                     </div>
                     <div>
-                      <p className="text-gray-500 dark:text-gray-400">Fin</p>
+                      <p className="text-gray-500 dark:text-gray-400">{t('details.end')}</p>
                       <p className="text-gray-900 dark:text-white font-medium">
                         {formatDate(summary.completed_at)}
                       </p>
                     </div>
                     <div>
-                      <p className="text-gray-500 dark:text-gray-400">Duree</p>
+                      <p className="text-gray-500 dark:text-gray-400">{t('details.duration')}</p>
                       <p className="text-gray-900 dark:text-white font-medium">
                         {summary.duration_formatted}
                       </p>
@@ -393,29 +397,29 @@ export default function SessionDetailsModal({
                 {/* Progress */}
                 <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
                   <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
-                    Progression
+                    {t('details.progress')}
                   </h3>
                   <div className="grid grid-cols-4 gap-4 text-sm">
                     <div>
-                      <p className="text-gray-500 dark:text-gray-400">Epochs</p>
+                      <p className="text-gray-500 dark:text-gray-400">{t('details.epochs')}</p>
                       <p className="text-gray-900 dark:text-white font-medium">
                         {summary.total_epochs}
                       </p>
                     </div>
                     <div>
-                      <p className="text-gray-500 dark:text-gray-400">Steps</p>
+                      <p className="text-gray-500 dark:text-gray-400">{t('details.steps')}</p>
                       <p className="text-gray-900 dark:text-white font-medium">
                         {summary.final_step} / {summary.total_steps}
                       </p>
                     </div>
                     <div>
-                      <p className="text-gray-500 dark:text-gray-400">Progres</p>
+                      <p className="text-gray-500 dark:text-gray-400">{t('details.progressPercent')}</p>
                       <p className="text-gray-900 dark:text-white font-medium">
                         {summary.progress_percent.toFixed(1)}%
                       </p>
                     </div>
                     <div>
-                      <p className="text-gray-500 dark:text-gray-400">Prompts</p>
+                      <p className="text-gray-500 dark:text-gray-400">{t('details.prompts')}</p>
                       <p className="text-gray-900 dark:text-white font-medium">
                         {summary.prompts_count}
                       </p>
@@ -427,23 +431,23 @@ export default function SessionDetailsModal({
                 {summary.metrics_analysis && Object.keys(summary.metrics_analysis).length > 0 && (
                   <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
                     <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
-                      Metriques
+                      {t('details.metrics')}
                     </h3>
                     <div className="grid grid-cols-3 gap-4 text-sm">
                       <div>
-                        <p className="text-gray-500 dark:text-gray-400">Loss initial</p>
+                        <p className="text-gray-500 dark:text-gray-400">{t('details.initialLoss')}</p>
                         <p className="text-gray-900 dark:text-white font-mono">
                           {formatNumber(summary.metrics_analysis.initial_loss)}
                         </p>
                       </div>
                       <div>
-                        <p className="text-gray-500 dark:text-gray-400">Loss final</p>
+                        <p className="text-gray-500 dark:text-gray-400">{t('details.finalLoss')}</p>
                         <p className="text-gray-900 dark:text-white font-mono">
                           {formatNumber(summary.metrics_analysis.final_loss)}
                         </p>
                       </div>
                       <div>
-                        <p className="text-gray-500 dark:text-gray-400">Amelioration</p>
+                        <p className="text-gray-500 dark:text-gray-400">{t('details.improvement')}</p>
                         <p className={`font-mono font-medium ${
                           (summary.metrics_analysis.loss_improvement_percent || 0) > 0
                             ? 'text-green-600 dark:text-green-400'
@@ -457,19 +461,19 @@ export default function SessionDetailsModal({
                         </p>
                       </div>
                       <div>
-                        <p className="text-gray-500 dark:text-gray-400">Loss min</p>
+                        <p className="text-gray-500 dark:text-gray-400">{t('details.minLoss')}</p>
                         <p className="text-gray-900 dark:text-white font-mono">
                           {formatNumber(summary.metrics_analysis.min_loss)}
                         </p>
                       </div>
                       <div>
-                        <p className="text-gray-500 dark:text-gray-400">Loss max</p>
+                        <p className="text-gray-500 dark:text-gray-400">{t('details.maxLoss')}</p>
                         <p className="text-gray-900 dark:text-white font-mono">
                           {formatNumber(summary.metrics_analysis.max_loss)}
                         </p>
                       </div>
                       <div>
-                        <p className="text-gray-500 dark:text-gray-400">Tendance</p>
+                        <p className="text-gray-500 dark:text-gray-400">{t('details.trend')}</p>
                         <p className={`font-medium ${
                           summary.metrics_analysis.trend === 'decreasing'
                             ? 'text-green-600 dark:text-green-400'
@@ -477,9 +481,9 @@ export default function SessionDetailsModal({
                             ? 'text-red-600 dark:text-red-400'
                             : 'text-gray-900 dark:text-white'
                         }`}>
-                          {summary.metrics_analysis.trend === 'decreasing' && 'En baisse'}
-                          {summary.metrics_analysis.trend === 'increasing' && 'En hausse'}
-                          {summary.metrics_analysis.trend === 'stable' && 'Stable'}
+                          {summary.metrics_analysis.trend === 'decreasing' && t('details.trendDecreasing')}
+                          {summary.metrics_analysis.trend === 'increasing' && t('details.trendIncreasing')}
+                          {summary.metrics_analysis.trend === 'stable' && t('details.trendStable')}
                           {!summary.metrics_analysis.trend && '-'}
                         </p>
                       </div>
@@ -491,7 +495,7 @@ export default function SessionDetailsModal({
                 {summary.loss_history && summary.loss_history.length > 0 && (
                   <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
                     <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
-                      Evolution du Loss
+                      {t('details.lossEvolution')}
                     </h3>
                     <LossChart data={summary.loss_history} />
                   </div>
@@ -501,7 +505,7 @@ export default function SessionDetailsModal({
                 {summary.error_message && (
                   <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-4">
                     <h3 className="text-sm font-semibold text-red-700 dark:text-red-400 mb-2">
-                      Erreur
+                      {t('details.error')}
                     </h3>
                     <p className="text-red-600 dark:text-red-300 text-sm font-mono whitespace-pre-wrap">
                       {summary.error_message}
@@ -513,7 +517,7 @@ export default function SessionDetailsModal({
                 {summary.hyperparameters && Object.keys(summary.hyperparameters).length > 0 && (
                   <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
                     <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
-                      Hyperparametres
+                      {t('details.hyperparameters')}
                     </h3>
                     <div className="grid grid-cols-2 gap-2 text-sm">
                       {Object.entries(summary.hyperparameters).map(([key, value]) => (
@@ -537,7 +541,7 @@ export default function SessionDetailsModal({
               onClick={onClose}
               className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
             >
-              Fermer
+              {t('details.close')}
             </button>
           </div>
         </div>

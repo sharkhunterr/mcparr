@@ -33,6 +33,7 @@
     "byUser": "Par Utilisateur",
     "topTools": "Outils les Plus Utilisés",
     "noData": "Aucune donnée disponible",
+    "noUsageData": "Aucune donnée d'utilisation",
     "usage": "utilisation",
     "success": "Succès",
     "failed": "Échoué",
@@ -76,6 +77,10 @@
     "result": "Résultat",
     "error": "Erreur",
     "noTools": "Aucun outil disponible"
+  },
+
+  "errors": {
+    "toolExecutionFailed": "Erreur lors de l'exécution de l'outil"
   },
 
   "toolGroups": {

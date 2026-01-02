@@ -26,6 +26,7 @@ import {
   Upload,
   Loader2,
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { api } from '../../lib/api';
 
 // Types
@@ -169,6 +170,8 @@ const StatCard = ({
 
 // Worker card component
 const WorkerCard = ({ worker }: { worker: Worker }) => {
+  const { t } = useTranslation('training');
+
   const statusColors = {
     online: 'bg-green-500',
     offline: 'bg-gray-400',
@@ -177,10 +180,10 @@ const WorkerCard = ({ worker }: { worker: Worker }) => {
   };
 
   const statusLabels = {
-    online: 'En ligne',
-    offline: 'Hors ligne',
-    busy: 'Occupe',
-    error: 'Erreur',
+    online: t('overview.online'),
+    offline: t('overview.offline'),
+    busy: t('overview.busy'),
+    error: t('errors.error'),
   };
 
   return (
@@ -220,11 +223,11 @@ const WorkerCard = ({ worker }: { worker: Worker }) => {
       <div className="flex items-center justify-between text-sm">
         <div className="flex items-center gap-1 text-gray-500 dark:text-gray-400">
           <CheckCircle className="w-4 h-4 text-green-500" />
-          <span>{worker.total_jobs_completed} jobs</span>
+          <span>{worker.total_jobs_completed} {t('overview.jobs')}</span>
         </div>
         {worker.current_job_id && (
           <span className="text-xs px-2 py-0.5 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 rounded-full">
-            En cours
+            {t('overview.inProgress')}
           </span>
         )}
       </div>
@@ -281,12 +284,13 @@ const getServiceColor = (serviceName: string, index: number) => {
 
 // Horizontal stacked bar chart for prompts by service
 const ServiceStackedBar = ({ data, total }: { data: Record<string, number>; total: number }) => {
+  const { t } = useTranslation('training');
   const sortedServices = Object.entries(data).sort((a, b) => b[1] - a[1]);
 
   if (sortedServices.length === 0) {
     return (
       <div className="text-center py-4 text-gray-500 dark:text-gray-400 text-sm">
-        Aucune donnée
+        {t('overview.noData')}
       </div>
     );
   }
@@ -435,19 +439,20 @@ const PipelineSteps = ({ currentPhase }: { currentPhase?: string }) => {
 
 // Loss trend indicator component
 const LossTrendIndicator = ({ trend }: { trend?: string }) => {
+  const { t } = useTranslation('training');
   if (!trend) return null;
 
   const getTrendInfo = (trend: string) => {
     switch (trend) {
       case 'decreasing':
       case 'decreasing_fast':
-        return { icon: TrendingDown, color: 'text-green-400', label: 'En baisse' };
+        return { icon: TrendingDown, color: 'text-green-400', label: t('overview.lossDecreasing') };
       case 'increasing':
       case 'increasing_fast':
-        return { icon: TrendingUp, color: 'text-red-400', label: 'En hausse' };
+        return { icon: TrendingUp, color: 'text-red-400', label: t('overview.lossIncreasing') };
       case 'stable':
       case 'plateauing':
-        return { icon: Minus, color: 'text-yellow-400', label: 'Stable' };
+        return { icon: Minus, color: 'text-yellow-400', label: t('overview.lossStable') };
       default:
         return { icon: Minus, color: 'text-gray-400', label: '-' };
     }
@@ -465,6 +470,8 @@ const LossTrendIndicator = ({ trend }: { trend?: string }) => {
 
 // Active training card
 const ActiveTrainingCard = ({ session, onViewLogs }: { session: ActiveSessionWithMetrics; onViewLogs?: (id: string, name?: string, status?: string) => void }) => {
+  const { t } = useTranslation('training');
+
   const formatDuration = (startedAt: string | undefined) => {
     if (!startedAt) return '-';
     const start = new Date(startedAt);
@@ -513,7 +520,7 @@ const ActiveTrainingCard = ({ session, onViewLogs }: { session: ActiveSessionWit
             <button
               onClick={() => onViewLogs(session.id, session.name, session.status)}
               className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
-              title="Voir les logs en direct"
+              title={t('overview.viewLiveLogs')}
             >
               <FileText className="w-4 h-4" />
             </button>
@@ -560,13 +567,13 @@ const ActiveTrainingCard = ({ session, onViewLogs }: { session: ActiveSessionWit
           </p>
         </div>
         <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-2 text-center">
-          <p className="text-xs text-gray-500 dark:text-gray-400">Vitesse</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">{t('overview.speed')}</p>
           <p className="text-lg font-bold text-gray-900 dark:text-white">
             {session._realtime_metrics?.time?.tokens_per_second?.toFixed(0) || '-'} tok/s
           </p>
         </div>
         <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-2 text-center">
-          <p className="text-xs text-gray-500 dark:text-gray-400">Sante</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">{t('overview.health')}</p>
           <p className={`text-lg font-bold capitalize ${getHealthColorDark(session._realtime_metrics?.quality?.training_health)}`}>
             {session._realtime_metrics?.quality?.training_health || '-'}
           </p>
@@ -583,7 +590,7 @@ const ActiveTrainingCard = ({ session, onViewLogs }: { session: ActiveSessionWit
         </div>
         <div className="grid grid-cols-4 gap-3 text-sm">
           <div>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Utilisation</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">{t('overview.utilization')}</p>
             <p className="font-medium text-gray-900 dark:text-white">
               {session._realtime_metrics?.gpu?.utilization_percent?.toFixed(0) ?? '-'}%
             </p>
@@ -595,7 +602,7 @@ const ActiveTrainingCard = ({ session, onViewLogs }: { session: ActiveSessionWit
             </p>
           </div>
           <div>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Temp</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">{t('overview.temp')}</p>
             <p className={`font-medium ${
               (session._realtime_metrics?.gpu?.temperature_celsius ?? 0) > 80 ? 'text-red-500' :
               (session._realtime_metrics?.gpu?.temperature_celsius ?? 0) > 70 ? 'text-yellow-500' : 'text-gray-900 dark:text-white'
@@ -604,7 +611,7 @@ const ActiveTrainingCard = ({ session, onViewLogs }: { session: ActiveSessionWit
             </p>
           </div>
           <div>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Power</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">{t('overview.power')}</p>
             <p className="font-medium text-gray-900 dark:text-white">
               {session._realtime_metrics?.gpu?.power_watts?.toFixed(0) ?? '-'}W
             </p>
@@ -623,6 +630,7 @@ export default function TrainingOverview({
   wsConnected,
   onViewLogs,
 }: TrainingOverviewProps) {
+  const { t } = useTranslation('training');
   const [workers, setWorkers] = useState<Worker[]>([]);
   const [loadingWorkers, setLoadingWorkers] = useState(true);
   const [promptsByService, setPromptsByService] = useState<Record<string, number>>({});
@@ -696,14 +704,14 @@ export default function TrainingOverview({
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
               <Play className="w-5 h-5 text-green-500 animate-pulse" />
-              Entrainement en cours
+              {t('overview.activeTraining')}
             </h3>
             <span className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full ${
               wsConnected ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' :
                            'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
             }`}>
               {wsConnected ? <Wifi className="w-3 h-3" /> : <WifiOff className="w-3 h-3" />}
-              {wsConnected ? 'Live' : 'Offline'}
+              {wsConnected ? t('overview.live') : t('overview.offline')}
             </span>
           </div>
           <div className="space-y-4">
@@ -717,27 +725,27 @@ export default function TrainingOverview({
       {/* Stats Row */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
-          title="Sessions"
+          title={t('sessions.title')}
           value={stats?.total_sessions || 0}
-          subtitle={`${stats?.active_sessions || 0} actives`}
+          subtitle={`${stats?.active_sessions || 0} ${t('overview.active').toLowerCase()}`}
           color="blue"
         />
         <StatCard
-          title="Prompts"
+          title={t('prompts.title')}
           value={stats?.total_prompts || 0}
-          subtitle={`${stats?.validated_prompts || 0} valides`}
+          subtitle={`${stats?.validated_prompts || 0} ${t('prompts.validated')}`}
           color="purple"
         />
         <StatCard
-          title="Taux de succes"
+          title={t('overview.successRate')}
           value={`${successRate}%`}
-          subtitle={`${stats?.completed_sessions || 0} completees`}
+          subtitle={`${stats?.completed_sessions || 0} ${t('overview.completed')}`}
           color={stats?.failed_sessions && stats.failed_sessions > 0 ? 'orange' : 'green'}
         />
         <StatCard
-          title="Workers"
+          title={t('workers.title')}
           value={workers.filter(w => w.status === 'online').length}
-          subtitle={`${workers.length} configures`}
+          subtitle={`${workers.length} ${t('overview.configured')}`}
           color="orange"
         />
       </div>
@@ -749,13 +757,13 @@ export default function TrainingOverview({
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
               <Server className="w-5 h-5 text-orange-500" />
-              Training Workers
+              {t('overview.trainingWorkers')}
             </h3>
             <Link
               to="/training?tab=workers"
               className="text-sm text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1"
             >
-              Gerer <ChevronRight className="w-4 h-4" />
+              {t('overview.manage')} <ChevronRight className="w-4 h-4" />
             </Link>
           </div>
           {loadingWorkers ? (
@@ -773,9 +781,9 @@ export default function TrainingOverview({
           ) : (
             <div className="text-center py-8 text-gray-500 dark:text-gray-400">
               <Server className="w-10 h-10 mx-auto mb-2 opacity-50" />
-              <p>Aucun worker configure</p>
+              <p>{t('overview.noWorkersConfigured')}</p>
               <Link to="/training?tab=workers" className="text-sm text-blue-600 dark:text-blue-400 hover:underline mt-2 inline-block">
-                Ajouter un worker
+                {t('overview.addWorker')}
               </Link>
             </div>
           )}
@@ -786,7 +794,7 @@ export default function TrainingOverview({
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
               <Brain className="w-5 h-5 text-purple-500" />
-              Ollama Server
+              {t('overview.ollamaServer')}
             </h3>
             <span className={`px-2 py-1 text-xs rounded-full ${
               ollamaStatus?.status === 'healthy'
@@ -795,8 +803,8 @@ export default function TrainingOverview({
                 ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300'
                 : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
             }`}>
-              {ollamaStatus?.status === 'healthy' ? 'Connecte' :
-               ollamaStatus?.status === 'not_configured' ? 'Non configure' : 'Erreur'}
+              {ollamaStatus?.status === 'healthy' ? t('overview.connected') :
+               ollamaStatus?.status === 'not_configured' ? t('overview.notConfigured') : t('errors.error')}
             </span>
           </div>
 
@@ -805,15 +813,15 @@ export default function TrainingOverview({
               <div className="grid grid-cols-3 gap-3">
                 <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3 text-center">
                   <p className="text-2xl font-bold text-gray-900 dark:text-white">{ollamaStatus.model_count}</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Modeles</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{t('overview.models')}</p>
                 </div>
                 <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3 text-center">
                   <p className="text-2xl font-bold text-gray-900 dark:text-white">{ollamaStatus.total_size_gb.toFixed(1)}</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">GB Total</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{t('overview.totalGB')}</p>
                 </div>
                 <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3 text-center">
                   <p className="text-2xl font-bold text-gray-900 dark:text-white">{ollamaStatus.running_count}</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Actifs</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{t('overview.active')}</p>
                 </div>
               </div>
               <p className="text-xs text-gray-500 dark:text-gray-400">
@@ -825,12 +833,12 @@ export default function TrainingOverview({
               <div className="flex items-start gap-3">
                 <AlertCircle className="w-5 h-5 text-yellow-600 dark:text-yellow-400 flex-shrink-0" />
                 <div>
-                  <p className="text-sm text-yellow-800 dark:text-yellow-200">Ollama non configure</p>
+                  <p className="text-sm text-yellow-800 dark:text-yellow-200">{t('overview.ollamaNotConfigured')}</p>
                   <Link
                     to="/services"
                     className="inline-flex items-center gap-1 mt-2 text-sm text-yellow-700 dark:text-yellow-300 hover:underline"
                   >
-                    Configurer <ExternalLink className="w-3 h-3" />
+                    {t('overview.configure')} <ExternalLink className="w-3 h-3" />
                   </Link>
                 </div>
               </div>
@@ -838,7 +846,7 @@ export default function TrainingOverview({
           ) : (
             <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
               <p className="text-sm text-red-800 dark:text-red-200">
-                {ollamaStatus?.error || 'Connexion echouee'}
+                {ollamaStatus?.error || t('errors.connectionFailed')}
               </p>
             </div>
           )}
@@ -852,13 +860,13 @@ export default function TrainingOverview({
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
               <FileText className="w-5 h-5 text-purple-500" />
-              Prompts par service
+              {t('overview.promptsByService')}
             </h3>
             <Link
               to="/training?tab=prompts"
               className="text-sm text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1"
             >
-              Voir tout <ChevronRight className="w-4 h-4" />
+              {t('overview.viewAll')} <ChevronRight className="w-4 h-4" />
             </Link>
           </div>
           {loadingPrompts ? (
@@ -872,7 +880,7 @@ export default function TrainingOverview({
           ) : (
             <div className="text-center py-8 text-gray-500 dark:text-gray-400">
               <FileText className="w-10 h-10 mx-auto mb-2 opacity-50" />
-              <p>Aucun prompt</p>
+              <p>{t('overview.noPrompts')}</p>
             </div>
           )}
         </div>
@@ -882,13 +890,13 @@ export default function TrainingOverview({
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
               <Activity className="w-5 h-5 text-blue-500" />
-              Sessions recentes
+              {t('overview.recentSessions')}
             </h3>
             <Link
               to="/training?tab=sessions"
               className="text-sm text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1"
             >
-              Voir tout <ChevronRight className="w-4 h-4" />
+              {t('overview.viewAll')} <ChevronRight className="w-4 h-4" />
             </Link>
           </div>
 
@@ -896,7 +904,7 @@ export default function TrainingOverview({
             <div className="space-y-4">
               {/* Mini chart */}
               <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3">
-                <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">Evolution du Loss (10 dernieres)</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">{t('overview.lossEvolution')}</p>
                 <SessionsHistoryChart sessions={stats.recent_sessions} />
               </div>
 
@@ -920,7 +928,7 @@ export default function TrainingOverview({
                         <button
                           onClick={() => onViewLogs(session.id, session.name, session.status)}
                           className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-                          title="Voir les logs"
+                          title={t('overview.viewLogs')}
                         >
                           <FileText className="w-4 h-4" />
                         </button>
@@ -942,7 +950,7 @@ export default function TrainingOverview({
           ) : (
             <div className="text-center py-8 text-gray-500 dark:text-gray-400">
               <Activity className="w-10 h-10 mx-auto mb-2 opacity-50" />
-              <p>Aucune session</p>
+              <p>{t('overview.noSessions')}</p>
             </div>
           )}
         </div>

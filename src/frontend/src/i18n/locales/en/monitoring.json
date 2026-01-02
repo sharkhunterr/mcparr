@@ -41,6 +41,16 @@
     "noTest": "No test"
   },
 
+  "status": {
+    "error": "Error"
+  },
+
+  "activate": "Activate",
+
+  "actions": {
+    "refresh": "Refresh"
+  },
+
   "scheduler": {
     "title": "Automatic tests",
     "active": "Active - every {{interval}} min",

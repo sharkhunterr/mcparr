@@ -33,6 +33,7 @@
     "byUser": "By User",
     "topTools": "Top Tools",
     "noData": "No data available",
+    "noUsageData": "No usage data",
     "usage": "usage",
     "success": "Success",
     "failed": "Failed",
@@ -76,6 +77,10 @@
     "result": "Result",
     "error": "Error",
     "noTools": "No tools available"
+  },
+
+  "errors": {
+    "toolExecutionFailed": "Error executing tool"
   },
 
   "toolGroups": {
