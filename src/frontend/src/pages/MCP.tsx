@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Bot, RefreshCw, BarChart3, History, Wrench, Settings, ChevronDown, ChevronRight, Play, X, Loader2 } from 'lucide-react';
-import { api } from '../lib/api';
+import { api, getApiBaseUrl } from '../lib/api';
 import { getServiceColor, getServiceFromToolName } from '../lib/serviceColors';
 
 interface McpRequest {
@@ -1277,9 +1277,7 @@ const ConfigurationTab = ({ tools }: { tools: McpToolsResponse | null }) => {
     }
   };
 
-  const backendUrl = window.location.hostname === 'localhost'
-    ? 'http://localhost:8000'
-    : `http://${window.location.hostname}:8000`;
+  const backendUrl = getApiBaseUrl();
 
   // OpenAPI endpoints configuration
   const openApiEndpoints = [
