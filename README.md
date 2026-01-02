@@ -22,7 +22,8 @@
 
 ---
 
-> **Vibe Code Project** - This application was built **100% using AI-assisted development** with [Claude Code](https://claude.ai/claude-code) (Anthropic's CLI). See [Project Story](#-project-story) for details on why and how.
+> [!WARNING]
+> **Vibe Code Project** - This application was built **100% using AI-assisted development** with [Claude Code](https://claude.ai/claude-code) (Anthropic's CLI). See [Project Story](#project-story) for details on why and how.
 
 ---
 
