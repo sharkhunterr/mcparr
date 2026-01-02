@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { ArrowRight, ArrowLeft, ExternalLink } from 'lucide-react';
 import { useWizard } from '../../contexts/WizardContext';
 import type { FC } from 'react';
@@ -25,6 +26,7 @@ export default function InfoStepLayout({
   linkUrl,
   tip
 }: InfoStepLayoutProps) {
+  const { t } = useTranslation(['wizard', 'common']);
   const { nextStep, previousStep } = useWizard();
 
   return (
@@ -71,7 +73,7 @@ export default function InfoStepLayout({
         {tip && (
           <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
             <p className="text-sm text-blue-800 dark:text-blue-200">
-              <span className="font-semibold">💡 Astuce :</span> {tip}
+              <span className="font-semibold">💡 {t('navigation.tipLabel')}</span> {tip}
             </p>
           </div>
         )}
@@ -97,13 +99,13 @@ export default function InfoStepLayout({
           className="flex items-center gap-2 px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
-          Précédent
+          {t('common:actions.back')}
         </button>
         <button
           onClick={nextStep}
           className="flex items-center gap-2 px-6 py-2.5 bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100 rounded-xl transition-colors font-medium"
         >
-          Suivant
+          {t('common:actions.next')}
           <ArrowRight className="w-4 h-4" />
         </button>
       </div>

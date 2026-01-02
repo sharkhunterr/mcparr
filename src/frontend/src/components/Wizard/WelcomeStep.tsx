@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Sparkles, ArrowRight, X, Upload, Database, AlertCircle, CheckCircle, Loader2, Server, Users, Shield, Brain, Wrench, Check } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useWizard } from '../../contexts/WizardContext';
@@ -42,6 +43,7 @@ interface ImportOptions {
 }
 
 export default function WelcomeStep() {
+  const { t } = useTranslation(['wizard']);
   const navigate = useNavigate();
   const { nextStep, skipWizard } = useWizard();
   const [showImport, setShowImport] = useState(false);
@@ -64,11 +66,11 @@ export default function WelcomeStep() {
   } | null>(null);
 
   const backupCategories = [
-    { key: 'services' as const, label: 'Services', icon: Server },
-    { key: 'user_mappings' as const, label: 'Users', icon: Users },
-    { key: 'groups' as const, label: 'Groupes', icon: Shield },
-    { key: 'site_config' as const, label: 'Config', icon: Wrench },
-    { key: 'training_prompts' as const, label: 'AI', icon: Brain },
+    { key: 'services' as const, label: t('welcome.import.categories.services'), icon: Server },
+    { key: 'user_mappings' as const, label: t('welcome.import.categories.users'), icon: Users },
+    { key: 'groups' as const, label: t('welcome.import.categories.groups'), icon: Shield },
+    { key: 'site_config' as const, label: t('welcome.import.categories.config'), icon: Wrench },
+    { key: 'training_prompts' as const, label: t('welcome.import.categories.ai'), icon: Brain },
   ];
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -136,7 +138,7 @@ export default function WelcomeStep() {
             className="flex items-center gap-2 px-4 py-2 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
           >
             <X className="w-4 h-4" />
-            Passer le guide
+            {t('welcome.skipGuide')}
           </button>
         </div>
 
@@ -151,29 +153,28 @@ export default function WelcomeStep() {
 
           {/* Title */}
           <h1 className="text-3xl md:text-4xl font-bold text-center bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent mb-4">
-            Bienvenue sur MCParr
+            {t('welcome.title')}
           </h1>
 
           {/* Subtitle */}
           <p className="text-lg text-center text-gray-600 dark:text-gray-400 mb-8">
-            Votre gateway IA pour contrôler votre homelab
+            {t('welcome.subtitle')}
           </p>
 
           {/* Description */}
           <div className="space-y-4 mb-8 text-gray-700 dark:text-gray-300">
             <p className="text-center max-w-2xl mx-auto leading-relaxed">
-              MCParr centralise le contrôle de tous vos services homelab via une interface
-              conversationnelle alimentée par l'IA.
+              {t('welcome.description')}
             </p>
           </div>
 
           {/* Features grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
             {[
-              { emoji: '🔌', text: 'Connexion à vos services' },
-              { emoji: '👥', text: 'Mapping utilisateurs' },
-              { emoji: '🛡️', text: 'Gestion des permissions' },
-              { emoji: '🤖', text: 'Serveur MCP intégré' },
+              { emoji: '🔌', text: t('welcome.features.services') },
+              { emoji: '👥', text: t('welcome.features.users') },
+              { emoji: '🛡️', text: t('welcome.features.permissions') },
+              { emoji: '🤖', text: t('welcome.features.mcp') },
             ].map((item, i) => (
               <div key={i} className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-900/50 rounded-xl">
                 <span className="text-2xl">{item.emoji}</span>
@@ -183,8 +184,7 @@ export default function WelcomeStep() {
           </div>
 
           <p className="text-sm text-center text-gray-500 dark:text-gray-400 mb-8">
-            Ce guide vous accompagne dans la configuration initiale.
-            Vous pourrez modifier tous ces paramètres ultérieurement.
+            {t('welcome.guideInfo')}
           </p>
 
           {/* Import Section */}
@@ -196,14 +196,14 @@ export default function WelcomeStep() {
                   className="flex items-center gap-2 px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-medium transition-all shadow-lg hover:shadow-xl"
                 >
                   <Upload className="w-5 h-5" />
-                  Importer une configuration
+                  {t('welcome.importConfiguration')}
                 </button>
-                <span className="text-sm text-gray-400">ou</span>
+                <span className="text-sm text-gray-400">{t('welcome.or')}</span>
                 <button
                   onClick={nextStep}
                   className="flex items-center gap-2 px-8 py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-medium transition-all shadow-lg hover:shadow-xl"
                 >
-                  Commencer la configuration
+                  {t('welcome.startConfiguration')}
                   <ArrowRight className="w-5 h-5" />
                 </button>
               </div>
@@ -224,7 +224,7 @@ export default function WelcomeStep() {
                       <Database className="w-8 h-8 text-green-500 mx-auto mb-2" />
                       <p className="text-sm font-medium text-gray-900 dark:text-white">{importFileName}</p>
                       <p className="text-xs text-gray-500 dark:text-gray-400">
-                        Version {importFile.version} - {importFile.exported_at ? new Date(importFile.exported_at).toLocaleDateString() : 'Date inconnue'}
+                        {t('welcome.import.version')} {importFile.version} - {importFile.exported_at ? new Date(importFile.exported_at).toLocaleDateString() : t('welcome.import.unknownDate')}
                       </p>
                       {importFile.stats && (
                         <div className="flex flex-wrap gap-1 mt-2 justify-center">
@@ -239,8 +239,8 @@ export default function WelcomeStep() {
                   ) : (
                     <div className="text-center">
                       <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                      <p className="text-sm text-gray-600 dark:text-gray-400">Cliquer pour selectionner un fichier</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">.json uniquement</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">{t('welcome.import.selectFile')}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">{t('welcome.import.jsonOnly')}</p>
                     </div>
                   )}
                 </label>
@@ -283,8 +283,8 @@ export default function WelcomeStep() {
                     <div className="flex items-center gap-2">
                       <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400" />
                       <div>
-                        <p className="text-xs font-medium text-amber-800 dark:text-amber-200">Mode fusion</p>
-                        <p className="text-[10px] text-amber-600 dark:text-amber-400">Fusionner avec existant</p>
+                        <p className="text-xs font-medium text-amber-800 dark:text-amber-200">{t('welcome.import.mergeMode')}</p>
+                        <p className="text-[10px] text-amber-600 dark:text-amber-400">{t('welcome.import.mergeDescription')}</p>
                       </div>
                     </div>
                     <Toggle
@@ -303,7 +303,7 @@ export default function WelcomeStep() {
                     ) : (
                       <Upload className="w-4 h-4" />
                     )}
-                    Importer la configuration
+                    {t('welcome.import.importButton')}
                   </button>
                 </>
               )}
@@ -322,7 +322,7 @@ export default function WelcomeStep() {
                       <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
                     )}
                     <span className={`text-sm font-medium ${importResult.success ? 'text-green-800 dark:text-green-200' : 'text-red-800 dark:text-red-200'}`}>
-                      {importResult.success ? 'Import reussi ! Passage a l\'etape suivante...' : 'Import termine avec des erreurs'}
+                      {importResult.success ? t('welcome.import.success') : t('welcome.import.failed')}
                     </span>
                   </div>
 
@@ -340,7 +340,7 @@ export default function WelcomeStep() {
                   {/* Errors summary */}
                   {importResult.errors.length > 0 && (
                     <p className="text-xs text-red-600 dark:text-red-400 mt-1">
-                      {importResult.errors.length} erreur(s)
+                      {importResult.errors.length} {t('welcome.import.errors')}
                     </p>
                   )}
                 </div>
@@ -356,14 +356,14 @@ export default function WelcomeStep() {
                   }}
                   className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                 >
-                  Annuler
+                  {t('welcome.import.cancel')}
                 </button>
                 {importResult && !importResult.success && (
                   <button
                     onClick={nextStep}
                     className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
                   >
-                    Continuer quand meme
+                    {t('welcome.import.continueAnyway')}
                     <ArrowRight className="w-4 h-4" />
                   </button>
                 )}

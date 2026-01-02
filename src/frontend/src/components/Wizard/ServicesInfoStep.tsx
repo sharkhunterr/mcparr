@@ -1,21 +1,19 @@
+import { useTranslation } from 'react-i18next';
 import { Server } from 'lucide-react';
 import InfoStepLayout from './InfoStepLayout';
 
 export default function ServicesInfoStep() {
+  const { t } = useTranslation(['wizard']);
+
   return (
     <InfoStepLayout
-      title="Services Homelab"
-      subtitle="Connectez vos applications"
+      title={t('steps.services.title')}
+      subtitle={t('steps.services.subtitle')}
       icon={Server}
       iconColor="bg-gradient-to-br from-blue-500 to-indigo-600"
-      description="Configurez les services de votre homelab que MCParr pourra contrôler : Plex, Radarr, Sonarr, Overseerr, Tautulli, etc. Pour chaque service, vous devrez fournir son URL et sa clé API ou ses identifiants."
-      steps={[
-        { text: "Accédez à la page Services via le menu de navigation" },
-        { text: 'Cliquez sur "Ajouter un service" et remplissez le formulaire' },
-        { text: "Testez la connexion pour vérifier la communication" },
-        { text: "Répétez pour tous vos services (recommandé : au moins 2)" }
-      ]}
-      linkText="Configurer les services"
+      description={t('steps.services.description')}
+      steps={t('steps.services.steps', { returnObjects: true }).map((text: string) => ({ text }))}
+      linkText={t('steps.services.linkText')}
       linkUrl="/services"
     />
   );

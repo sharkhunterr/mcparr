@@ -1,1 +1,161 @@
-{"title": "Title", "description": "Description"}
+{
+  "welcome": {
+    "title": "Welcome to MCParr",
+    "subtitle": "Your AI gateway to control your homelab",
+    "description": "MCParr centralizes control of all your homelab services through an AI-powered conversational interface.",
+    "skipGuide": "Skip guide",
+    "startConfiguration": "Start configuration",
+    "importConfiguration": "Import configuration",
+    "or": "or",
+    "guideInfo": "This guide walks you through the initial setup. You can modify all these settings later.",
+    "features": {
+      "services": "Connect to your services",
+      "users": "User mapping",
+      "permissions": "Permission management",
+      "mcp": "Integrated MCP server"
+    },
+    "import": {
+      "selectFile": "Click to select a file",
+      "jsonOnly": ".json only",
+      "version": "Version",
+      "unknownDate": "Unknown date",
+      "mergeMode": "Merge mode",
+      "mergeDescription": "Merge with existing",
+      "importButton": "Import configuration",
+      "importing": "Importing...",
+      "success": "Import successful! Moving to next step...",
+      "failed": "Import completed with errors",
+      "errors": "error(s)",
+      "cancel": "Cancel",
+      "continueAnyway": "Continue anyway",
+      "categories": {
+        "services": "Services",
+        "users": "Users",
+        "groups": "Groups",
+        "config": "Config",
+        "ai": "AI"
+      }
+    }
+  },
+  "complete": {
+    "title": "Setup Complete!",
+    "subtitle": "MCParr is ready to use",
+    "nextStepsTitle": "Recommended next steps",
+    "accessDashboard": "Access Dashboard",
+    "guideInfo": "You can access this guide anytime from",
+    "guideLocation": "Configuration → General → Reset guide",
+    "steps": {
+      "configureServices": "Configure your services",
+      "mapUsers": "Map your users",
+      "createGroups": "Create groups",
+      "testAI": "Test the AI interface"
+    }
+  },
+  "steps": {
+    "services": {
+      "title": "Homelab Services",
+      "subtitle": "Connect your applications",
+      "description": "Configure the homelab services that MCParr will control: Plex, Radarr, Sonarr, Overseerr, Tautulli, etc. For each service, you'll need to provide its URL and API key or credentials.",
+      "linkText": "Configure services",
+      "steps": [
+        "Access the Services page via the navigation menu",
+        "Click \"Add a service\" and fill in the form",
+        "Test the connection to verify communication",
+        "Repeat for all your services (recommended: at least 2)"
+      ]
+    },
+    "users": {
+      "title": "User Mapping",
+      "subtitle": "Link your accounts across services",
+      "description": "User mapping allows MCParr to know which account in Plex corresponds to the same user in Overseerr, Radarr, etc. This enables permission management and access to MCP tools.",
+      "linkText": "Map users",
+      "tip": "Auto detection works best with at least 2 configured services that have users.",
+      "steps": [
+        "Access the Users page via the menu",
+        "Use the \"Auto Detection\" tab to scan your services",
+        "Validate suggestions or create manual mappings"
+      ]
+    },
+    "groups": {
+      "title": "Groups & Permissions",
+      "subtitle": "Control access to MCP tools",
+      "description": "Groups define which MCP (Model Context Protocol) tools are accessible to your users. For example, an 'Admin' group might have access to all tools, while a 'User' group would only have access to read-only tools.",
+      "linkText": "Manage groups",
+      "tip": "MCP tools allow AI to interact with your services. Permissions control what each group can do.",
+      "steps": [
+        "Access the Groups page via the menu",
+        "Create groups (Admin, User, Family...) with \"Create Group\"",
+        "Assign MCP permissions to each group",
+        "Assign your users to the appropriate groups"
+      ]
+    },
+    "mcp": {
+      "title": "MCP Server",
+      "subtitle": "Model Context Protocol",
+      "description": "The MCP (Model Context Protocol) server allows your AI to interact with your homelab services. It's the bridge between the conversational assistant and your applications (Plex, Radarr, etc.).",
+      "linkText": "View MCP configuration",
+      "tip": "The MCP server runs in the background and exposes the tools your AI can use to control your services.",
+      "steps": [
+        "Verify that the MCP server is started and accessible",
+        "Review the available MCP tools for each service",
+        "Test integration with your AI client (Claude Desktop, etc.)",
+        "Configure group permissions if needed"
+      ]
+    },
+    "training": {
+      "title": "AI Training",
+      "subtitle": "Customize your assistant",
+      "description": "The training module allows you to train and customize your AI assistant based on your preferences and usage. Create custom prompts and fine-tune the AI's behavior.",
+      "linkText": "Access Training",
+      "tip": "Custom prompts allow you to adapt the AI's behavior to your specific needs and interaction style.",
+      "steps": [
+        "Review current system prompts",
+        "Create your own custom prompts for specific tasks",
+        "Test and refine AI responses",
+        "Manage history and training examples"
+      ]
+    },
+    "monitoring": {
+      "title": "Monitoring",
+      "subtitle": "Monitor your system",
+      "description": "Monitoring allows you to track in real-time the status of your services, system performance, and AI interaction history. Quickly detect issues and optimize your infrastructure.",
+      "linkText": "View Monitoring",
+      "tip": "Proactive monitoring helps you identify and resolve issues before they impact your users.",
+      "steps": [
+        "Check the real-time monitoring dashboard",
+        "Verify the health status of each service",
+        "Analyze performance metrics (CPU, RAM, network)",
+        "Configure alerts to be notified of issues"
+      ]
+    },
+    "config": {
+      "title": "Configuration",
+      "subtitle": "Customize MCParr",
+      "description": "The configuration page centralizes all application settings: appearance, notifications, logs, dashboard, and backup. Customize MCParr to your preferences and export your configuration.",
+      "linkText": "Open Configuration",
+      "tip": "Remember to regularly export your configuration so you can easily restore it if needed.",
+      "steps": [
+        "Adjust the theme (light, dark, system)",
+        "Configure notifications and alerts",
+        "Set log level and auto-refresh",
+        "Export/import your configuration to back it up"
+      ]
+    }
+  },
+  "navigation": {
+    "previous": "Previous",
+    "next": "Next",
+    "tipLabel": "Tip:"
+  },
+  "progress": {
+    "stepLabels": {
+      "services": "services",
+      "users": "users",
+      "groups": "groups",
+      "mcp": "mcp",
+      "training": "training",
+      "monitoring": "monitoring",
+      "config": "config"
+    }
+  }
+}

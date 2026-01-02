@@ -1,23 +1,21 @@
+import { useTranslation } from 'react-i18next';
 import { Brain } from 'lucide-react';
 import InfoStepLayout from './InfoStepLayout';
 
 export default function TrainingInfoStep() {
+  const { t } = useTranslation(['wizard']);
+
   return (
     <InfoStepLayout
-      title="Training IA"
-      subtitle="Personnalisez votre assistant"
+      title={t('steps.training.title')}
+      subtitle={t('steps.training.subtitle')}
       icon={Brain}
       iconColor="bg-gradient-to-br from-violet-500 to-purple-600"
-      description="Le module de training permet d'entraîner et de personnaliser votre assistant IA en fonction de vos préférences et de votre utilisation. Créez des prompts personnalisés et affinez le comportement de l'IA."
-      steps={[
-        { text: "Consultez les prompts système actuels" },
-        { text: "Créez vos propres prompts personnalisés pour des tâches spécifiques" },
-        { text: "Testez et affinez les réponses de l'IA" },
-        { text: "Gérez l'historique et les exemples d'entraînement" }
-      ]}
-      linkText="Accéder au Training"
+      description={t('steps.training.description')}
+      steps={t('steps.training.steps', { returnObjects: true }).map((text: string) => ({ text }))}
+      linkText={t('steps.training.linkText')}
       linkUrl="/training"
-      tip="Les prompts personnalisés permettent d'adapter le comportement de l'IA à vos besoins spécifiques et à votre style d'interaction."
+      tip={t('steps.training.tip')}
     />
   );
 }

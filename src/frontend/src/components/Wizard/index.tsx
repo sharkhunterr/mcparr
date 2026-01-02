@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useWizard } from '../../contexts/WizardContext';
 import WelcomeStep from './WelcomeStep';
 import ServicesInfoStep from './ServicesInfoStep';
@@ -10,6 +11,7 @@ import ConfigInfoStep from './ConfigInfoStep';
 import CompleteStep from './CompleteStep';
 
 export default function Wizard() {
+  const { t } = useTranslation(['wizard']);
   const { state } = useWizard();
 
   const renderStep = () => {
@@ -72,7 +74,7 @@ export default function Wizard() {
                         : 'text-gray-400 dark:text-gray-600'
                     }`}
                   >
-                    <span className="capitalize hidden sm:block">{step}</span>
+                    <span className="capitalize hidden sm:block">{t(`progress.stepLabels.${step}`)}</span>
                     <span className="sm:hidden">{index + 1}</span>
                   </div>
                 );

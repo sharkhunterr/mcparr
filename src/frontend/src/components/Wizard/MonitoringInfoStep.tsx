@@ -1,23 +1,21 @@
+import { useTranslation } from 'react-i18next';
 import { Activity } from 'lucide-react';
 import InfoStepLayout from './InfoStepLayout';
 
 export default function MonitoringInfoStep() {
+  const { t } = useTranslation(['wizard']);
+
   return (
     <InfoStepLayout
-      title="Monitoring"
-      subtitle="Surveillez votre système"
+      title={t('steps.monitoring.title')}
+      subtitle={t('steps.monitoring.subtitle')}
       icon={Activity}
       iconColor="bg-gradient-to-br from-cyan-500 to-blue-600"
-      description="Le monitoring vous permet de surveiller en temps réel l'état de vos services, les performances du système, et l'historique des interactions avec l'IA. Détectez rapidement les problèmes et optimisez votre infrastructure."
-      steps={[
-        { text: "Consultez le dashboard de monitoring en temps réel" },
-        { text: "Vérifiez l'état de santé de chaque service" },
-        { text: "Analysez les métriques de performance (CPU, RAM, réseau)" },
-        { text: "Configurez des alertes pour être notifié des problèmes" }
-      ]}
-      linkText="Voir le Monitoring"
+      description={t('steps.monitoring.description')}
+      steps={t('steps.monitoring.steps', { returnObjects: true }).map((text: string) => ({ text }))}
+      linkText={t('steps.monitoring.linkText')}
       linkUrl="/monitoring"
-      tip="Le monitoring proactif vous aide à identifier et résoudre les problèmes avant qu'ils n'impactent vos utilisateurs."
+      tip={t('steps.monitoring.tip')}
     />
   );
 }
