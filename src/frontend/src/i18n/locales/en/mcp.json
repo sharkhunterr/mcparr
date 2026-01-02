@@ -70,14 +70,22 @@
     "allCategories": "All categories",
     "searchPlaceholder": "Search tools...",
     "testTool": "Test tool",
+    "test": "Test",
+    "testTitle": "Test: {{name}}",
     "parameters": "Parameters",
+    "noParameters": "This tool has no parameters.",
+    "defaultValue": "Default: {{value}}",
     "required": "required",
     "optional": "optional",
     "execute": "Execute",
     "executing": "Executing...",
     "result": "Result",
     "error": "Error",
-    "noTools": "No tools available"
+    "close": "Close",
+    "noTools": "No tools available",
+    "toolsAvailable": "{{count}} tools available • {{services}} services",
+    "expandAll": "Expand all",
+    "collapseAll": "Collapse all"
   },
 
   "errors": {

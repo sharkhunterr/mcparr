@@ -472,7 +472,7 @@ const ToolTestModal = ({
             <div>
               <h3 className="text-lg font-medium text-gray-900 dark:text-white flex items-center gap-2">
                 <Play className="w-5 h-5 text-green-600" />
-                Tester: {tool.name}
+                {t('tools.testTitle', { name: tool.name })}
               </h3>
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                 {tool.description}
@@ -490,7 +490,7 @@ const ToolTestModal = ({
           {tool.parameters.length > 0 ? (
             <div className="space-y-4 mb-6">
               <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Parametres
+                {t('tools.parameters')}
               </h4>
               {tool.parameters.map((param) => (
                 <div key={param.name} className="space-y-1">
@@ -530,7 +530,7 @@ const ToolTestModal = ({
                       type={param.type === 'integer' || param.type === 'number' ? 'number' : 'text'}
                       value={params[param.name] || ''}
                       onChange={(e) => handleParamChange(param.name, e.target.value, param.type)}
-                      placeholder={param.default !== undefined ? `Defaut: ${param.default}` : ''}
+                      placeholder={param.default !== undefined ? t('tools.defaultValue', { value: param.default }) : ''}
                       className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2"
                     />
                   )}
@@ -539,7 +539,7 @@ const ToolTestModal = ({
             </div>
           ) : (
             <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg text-sm text-gray-600 dark:text-gray-400">
-              Cet outil n'a pas de parametres.
+              {t('tools.noParameters')}
             </div>
           )}
 
@@ -553,12 +553,12 @@ const ToolTestModal = ({
               {loading ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  Execution...
+                  {t('tools.executing')}
                 </>
               ) : (
                 <>
                   <Play className="w-4 h-4" />
-                  Executer
+                  {t('tools.execute')}
                 </>
               )}
             </button>
@@ -569,7 +569,7 @@ const ToolTestModal = ({
             <div className="border-t dark:border-gray-700 pt-4">
               <div className="flex items-center justify-between mb-2">
                 <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Resultat
+                  {t('tools.result')}
                 </h4>
                 {duration !== null && (
                   <span className="text-xs text-gray-500 dark:text-gray-400">
@@ -595,7 +595,7 @@ const ToolTestModal = ({
               onClick={onClose}
               className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600"
             >
-              Fermer
+              {t('tools.close')}
             </button>
           </div>
         </div>
@@ -2321,20 +2321,20 @@ export default function MCP() {
               {/* Controls */}
               <div className="flex items-center justify-between bg-white dark:bg-gray-800 rounded-lg p-4 shadow">
                 <div className="text-sm text-gray-600 dark:text-gray-400">
-                  {tools?.total || 0} outils disponibles • {Object.keys(toolsByService).length} services
+                  {t('tools.toolsAvailable', { count: tools?.total || 0, services: Object.keys(toolsByService).length })}
                 </div>
                 <div className="flex gap-2">
                   <button
                     onClick={() => toggleAllServices(true)}
                     className="px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
                   >
-                    Tout déplier
+                    {t('tools.expandAll')}
                   </button>
                   <button
                     onClick={() => toggleAllServices(false)}
                     className="px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
                   >
-                    Tout replier
+                    {t('tools.collapseAll')}
                   </button>
                 </div>
               </div>
@@ -2426,14 +2426,14 @@ export default function MCP() {
                                       className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/30 hover:bg-green-100 dark:hover:bg-green-900/50 rounded transition-colors"
                                     >
                                       <Play className="w-3 h-3" />
-                                      Tester
+                                      {t('tools.test')}
                                     </button>
                                   </div>
                                 </div>
                                 {tool.parameters.length > 0 && (
                                   <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
                                     <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">
-                                      Paramètres:
+                                      {t('tools.parameters')}:
                                     </p>
                                     <div className="space-y-1">
                                       {tool.parameters.map((param) => (

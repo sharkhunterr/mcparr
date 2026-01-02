@@ -70,14 +70,22 @@
     "allCategories": "Toutes les catégories",
     "searchPlaceholder": "Rechercher des outils...",
     "testTool": "Tester l'outil",
+    "test": "Tester",
+    "testTitle": "Tester: {{name}}",
     "parameters": "Paramètres",
+    "noParameters": "Cet outil n'a pas de paramètres.",
+    "defaultValue": "Défaut: {{value}}",
     "required": "requis",
     "optional": "optionnel",
     "execute": "Exécuter",
     "executing": "Exécution...",
     "result": "Résultat",
     "error": "Erreur",
-    "noTools": "Aucun outil disponible"
+    "close": "Fermer",
+    "noTools": "Aucun outil disponible",
+    "toolsAvailable": "{{count}} outils disponibles • {{services}} services",
+    "expandAll": "Tout déplier",
+    "collapseAll": "Tout replier"
   },
 
   "errors": {
