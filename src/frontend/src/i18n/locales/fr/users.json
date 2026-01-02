@@ -1,1 +1,4 @@
-{"title": "Title", "description": "Description"}
+{
+  "title": "Utilisateurs",
+  "description": "Gestion des utilisateurs et mappings"
+}

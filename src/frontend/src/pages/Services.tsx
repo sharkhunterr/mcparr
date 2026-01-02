@@ -18,6 +18,7 @@ import {
   Loader2,
   X
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import ServiceForm from '../components/ServiceForm';
 import ServiceTestModal from '../components/ServiceTestModal';
 import { getApiBaseUrl } from '../lib/api';
@@ -56,6 +57,7 @@ interface TestAllResult {
 }
 
 const Services: React.FC = () => {
+  const { t } = useTranslation(['services', 'common']);
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -249,7 +251,7 @@ const Services: React.FC = () => {
   };
 
   const handleDeleteService = async (serviceId: string) => {
-    if (!window.confirm('Êtes-vous sûr de vouloir supprimer ce service ?')) {
+    if (!window.confirm(t('services:confirm.delete'))) {
       return;
     }
 
@@ -269,7 +271,7 @@ const Services: React.FC = () => {
   };
 
   const formatLastTest = (dateStr?: string) => {
-    if (!dateStr) return 'Jamais';
+    if (!dateStr) return t('services:time.never');
     const date = new Date(dateStr);
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
@@ -277,10 +279,10 @@ const Services: React.FC = () => {
     const diffHours = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
 
-    if (diffMins < 1) return 'À l\'instant';
-    if (diffMins < 60) return `${diffMins}min`;
-    if (diffHours < 24) return `${diffHours}h`;
-    return `${diffDays}j`;
+    if (diffMins < 1) return t('services:time.justNow');
+    if (diffMins < 60) return t('services:time.minutesAgo', { count: diffMins });
+    if (diffHours < 24) return t('services:time.hoursAgo', { count: diffHours });
+    return t('services:time.daysAgo', { count: diffDays });
   };
 
   if (loading) {
@@ -305,17 +307,17 @@ const Services: React.FC = () => {
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
             <Server className="w-6 h-6 sm:w-7 sm:h-7 text-blue-600" />
-            Services
+            {t('services:title')}
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            {services.length} service{services.length > 1 ? 's' : ''} configuré{services.length > 1 ? 's' : ''}
+            {t(services.length > 1 ? 'services:subtitle_plural' : 'services:subtitle', { count: services.length })}
           </p>
         </div>
         <div className="flex gap-2">
           <button
             onClick={fetchServices}
             className="p-2 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-            title="Actualiser"
+            title={t('common:actions.refresh')}
           >
             <RefreshCw className="w-4 h-4" />
           </button>
@@ -323,21 +325,21 @@ const Services: React.FC = () => {
             onClick={handleTestAll}
             disabled={testingAll || services.filter(s => s.enabled).length === 0}
             className="bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
-            title="Tester tous les services"
+            title={t('services:actions.testAll')}
           >
             {testingAll ? (
               <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
               <PlayCircle className="w-4 h-4" />
             )}
-            <span className="hidden sm:inline">Tester tout</span>
+            <span className="hidden sm:inline">{t('services:actions.testAll')}</span>
           </button>
           <button
             onClick={() => setShowCreateModal(true)}
             className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
           >
             <Plus className="w-4 h-4" />
-            <span className="hidden sm:inline">Ajouter</span>
+            <span className="hidden sm:inline">{t('common:actions.add')}</span>
           </button>
         </div>
       </div>
@@ -354,27 +356,27 @@ const Services: React.FC = () => {
       {services.length === 0 ? (
         <div className="text-center py-12 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-dashed border-gray-300 dark:border-gray-600">
           <Server className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Aucun service configuré</h3>
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">{t('services:empty.title')}</h3>
           <p className="text-gray-500 dark:text-gray-400 mb-6 text-sm">
-            Commencez par ajouter votre premier service.
+            {t('services:empty.description')}
           </p>
           <button
             onClick={() => setShowCreateModal(true)}
             className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg inline-flex items-center gap-2"
           >
             <Plus className="w-4 h-4" />
-            Ajouter un Service
+            {t('services:empty.action')}
           </button>
         </div>
       ) : (
         <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
           {/* Table Header - Desktop */}
           <div className="hidden md:grid md:grid-cols-12 gap-4 px-4 py-3 bg-gray-50 dark:bg-gray-900/50 border-b border-gray-200 dark:border-gray-700 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-            <div className="col-span-4">Service</div>
-            <div className="col-span-3">URL</div>
-            <div className="col-span-2 text-center">Statut</div>
-            <div className="col-span-1 text-center">Test</div>
-            <div className="col-span-2 text-right">Actions</div>
+            <div className="col-span-4">{t('services:table.headers.service')}</div>
+            <div className="col-span-3">{t('services:table.headers.url')}</div>
+            <div className="col-span-2 text-center">{t('services:table.headers.status')}</div>
+            <div className="col-span-1 text-center">{t('services:table.headers.test')}</div>
+            <div className="col-span-2 text-right">{t('services:table.headers.actions')}</div>
           </div>
 
           {/* Services List */}
@@ -413,7 +415,7 @@ const Services: React.FC = () => {
                           : 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400'
                       }`}>
                         {isDisabled ? <Pause className="w-3 h-3" /> : isHealthy ? <CheckCircle className="w-3 h-3" /> : hasError ? <XCircle className="w-3 h-3" /> : <AlertCircle className="w-3 h-3" />}
-                        <span>{isDisabled ? 'Off' : isHealthy ? 'OK' : hasError ? 'Erreur' : 'N/A'}</span>
+                        <span>{isDisabled ? t('services:status.off') : isHealthy ? t('services:status.ok') : hasError ? t('services:status.error') : t('services:status.na')}</span>
                       </div>
                     </div>
 
@@ -435,7 +437,7 @@ const Services: React.FC = () => {
                               ? 'text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20'
                               : 'text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20'
                           }`}
-                          title={service.enabled ? 'Désactiver' : 'Activer'}
+                          title={service.enabled ? t('common:actions.disable') : t('common:actions.enable')}
                         >
                           {service.enabled ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
                         </button>
@@ -443,7 +445,7 @@ const Services: React.FC = () => {
                           onClick={() => handleTestConnection(service)}
                           disabled={!service.enabled}
                           className="p-1.5 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors disabled:opacity-40"
-                          title="Tester"
+                          title={t('common:actions.test')}
                         >
                           <Zap className="w-4 h-4" />
                         </button>
@@ -453,14 +455,14 @@ const Services: React.FC = () => {
                             setShowEditModal(true);
                           }}
                           className="p-1.5 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
-                          title="Modifier"
+                          title={t('common:actions.edit')}
                         >
                           <Edit className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => handleDeleteService(service.id)}
                           className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
-                          title="Supprimer"
+                          title={t('common:actions.delete')}
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -516,7 +518,7 @@ const Services: React.FC = () => {
                         ) : (
                           <AlertCircle className="w-3 h-3" />
                         )}
-                        {isDisabled ? 'Désactivé' : isHealthy ? 'En ligne' : hasError ? 'Erreur' : 'Inconnu'}
+                        {isDisabled ? t('services:status.disabled') : isHealthy ? t('services:status.online') : hasError ? t('services:status.error') : t('services:status.unknown')}
                       </div>
                     </div>
 
@@ -536,7 +538,7 @@ const Services: React.FC = () => {
                             ? 'text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-900/20'
                             : 'text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20'
                         }`}
-                        title={service.enabled ? 'Désactiver' : 'Activer'}
+                        title={service.enabled ? t('common:actions.disable') : t('common:actions.enable')}
                       >
                         {service.enabled ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
                       </button>
@@ -544,7 +546,7 @@ const Services: React.FC = () => {
                         onClick={() => handleTestConnection(service)}
                         disabled={!service.enabled}
                         className="p-1.5 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                        title="Tester la connexion"
+                        title={t('services:actions.testConnection')}
                       >
                         <Zap className="w-4 h-4" />
                       </button>
@@ -554,14 +556,14 @@ const Services: React.FC = () => {
                           setShowEditModal(true);
                         }}
                         className="p-1.5 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
-                        title="Modifier"
+                        title={t('common:actions.edit')}
                       >
                         <Edit className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => handleDeleteService(service.id)}
                         className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
-                        title="Supprimer"
+                        title={t('common:actions.delete')}
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -639,10 +641,10 @@ const Services: React.FC = () => {
                 )}
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                    Test de tous les services
+                    {t('services:testAll.title')}
                   </h3>
                   <p className="text-sm text-gray-500 dark:text-gray-400">
-                    {testAllResults.length} service{testAllResults.length > 1 ? 's' : ''} activé{testAllResults.length > 1 ? 's' : ''}
+                    {t(testAllResults.length > 1 ? 'services:testAll.subtitle_plural' : 'services:testAll.subtitle', { count: testAllResults.length })}
                   </p>
                 </div>
               </div>
@@ -728,16 +730,16 @@ const Services: React.FC = () => {
                 <div className="flex gap-4 text-sm">
                   <span className="flex items-center gap-1 text-green-600 dark:text-green-400">
                     <CheckCircle className="w-4 h-4" />
-                    {testAllResults.filter(r => r.status === 'success').length} OK
+                    {testAllResults.filter(r => r.status === 'success').length} {t('services:testAll.summary.ok')}
                   </span>
                   <span className="flex items-center gap-1 text-red-600 dark:text-red-400">
                     <XCircle className="w-4 h-4" />
-                    {testAllResults.filter(r => r.status === 'error').length} Erreur
+                    {testAllResults.filter(r => r.status === 'error').length} {t('services:testAll.summary.error')}
                   </span>
                   {testingAll && (
                     <span className="flex items-center gap-1 text-blue-600 dark:text-blue-400">
                       <Loader2 className="w-4 h-4 animate-spin" />
-                      {testAllResults.filter(r => r.status === 'pending' || r.status === 'testing').length} En cours
+                      {testAllResults.filter(r => r.status === 'pending' || r.status === 'testing').length} {t('services:testAll.summary.inProgress')}
                     </span>
                   )}
                 </div>
@@ -748,7 +750,7 @@ const Services: React.FC = () => {
                 disabled={testingAll}
                 className="w-full py-2 px-4 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg transition-colors disabled:opacity-50"
               >
-                {testingAll ? 'Tests en cours...' : 'Fermer'}
+                {testingAll ? t('services:testAll.testing') : t('services:testAll.close')}
               </button>
             </div>
           </div>

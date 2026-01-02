@@ -1,1 +1,89 @@
-{"title": "Title", "description": "Description"}
+{
+  "title": "Monitoring",
+  "subtitle": "Surveillance système en temps réel",
+
+  "tabs": {
+    "metrics": "Métriques",
+    "logs": "Logs",
+    "alerts": "Alertes"
+  },
+
+  "autoRefresh": "Auto",
+  "updatedAt": "Mis à jour",
+
+  "systemResources": {
+    "title": "Ressources Système",
+    "cpu": "CPU",
+    "memory": "Mémoire",
+    "disk": "Disque",
+    "uptime": "Uptime",
+    "loadAvg": "Charge moyenne",
+    "failed": "Impossible de récupérer les métriques système"
+  },
+
+  "metrics": {
+    "services": "Services",
+    "healthyServices": "en bonne santé",
+    "activeAlerts": "Alertes Actives",
+    "configs": "configs",
+    "logs24h": "Logs (24h)",
+    "errorRate": "erreurs",
+    "networkIO": "Réseau I/O",
+    "totalTransferred": "Total transféré",
+    "loadingMetrics": "Chargement des métriques..."
+  },
+
+  "serviceContinuity": {
+    "title": "Continuité des Services",
+    "ok": "OK",
+    "error": "Erreur",
+    "noHistory": "Aucun historique disponible. Testez vos services pour générer des données.",
+    "noTest": "Pas de test"
+  },
+
+  "scheduler": {
+    "title": "Tests automatiques",
+    "active": "Actif - toutes les {{interval}} min",
+    "disabled": "Désactivé",
+    "lastRun": "Dernier",
+    "settings": "Paramètres",
+    "interval": "Intervalle",
+    "test": "Tester",
+    "stop": "Arrêter",
+    "enable": "Activer",
+    "never": "Jamais",
+    "intervals": {
+      "5min": "5 min",
+      "15min": "15 min",
+      "30min": "30 min",
+      "1hour": "1 heure"
+    }
+  },
+
+  "logDistribution": {
+    "byLevel": "Logs par Niveau (24h)",
+    "bySource": "Logs par Source (24h)",
+    "debug": "debug",
+    "info": "info",
+    "warning": "warning",
+    "error": "error",
+    "critical": "critical"
+  },
+
+  "alertSummary": {
+    "title": "Alertes Actives ({{count}})",
+    "severity": {
+      "low": "low",
+      "medium": "medium",
+      "high": "high",
+      "critical": "critical"
+    },
+    "resolved24h": "{{count}} alertes résolues dans les dernières 24 heures"
+  },
+
+  "uptime": {
+    "days": "{{days}}d {{hours}}h",
+    "hours": "{{hours}}h {{minutes}}m",
+    "minutes": "{{minutes}}m"
+  }
+}

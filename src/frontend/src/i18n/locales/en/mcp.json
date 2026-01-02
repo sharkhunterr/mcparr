@@ -1,1 +1,101 @@
-{"title": "Title", "description": "Description"}
+{
+  "title": "MCP Gateway",
+  "subtitle": "Gateway for MCP tools (Model Context Protocol)",
+
+  "tabs": {
+    "stats": "Statistics",
+    "history": "History",
+    "tools": "Tools",
+    "toolGroups": "Tool Groups",
+    "settings": "Settings"
+  },
+
+  "stats": {
+    "title": "MCP Statistics",
+    "totalRequests": "Total Requests",
+    "successRate": "Success Rate",
+    "avgDuration": "Avg Duration",
+    "periodHours": "Period ({{hours}}h)",
+    "requestsOverTime": "Requests Over Time",
+    "statusDistribution": "Status Distribution",
+    "total": "total",
+    "byCategory": "By Category",
+    "byService": "By Service",
+    "byUser": "By User",
+    "topTools": "Top Tools",
+    "noData": "No data available",
+    "usage": "usage",
+    "success": "Success",
+    "failed": "Failed",
+    "noDataForPeriod": "No data"
+  },
+
+  "history": {
+    "title": "Request History",
+    "filters": {
+      "all": "All",
+      "status": "Status",
+      "category": "Category",
+      "service": "Service",
+      "user": "User",
+      "timeRange": "Time Range"
+    },
+    "columns": {
+      "time": "Time",
+      "tool": "Tool",
+      "status": "Status",
+      "duration": "Duration",
+      "user": "User"
+    },
+    "noRequests": "No requests found",
+    "loadMore": "Load more"
+  },
+
+  "tools": {
+    "title": "Available Tools",
+    "totalTools": "{{count}} available tool",
+    "totalTools_plural": "{{count}} available tools",
+    "category": "Category",
+    "allCategories": "All categories",
+    "searchPlaceholder": "Search tools...",
+    "testTool": "Test tool",
+    "parameters": "Parameters",
+    "required": "required",
+    "optional": "optional",
+    "execute": "Execute",
+    "executing": "Executing...",
+    "result": "Result",
+    "error": "Error",
+    "noTools": "No tools available"
+  },
+
+  "toolGroups": {
+    "title": "Tool Groups",
+    "description": "Manage tool groups for access control",
+    "createGroup": "Create Group",
+    "editGroup": "Edit Group",
+    "deleteGroup": "Delete Group",
+    "groupName": "Group name",
+    "priority": "Priority",
+    "isWildcard": "Is wildcard",
+    "tools": "Tools",
+    "noGroups": "No groups configured",
+    "confirmDelete": "Are you sure you want to delete this tool group?"
+  },
+
+  "status": {
+    "pending": "Pending",
+    "processing": "Processing",
+    "completed": "Completed",
+    "failed": "Failed",
+    "cancelled": "Cancelled"
+  },
+
+  "categories": {
+    "media": "Media",
+    "requests": "Requests",
+    "support": "Support",
+    "system": "System",
+    "users": "Users"
+  }
+}

@@ -1,1 +1,71 @@
-{"title": "Title", "description": "Description"}
+{
+  "title": "Services",
+  "subtitle": "{{count}} configured service",
+  "subtitle_plural": "{{count}} configured services",
+
+  "actions": {
+    "testAll": "Test All",
+    "testConnection": "Test connection",
+    "toggleService": "Enable/Disable"
+  },
+
+  "table": {
+    "headers": {
+      "service": "Service",
+      "url": "URL",
+      "status": "Status",
+      "test": "Test",
+      "actions": "Actions"
+    }
+  },
+
+  "status": {
+    "off": "Off",
+    "ok": "OK",
+    "error": "Error",
+    "na": "N/A",
+    "disabled": "Disabled",
+    "online": "Online",
+    "offline": "Offline",
+    "unknown": "Unknown"
+  },
+
+  "time": {
+    "never": "Never",
+    "justNow": "Just now",
+    "minutesAgo": "{{count}}min",
+    "hoursAgo": "{{count}}h",
+    "daysAgo": "{{count}}d"
+  },
+
+  "empty": {
+    "title": "No services configured",
+    "description": "Start by adding your first service.",
+    "action": "Add a Service"
+  },
+
+  "testAll": {
+    "title": "Testing all services",
+    "subtitle": "{{count}} enabled service",
+    "subtitle_plural": "{{count}} enabled services",
+    "testing": "Tests in progress...",
+    "close": "Close",
+    "summary": {
+      "ok": "OK",
+      "error": "Error",
+      "inProgress": "In Progress"
+    }
+  },
+
+  "confirm": {
+    "delete": "Are you sure you want to delete this service?"
+  },
+
+  "errors": {
+    "fetchFailed": "Failed to fetch services",
+    "createFailed": "Failed to create service",
+    "updateFailed": "Failed to update service",
+    "deleteFailed": "Failed to delete service",
+    "toggleFailed": "Failed to toggle service"
+  }
+}

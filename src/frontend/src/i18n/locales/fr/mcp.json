@@ -1,1 +1,101 @@
-{"title": "Title", "description": "Description"}
+{
+  "title": "MCP Gateway",
+  "subtitle": "Passerelle pour outils MCP (Model Context Protocol)",
+
+  "tabs": {
+    "stats": "Statistiques",
+    "history": "Historique",
+    "tools": "Outils",
+    "toolGroups": "Groupes d'Outils",
+    "settings": "Paramètres"
+  },
+
+  "stats": {
+    "title": "Statistiques MCP",
+    "totalRequests": "Total Requêtes",
+    "successRate": "Taux de Succès",
+    "avgDuration": "Durée Moyenne",
+    "periodHours": "Période ({{hours}}h)",
+    "requestsOverTime": "Requêtes dans le Temps",
+    "statusDistribution": "Distribution des Statuts",
+    "total": "total",
+    "byCategory": "Par Catégorie",
+    "byService": "Par Service",
+    "byUser": "Par Utilisateur",
+    "topTools": "Outils les Plus Utilisés",
+    "noData": "Aucune donnée disponible",
+    "usage": "utilisation",
+    "success": "Succès",
+    "failed": "Échoué",
+    "noDataForPeriod": "Pas de données"
+  },
+
+  "history": {
+    "title": "Historique des Requêtes",
+    "filters": {
+      "all": "Tous",
+      "status": "Statut",
+      "category": "Catégorie",
+      "service": "Service",
+      "user": "Utilisateur",
+      "timeRange": "Période"
+    },
+    "columns": {
+      "time": "Heure",
+      "tool": "Outil",
+      "status": "Statut",
+      "duration": "Durée",
+      "user": "Utilisateur"
+    },
+    "noRequests": "Aucune requête trouvée",
+    "loadMore": "Charger plus"
+  },
+
+  "tools": {
+    "title": "Outils Disponibles",
+    "totalTools": "{{count}} outil disponible",
+    "totalTools_plural": "{{count}} outils disponibles",
+    "category": "Catégorie",
+    "allCategories": "Toutes les catégories",
+    "searchPlaceholder": "Rechercher des outils...",
+    "testTool": "Tester l'outil",
+    "parameters": "Paramètres",
+    "required": "requis",
+    "optional": "optionnel",
+    "execute": "Exécuter",
+    "executing": "Exécution...",
+    "result": "Résultat",
+    "error": "Erreur",
+    "noTools": "Aucun outil disponible"
+  },
+
+  "toolGroups": {
+    "title": "Groupes d'Outils",
+    "description": "Gérer les groupes d'outils pour le contrôle d'accès",
+    "createGroup": "Créer un Groupe",
+    "editGroup": "Modifier le Groupe",
+    "deleteGroup": "Supprimer le Groupe",
+    "groupName": "Nom du groupe",
+    "priority": "Priorité",
+    "isWildcard": "Est un wildcard",
+    "tools": "Outils",
+    "noGroups": "Aucun groupe configuré",
+    "confirmDelete": "Êtes-vous sûr de vouloir supprimer ce groupe d'outils ?"
+  },
+
+  "status": {
+    "pending": "En attente",
+    "processing": "En cours",
+    "completed": "Terminé",
+    "failed": "Échoué",
+    "cancelled": "Annulé"
+  },
+
+  "categories": {
+    "media": "Média",
+    "requests": "Requêtes",
+    "support": "Support",
+    "system": "Système",
+    "users": "Utilisateurs"
+  }
+}

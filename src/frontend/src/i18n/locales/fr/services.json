@@ -1,1 +1,71 @@
-{"title": "Title", "description": "Description"}
+{
+  "title": "Services",
+  "subtitle": "{{count}} service configuré",
+  "subtitle_plural": "{{count}} services configurés",
+
+  "actions": {
+    "testAll": "Tester tout",
+    "testConnection": "Tester la connexion",
+    "toggleService": "Activer/Désactiver"
+  },
+
+  "table": {
+    "headers": {
+      "service": "Service",
+      "url": "URL",
+      "status": "Statut",
+      "test": "Test",
+      "actions": "Actions"
+    }
+  },
+
+  "status": {
+    "off": "Off",
+    "ok": "OK",
+    "error": "Erreur",
+    "na": "N/A",
+    "disabled": "Désactivé",
+    "online": "En ligne",
+    "offline": "Hors ligne",
+    "unknown": "Inconnu"
+  },
+
+  "time": {
+    "never": "Jamais",
+    "justNow": "À l'instant",
+    "minutesAgo": "{{count}}min",
+    "hoursAgo": "{{count}}h",
+    "daysAgo": "{{count}}j"
+  },
+
+  "empty": {
+    "title": "Aucun service configuré",
+    "description": "Commencez par ajouter votre premier service.",
+    "action": "Ajouter un Service"
+  },
+
+  "testAll": {
+    "title": "Test de tous les services",
+    "subtitle": "{{count}} service activé",
+    "subtitle_plural": "{{count}} services activés",
+    "testing": "Tests en cours...",
+    "close": "Fermer",
+    "summary": {
+      "ok": "OK",
+      "error": "Erreur",
+      "inProgress": "En cours"
+    }
+  },
+
+  "confirm": {
+    "delete": "Êtes-vous sûr de vouloir supprimer ce service ?"
+  },
+
+  "errors": {
+    "fetchFailed": "Failed to fetch services",
+    "createFailed": "Failed to create service",
+    "updateFailed": "Failed to update service",
+    "deleteFailed": "Failed to delete service",
+    "toggleFailed": "Failed to toggle service"
+  }
+}

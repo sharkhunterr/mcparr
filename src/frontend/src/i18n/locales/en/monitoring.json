@@ -1,1 +1,89 @@
-{"title": "Title", "description": "Description"}
+{
+  "title": "Monitoring",
+  "subtitle": "Real-time system monitoring",
+
+  "tabs": {
+    "metrics": "Metrics",
+    "logs": "Logs",
+    "alerts": "Alerts"
+  },
+
+  "autoRefresh": "Auto",
+  "updatedAt": "Updated",
+
+  "systemResources": {
+    "title": "System Resources",
+    "cpu": "CPU",
+    "memory": "Memory",
+    "disk": "Disk",
+    "uptime": "Uptime",
+    "loadAvg": "Load average",
+    "failed": "Unable to retrieve system metrics"
+  },
+
+  "metrics": {
+    "services": "Services",
+    "healthyServices": "healthy",
+    "activeAlerts": "Active Alerts",
+    "configs": "configs",
+    "logs24h": "Logs (24h)",
+    "errorRate": "errors",
+    "networkIO": "Network I/O",
+    "totalTransferred": "Total transferred",
+    "loadingMetrics": "Loading metrics..."
+  },
+
+  "serviceContinuity": {
+    "title": "Service Continuity",
+    "ok": "OK",
+    "error": "Error",
+    "noHistory": "No history available. Test your services to generate data.",
+    "noTest": "No test"
+  },
+
+  "scheduler": {
+    "title": "Automatic tests",
+    "active": "Active - every {{interval}} min",
+    "disabled": "Disabled",
+    "lastRun": "Last",
+    "settings": "Settings",
+    "interval": "Interval",
+    "test": "Test",
+    "stop": "Stop",
+    "enable": "Enable",
+    "never": "Never",
+    "intervals": {
+      "5min": "5 min",
+      "15min": "15 min",
+      "30min": "30 min",
+      "1hour": "1 hour"
+    }
+  },
+
+  "logDistribution": {
+    "byLevel": "Logs by Level (24h)",
+    "bySource": "Logs by Source (24h)",
+    "debug": "debug",
+    "info": "info",
+    "warning": "warning",
+    "error": "error",
+    "critical": "critical"
+  },
+
+  "alertSummary": {
+    "title": "Active Alerts ({{count}})",
+    "severity": {
+      "low": "low",
+      "medium": "medium",
+      "high": "high",
+      "critical": "critical"
+    },
+    "resolved24h": "{{count}} alerts resolved in the last 24 hours"
+  },
+
+  "uptime": {
+    "days": "{{days}}d {{hours}}h",
+    "hours": "{{hours}}h {{minutes}}m",
+    "minutes": "{{minutes}}m"
+  }
+}

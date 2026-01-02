@@ -1,1 +1,145 @@
-{"title": "Title", "description": "Description"}
+{
+  "title": "AI Training",
+  "subtitle": "Entraînement et fine-tuning de modèles IA",
+
+  "tabs": {
+    "overview": "Vue d'ensemble",
+    "sessions": "Sessions",
+    "prompts": "Prompts",
+    "models": "Modèles",
+    "workers": "Workers"
+  },
+
+  "sessions": {
+    "title": "Sessions d'Entraînement",
+    "newSession": "Nouvelle session",
+    "count": "{{count}} session",
+    "count_plural": "{{count}} sessions",
+    "name": "Nom",
+    "baseModel": "Modèle de base",
+    "outputModel": "Modèle de sortie",
+    "trainingType": "Type d'entraînement",
+    "backend": "Backend",
+    "dataset": "Dataset",
+    "prompts": "prompts",
+    "epochs": "Epochs",
+    "steps": "Steps",
+    "progress": "Progression",
+    "status": "Statut",
+    "actions": "Actions",
+    "start": "Démarrer",
+    "cancel": "Annuler",
+    "pause": "Pause",
+    "resume": "Reprendre",
+    "delete": "Supprimer",
+    "duplicate": "Dupliquer",
+    "viewDetails": "Voir les détails",
+    "viewLogs": "Voir les logs",
+    "managePrompts": "Gérer les prompts",
+    "createdAt": "Créé le",
+    "startedAt": "Démarré le",
+    "completedAt": "Terminé le",
+    "loss": "Loss",
+    "gpuMemory": "Mémoire GPU",
+    "noSessions": "Aucune session disponible",
+    "confirmDelete": "Êtes-vous sûr de vouloir supprimer cette session ?"
+  },
+
+  "prompts": {
+    "title": "Prompts d'Entraînement",
+    "total": "{{count}} prompt",
+    "total_plural": "{{count}} prompts",
+    "validated": "validés",
+    "enabled": "activés",
+    "category": "Catégorie",
+    "difficulty": "Difficulté",
+    "source": "Source",
+    "format": "Format",
+    "tags": "Tags",
+    "timesUsed": "Utilisations",
+    "validationScore": "Score",
+    "actions": "Actions",
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "validate": "Valider",
+    "enable": "Activer",
+    "disable": "Désactiver",
+    "noPrompts": "Aucun prompt disponible",
+    "addPrompt": "Ajouter un prompt",
+    "createPrompt": "Créer un prompt",
+    "confirmDelete": "Êtes-vous sûr de vouloir supprimer ce prompt ?"
+  },
+
+  "models": {
+    "title": "Modèles Ollama",
+    "status": "Statut Ollama",
+    "version": "Version",
+    "modelCount": "Modèles",
+    "totalSize": "Taille totale",
+    "runningModels": "Modèles en cours",
+    "name": "Nom",
+    "family": "Famille",
+    "size": "Taille",
+    "parameterSize": "Paramètres",
+    "quantization": "Quantization",
+    "modified": "Modifié",
+    "actions": "Actions",
+    "pull": "Télécharger",
+    "delete": "Supprimer",
+    "noModels": "Aucun modèle disponible",
+    "ollamaOffline": "Ollama n'est pas disponible",
+    "confirmDelete": "Êtes-vous sûr de vouloir supprimer ce modèle ?"
+  },
+
+  "workers": {
+    "title": "Workers d'Entraînement",
+    "count": "{{count}} worker",
+    "count_plural": "{{count}} workers",
+    "name": "Nom",
+    "url": "URL",
+    "status": "Statut",
+    "gpuAvailable": "GPU disponible",
+    "gpuCount": "Nombre de GPU",
+    "gpuNames": "GPU",
+    "currentJob": "Job actuel",
+    "actions": "Actions",
+    "test": "Tester",
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "enable": "Activer",
+    "disable": "Désactiver",
+    "noWorkers": "Aucun worker configuré",
+    "addWorker": "Ajouter un worker",
+    "confirmDelete": "Êtes-vous sûr de vouloir supprimer ce worker ?"
+  },
+
+  "status": {
+    "pending": "En attente",
+    "preparing": "Préparation",
+    "running": "En cours",
+    "completed": "Terminé",
+    "failed": "Échoué",
+    "cancelled": "Annulé",
+    "paused": "En pause",
+    "healthy": "Sain",
+    "unhealthy": "Défaillant",
+    "offline": "Hors ligne",
+    "notConfigured": "Non configuré"
+  },
+
+  "difficulty": {
+    "basic": "Basique",
+    "intermediate": "Intermédiaire",
+    "advanced": "Avancé",
+    "expert": "Expert"
+  },
+
+  "phases": {
+    "preparing": "Préparation",
+    "downloading": "Téléchargement modèle",
+    "training": "Entraînement",
+    "exporting": "Export GGUF",
+    "importing": "Import Ollama",
+    "completed": "Terminé"
+  }
+}
