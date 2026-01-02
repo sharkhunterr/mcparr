@@ -174,18 +174,33 @@ class RommAdapter(TokenAuthAdapter):
             self.logger.error(f"Failed to get ROMs: {e}")
             return []
 
-    async def search_roms(self, query: str) -> List[Dict[str, Any]]:
+    async def search_roms(
+        self, query: str, platform_slug: Optional[str] = None, limit: int = 20
+    ) -> List[Dict[str, Any]]:
         """Search for ROMs.
 
+        Args:
+            query: Search term for game title
+            platform_slug: Optional platform filter (e.g., 'psx', 'n64', 'snes')
+            limit: Maximum results to return
+
         RomM API uses 'search_term' parameter for server-side search.
+        Platform filtering is done client-side as the API doesn't support it.
         """
         try:
-            # RomM uses 'search_term' for searching ROMs (not 'search')
-            response = await self._make_request("GET", "/api/roms", params={"search_term": query, "limit": 50})
+            # Request more results if filtering by platform (to ensure enough after filtering)
+            request_limit = min(limit * 3, 100) if platform_slug else min(limit * 2, 100)
+            params = {"search_term": query, "limit": request_limit}
+
+            response = await self._make_request("GET", "/api/roms", params=params)
             roms = response.json()
 
             # RomM returns paginated response with 'items' key
             rom_list = roms.get("items", []) if isinstance(roms, dict) else roms
+
+            # Apply client-side platform filtering (API doesn't support platform_slug filter)
+            if platform_slug:
+                rom_list = [r for r in rom_list if r.get("platform_slug") == platform_slug]
 
             return [
                 {
@@ -194,17 +209,38 @@ class RommAdapter(TokenAuthAdapter):
                     "platform_slug": rom.get("platform_slug"),
                     "file_size": rom.get("file_size", 0),
                 }
-                for rom in rom_list[:20]
+                for rom in rom_list[:limit]
             ]
         except Exception as e:
             self.logger.error(f"Failed to search ROMs: {e}")
             return []
 
-    async def get_collections(self) -> List[Dict[str, Any]]:
-        """Get list of ROM collections."""
+    async def get_collections(
+        self, name_filter: Optional[str] = None, limit: int = 50
+    ) -> List[Dict[str, Any]]:
+        """Get list of ROM collections.
+
+        Args:
+            name_filter: Optional filter by collection name (partial match)
+            limit: Maximum collections to return
+        """
         try:
             response = await self._make_request("GET", "/api/collections")
             collections = response.json()
+
+            # Handle different response formats
+            if isinstance(collections, dict):
+                # Could be paginated with 'items' or direct list
+                collection_list = collections.get("items", collections.get("data", []))
+            elif isinstance(collections, list):
+                collection_list = collections
+            else:
+                collection_list = []
+
+            # Apply name filter if provided
+            if name_filter:
+                name_lower = name_filter.lower()
+                collection_list = [c for c in collection_list if name_lower in c.get("name", "").lower()]
 
             return [
                 {
@@ -214,7 +250,7 @@ class RommAdapter(TokenAuthAdapter):
                     "rom_count": col.get("rom_count", 0),
                     "is_public": col.get("is_public", False),
                 }
-                for col in collections
+                for col in collection_list[:limit]
             ]
         except Exception as e:
             self.logger.error(f"Failed to get collections: {e}")
