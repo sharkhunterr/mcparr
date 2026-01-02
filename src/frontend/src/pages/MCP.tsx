@@ -1278,8 +1278,8 @@ const ConfigurationTab = ({ tools }: { tools: McpToolsResponse | null }) => {
   };
 
   const backendUrl = window.location.hostname === 'localhost'
-    ? 'http://localhost:8002'
-    : `http://${window.location.hostname}:8002`;
+    ? 'http://localhost:8000'
+    : `http://${window.location.hostname}:8000`;
 
   // OpenAPI endpoints configuration
   const openApiEndpoints = [
