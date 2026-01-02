@@ -24,7 +24,7 @@ interface NavigationItem {
   badge?: number;
 }
 
-const getNavigation = (t: (key: string) => string): NavigationItem[] => [
+const navigation: NavigationItem[] = [
   { labelKey: 'nav.dashboard', href: '/', icon: Home },
   { labelKey: 'nav.services', href: '/services', icon: Server },
   { labelKey: 'nav.users', href: '/users', icon: Users },
@@ -42,7 +42,6 @@ export default function Layout({ children }: LayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { theme, resolvedTheme, setTheme } = useTheme();
   const { t: tCommon } = useTranslation('common');
-  const navigation = getNavigation(tCommon);
 
   const toggleTheme = () => {
     if (theme === 'system') {
