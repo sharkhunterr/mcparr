@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Bot, RefreshCw, BarChart3, History, Wrench, Settings, ChevronDown, ChevronRight, Play, X, Loader2 } from 'lucide-react';
 import { api } from '../lib/api';
 import { getServiceColor, getServiceFromToolName } from '../lib/serviceColors';
@@ -917,11 +918,11 @@ const SERVICE_DESCRIPTIONS: Record<string, { name: string; description: string }
 };
 
 // Génère le prompt système dynamiquement basé sur les outils disponibles
-const generateSystemPrompt = (tools: McpToolsResponse | null, enabledServices: string[]): string => {
+const generateSystemPrompt = (tools: McpToolsResponse | null, enabledServices: string[], t: (key: string) => string): string => {
   if (!tools || !tools.tools || tools.tools.length === 0) {
     return `Tu es un assistant intelligent pour la gestion d'un homelab multimédia.
 
-IMPORTANT: Aucun outil n'est configuré pour le moment. Veuillez configurer des services dans l'interface d'administration.`;
+${t('systemPrompt.noTools')}`;
   }
 
   // Grouper les outils par service
@@ -961,7 +962,7 @@ IMPORTANT: Aucun outil n'est configuré pour le moment. Veuillez configurer des 
         .filter(p => p.required)
         .map(p => `${p.name}`)
         .join(', ');
-      const paramStr = params ? ` (paramètres: ${params})` : '';
+      const paramStr = params ? ` (${t('systemPrompt.parameters')}: ${params})` : '';
       toolSections += `- ${tool.name}: ${tool.description}${paramStr}\n`;
     });
   });
@@ -971,254 +972,255 @@ IMPORTANT: Aucun outil n'est configuré pour le moment. Veuillez configurer des 
 
   if (enabledServices.includes('plex')) {
     examples += `
-Question: "Le film Avatar est-il disponible?"
-→ Utilise l'outil plex_search_media avec query="Avatar"
+Question: "${t('examples.plex.q1')}"
+→ ${t('examples.plex.a1')}
 `;
   }
 
   if (enabledServices.includes('tautulli')) {
     examples += `
-Question: "Qui regarde Plex en ce moment?"
-→ Utilise l'outil tautulli_get_activity
+Question: "${t('examples.tautulli.q1')}"
+→ ${t('examples.tautulli.a1')}
 
-Question: "Quels sont les utilisateurs les plus actifs ce mois-ci?"
-→ Utilise l'outil tautulli_get_top_users avec days=30
+Question: "${t('examples.tautulli.q2')}"
+→ ${t('examples.tautulli.a2')}
 
-Question: "Quels sont les films les plus regardés cette semaine?"
-→ Utilise l'outil tautulli_get_top_movies avec days=7
+Question: "${t('examples.tautulli.q3')}"
+→ ${t('examples.tautulli.a3')}
 
-Question: "Quelles séries sont les plus populaires?"
-→ Utilise l'outil tautulli_get_top_tv_shows
+Question: "${t('examples.tautulli.q4')}"
+→ ${t('examples.tautulli.a4')}
 
-Question: "Donne-moi un résumé des statistiques de visionnage"
-→ Utilise l'outil tautulli_get_watch_stats_summary
+Question: "${t('examples.tautulli.q5')}"
+→ ${t('examples.tautulli.a5')}
 
-Question: "Quelles sont les statistiques de l'utilisateur Jean?"
-→ Utilise l'outil tautulli_get_user_stats avec username="Jean"
+Question: "${t('examples.tautulli.q6')}"
+→ ${t('examples.tautulli.a6')}
 
-Question: "Sur quels appareils les gens regardent Plex?"
-→ Utilise l'outil tautulli_get_top_platforms
+Question: "${t('examples.tautulli.q7')}"
+→ ${t('examples.tautulli.a7')}
 `;
   }
 
   if (enabledServices.includes('overseerr')) {
     examples += `
-Question: "Demande le film Gladiator 2"
-→ Utilise l'outil overseerr_request_media avec title="Gladiator 2" et media_type="movie"
+Question: "${t('examples.overseerr.q1')}"
+→ ${t('examples.overseerr.a1')}
 `;
   }
 
   if (enabledServices.includes('radarr')) {
     examples += `
-Question: "Quels films sont en cours de téléchargement?"
-→ Utilise l'outil radarr_get_queue
+Question: "${t('examples.radarr.q1')}"
+→ ${t('examples.radarr.a1')}
 
-Question: "Quels indexeurs sont configurés dans Radarr?"
-→ Utilise l'outil radarr_get_indexers
+Question: "${t('examples.radarr.q2')}"
+→ ${t('examples.radarr.a2')}
 
-Question: "Teste tous les indexeurs de Radarr"
-→ Utilise l'outil radarr_test_all_indexers
+Question: "${t('examples.radarr.q3')}"
+→ ${t('examples.radarr.a3')}
 `;
   }
 
   if (enabledServices.includes('sonarr')) {
     examples += `
-Question: "Quelles séries sont suivies?"
-→ Utilise l'outil sonarr_get_series
+Question: "${t('examples.sonarr.q1')}"
+→ ${t('examples.sonarr.a1')}
 
-Question: "Teste tous les indexeurs de Sonarr"
-→ Utilise l'outil sonarr_test_all_indexers
+Question: "${t('examples.sonarr.q2')}"
+→ ${t('examples.sonarr.a2')}
 `;
   }
 
   if (enabledServices.includes('prowlarr')) {
     examples += `
-Question: "Quels indexeurs sont dans Prowlarr?"
-→ Utilise l'outil prowlarr_get_indexers
+Question: "${t('examples.prowlarr.q1')}"
+→ ${t('examples.prowlarr.a1')}
 
-Question: "Teste tous les indexeurs de Prowlarr"
-→ Utilise l'outil prowlarr_test_all_indexers
+Question: "${t('examples.prowlarr.q2')}"
+→ ${t('examples.prowlarr.a2')}
 
-Question: "Cherche 'Avatar' sur tous les indexeurs"
-→ Utilise l'outil prowlarr_search avec query="Avatar"
+Question: "${t('examples.prowlarr.q3')}"
+→ ${t('examples.prowlarr.a3')}
 `;
   }
 
   if (enabledServices.includes('jackett')) {
     examples += `
-Question: "Quels indexeurs sont dans Jackett?"
-→ Utilise l'outil jackett_get_indexers
+Question: "${t('examples.jackett.q1')}"
+→ ${t('examples.jackett.a1')}
 
-Question: "Teste tous les indexeurs de Jackett"
-→ Utilise l'outil jackett_test_all_indexers
+Question: "${t('examples.jackett.q2')}"
+→ ${t('examples.jackett.a2')}
 `;
   }
 
   if (enabledServices.includes('komga')) {
     examples += `
-Question: "Quelles bibliothèques de comics ai-je?"
-→ Utilise l'outil komga_get_libraries
+Question: "${t('examples.komga.q1')}"
+→ ${t('examples.komga.a1')}
 `;
   }
 
   if (enabledServices.includes('romm')) {
     examples += `
-Question: "Quelles plateformes de jeux sont disponibles?"
-→ Utilise l'outil romm_get_platforms
+Question: "${t('examples.romm.q1')}"
+→ ${t('examples.romm.a1')}
 
-Question: "Quels sont les derniers jeux ajoutés dans RomM?"
-→ Utilise l'outil romm_get_roms avec limit=10
+Question: "${t('examples.romm.q2')}"
+→ ${t('examples.romm.a2')}
 
-Question: "Cherche le jeu Mario"
-→ Utilise l'outil romm_search_roms avec query="Mario"
+Question: "${t('examples.romm.q3')}"
+→ ${t('examples.romm.a3')}
 `;
   }
 
   if (enabledServices.includes('zammad')) {
     examples += `
-Question: "Crée un ticket de support pour un problème de connexion"
-→ Utilise l'outil zammad_create_ticket avec title="Problème de connexion" et body="Description du problème"
+Question: "${t('examples.zammad.q1')}"
+→ ${t('examples.zammad.a1')}
 
-Question: "Quels sont les tickets ouverts?"
-→ Utilise l'outil zammad_get_tickets
+Question: "${t('examples.zammad.q2')}"
+→ ${t('examples.zammad.a2')}
 
-Question: "Combien de tickets sont ouverts/nouveaux?"
-→ Utilise l'outil zammad_get_ticket_stats
+Question: "${t('examples.zammad.q3')}"
+→ ${t('examples.zammad.a3')}
 
-Question: "Ajoute un commentaire au ticket 125"
-→ Utilise l'outil zammad_add_comment avec ticket_id=125 et comment="Contenu du commentaire"
+Question: "${t('examples.zammad.q4')}"
+→ ${t('examples.zammad.a4')}
 
-Question: "Ferme le ticket 125"
-→ Utilise l'outil zammad_update_ticket_status avec ticket_id=125 et status="closed"
+Question: "${t('examples.zammad.q5')}"
+→ ${t('examples.zammad.a5')}
 `;
   }
 
   if (enabledServices.includes('audiobookshelf')) {
     examples += `
-Question: "Quelles sont mes bibliothèques de livres audio?"
-→ Utilise l'outil audiobookshelf_get_libraries
+Question: "${t('examples.audiobookshelf.q1')}"
+→ ${t('examples.audiobookshelf.a1')}
 
-Question: "Quels livres audio ai-je récemment ajoutés?"
-→ Utilise l'outil audiobookshelf_get_recent_items
+Question: "${t('examples.audiobookshelf.q2')}"
+→ ${t('examples.audiobookshelf.a2')}
 
-Question: "Cherche le livre 'Harry Potter'"
-→ Utilise l'outil audiobookshelf_search avec query="Harry Potter"
+Question: "${t('examples.audiobookshelf.q3')}"
+→ ${t('examples.audiobookshelf.a3')}
 
-Question: "Quelles sessions d'écoute sont en cours?"
-→ Utilise l'outil audiobookshelf_get_sessions
+Question: "${t('examples.audiobookshelf.q4')}"
+→ ${t('examples.audiobookshelf.a4')}
 `;
   }
 
   if (enabledServices.includes('wikijs')) {
     examples += `
-Question: "Cherche dans le wiki comment configurer Plex"
-→ Utilise l'outil wikijs_search_pages avec query="configurer Plex"
+Question: "${t('examples.wikijs.q1')}"
+→ ${t('examples.wikijs.a1')}
 
-Question: "Affiche la page 42 du wiki"
-→ Utilise l'outil wikijs_get_page avec page_id=42
+Question: "${t('examples.wikijs.q2')}"
+→ ${t('examples.wikijs.a2')}
 
-Question: "Liste toutes les pages du wiki"
-→ Utilise l'outil wikijs_get_pages
+Question: "${t('examples.wikijs.q3')}"
+→ ${t('examples.wikijs.a3')}
 
-Question: "Quelles sont les statistiques du wiki?"
-→ Utilise l'outil wikijs_get_statistics
+Question: "${t('examples.wikijs.q4')}"
+→ ${t('examples.wikijs.a4')}
 `;
   }
 
   if (enabledServices.includes('authentik')) {
     examples += `
-Question: "Quels utilisateurs sont dans Authentik?"
-→ Utilise l'outil authentik_get_users
+Question: "${t('examples.authentik.q1')}"
+→ ${t('examples.authentik.a1')}
 
-Question: "Quels groupes existent dans Authentik?"
-→ Utilise l'outil authentik_get_groups
+Question: "${t('examples.authentik.q2')}"
+→ ${t('examples.authentik.a2')}
 
-Question: "Quelles applications sont configurées dans Authentik?"
-→ Utilise l'outil authentik_get_applications
+Question: "${t('examples.authentik.q3')}"
+→ ${t('examples.authentik.a3')}
 `;
   }
 
   // System tools are always available
   examples += `
-Question: "Quel est l'état du système?"
-→ Utilise l'outil system_get_health
+Question: "${t('examples.system.q1')}"
+→ ${t('examples.system.a1')}
 
-Question: "Quels sont les métriques CPU/mémoire actuels?"
-→ Utilise l'outil system_get_metrics
+Question: "${t('examples.system.q2')}"
+→ ${t('examples.system.a2')}
 
-Question: "Liste tous les services configurés"
-→ Utilise l'outil system_get_services
+Question: "${t('examples.system.q3')}"
+→ ${t('examples.system.a3')}
 
-Question: "Teste la connexion à Plex"
-→ Utilise l'outil system_test_service avec service_name="Plex"
+Question: "${t('examples.system.q4')}"
+→ ${t('examples.system.a4')}
 
-Question: "Montre les derniers logs d'erreur"
-→ Utilise l'outil system_get_logs avec level="error"
+Question: "${t('examples.system.q5')}"
+→ ${t('examples.system.a5')}
 
-Question: "Quelles alertes sont actives?"
-→ Utilise l'outil system_get_alerts avec active_only=true
+Question: "${t('examples.system.q6')}"
+→ ${t('examples.system.a6')}
 `;
 
   // Règles basées sur les services
   let rules = `
-## Format des réponses
+## ${t('systemPrompt.responseFormat')}
 
-1. Convertis les timestamps en dates lisibles (format: "27 nov 2025, 19h23")
-2. Convertis les durées en heures:minutes (ex: 158 min → 2h38)`;
+1. ${t('systemPrompt.format1')}
+2. ${t('systemPrompt.format2')}`;
 
   if (enabledServices.includes('plex') && enabledServices.includes('overseerr')) {
     rules += `
-3. Pour vérifier si un film/série EST DISPONIBLE → plex_search_media avec le titre
-4. Pour demander un contenu non disponible → overseerr_request_media`;
+3. ${t('systemPrompt.format3')}
+4. ${t('systemPrompt.format4')}`;
   }
 
   if (enabledServices.includes('tautulli')) {
     rules += `
-5. Pour les sessions actives (qui regarde quoi) → tautulli_get_activity
-6. Pour les classements (top users, films, séries) → tautulli_get_top_* avec days (défaut: 30)
-7. Pour les stats d'un utilisateur spécifique → tautulli_get_user_stats avec username
-8. Pour un résumé global des statistiques → tautulli_get_watch_stats_summary`;
+5. ${t('systemPrompt.format5')}
+6. ${t('systemPrompt.format6')}
+7. ${t('systemPrompt.format7')}
+8. ${t('systemPrompt.format8')}`;
   }
 
   if (enabledServices.includes('radarr') || enabledServices.includes('sonarr') || enabledServices.includes('prowlarr') || enabledServices.includes('jackett')) {
     rules += `
 
-## Tests d'indexeurs - IMPORTANT
+## ${t('systemPrompt.indexerTestsTitle')}
 
-Chaque service a ses PROPRES indexeurs. Utilise l'outil du service concerné:
-- "Teste les indexeurs de Radarr" → radarr_test_all_indexers (PAS prowlarr!)
-- "Teste les indexeurs de Sonarr" → sonarr_test_all_indexers (PAS prowlarr!)
-- "Teste les indexeurs de Prowlarr" → prowlarr_test_all_indexers
-- "Teste les indexeurs de Jackett" → jackett_test_all_indexers
+${t('systemPrompt.indexerTestsDesc')}
+- ${t('systemPrompt.indexerTest1')}
+- ${t('systemPrompt.indexerTest2')}
+- ${t('systemPrompt.indexerTest3')}
+- ${t('systemPrompt.indexerTest4')}
 
-9. Pour lister les indexeurs d'un service → utilise {service}_get_indexers
-10. Pour tester tous les indexeurs d'un service → utilise {service}_test_all_indexers
-11. Pour tester un indexeur spécifique → {service}_test_indexer avec indexer_id`;
+9. ${t('systemPrompt.format9')}
+10. ${t('systemPrompt.format10')}
+11. ${t('systemPrompt.format11')}`;
   }
 
   return `Tu es un assistant homelab avec accès à des outils externes.
 
-## RÈGLES CRITIQUES
+## ${t('systemPrompt.criticalRules')}
 
-1. **TOUJOURS UTILISER LES OUTILS** - Quand l'utilisateur demande des informations sur le homelab (films, séries, qui regarde, téléchargements, etc.), tu DOIS utiliser l'outil correspondant.
+1. ${t('systemPrompt.rule1')}
 
-2. **NE JAMAIS INVENTER DE DONNÉES** - Si tu n'as pas de résultat d'outil, ne génère pas de fausses informations. Dis plutôt "Je n'ai pas pu récupérer cette information".
+2. ${t('systemPrompt.rule2')}
 
-3. **ATTENDRE LE RÉSULTAT** - Après avoir appelé un outil, attends sa réponse avant de formuler ta réponse à l'utilisateur.
+3. ${t('systemPrompt.rule3')}
 
-4. **EN CAS D'ERREUR** - Si un outil échoue, explique l'erreur technique au lieu d'inventer des données.
+4. ${t('systemPrompt.rule4')}
 
-## Outils disponibles
+## ${t('systemPrompt.availableTools')}
 ${toolSections}
 ${rules}
 
-## Exemples d'utilisation
-${examples || 'Aucun exemple disponible pour les services configurés.'}
+## ${t('systemPrompt.usageExamples')}
+${examples || t('systemPrompt.noExamples')}
 
-Langue: Réponds en français sauf si l'utilisateur utilise une autre langue.`;
+${t('systemPrompt.language')}`;
 };
 
 const ConfigurationTab = ({ tools }: { tools: McpToolsResponse | null }) => {
+  const { t } = useTranslation('mcp');
   const [copied, setCopied] = useState<string | null>(null);
   const [serverStatus, setServerStatus] = useState<McpServerStatus | null>(null);
   const [_statusLoading, setStatusLoading] = useState(true);
@@ -1245,7 +1247,7 @@ const ConfigurationTab = ({ tools }: { tools: McpToolsResponse | null }) => {
   }, []);
 
   // Générer le prompt dynamiquement
-  const systemPrompt = generateSystemPrompt(tools, serverStatus?.enabled_services || []);
+  const systemPrompt = generateSystemPrompt(tools, serverStatus?.enabled_services || [], t);
 
   const copyToClipboard = async (text: string, id: string) => {
     try {
@@ -1279,45 +1281,45 @@ const ConfigurationTab = ({ tools }: { tools: McpToolsResponse | null }) => {
   const openApiEndpoints = [
     {
       id: 'all',
-      name: 'Tous les outils',
+      name: t('config.endpoints.all.name'),
       path: '/tools/openapi.json',
-      description: 'Tous les outils disponibles (peut être lent avec certains LLMs)',
+      description: t('config.endpoints.all.description'),
       color: 'gray',
       services: ['Tous'],
       recommended: false,
     },
     {
       id: 'system',
-      name: 'Système & Support',
+      name: t('config.endpoints.system.name'),
       path: '/tools/system/openapi.json',
-      description: 'Monitoring, logs, alertes, tickets et authentification',
+      description: t('config.endpoints.system.description'),
       color: 'blue',
       services: ['System', 'Zammad', 'Authentik'],
       recommended: true,
     },
     {
       id: 'media',
-      name: 'Média & Contenu',
+      name: t('config.endpoints.media.name'),
       path: '/tools/media/openapi.json',
-      description: 'Bibliothèques multimédia, livres audio, comics et jeux',
+      description: t('config.endpoints.media.description'),
       color: 'purple',
       services: ['Plex', 'Tautulli', 'Overseerr', 'Komga', 'RomM', 'Audiobookshelf'],
       recommended: true,
     },
     {
       id: 'processing',
-      name: 'Téléchargement',
+      name: t('config.endpoints.processing.name'),
       path: '/tools/processing/openapi.json',
-      description: 'Acquisition films/séries et gestion torrents',
+      description: t('config.endpoints.processing.description'),
       color: 'orange',
       services: ['Radarr', 'Sonarr', 'Prowlarr', 'Deluge'],
       recommended: true,
     },
     {
       id: 'knowledge',
-      name: 'Connaissances & IA',
+      name: t('config.endpoints.knowledge.name'),
       path: '/tools/knowledge/openapi.json',
-      description: 'Wiki, documentation et interface IA',
+      description: t('config.endpoints.knowledge.description'),
       color: 'green',
       services: ['Wiki.js', 'Open WebUI', 'Ollama'],
       recommended: false,
@@ -1366,14 +1368,15 @@ const ConfigurationTab = ({ tools }: { tools: McpToolsResponse | null }) => {
             <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
           </svg>
           <h3 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white">
-            Endpoints Open WebUI
+            {t('config.openWebUI.title')}
           </h3>
         </div>
 
         <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-4">
-          Ajoutez ces URLs dans Open WebUI → <span className="hidden sm:inline">Settings → Tools →</span><span className="sm:hidden">⚙️ →</span> Add Tool Server.
+          <span className="hidden sm:inline">{t('config.openWebUI.description')}</span>
+          <span className="sm:hidden">{t('config.openWebUI.descriptionMobile')}</span>
           <br className="hidden sm:block" />
-          <span className="text-blue-600 dark:text-blue-400 block sm:inline mt-1 sm:mt-0">Utilisez les endpoints séparés pour de meilleures performances.</span>
+          <span className="text-blue-600 dark:text-blue-400 block sm:inline mt-1 sm:mt-0">{t('config.openWebUI.performanceTip')}</span>
         </p>
 
         <div className="grid gap-3">
@@ -1395,7 +1398,7 @@ const ConfigurationTab = ({ tools }: { tools: McpToolsResponse | null }) => {
                       </h4>
                       {endpoint.recommended && (
                         <span className="px-1.5 py-0.5 text-xs bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 rounded">
-                          Recommandé
+                          {t('config.openWebUI.recommended')}
                         </span>
                       )}
                     </div>
@@ -1426,7 +1429,7 @@ const ConfigurationTab = ({ tools }: { tools: McpToolsResponse | null }) => {
                           : 'bg-blue-600 hover:bg-blue-700 text-white'
                       }`}
                     >
-                      {copied === `endpoint-${endpoint.id}` ? '✓ Copié!' : 'Copier URL'}
+                      {copied === `endpoint-${endpoint.id}` ? t('config.openWebUI.copied') : t('config.openWebUI.copyUrl')}
                     </button>
                   </div>
                 </div>
@@ -1438,9 +1441,9 @@ const ConfigurationTab = ({ tools }: { tools: McpToolsResponse | null }) => {
         {/* Quick setup reminder */}
         <div className="mt-4 p-2 sm:p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
           <p className="text-xs sm:text-sm text-amber-800 dark:text-amber-200">
-            <strong>Config:</strong> Auth = <code className="bg-amber-100 dark:bg-amber-900 px-1 rounded text-xs">Session</code>
+            <strong>{t('config.quickSetup.title')}</strong> {t('config.quickSetup.auth')}
             <span className="hidden sm:inline"> •</span><span className="sm:hidden">,</span>
-            Filter = <code className="bg-amber-100 dark:bg-amber-900 px-1 rounded text-xs">,</code> <span className="text-amber-600 dark:text-amber-400">(virgule)</span>
+            {t('config.quickSetup.filter')} <code className="bg-amber-100 dark:bg-amber-900 px-1 rounded text-xs">,</code> <span className="text-amber-600 dark:text-amber-400">{t('config.quickSetup.comma')}</span>
           </p>
         </div>
 
@@ -1450,20 +1453,20 @@ const ConfigurationTab = ({ tools }: { tools: McpToolsResponse | null }) => {
             <svg className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 dark:text-blue-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
             </svg>
-            <span className="font-medium text-sm sm:text-base text-blue-900 dark:text-blue-100">Les outils ne sont pas appelés ?</span>
+            <span className="font-medium text-sm sm:text-base text-blue-900 dark:text-blue-100">{t('config.troubleshooting.title')}</span>
             <svg className="w-4 h-4 text-blue-400 transition-transform group-open:rotate-180 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
             </svg>
           </summary>
           <div className="px-3 sm:px-4 pb-3 sm:pb-4 text-xs sm:text-sm text-blue-800 dark:text-blue-200 space-y-2">
             <p>
-              Si le modèle dit <em>"Je vais appeler l'outil..."</em> mais invente des données, le <strong>function calling natif</strong> n'est pas activé.
+              {t('config.troubleshooting.description')}
             </p>
-            <p><strong>Solutions :</strong></p>
+            <p><strong>{t('config.troubleshooting.solutionsTitle')}</strong></p>
             <ul className="list-disc list-inside ml-1 sm:ml-2 space-y-1">
-              <li>Utilisez un modèle compatible (GPT-4, Claude, Qwen2.5, Llama 3.3)</li>
-              <li className="break-words">Open WebUI : <code className="bg-blue-100 dark:bg-blue-900 px-1 rounded text-xs">Admin → Models → Native Tool Calling</code></li>
-              <li>Ollama : <code className="bg-blue-100 dark:bg-blue-900 px-1 rounded text-xs">ollama show &lt;model&gt;</code></li>
+              <li>{t('config.troubleshooting.solution1')}</li>
+              <li className="break-words">{t('config.troubleshooting.solution2')}</li>
+              <li>{t('config.troubleshooting.solution3')}</li>
             </ul>
           </div>
         </details>
@@ -1478,10 +1481,10 @@ const ConfigurationTab = ({ tools }: { tools: McpToolsResponse | null }) => {
             </svg>
             <div className="min-w-0">
               <h3 className="font-medium text-sm sm:text-base text-gray-900 dark:text-white truncate">
-                Prompt Système
+                {t('config.systemPrompt.title')}
               </h3>
               <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
-                {serverStatus?.enabled_services?.length || 0} services • {tools?.total || 0} outils
+                {serverStatus?.enabled_services?.length || 0} {t('config.systemPrompt.services')} • {tools?.total || 0} {t('config.systemPrompt.tools')}
               </p>
             </div>
           </div>
@@ -1518,12 +1521,12 @@ const ConfigurationTab = ({ tools }: { tools: McpToolsResponse | null }) => {
                   : 'bg-purple-600 hover:bg-purple-700 text-white'
               }`}
             >
-              {copied === 'system-prompt' ? '✓' : 'Copier'}
+              {copied === 'system-prompt' ? t('config.systemPrompt.copied') : t('config.systemPrompt.copy')}
             </button>
           </div>
           <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-            <span className="hidden sm:inline">Open WebUI → Admin Panel → Settings → Models → System Prompt</span>
-            <span className="sm:hidden">Open WebUI → Admin → Models → System Prompt</span>
+            <span className="hidden sm:inline">{t('config.systemPrompt.location')}</span>
+            <span className="sm:hidden">{t('config.systemPrompt.locationMobile')}</span>
           </p>
         </div>
       </details>
@@ -1537,10 +1540,10 @@ const ConfigurationTab = ({ tools }: { tools: McpToolsResponse | null }) => {
             </svg>
             <div className="min-w-0">
               <h3 className="font-medium text-sm sm:text-base text-gray-900 dark:text-white">
-                Autres configs
+                {t('config.otherConfigs.title')}
               </h3>
               <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 truncate">
-                Claude Desktop, API docs
+                {t('config.otherConfigs.subtitle')}
               </p>
             </div>
           </div>
@@ -1552,8 +1555,8 @@ const ConfigurationTab = ({ tools }: { tools: McpToolsResponse | null }) => {
           {/* API Documentation Link */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
             <div>
-              <p className="font-medium text-sm text-gray-900 dark:text-white">Documentation API</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">Swagger interactive</p>
+              <p className="font-medium text-sm text-gray-900 dark:text-white">{t('config.otherConfigs.apiDocs.title')}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">{t('config.otherConfigs.apiDocs.description')}</p>
             </div>
             <a
               href={`${backendUrl}/docs`}
@@ -1561,14 +1564,14 @@ const ConfigurationTab = ({ tools }: { tools: McpToolsResponse | null }) => {
               rel="noopener noreferrer"
               className="px-3 py-1.5 text-xs sm:text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium text-center"
             >
-              Ouvrir /docs
+              {t('config.otherConfigs.apiDocs.button')}
             </a>
           </div>
 
           {/* Claude Desktop */}
           <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-            <p className="font-medium text-sm text-gray-900 dark:text-white mb-2">Claude Desktop (MCP stdio)</p>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 break-all">
+            <p className="font-medium text-sm text-gray-900 dark:text-white mb-2">{t('config.otherConfigs.claudeDesktop.title')}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 break-all">{t('config.otherConfigs.claudeDesktop.description')}
               <code className="bg-gray-200 dark:bg-gray-600 px-1 rounded text-xs">~/.config/Claude/claude_desktop_config.json</code>
             </p>
             <div className="relative">
@@ -1599,7 +1602,7 @@ const ConfigurationTab = ({ tools }: { tools: McpToolsResponse | null }) => {
                     : 'bg-gray-600 hover:bg-gray-500 text-white'
                 }`}
               >
-                {copied === 'claude-config' ? '✓' : 'Copier'}
+                {copied === 'claude-config' ? t('config.otherConfigs.claudeDesktop.copied') : t('config.otherConfigs.claudeDesktop.copy')}
               </button>
             </div>
           </div>
@@ -1610,6 +1613,7 @@ const ConfigurationTab = ({ tools }: { tools: McpToolsResponse | null }) => {
 };
 
 export default function MCP() {
+  const { t } = useTranslation('mcp');
   const [activeTab, setActiveTab] = useState<'overview' | 'history' | 'tools' | 'config'>('overview');
   const [stats, setStats] = useState<McpStats | null>(null);
   const [toolUsage, setToolUsage] = useState<McpToolUsage[]>([]);
@@ -1796,10 +1800,10 @@ export default function MCP() {
       <div className="mb-4 sm:mb-6 overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
         <nav className="flex gap-1.5 sm:gap-2 min-w-max sm:min-w-0 sm:flex-wrap">
           {[
-            { id: 'overview' as const, label: 'Stats', labelFull: 'Vue générale', icon: BarChart3 },
-            { id: 'history' as const, label: 'Historique', labelFull: 'Historique des requêtes', icon: History },
-            { id: 'tools' as const, label: 'Outils', labelFull: 'Outils disponibles', icon: Wrench },
-            { id: 'config' as const, label: 'Config', labelFull: 'Configuration', icon: Settings },
+            { id: 'overview' as const, labelKey: 'statsShort', labelFullKey: 'statsFull', icon: BarChart3 },
+            { id: 'history' as const, labelKey: 'historyShort', labelFullKey: 'historyFull', icon: History },
+            { id: 'tools' as const, labelKey: 'toolsShort', labelFullKey: 'toolsFull', icon: Wrench },
+            { id: 'config' as const, labelKey: 'configShort', labelFullKey: 'configFull', icon: Settings },
           ].map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -1808,7 +1812,7 @@ export default function MCP() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                title={tab.labelFull}
+                title={t(`tabs.${tab.labelFullKey}`)}
                 className={`flex items-center gap-1.5 py-1.5 px-2.5 sm:py-2 sm:px-3 rounded-full font-medium text-xs sm:text-sm transition-all whitespace-nowrap ${
                   isActive
                     ? 'bg-blue-600 text-white shadow-sm'
@@ -1816,7 +1820,7 @@ export default function MCP() {
                 }`}
               >
                 <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                <span>{tab.label}</span>
+                <span>{t(`tabs.${tab.labelKey}`)}</span>
               </button>
             );
           })}

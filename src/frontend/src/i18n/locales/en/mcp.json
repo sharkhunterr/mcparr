@@ -4,8 +4,17 @@
 
   "tabs": {
     "stats": "Statistics",
+    "statsShort": "Stats",
+    "statsFull": "Overview",
     "history": "History",
+    "historyShort": "History",
+    "historyFull": "Request History",
     "tools": "Tools",
+    "toolsShort": "Tools",
+    "toolsFull": "Available Tools",
+    "config": "Configuration",
+    "configShort": "Config",
+    "configFull": "Configuration",
     "toolGroups": "Tool Groups",
     "settings": "Settings"
   },
@@ -97,5 +106,231 @@
     "support": "Support",
     "system": "System",
     "users": "Users"
+  },
+
+  "config": {
+    "title": "Configuration",
+    "openWebUI": {
+      "title": "Open WebUI Endpoints",
+      "description": "Add these URLs in Open WebUI → Settings → Tools → Add Tool Server.",
+      "descriptionMobile": "Add these URLs in Open WebUI → ⚙️ → Add Tool Server.",
+      "performanceTip": "Use separate endpoints for better performance.",
+      "recommended": "Recommended",
+      "copyUrl": "Copy URL",
+      "copied": "✓ Copied!"
+    },
+    "endpoints": {
+      "all": {
+        "name": "All tools",
+        "description": "All available tools (may be slow with some LLMs)"
+      },
+      "system": {
+        "name": "System & Support",
+        "description": "Monitoring, logs, alerts, tickets and authentication"
+      },
+      "media": {
+        "name": "Media & Content",
+        "description": "Media libraries, audiobooks, comics and games"
+      },
+      "processing": {
+        "name": "Downloads",
+        "description": "Movies/series acquisition and torrent management"
+      },
+      "knowledge": {
+        "name": "Knowledge & AI",
+        "description": "Wiki, documentation and AI interface"
+      }
+    },
+    "quickSetup": {
+      "title": "Config:",
+      "auth": "Auth = Session",
+      "filter": "Filter =",
+      "comma": "(comma)"
+    },
+    "troubleshooting": {
+      "title": "Tools not being called?",
+      "description": "If the model says \"I will call the tool...\" but invents data, native function calling is not enabled.",
+      "solutionsTitle": "Solutions:",
+      "solution1": "Use a compatible model (GPT-4, Claude, Qwen2.5, Llama 3.3)",
+      "solution2": "Open WebUI: Admin → Models → Native Tool Calling",
+      "solution3": "Ollama: ollama show <model>"
+    },
+    "systemPrompt": {
+      "title": "System Prompt",
+      "services": "services",
+      "tools": "tools",
+      "copy": "Copy",
+      "copied": "✓",
+      "location": "Open WebUI → Admin Panel → Settings → Models → System Prompt",
+      "locationMobile": "Open WebUI → Admin → Models → System Prompt"
+    },
+    "otherConfigs": {
+      "title": "Other configs",
+      "subtitle": "Claude Desktop, API docs",
+      "apiDocs": {
+        "title": "API Documentation",
+        "description": "Interactive Swagger",
+        "button": "Open /docs"
+      },
+      "claudeDesktop": {
+        "title": "Claude Desktop (MCP stdio)",
+        "description": "Settings:",
+        "copy": "Copy",
+        "copied": "✓"
+      }
+    }
+  },
+
+  "systemPrompt": {
+    "noTools": "IMPORTANT: No tools are configured at the moment. Please configure services in the admin interface.",
+    "parameters": "parameters",
+    "noExamples": "No examples available for configured services.",
+    "criticalRules": "CRITICAL RULES",
+    "rule1": "**ALWAYS USE TOOLS** - When the user asks for information about the homelab (movies, series, who's watching, downloads, etc.), you MUST use the corresponding tool.",
+    "rule2": "**NEVER MAKE UP DATA** - If you don't have tool results, don't generate false information. Instead say \"I couldn't retrieve this information\".",
+    "rule3": "**WAIT FOR RESULT** - After calling a tool, wait for its response before formulating your answer to the user.",
+    "rule4": "**IN CASE OF ERROR** - If a tool fails, explain the technical error instead of making up data.",
+    "availableTools": "Available tools",
+    "responseFormat": "Response format",
+    "format1": "Convert timestamps to readable dates (format: \"Nov 27 2025, 7:23 PM\")",
+    "format2": "Convert durations to hours:minutes (e.g., 158 min → 2h38)",
+    "format3": "To check if a movie/series IS AVAILABLE → plex_search_media with the title",
+    "format4": "To request unavailable content → overseerr_request_media",
+    "format5": "For active sessions (who's watching what) → tautulli_get_activity",
+    "format6": "For rankings (top users, movies, series) → tautulli_get_top_* with days (default: 30)",
+    "format7": "For specific user stats → tautulli_get_user_stats with username",
+    "format8": "For overall statistics summary → tautulli_get_watch_stats_summary",
+    "indexerTestsTitle": "Indexer Tests - IMPORTANT",
+    "indexerTestsDesc": "Each service has its OWN indexers. Use the tool from the concerned service:",
+    "indexerTest1": "\"Test Radarr indexers\" → radarr_test_all_indexers (NOT prowlarr!)",
+    "indexerTest2": "\"Test Sonarr indexers\" → sonarr_test_all_indexers (NOT prowlarr!)",
+    "indexerTest3": "\"Test Prowlarr indexers\" → prowlarr_test_all_indexers",
+    "indexerTest4": "\"Test Jackett indexers\" → jackett_test_all_indexers",
+    "format9": "To list service indexers → use {service}_get_indexers",
+    "format10": "To test all service indexers → use {service}_test_all_indexers",
+    "format11": "To test specific indexer → {service}_test_indexer with indexer_id",
+    "usageExamples": "Usage examples",
+    "language": "Language: Respond in English unless the user uses another language."
+  },
+
+  "examples": {
+    "plex": {
+      "q1": "Is the movie Avatar available?",
+      "a1": "Use the plex_search_media tool with query=\"Avatar\""
+    },
+    "tautulli": {
+      "q1": "Who's watching Plex right now?",
+      "a1": "Use the tautulli_get_activity tool",
+      "q2": "Who are the most active users this month?",
+      "a2": "Use the tautulli_get_top_users tool with days=30",
+      "q3": "What are the most watched movies this week?",
+      "a3": "Use the tautulli_get_top_movies tool with days=7",
+      "q4": "What are the most popular series?",
+      "a4": "Use the tautulli_get_top_tv_shows tool",
+      "q5": "Give me a summary of viewing statistics",
+      "a5": "Use the tautulli_get_watch_stats_summary tool",
+      "q6": "What are John's statistics?",
+      "a6": "Use the tautulli_get_user_stats tool with username=\"John\"",
+      "q7": "What devices are people watching Plex on?",
+      "a7": "Use the tautulli_get_top_platforms tool"
+    },
+    "overseerr": {
+      "q1": "Request the movie Gladiator 2",
+      "a1": "Use the overseerr_request_media tool with title=\"Gladiator 2\" and media_type=\"movie\""
+    },
+    "radarr": {
+      "q1": "What movies are currently downloading?",
+      "a1": "Use the radarr_get_queue tool",
+      "q2": "What indexers are configured in Radarr?",
+      "a2": "Use the radarr_get_indexers tool",
+      "q3": "Test all Radarr indexers",
+      "a3": "Use the radarr_test_all_indexers tool"
+    },
+    "sonarr": {
+      "q1": "What series are being monitored?",
+      "a1": "Use the sonarr_get_series tool",
+      "q2": "Test all Sonarr indexers",
+      "a2": "Use the sonarr_test_all_indexers tool"
+    },
+    "prowlarr": {
+      "q1": "What indexers are in Prowlarr?",
+      "a1": "Use the prowlarr_get_indexers tool",
+      "q2": "Test all Prowlarr indexers",
+      "a2": "Use the prowlarr_test_all_indexers tool",
+      "q3": "Search 'Avatar' on all indexers",
+      "a3": "Use the prowlarr_search tool with query=\"Avatar\""
+    },
+    "jackett": {
+      "q1": "What indexers are in Jackett?",
+      "a1": "Use the jackett_get_indexers tool",
+      "q2": "Test all Jackett indexers",
+      "a2": "Use the jackett_test_all_indexers tool"
+    },
+    "komga": {
+      "q1": "What comic libraries do I have?",
+      "a1": "Use the komga_get_libraries tool"
+    },
+    "romm": {
+      "q1": "What gaming platforms are available?",
+      "a1": "Use the romm_get_platforms tool",
+      "q2": "What are the latest games added to RomM?",
+      "a2": "Use the romm_get_roms tool with limit=10",
+      "q3": "Search for the game Mario",
+      "a3": "Use the romm_search_roms tool with query=\"Mario\""
+    },
+    "zammad": {
+      "q1": "Create a support ticket for a login issue",
+      "a1": "Use the zammad_create_ticket tool with title=\"Login issue\" and body=\"Issue description\"",
+      "q2": "What tickets are open?",
+      "a2": "Use the zammad_get_tickets tool",
+      "q3": "How many tickets are open/new?",
+      "a3": "Use the zammad_get_ticket_stats tool",
+      "q4": "Add a comment to ticket 125",
+      "a4": "Use the zammad_add_comment tool with ticket_id=125 and comment=\"Comment content\"",
+      "q5": "Close ticket 125",
+      "a5": "Use the zammad_update_ticket_status tool with ticket_id=125 and status=\"closed\""
+    },
+    "audiobookshelf": {
+      "q1": "What are my audiobook libraries?",
+      "a1": "Use the audiobookshelf_get_libraries tool",
+      "q2": "What audiobooks have I recently added?",
+      "a2": "Use the audiobookshelf_get_recent_items tool",
+      "q3": "Search for the book 'Harry Potter'",
+      "a3": "Use the audiobookshelf_search tool with query=\"Harry Potter\"",
+      "q4": "What listening sessions are active?",
+      "a4": "Use the audiobookshelf_get_sessions tool"
+    },
+    "wikijs": {
+      "q1": "Search the wiki for how to configure Plex",
+      "a1": "Use the wikijs_search_pages tool with query=\"configure Plex\"",
+      "q2": "Show wiki page 42",
+      "a2": "Use the wikijs_get_page tool with page_id=42",
+      "q3": "List all wiki pages",
+      "a3": "Use the wikijs_get_pages tool",
+      "q4": "What are the wiki statistics?",
+      "a4": "Use the wikijs_get_statistics tool"
+    },
+    "authentik": {
+      "q1": "What users are in Authentik?",
+      "a1": "Use the authentik_get_users tool",
+      "q2": "What groups exist in Authentik?",
+      "a2": "Use the authentik_get_groups tool",
+      "q3": "What applications are configured in Authentik?",
+      "a3": "Use the authentik_get_applications tool"
+    },
+    "system": {
+      "q1": "What's the system status?",
+      "a1": "Use the system_get_health tool",
+      "q2": "What are the current CPU/memory metrics?",
+      "a2": "Use the system_get_metrics tool",
+      "q3": "List all configured services",
+      "a3": "Use the system_get_services tool",
+      "q4": "Test the Plex connection",
+      "a4": "Use the system_test_service tool with service_name=\"Plex\"",
+      "q5": "Show the latest error logs",
+      "a5": "Use the system_get_logs tool with level=\"error\"",
+      "q6": "What alerts are active?",
+      "a6": "Use the system_get_alerts tool with active_only=true"
+    }
   }
 }
