@@ -1,1 +1,93 @@
-{"title": "Title", "description": "Description"}
+{
+  "title": "Groupes",
+  "description": "Gestion des groupes",
+
+  "list": {
+    "title": "Groupes",
+    "new": "Nouveau",
+    "search": "Rechercher un groupe...",
+    "count": "{{count}} groupe",
+    "count_plural": "{{count}} groupes",
+    "showDisabled": "Afficher désactivés",
+    "refresh": "Actualiser",
+    "noGroups": "Aucun groupe créé",
+    "noGroupsFound": "Aucun groupe trouvé",
+    "createFirst": "Créer un premier groupe",
+    "system": "Système",
+    "disabled": "Désactivé",
+    "priority": "Priorité: {{priority}}",
+    "enable": "Activer",
+    "disable": "Désactiver",
+    "delete": "Supprimer",
+    "deleteConfirm": "Êtes-vous sûr de vouloir supprimer le groupe \"{{name}}\" ?",
+    "cannotDeleteSystem": "Impossible de supprimer les groupes système"
+  },
+
+  "detail": {
+    "notFound": "Groupe non trouvé",
+    "system": "Système",
+    "tabs": {
+      "info": "Informations",
+      "members": "Membres ({{count}})",
+      "permissions": "Outils ({{count}})"
+    },
+    "info": {
+      "name": "Nom",
+      "description": "Description",
+      "color": "Couleur",
+      "priority": "Priorité",
+      "priorityHelp": "Priorité plus élevée = résolution en premier",
+      "save": "Sauvegarder"
+    },
+    "members": {
+      "title": "Membres du groupe",
+      "add": "Ajouter",
+      "search": "Rechercher un utilisateur...",
+      "noMembers": "Aucun membre",
+      "noAvailable": "Aucun utilisateur disponible",
+      "addedOn": "Ajouté le {{date}}",
+      "remove": "Retirer",
+      "removeConfirm": "Retirer ce membre du groupe ?"
+    },
+    "permissions": {
+      "title": "Outils MCP",
+      "search": "Rechercher...",
+      "all": "Tout",
+      "addAll": "Tous",
+      "removeAll": "Aucun",
+      "noTools": "Aucun outil disponible",
+      "noMatch": "Aucun outil ne correspond à la recherche",
+      "count": "{{enabled}}/{{total}}"
+    }
+  },
+
+  "create": {
+    "title": "Nouveau groupe",
+    "nameLabel": "Nom *",
+    "namePlaceholder": "Ex: Admin, User, Beta...",
+    "descriptionLabel": "Description",
+    "descriptionPlaceholder": "Description du groupe...",
+    "colorLabel": "Couleur",
+    "priorityLabel": "Priorité",
+    "priorityHelp": "Priorité plus élevée = permissions résolues en premier",
+    "cancel": "Annuler",
+    "create": "Créer",
+    "nameRequired": "Le nom est requis"
+  },
+
+  "management": {
+    "title": "Gestion des Groupes",
+    "description": "Sélectionnez un groupe pour voir ses détails ou créez-en un nouveau. Les groupes définissent l'accès aux outils MCP pour les utilisateurs."
+  },
+
+  "errors": {
+    "fetchFailed": "Échec du chargement des groupes",
+    "createFailed": "Échec de la création du groupe",
+    "updateFailed": "Échec de la mise à jour du groupe",
+    "deleteFailed": "Échec de la suppression du groupe",
+    "memberAddFailed": "Échec de l'ajout du membre",
+    "memberRemoveFailed": "Échec du retrait du membre",
+    "permissionAddFailed": "Échec de l'ajout de la permission",
+    "permissionRemoveFailed": "Échec du retrait de la permission"
+  }
+}
