@@ -22,23 +22,45 @@
 
   "stats": {
     "title": "MCP Statistics",
+    "loading": "Loading MCP data...",
     "totalRequests": "Total Requests",
     "successRate": "Success Rate",
     "avgDuration": "Avg Duration",
     "periodHours": "Period ({{hours}}h)",
+    "lastHours": "Last {{hours}}h",
+    "completed": "{{count}} completed",
+    "perRequest": "Per request",
+    "errorsEncountered": "Errors encountered",
     "requestsOverTime": "Requests Over Time",
     "statusDistribution": "Status Distribution",
     "total": "total",
     "byCategory": "By Category",
     "byService": "By Service",
+    "byStatus": "By Status",
     "byUser": "By User",
     "topTools": "Top Tools",
+    "noToolUsageData": "No tool usage data",
     "noData": "No data available",
     "noUsageData": "No usage data",
     "usage": "usage",
     "success": "Success",
     "failed": "Failed",
-    "noDataForPeriod": "No data"
+    "noDataForPeriod": "No data",
+    "avgDurationByService": "Average duration by service",
+    "highlights": "Highlights",
+    "mostUsed": "Most used",
+    "fastest": "Fastest",
+    "reliability": "Reliability",
+    "excellent": "Excellent",
+    "good": "Good",
+    "needsAttention": "Needs attention",
+    "requestsByUser": "Requests by user",
+    "servicesByUser": "Services by user",
+    "timeRange1h": "1h",
+    "timeRange6h": "6h",
+    "timeRange24h": "24h",
+    "timeRange3d": "3d",
+    "timeRange7d": "7d"
   },
 
   "history": {
@@ -49,7 +71,9 @@
       "category": "Category",
       "service": "Service",
       "user": "User",
-      "timeRange": "Time Range"
+      "timeRange": "Time Range",
+      "allCategories": "All Categories",
+      "allStatuses": "All Statuses"
     },
     "columns": {
       "time": "Time",
@@ -59,7 +83,9 @@
       "user": "User"
     },
     "noRequests": "No requests found",
-    "loadMore": "Load more"
+    "loadMore": "Load more",
+    "totalRequests": "{{count}} total requests",
+    "by": "by"
   },
 
   "tools": {

@@ -1,0 +1,99 @@
+{
+  "title": "Monitoreo",
+  "subtitle": "Monitoreo del sistema en tiempo real",
+
+  "tabs": {
+    "metrics": "Métricas",
+    "logs": "Registros",
+    "alerts": "Alertas"
+  },
+
+  "autoRefresh": "Auto",
+  "updatedAt": "Actualizado",
+
+  "systemResources": {
+    "title": "Recursos del sistema",
+    "cpu": "CPU",
+    "memory": "Memoria",
+    "disk": "Disco",
+    "uptime": "Tiempo de actividad",
+    "loadAvg": "Carga promedio",
+    "failed": "No se pudieron obtener las métricas del sistema"
+  },
+
+  "metrics": {
+    "services": "Servicios",
+    "healthyServices": "saludables",
+    "activeAlerts": "Alertas activas",
+    "configs": "configs",
+    "logs24h": "Registros (24h)",
+    "errorRate": "errores",
+    "networkIO": "E/S de red",
+    "totalTransferred": "Total transferido",
+    "loadingMetrics": "Cargando métricas..."
+  },
+
+  "serviceContinuity": {
+    "title": "Continuidad del servicio",
+    "ok": "OK",
+    "error": "Error",
+    "noHistory": "Sin historial disponible. Pruebe sus servicios para generar datos.",
+    "noTest": "Sin prueba"
+  },
+
+  "status": {
+    "error": "Error"
+  },
+
+  "activate": "Activar",
+
+  "actions": {
+    "refresh": "Actualizar"
+  },
+
+  "scheduler": {
+    "title": "Pruebas automáticas",
+    "active": "Activo - cada {{interval}} min",
+    "disabled": "Desactivado",
+    "lastRun": "Último",
+    "settings": "Ajustes",
+    "interval": "Intervalo",
+    "test": "Probar",
+    "stop": "Detener",
+    "enable": "Activar",
+    "never": "Nunca",
+    "intervals": {
+      "5min": "5 min",
+      "15min": "15 min",
+      "30min": "30 min",
+      "1hour": "1 hora"
+    }
+  },
+
+  "logDistribution": {
+    "byLevel": "Registros por nivel (24h)",
+    "bySource": "Registros por fuente (24h)",
+    "debug": "depuración",
+    "info": "info",
+    "warning": "advertencia",
+    "error": "error",
+    "critical": "crítico"
+  },
+
+  "alertSummary": {
+    "title": "Alertas activas ({{count}})",
+    "severity": {
+      "low": "baja",
+      "medium": "media",
+      "high": "alta",
+      "critical": "crítica"
+    },
+    "resolved24h": "{{count}} alertas resueltas en las últimas 24 horas"
+  },
+
+  "uptime": {
+    "days": "{{days}}d {{hours}}h",
+    "hours": "{{hours}}h {{minutes}}m",
+    "minutes": "{{minutes}}m"
+  }
+}

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { api } from '../../lib/api';
 
 interface Worker {
@@ -24,6 +25,7 @@ interface WorkerFormProps {
 }
 
 export function WorkerForm({ worker, onSubmit, onCancel }: WorkerFormProps) {
+  const { t } = useTranslation('training');
   const [formData, setFormData] = useState<Worker>({
     name: '',
     description: '',
@@ -62,7 +64,7 @@ export function WorkerForm({ worker, onSubmit, onCancel }: WorkerFormProps) {
     try {
       await onSubmit(formData);
     } catch (err: any) {
-      setError(err.message || 'Failed to save worker');
+      setError(err.message || t('workers.failedToSave'));
     } finally {
       setSubmitting(false);
     }
@@ -73,10 +75,10 @@ export function WorkerForm({ worker, onSubmit, onCancel }: WorkerFormProps) {
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-lg w-full mx-4">
         <div className="p-6 border-b border-gray-200 dark:border-gray-700">
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-            {worker?.id ? 'Edit Worker' : 'Add Training Worker'}
+            {worker?.id ? t('workers.editWorker') : t('workers.addTrainingWorker')}
           </h2>
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            Configure a GPU training worker for fine-tuning models
+            {t('workers.formSubtitle')}
           </p>
         </div>
 
@@ -89,64 +91,64 @@ export function WorkerForm({ worker, onSubmit, onCancel }: WorkerFormProps) {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Name *
+              {t('workers.name')} *
             </label>
             <input
               type="text"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="IA PC Worker"
+              placeholder={t('workers.namePlaceholder')}
               required
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Description
+              {t('workers.description')}
             </label>
             <input
               type="text"
               value={formData.description || ''}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="GPU worker for LLM training"
+              placeholder={t('workers.descriptionPlaceholder')}
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Worker URL *
+              {t('workers.workerUrl')}
             </label>
             <input
               type="url"
               value={formData.url}
               onChange={(e) => setFormData({ ...formData, url: e.target.value })}
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-mono text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="http://192.168.1.100:8080"
+              placeholder={t('workers.workerUrlPlaceholder')}
               required
             />
             <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              URL of the training worker API (Docker container)
+              {t('workers.workerUrlHint')}
             </p>
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              API Key (optional)
+              {t('workers.apiKey')}
             </label>
             <input
               type="password"
               value={formData.api_key || ''}
               onChange={(e) => setFormData({ ...formData, api_key: e.target.value })}
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Optional API key for authentication"
+              placeholder={t('workers.apiKeyPlaceholder')}
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Ollama Service (for model import)
+              {t('workers.ollamaService')}
             </label>
             <select
               value={formData.ollama_service_id || ''}
@@ -154,7 +156,7 @@ export function WorkerForm({ worker, onSubmit, onCancel }: WorkerFormProps) {
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               disabled={loadingServices}
             >
-              <option value="">Use worker default</option>
+              <option value="">{t('workers.useWorkerDefault')}</option>
               {ollamaServices.map((service) => (
                 <option key={service.id} value={service.id}>
                   {service.name} ({service.url})
@@ -162,7 +164,7 @@ export function WorkerForm({ worker, onSubmit, onCancel }: WorkerFormProps) {
               ))}
             </select>
             <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              Select which Ollama server to import the trained model to
+              {t('workers.ollamaServiceHint')}
             </p>
           </div>
 
@@ -176,7 +178,7 @@ export function WorkerForm({ worker, onSubmit, onCancel }: WorkerFormProps) {
                 className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
               />
               <label htmlFor="enabled" className="ml-2 text-sm text-gray-700 dark:text-gray-300">
-                Worker enabled
+                {t('workers.workerEnabled')}
               </label>
             </div>
           )}
@@ -187,14 +189,14 @@ export function WorkerForm({ worker, onSubmit, onCancel }: WorkerFormProps) {
               onClick={onCancel}
               className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md"
             >
-              Cancel
+              {t('workers.cancel')}
             </button>
             <button
               type="submit"
               disabled={submitting}
               className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md disabled:opacity-50"
             >
-              {submitting ? 'Saving...' : worker?.id ? 'Save Changes' : 'Add Worker'}
+              {submitting ? t('workers.saving') : worker?.id ? t('workers.saveChanges') : t('workers.addWorker')}
             </button>
           </div>
         </form>

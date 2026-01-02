@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { api } from '../../lib/api';
 import { WorkerCard } from './WorkerCard';
 import { WorkerForm } from './WorkerForm';
@@ -25,6 +26,7 @@ interface Worker {
 }
 
 export function WorkerList() {
+  const { t } = useTranslation('training');
   const [workers, setWorkers] = useState<Worker[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -43,7 +45,7 @@ export function WorkerList() {
       const data = await api.workers.list();
       setWorkers(data);
     } catch (err: any) {
-      setError(err.message || 'Failed to load workers');
+      setError(err.message || t('workers.failedToLoad'));
     } finally {
       setLoading(false);
     }
@@ -69,7 +71,7 @@ export function WorkerList() {
       setDeletingWorker(null);
       await loadWorkers();
     } catch (err: any) {
-      alert(err.message || 'Failed to delete worker');
+      alert(err.message || t('workers.failedToDelete'));
     }
   };
 
@@ -99,7 +101,7 @@ export function WorkerList() {
           onClick={loadWorkers}
           className="mt-2 text-sm text-red-600 dark:text-red-400 hover:underline"
         >
-          Retry
+          {t('workers.retry')}
         </button>
       </div>
     );
@@ -110,9 +112,9 @@ export function WorkerList() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Training Workers</h2>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{t('workers.title')}</h2>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            GPU workers for fine-tuning LLM models
+            {t('workers.subtitle')}
           </p>
         </div>
         <div className="flex items-center space-x-3">
@@ -124,7 +126,7 @@ export function WorkerList() {
               <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
               </svg>
-              Refresh All
+              {t('workers.refreshAll')}
             </span>
           </button>
           <button
@@ -135,7 +137,7 @@ export function WorkerList() {
               <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
               </svg>
-              Add Worker
+              {t('workers.addWorker')}
             </span>
           </button>
         </div>
@@ -147,15 +149,15 @@ export function WorkerList() {
           <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
           </svg>
-          <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">No training workers</h3>
+          <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">{t('workers.noWorkers')}</h3>
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            Add a GPU worker to enable fine-tuning capabilities
+            {t('workers.noWorkersHint')}
           </p>
           <button
             onClick={() => setShowForm(true)}
             className="mt-4 px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md"
           >
-            Add Worker
+            {t('workers.addWorker')}
           </button>
         </div>
       ) : (
@@ -188,22 +190,22 @@ export function WorkerList() {
       {deletingWorker && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full mx-4 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Delete Worker</h3>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{t('workers.deleteWorker')}</h3>
             <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-              Are you sure you want to delete "{deletingWorker.name}"? This action cannot be undone.
+              {t('workers.deleteConfirmMessage', { name: deletingWorker.name })}
             </p>
             <div className="mt-6 flex justify-end space-x-3">
               <button
                 onClick={() => setDeletingWorker(null)}
                 className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md"
               >
-                Cancel
+                {t('workers.cancel')}
               </button>
               <button
                 onClick={handleDeleteWorker}
                 className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md"
               >
-                Delete
+                {t('workers.delete')}
               </button>
             </div>
           </div>

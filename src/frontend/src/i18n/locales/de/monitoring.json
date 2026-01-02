@@ -1,0 +1,99 @@
+{
+  "title": "Überwachung",
+  "subtitle": "Echtzeit-Systemüberwachung",
+
+  "tabs": {
+    "metrics": "Metriken",
+    "logs": "Protokolle",
+    "alerts": "Warnungen"
+  },
+
+  "autoRefresh": "Automatisch",
+  "updatedAt": "Aktualisiert",
+
+  "systemResources": {
+    "title": "Systemressourcen",
+    "cpu": "CPU",
+    "memory": "Arbeitsspeicher",
+    "disk": "Festplatte",
+    "uptime": "Betriebszeit",
+    "loadAvg": "Durchschnittliche Last",
+    "failed": "Systemmetriken konnten nicht abgerufen werden"
+  },
+
+  "metrics": {
+    "services": "Dienste",
+    "healthyServices": "fehlerfrei",
+    "activeAlerts": "Aktive Warnungen",
+    "configs": "Konfigurationen",
+    "logs24h": "Protokolle (24h)",
+    "errorRate": "Fehler",
+    "networkIO": "Netzwerk-E/A",
+    "totalTransferred": "Gesamt übertragen",
+    "loadingMetrics": "Metriken werden geladen..."
+  },
+
+  "serviceContinuity": {
+    "title": "Dienstkontinuität",
+    "ok": "OK",
+    "error": "Fehler",
+    "noHistory": "Kein Verlauf verfügbar. Testen Sie Ihre Dienste, um Daten zu generieren.",
+    "noTest": "Kein Test"
+  },
+
+  "status": {
+    "error": "Fehler"
+  },
+
+  "activate": "Aktivieren",
+
+  "actions": {
+    "refresh": "Aktualisieren"
+  },
+
+  "scheduler": {
+    "title": "Automatische Tests",
+    "active": "Aktiv - alle {{interval}} Min.",
+    "disabled": "Deaktiviert",
+    "lastRun": "Zuletzt",
+    "settings": "Einstellungen",
+    "interval": "Intervall",
+    "test": "Testen",
+    "stop": "Stoppen",
+    "enable": "Aktivieren",
+    "never": "Nie",
+    "intervals": {
+      "5min": "5 Min.",
+      "15min": "15 Min.",
+      "30min": "30 Min.",
+      "1hour": "1 Stunde"
+    }
+  },
+
+  "logDistribution": {
+    "byLevel": "Protokolle nach Stufe (24h)",
+    "bySource": "Protokolle nach Quelle (24h)",
+    "debug": "debug",
+    "info": "info",
+    "warning": "warnung",
+    "error": "fehler",
+    "critical": "kritisch"
+  },
+
+  "alertSummary": {
+    "title": "Aktive Warnungen ({{count}})",
+    "severity": {
+      "low": "niedrig",
+      "medium": "mittel",
+      "high": "hoch",
+      "critical": "kritisch"
+    },
+    "resolved24h": "{{count}} Warnungen in den letzten 24 Stunden gelöst"
+  },
+
+  "uptime": {
+    "days": "{{days}}T {{hours}}h",
+    "hours": "{{hours}}h {{minutes}}m",
+    "minutes": "{{minutes}}m"
+  }
+}

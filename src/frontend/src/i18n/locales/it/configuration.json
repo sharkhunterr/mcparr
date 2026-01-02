@@ -1,0 +1,171 @@
+{
+  "title": "Configurazione",
+  "description": "Impostazioni dell'applicazione",
+  "tabs": {
+    "appearance": "Aspetto",
+    "general": "Generale",
+    "logs": "Log",
+    "notifications": "Notifiche",
+    "dashboard": "Dashboard",
+    "backup": "Backup"
+  },
+  "appearance": {
+    "title": "Tema",
+    "themeOptions": {
+      "light": "Chiaro",
+      "dark": "Scuro",
+      "system": "Sistema"
+    }
+  },
+  "general": {
+    "language": {
+      "label": "Lingua",
+      "description": "Scegli la lingua dell'interfaccia",
+      "options": {
+        "fr": "Francese",
+        "en": "Inglese"
+      }
+    },
+    "autoRefresh": {
+      "label": "Aggiornamento automatico",
+      "description": "Aggiorna automaticamente i dati"
+    },
+    "refreshInterval": {
+      "label": "Intervallo",
+      "description": "Frequenza di aggiornamento"
+    },
+    "wizard": {
+      "label": "Procedura guidata di configurazione",
+      "description": "Mostra nuovamente la procedura guidata di prima configurazione",
+      "resetButton": "Reimposta",
+      "confirmMessage": "Desidera davvero reimpostare la procedura guidata di configurazione? Verra reindirizzato alla procedura guidata."
+    }
+  },
+  "logs": {
+    "logLevel": {
+      "label": "Livello log",
+      "description": "Filtra per gravita"
+    },
+    "logToConsole": {
+      "label": "Log su console",
+      "description": "Visualizza nella console del browser"
+    },
+    "logToBackend": {
+      "label": "Log su backend",
+      "description": "Invia log al server"
+    },
+    "levelsPreview": "Livelli registrati con \"{{level}}\":",
+    "levels": {
+      "debug": "Debug",
+      "info": "Info",
+      "warning": "Avviso",
+      "error": "Errore",
+      "critical": "Critico"
+    }
+  },
+  "notifications": {
+    "enabled": {
+      "label": "Notifiche",
+      "description": "Abilita le notifiche"
+    },
+    "sound": {
+      "label": "Suoni",
+      "description": "Riproduci un suono per gli avvisi"
+    },
+    "alertOnError": {
+      "label": "Avvisi di errore",
+      "description": "Notifica in caso di errori critici"
+    }
+  },
+  "dashboard": {
+    "compactMode": {
+      "label": "Modalita compatta",
+      "description": "Riduci la spaziatura"
+    },
+    "systemMetrics": {
+      "label": "Metriche di sistema",
+      "description": "Visualizza CPU, RAM, disco"
+    },
+    "mcpStats": {
+      "label": "Statistiche MCP",
+      "description": "Visualizza statistiche del gateway"
+    }
+  },
+  "backup": {
+    "export": {
+      "title": "Esporta configurazione",
+      "description": "Seleziona gli elementi da salvare",
+      "button": "Esporta",
+      "categoriesSelected": "{{count}} categorie selezionate"
+    },
+    "import": {
+      "title": "Importa configurazione",
+      "description": "Ripristina da file di backup",
+      "button": "Importa configurazione",
+      "selectFile": "Clicca per selezionare un file",
+      "fileType": "Solo .json",
+      "version": "Versione {{version}}",
+      "dateUnknown": "Data sconosciuta",
+      "mergeMode": {
+        "label": "Modalita unione",
+        "description": "Unisci con i dati esistenti invece di sostituirli"
+      },
+      "result": {
+        "success": "Importazione completata con successo",
+        "error": "Importazione completata con errori",
+        "warnings": "Avvisi:",
+        "errors": "Errori:",
+        "andMore": "... e altri {{count}}"
+      }
+    },
+    "categories": {
+      "services": {
+        "label": "Servizi",
+        "description": "Configurazioni dei servizi (Plex, Authentik, ecc.)"
+      },
+      "user_mappings": {
+        "label": "Mappature utenti",
+        "description": "Mappature utenti tra i servizi"
+      },
+      "groups": {
+        "label": "Gruppi",
+        "description": "Gruppi MCP, membri e permessi"
+      },
+      "site_config": {
+        "label": "Configurazione",
+        "description": "Impostazioni del sito"
+      },
+      "training_prompts": {
+        "label": "Addestramento IA",
+        "description": "Prompt e dati di addestramento"
+      }
+    },
+    "reset": {
+      "title": "Zona pericolosa",
+      "description": "Elimina tutti i dati dell'applicazione",
+      "warningTitle": "Azione irreversibile",
+      "warningDescription": "Questa azione eliminera permanentemente tutti i dati:",
+      "warningItems": {
+        "services": "Tutti i servizi configurati",
+        "userMappings": "Tutte le mappature utenti",
+        "groups": "Tutti i gruppi e i permessi",
+        "training": "Tutti i prompt di addestramento",
+        "siteConfig": "Tutta la configurazione del sito"
+      },
+      "warningFooter": "Questa azione non puo essere annullata. Assicurarsi di aver esportato i dati se necessario.",
+      "button": "Reimposta tutti i dati",
+      "confirmTitle": "Conferma richiesta",
+      "confirmDescription": "E assolutamente sicuro di voler eliminare tutti i dati? Questa azione e irreversibile.",
+      "showWizard": "Mostra la procedura guidata di configurazione dopo il reset",
+      "confirmButton": "Conferma eliminazione",
+      "deleting": "Eliminazione in corso...",
+      "successMessage": "Tutti i dati sono stati eliminati con successo.",
+      "errorMessage": "Errore durante il reset: {{error}}"
+    }
+  },
+  "reset": {
+    "title": "Reimpostare le impostazioni?",
+    "description": "Questa azione ripristinera tutte le impostazioni ai valori predefiniti.",
+    "button": "Reimposta"
+  }
+}

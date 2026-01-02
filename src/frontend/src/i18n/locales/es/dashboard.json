@@ -1,0 +1,68 @@
+{
+  "title": "Panel de control",
+  "autoRefresh": "Auto",
+  "systemActive": "Sistema activo",
+  "uptime": "Tiempo de actividad",
+  "cpu": "CPU",
+  "memory": "Memoria",
+  "disk": "Disco",
+  "network": "Red",
+  "services": {
+    "title": "Servicios",
+    "healthy": "{{healthy}}/{{enabled}}",
+    "noServices": "Sin servicios configurados",
+    "off": "apagado"
+  },
+  "mcp": {
+    "title": "Pasarela MCP",
+    "requests": "solicitudes",
+    "success": "éxito",
+    "avgDuration": "ms promedio",
+    "byService": "Por servicio",
+    "byUser": "Por usuario",
+    "noRequests": "Sin solicitudes",
+    "noUsers": "Sin usuarios"
+  },
+  "users": {
+    "title": "Usuarios y grupos",
+    "totalUsers": "usuarios",
+    "totalGroups": "grupos",
+    "totalMappings": "asignaciones",
+    "mcpGroups": "Grupos MCP",
+    "userCount": "{{count}} usr",
+    "toolCount": "{{count}} herramientas",
+    "moreGroups": "+{{count}} grupos más",
+    "noGroups": "Sin grupos configurados",
+    "createGroup": "Crear un grupo"
+  },
+  "training": {
+    "title": "Entrenamiento IA",
+    "active": "{{count}} activo",
+    "actives": "{{count}} activos",
+    "prompts": "prompts",
+    "validated": "validados",
+    "sessions": "sesiones",
+    "completed": "completadas",
+    "workers": "trabajadores",
+    "byService": "Prompts por servicio",
+    "gpuWorkers": "Trabajadores GPU",
+    "noPrompts": "Sin prompts con etiqueta de servicio",
+    "noWorkers": "Sin trabajador configurado",
+    "ready": "Listo",
+    "training": "Entrenando",
+    "offline": "Sin conexión",
+    "successRate": "Tasa de éxito de sesiones",
+    "completedSessions": "Completadas",
+    "failedSessions": "Fallidas",
+    "activeSessions": "En progreso"
+  },
+  "observability": {
+    "title": "Observabilidad",
+    "period": "24h",
+    "logs": "Registros",
+    "errorRate": "Tasa de errores",
+    "network": "Red",
+    "alerts": "Alertas",
+    "totalPeriod": "Total 24h"
+  }
+}

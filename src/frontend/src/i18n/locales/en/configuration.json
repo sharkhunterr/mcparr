@@ -23,7 +23,10 @@
       "description": "Choose the interface language",
       "options": {
         "fr": "French",
-        "en": "English"
+        "en": "English",
+        "it": "Italian",
+        "de": "German",
+        "es": "Spanish"
       }
     },
     "autoRefresh": {

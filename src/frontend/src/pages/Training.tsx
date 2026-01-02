@@ -179,6 +179,7 @@ interface OllamaMetrics {
 
 // Components
 const StatusBadge = ({ status }: { status: string }) => {
+  const { t } = useTranslation('training');
   const colors: Record<string, string> = {
     pending: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
     preparing: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
@@ -192,9 +193,10 @@ const StatusBadge = ({ status }: { status: string }) => {
     not_configured: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300',
   };
 
+  const statusKey = status.replace('_', '') as keyof typeof colors;
   return (
     <span className={`px-2 py-1 text-xs font-medium rounded-full ${colors[status] || colors.pending}`}>
-      {status.replace('_', ' ')}
+      {t(`status.${statusKey}`, status.replace('_', ' '))}
     </span>
   );
 };
@@ -221,6 +223,7 @@ const AVAILABLE_SERVICES = [
 ];
 
 const DifficultyBadge = ({ difficulty }: { difficulty: string }) => {
+  const { t } = useTranslation('training');
   const colors: Record<string, string> = {
     basic: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
     intermediate: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
@@ -230,7 +233,7 @@ const DifficultyBadge = ({ difficulty }: { difficulty: string }) => {
 
   return (
     <span className={`px-2 py-1 text-xs font-medium rounded-full ${colors[difficulty] || colors.basic}`}>
-      {difficulty}
+      {t(`difficulty.${difficulty}`, difficulty)}
     </span>
   );
 };
@@ -296,16 +299,16 @@ const ProgressBar = ({ value, max, label }: { value: number; max: number; label?
 };
 
 // Phase display helper (used by TrainingOverview)
-export const getPhaseDisplay = (phase: string | undefined) => {
+export const getPhaseDisplay = (phase: string | undefined, t: (key: string, fallback?: string) => string) => {
   const phases: Record<string, { label: string; icon: React.ReactNode; color: string }> = {
-    preparing: { label: 'Préparation', icon: <Settings className="w-3 h-3 animate-spin" />, color: 'bg-blue-500' },
-    downloading: { label: 'Téléchargement modèle', icon: <Download className="w-3 h-3 animate-bounce" />, color: 'bg-cyan-500' },
-    training: { label: 'Entraînement', icon: <Brain className="w-3 h-3 animate-pulse" />, color: 'bg-purple-500' },
-    exporting: { label: 'Export GGUF', icon: <HardDrive className="w-3 h-3 animate-pulse" />, color: 'bg-orange-500' },
-    importing: { label: 'Import Ollama', icon: <Upload className="w-3 h-3 animate-bounce" />, color: 'bg-green-500' },
-    completed: { label: 'Terminé', icon: <CheckCircle className="w-3 h-3" />, color: 'bg-emerald-500' },
+    preparing: { label: t('phases.preparing'), icon: <Settings className="w-3 h-3 animate-spin" />, color: 'bg-blue-500' },
+    downloading: { label: t('phases.downloading'), icon: <Download className="w-3 h-3 animate-bounce" />, color: 'bg-cyan-500' },
+    training: { label: t('phases.training'), icon: <Brain className="w-3 h-3 animate-pulse" />, color: 'bg-purple-500' },
+    exporting: { label: t('phases.exporting'), icon: <HardDrive className="w-3 h-3 animate-pulse" />, color: 'bg-orange-500' },
+    importing: { label: t('phases.importing'), icon: <Upload className="w-3 h-3 animate-bounce" />, color: 'bg-green-500' },
+    completed: { label: t('phases.completed'), icon: <CheckCircle className="w-3 h-3" />, color: 'bg-emerald-500' },
   };
-  return phases[phase || ''] || { label: phase || 'En cours', icon: <Activity className="w-3 h-3 animate-pulse" />, color: 'bg-gray-500' };
+  return phases[phase || ''] || { label: phase || t('phases.inProgress'), icon: <Activity className="w-3 h-3 animate-pulse" />, color: 'bg-gray-500' };
 };
 
 // Sessions Tab
@@ -345,14 +348,14 @@ const SessionsTab = ({
       {/* Actions */}
       <div className="flex items-center justify-between bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
         <span className="text-sm text-gray-500">
-          {sessions.length} session{sessions.length !== 1 ? 's' : ''}
+          {t('sessions.count', { count: sessions.length })}
         </span>
         <button
           onClick={onCreate}
           className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
         >
           <Plus className="w-4 h-4" />
-          Nouvelle session
+          {t('sessions.newSession')}
         </button>
       </div>
 
@@ -421,22 +424,22 @@ const SessionsTab = ({
                 <div className="px-4 pb-4 border-t border-gray-200 dark:border-gray-700">
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
                     <div>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">Créé le</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">{t('sessions.createdAt')}</p>
                       <p className="text-sm text-gray-900 dark:text-white">{formatDate(session.created_at)}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">Démarré le</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">{t('sessions.startedAt')}</p>
                       <p className="text-sm text-gray-900 dark:text-white">{formatDate(session.started_at)}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">Epochs</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">{t('sessions.epochs')}</p>
                       <p className="text-sm text-gray-900 dark:text-white">
                         {session.current_epoch} / {session.total_epochs}
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">Dataset</p>
-                      <p className="text-sm text-gray-900 dark:text-white">{session.dataset_size} prompts</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">{t('sessions.dataset')}</p>
+                      <p className="text-sm text-gray-900 dark:text-white">{session.dataset_size} {t('sessions.prompts')}</p>
                     </div>
                   </div>
 
@@ -445,7 +448,7 @@ const SessionsTab = ({
                       <div className="flex items-center gap-2">
                         <Cpu className="w-4 h-4 text-gray-400" />
                         <div>
-                          <p className="text-xs text-gray-500">Loss</p>
+                          <p className="text-xs text-gray-500">{t('sessions.loss')}</p>
                           <p className="text-sm font-medium">{session.loss.toFixed(4)}</p>
                         </div>
                       </div>
@@ -453,7 +456,7 @@ const SessionsTab = ({
                         <div className="flex items-center gap-2">
                           <HardDrive className="w-4 h-4 text-gray-400" />
                           <div>
-                            <p className="text-xs text-gray-500">GPU Memory</p>
+                            <p className="text-xs text-gray-500">{t('sessions.gpuMemory')}</p>
                             <p className="text-sm font-medium">{session.gpu_memory_used.toFixed(1)} GB</p>
                           </div>
                         </div>
@@ -483,7 +486,7 @@ const SessionsTab = ({
                           className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 flex items-center gap-1"
                         >
                           <Edit className="w-3.5 h-3.5" />
-                          Gérer les prompts ({session.dataset_size})
+                          {t('sessions.managePromptsCount', { count: session.dataset_size })}
                         </button>
                         <button
                           onClick={(e) => {
@@ -492,10 +495,10 @@ const SessionsTab = ({
                           }}
                           disabled={session.dataset_size === 0}
                           className="px-3 py-1.5 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
-                          title={session.dataset_size === 0 ? 'Ajoutez des prompts avant de démarrer' : ''}
+                          title={session.dataset_size === 0 ? t('sessions.addPromptsBeforeStart') : ''}
                         >
                           <Play className="w-3.5 h-3.5" />
-                          Démarrer
+                          {t('sessions.start')}
                         </button>
                       </>
                     )}
@@ -531,7 +534,7 @@ const SessionsTab = ({
                       className="px-3 py-1.5 bg-gray-600 text-white text-sm rounded-lg hover:bg-gray-700 flex items-center gap-1"
                     >
                       <Copy className="w-3.5 h-3.5" />
-                      Dupliquer
+                      {t('sessions.duplicate')}
                     </button>
                     <button
                       onClick={(e) => {
@@ -541,7 +544,7 @@ const SessionsTab = ({
                       className="px-3 py-1.5 bg-purple-600 text-white text-sm rounded-lg hover:bg-purple-700 flex items-center gap-1"
                     >
                       <Eye className="w-3.5 h-3.5" />
-                      Details
+                      {t('sessions.details')}
                     </button>
                     {['completed', 'failed', 'cancelled'].includes(session.status) && (
                       <button
@@ -552,7 +555,7 @@ const SessionsTab = ({
                         className="px-3 py-1.5 bg-gray-500 text-white text-sm rounded-lg hover:bg-gray-600 flex items-center gap-1"
                       >
                         <FileText className="w-3.5 h-3.5" />
-                        Logs
+                        {t('sessions.logs')}
                       </button>
                     )}
                   </div>
@@ -566,7 +569,7 @@ const SessionsTab = ({
           <Brain className="w-12 h-12 text-gray-400 mx-auto mb-4" />
           <p className="text-gray-500 dark:text-gray-400">{t('sessions.noSessions')}</p>
           <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
-            Créez une nouvelle session pour commencer
+            {t('sessions.noSessionsHint')}
           </p>
         </div>
       )}
@@ -668,7 +671,7 @@ const ModelsTab = ({
         </div>
         <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
           <Brain className="w-4 h-4" />
-          <span>{models.length} modèles</span>
+          <span>{t('models.modelCountValue', { count: models.length })}</span>
           <span className="text-gray-300 dark:text-gray-600">•</span>
           <HardDrive className="w-4 h-4" />
           <span>{totalSize.toFixed(1)} GB</span>
@@ -691,22 +694,22 @@ const ModelsTab = ({
             <thead className="bg-gray-50 dark:bg-gray-900/50">
               <tr>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Modèle
+                  {t('models.model')}
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden sm:table-cell">
-                  Famille
+                  {t('models.family')}
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden md:table-cell">
-                  Paramètres
+                  {t('models.parameterSize')}
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Taille
+                  {t('models.size')}
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden lg:table-cell">
-                  Modifié
+                  {t('models.modified')}
                 </th>
                 <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Actions
+                  {t('models.actions')}
                 </th>
               </tr>
             </thead>
@@ -718,7 +721,7 @@ const ModelsTab = ({
                       <div className="relative">
                         <Brain className="w-5 h-5 text-purple-500 flex-shrink-0" />
                         {isModelRunning(model.name) && (
-                          <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-green-500 rounded-full" title="Chargé en mémoire" />
+                          <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-green-500 rounded-full" title={t('models.loadedInMemory')} />
                         )}
                       </div>
                       <div>
@@ -728,7 +731,7 @@ const ModelsTab = ({
                           </p>
                           {isModelRunning(model.name) && (
                             <span className="px-1.5 py-0.5 text-xs bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded">
-                              Chargé
+                              {t('models.loaded')}
                             </span>
                           )}
                         </div>
@@ -882,7 +885,7 @@ const PromptsTab = ({
           onChange={(e) => setServiceFilter(e.target.value)}
           className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
         >
-          <option value="">Tous les services ({prompts.length})</option>
+          <option value="">{t('prompts.allServicesCount', { count: prompts.length })}</option>
           <option value="plex">🎬 Plex ({serviceCounts['plex'] || 0})</option>
           <option value="tautulli">📊 Tautulli ({serviceCounts['tautulli'] || 0})</option>
           <option value="overseerr">🎯 Overseerr ({serviceCounts['overseerr'] || 0})</option>
@@ -890,7 +893,7 @@ const PromptsTab = ({
           <option value="sonarr">📺 Sonarr ({serviceCounts['sonarr'] || 0})</option>
           <option value="prowlarr">🔍 Prowlarr ({serviceCounts['prowlarr'] || 0})</option>
           <option value="jackett">🧥 Jackett ({serviceCounts['jackett'] || 0})</option>
-          <option value="system">⚙️ Système ({serviceCounts['system'] || 0})</option>
+          <option value="system">⚙️ System ({serviceCounts['system'] || 0})</option>
           <option value="zammad">🎫 Zammad ({serviceCounts['zammad'] || 0})</option>
         </select>
         <div className="flex items-center gap-2">
@@ -900,28 +903,28 @@ const PromptsTab = ({
             title={t('prompts.deleteAll')}
           >
             <Zap className="w-4 h-4" />
-            Reset Prompts
+            {t('prompts.resetPrompts')}
           </button>
           <button
             onClick={onImport}
             className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2"
           >
             <Upload className="w-4 h-4" />
-            Importer
+            {t('prompts.import')}
           </button>
           <button
             onClick={onExport}
             className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2"
           >
             <Download className="w-4 h-4" />
-            Exporter
+            {t('prompts.export')}
           </button>
           <button
             onClick={onCreate}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
           >
             <Plus className="w-4 h-4" />
-            Nouveau
+            {t('prompts.new')}
           </button>
         </div>
       </div>
@@ -962,7 +965,7 @@ const PromptsTab = ({
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-xs text-gray-400">
-                      {prompt.times_used} utilisations
+                      {t('prompts.timesUsedCount', { count: prompt.times_used })}
                     </span>
                     {expandedPrompt === prompt.id ? (
                       <ChevronUp className="w-5 h-5 text-gray-400" />
@@ -979,7 +982,7 @@ const PromptsTab = ({
                   {prompt.system_prompt && (
                     <div className="mt-4">
                       <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
-                        System Prompt
+                        {t('prompts.systemPrompt')}
                       </p>
                       <pre className="text-sm bg-gray-50 dark:bg-gray-900 p-3 rounded-lg overflow-x-auto whitespace-pre-wrap">
                         {prompt.system_prompt}
@@ -989,7 +992,7 @@ const PromptsTab = ({
 
                   <div>
                     <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
-                      Input utilisateur
+                      {t('prompts.userInput')}
                     </p>
                     <pre className="text-sm bg-gray-50 dark:bg-gray-900 p-3 rounded-lg overflow-x-auto whitespace-pre-wrap">
                       {prompt.user_input}
@@ -999,7 +1002,7 @@ const PromptsTab = ({
                   {/* Tool calling display */}
                   {prompt.tool_call && (
                     <div className="space-y-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                      <p className="text-xs font-semibold text-blue-700 dark:text-blue-300">Tool Call</p>
+                      <p className="text-xs font-semibold text-blue-700 dark:text-blue-300">{t('prompts.toolCall')}</p>
                       <pre className="text-sm bg-white dark:bg-gray-900 p-2 rounded overflow-x-auto">
                         {JSON.stringify(prompt.tool_call, null, 2)}
                       </pre>
@@ -1008,7 +1011,7 @@ const PromptsTab = ({
 
                   {prompt.tool_response && (
                     <div className="space-y-2 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
-                      <p className="text-xs font-semibold text-green-700 dark:text-green-300">Tool Response</p>
+                      <p className="text-xs font-semibold text-green-700 dark:text-green-300">{t('prompts.toolResponse')}</p>
                       <pre className="text-sm bg-white dark:bg-gray-900 p-2 rounded overflow-x-auto max-h-32">
                         {JSON.stringify(prompt.tool_response, null, 2)}
                       </pre>
@@ -1017,7 +1020,7 @@ const PromptsTab = ({
 
                   {prompt.assistant_response ? (
                     <div className="space-y-2 p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
-                      <p className="text-xs font-semibold text-purple-700 dark:text-purple-300">Réponse finale</p>
+                      <p className="text-xs font-semibold text-purple-700 dark:text-purple-300">{t('prompts.assistantResponse')}</p>
                       <pre className="text-sm bg-white dark:bg-gray-900 p-2 rounded overflow-x-auto whitespace-pre-wrap max-h-48">
                         {prompt.assistant_response}
                       </pre>
@@ -1025,7 +1028,7 @@ const PromptsTab = ({
                   ) : (
                     <div>
                       <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
-                        Sortie attendue
+                        {t('prompts.expectedOutput')}
                       </p>
                       <pre className="text-sm bg-gray-50 dark:bg-gray-900 p-3 rounded-lg overflow-x-auto whitespace-pre-wrap max-h-48">
                         {prompt.expected_output}
@@ -1053,7 +1056,7 @@ const PromptsTab = ({
                         className="px-3 py-1.5 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 flex items-center gap-1"
                       >
                         <CheckCircle className="w-3.5 h-3.5" />
-                        Valider
+                        {t('prompts.validate')}
                       </button>
                     )}
                     <button
@@ -1077,7 +1080,7 @@ const PromptsTab = ({
           <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
           <p className="text-gray-500 dark:text-gray-400">{t('prompts.noPrompts')}</p>
           <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
-            Ajoutez des prompts pour entraîner vos modèles
+            {t('prompts.noPromptsHint')}
           </p>
         </div>
       )}
@@ -1268,15 +1271,15 @@ const SessionModal = ({
         <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
           <div>
             <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-              Nouvelle session d'entraînement
+              {t('sessions.newSessionTitle')}
             </h3>
             <div className="flex items-center gap-2 mt-1">
               <span className={`px-2 py-0.5 text-xs rounded-full ${step === 1 ? 'bg-blue-600 text-white' : 'bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300'}`}>
-                1. Configuration
+                {t('sessions.step1')}
               </span>
               <span className="text-gray-400">→</span>
               <span className={`px-2 py-0.5 text-xs rounded-full ${step === 2 ? 'bg-blue-600 text-white' : 'bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300'}`}>
-                2. Sélection des prompts
+                {t('sessions.step2')}
               </span>
             </div>
           </div>
@@ -1289,28 +1292,28 @@ const SessionModal = ({
         {step === 1 && (
           <div className="p-4 space-y-4 overflow-y-auto">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nom *</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('sessions.nameRequired')}</label>
               <input
                 type="text"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                placeholder="Ma session d'entraînement"
+                placeholder={t('sessions.sessionPlaceholder')}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('sessions.description')}</label>
               <textarea
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 rows={2}
-                placeholder="Description optionnelle..."
+                placeholder={t('sessions.descriptionPlaceholder')}
               />
             </div>
             {/* Training Method Selection - MOVED BEFORE MODEL SELECTION */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Méthode d'entraînement</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('sessions.trainingMethod')}</label>
               <div className="space-y-2">
                 <label className={`flex items-start p-3 border rounded-lg cursor-pointer transition-colors ${
                   formData.training_backend === 'ollama_modelfile'
@@ -1327,13 +1330,13 @@ const SessionModal = ({
                   />
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="font-medium text-gray-900 dark:text-white">Modelfile (rapide)</span>
+                      <span className="font-medium text-gray-900 dark:text-white">{t('sessions.modelfileMethod')}</span>
                       <span className="px-2 py-0.5 text-xs bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 rounded">
-                        Recommandé
+                        {t('sessions.recommended')}
                       </span>
                     </div>
                     <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                      Crée un modèle Ollama avec les exemples intégrés. Pas de GPU requis.
+                      {t('sessions.modelfileDescription')}
                     </p>
                   </div>
                 </label>
@@ -1352,13 +1355,13 @@ const SessionModal = ({
                   />
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="font-medium text-gray-900 dark:text-white">Fine-tuning GPU (Unsloth)</span>
+                      <span className="font-medium text-gray-900 dark:text-white">{t('sessions.unslothMethod')}</span>
                       <span className="px-2 py-0.5 text-xs bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300 rounded flex items-center gap-1">
-                        <Zap className="w-3 h-3" /> GPU requis
+                        <Zap className="w-3 h-3" /> {t('sessions.gpuRequired')}
                       </span>
                     </div>
                     <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                      Fine-tuning LoRA sur worker GPU distant. Meilleurs résultats.
+                      {t('sessions.unslothDescription')}
                     </p>
                   </div>
                 </label>
@@ -1368,7 +1371,7 @@ const SessionModal = ({
             {/* Model Selection - changes based on training backend */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                {formData.training_backend === 'unsloth' ? 'Modèle de base *' : 'Modèle Ollama *'}
+                {formData.training_backend === 'unsloth' ? t('sessions.baseModel') + ' *' : t('models.model') + ' Ollama *'}
               </label>
               {formData.training_backend === 'unsloth' ? (
                 <select
@@ -1396,9 +1399,9 @@ const SessionModal = ({
                   }}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 >
-                  <option value="">Sélectionner un modèle</option>
+                  <option value="">{t('sessions.selectModel')}</option>
                   {loraAdapters.length > 0 && (
-                    <optgroup label="🔄 Modèles entraînés (entraînement incrémental)">
+                    <optgroup label={'🔄 ' + t('sessions.trainedModels')}>
                       {loraAdapters.map((adapter) => (
                         <option key={adapter.path} value={adapter.path}>
                           {adapter.session_name || adapter.adapter_name} ({adapter.prompts_count || '?'} prompts, {adapter.size_mb?.toFixed(1) || '?'} MB)
@@ -1406,7 +1409,7 @@ const SessionModal = ({
                       ))}
                     </optgroup>
                   )}
-                  <optgroup label="📦 Modèles HuggingFace (nouvel entraînement)">
+                  <optgroup label={'📦 ' + t('sessions.huggingfaceModels')}>
                     {huggingfaceModels.map((model) => (
                       <option key={model.name} value={model.name}>
                         {model.description} ({model.size})
@@ -1420,7 +1423,7 @@ const SessionModal = ({
                   onChange={(e) => setFormData({ ...formData, base_model: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 >
-                  <option value="">Sélectionner un modèle Ollama</option>
+                  <option value="">{t('sessions.selectOllamaModel')}</option>
                   {models.map((model) => (
                     <option key={model.name} value={model.name}>
                       {model.name} ({model.size_gb.toFixed(1)} GB)
@@ -1437,10 +1440,10 @@ const SessionModal = ({
                     </span>
                   ) : formData.base_adapter_path ? (
                     <span className="text-blue-500 dark:text-blue-400">
-                      ⚡ Entraînement incrémental : les nouveaux prompts s'ajouteront aux connaissances existantes
+                      ⚡ {t('sessions.incrementalTraining')}
                     </span>
                   ) : (
-                    'Modèles optimisés 4-bit pour GTX 1080 Ti (11GB VRAM)'
+                    t('sessions.optimizedModels')
                   )}
                 </p>
               )}
@@ -1456,17 +1459,16 @@ const SessionModal = ({
                 className="mt-1"
               />
               <label htmlFor="overwrite_existing" className="cursor-pointer">
-                <span className="font-medium text-gray-900 dark:text-white">Écraser le modèle existant</span>
+                <span className="font-medium text-gray-900 dark:text-white">{t('sessions.overwriteExisting')}</span>
                 <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                  Si un modèle avec le même nom existe déjà dans Ollama, il sera remplacé.
-                  Sinon, une erreur se produira si le nom est déjà pris.
+                  {t('sessions.overwriteDescription')}
                 </p>
               </label>
             </div>
 
             {/* Worker Selection */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Worker d'entraînement</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('sessions.trainingWorker')}</label>
               {loadingWorkers ? (
                 <div className="flex items-center gap-2 p-3 text-gray-500 dark:text-gray-400">
                   <RefreshCw className="w-4 h-4 animate-spin" />
@@ -1479,7 +1481,7 @@ const SessionModal = ({
                     <span>{t('workers.noWorkers')}</span>
                   </div>
                   <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
-                    Configurez un worker dans les paramètres pour activer l'entraînement.
+                    {t('sessions.configureWorkerHint')}
                   </p>
                 </div>
               ) : (
@@ -1520,21 +1522,21 @@ const SessionModal = ({
                             {isOnline ? (
                               hasGpu ? (
                                 <span className="px-2 py-0.5 text-xs bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 rounded">
-                                  GPU: {worker.gpu_names?.[0] || 'Disponible'}
+                                  {t('sessions.gpuAvailable', { name: worker.gpu_names?.[0] || 'GPU' })}
                                 </span>
                               ) : (
                                 <span className="px-2 py-0.5 text-xs bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 rounded">
-                                  CPU only
+                                  {t('sessions.cpuOnly')}
                                 </span>
                               )
                             ) : (
                               <span className="px-2 py-0.5 text-xs bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300 rounded">
-                                Hors ligne
+                                {t('sessions.offline')}
                               </span>
                             )}
                             {worker.current_job_id && (
                               <span className="px-2 py-0.5 text-xs bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300 rounded flex items-center gap-1">
-                                <Activity className="w-3 h-3" /> Occupé
+                                <Activity className="w-3 h-3" /> {t('sessions.busy')}
                               </span>
                             )}
                           </div>
@@ -1552,7 +1554,7 @@ const SessionModal = ({
             </div>
             <div className="grid grid-cols-3 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Epochs</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('sessions.epochs')}</label>
                 <input
                   type="number"
                   min="1"
@@ -1562,7 +1564,7 @@ const SessionModal = ({
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Batch size</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('sessions.batchSize')}</label>
                 <input
                   type="number"
                   min="1"
@@ -1572,7 +1574,7 @@ const SessionModal = ({
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Learning rate</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('sessions.learningRate')}</label>
                 <input
                   type="number"
                   step="0.00001"
@@ -1607,7 +1609,7 @@ const SessionModal = ({
                   onChange={(e) => setServiceFilter(e.target.value)}
                   className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
                 >
-                  <option value="">Tous les services</option>
+                  <option value="">{t('sessions.allServices')}</option>
                   {AVAILABLE_SERVICES.map((service) => (
                     <option key={service.id} value={service.id}>
                       {service.icon} {service.label}
@@ -1618,15 +1620,15 @@ const SessionModal = ({
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <button onClick={selectAll} className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400">
-                    Tout sélectionner
+                    {t('sessions.selectAll')}
                   </button>
                   <span className="text-gray-300 dark:text-gray-600">|</span>
                   <button onClick={selectNone} className="text-sm text-gray-500 hover:text-gray-600 dark:text-gray-400">
-                    Tout désélectionner
+                    {t('sessions.selectNone')}
                   </button>
                 </div>
                 <span className="text-sm text-gray-500 dark:text-gray-400">
-                  {selectedPrompts.size} sélectionné{selectedPrompts.size !== 1 ? 's' : ''} / {filteredPrompts.length}
+                  {t('sessions.selectedOfTotal', { selected: selectedPrompts.size, total: filteredPrompts.length })}
                 </span>
               </div>
             </div>
@@ -1688,7 +1690,7 @@ const SessionModal = ({
           <div>
             {step === 2 && (
               <span className="text-sm text-gray-500 dark:text-gray-400">
-                {selectedPrompts.size} prompt{selectedPrompts.size !== 1 ? 's' : ''} pour l'entraînement
+                {t('sessions.promptsForTraining', { count: selectedPrompts.size })}
               </span>
             )}
           </div>
@@ -1706,7 +1708,7 @@ const SessionModal = ({
                   disabled={!formData.name || !formData.base_model}
                   className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
                 >
-                  Suivant
+                  {t('sessions.next')}
                   <ChevronDown className="w-4 h-4 rotate-[-90deg]" />
                 </button>
               </>
@@ -1717,7 +1719,7 @@ const SessionModal = ({
                   className="px-4 py-2 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2"
                 >
                   <ChevronDown className="w-4 h-4 rotate-90" />
-                  Retour
+                  {t('sessions.back')}
                 </button>
                 <button
                   onClick={handleSubmit}
@@ -1826,7 +1828,7 @@ const PromptModal = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (formData.services.length === 0) {
-      alert('Veuillez sélectionner au moins un service');
+      alert(t('prompts.selectAtLeastOne'));
       return;
     }
     setSubmitting(true);
@@ -1916,15 +1918,15 @@ const PromptModal = ({
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Difficulté</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('difficulty.label')}</label>
               <select
                 value={formData.difficulty}
                 onChange={(e) => setFormData({ ...formData, difficulty: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               >
-                <option value="basic">Basique</option>
-                <option value="intermediate">Intermédiaire</option>
-                <option value="advanced">Avancé</option>
+                <option value="basic">{t('difficulty.basic')}</option>
+                <option value="intermediate">{t('difficulty.intermediate')}</option>
+                <option value="advanced">{t('difficulty.advanced')}</option>
               </select>
             </div>
           </div>
@@ -1955,34 +1957,34 @@ const PromptModal = ({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('prompts.description')}</label>
             <input
               type="text"
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-              placeholder="Description du prompt"
+              placeholder={t('prompts.descriptionPlaceholder')}
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">System Prompt</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('prompts.systemPrompt')}</label>
             <textarea
               value={formData.system_prompt}
               onChange={(e) => setFormData({ ...formData, system_prompt: e.target.value })}
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-mono text-sm"
               rows={3}
-              placeholder="Instructions système pour le modèle..."
+              placeholder={t('prompts.systemPromptPlaceholder')}
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Input utilisateur *</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('prompts.userInputRequired')}</label>
             <textarea
               required
               value={formData.user_input}
               onChange={(e) => setFormData({ ...formData, user_input: e.target.value })}
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-mono text-sm"
               rows={3}
-              placeholder="Question ou demande de l'utilisateur..."
+              placeholder={t('prompts.userInputPlaceholder')}
             />
           </div>
           {/* Tool Calling Toggle */}
@@ -1995,11 +1997,11 @@ const PromptModal = ({
                 className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
               />
               <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Utiliser Tool Calling
+                {t('prompts.useToolCalling')}
               </span>
             </label>
             <span className="text-xs text-gray-500 dark:text-gray-400">
-              (apprend au modèle à appeler des outils ET utiliser les résultats)
+              {t('prompts.toolCallingHint')}
             </span>
           </div>
 
@@ -2007,27 +2009,27 @@ const PromptModal = ({
             <>
               {/* Tool Call Section */}
               <div className="space-y-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                <h4 className="text-sm font-semibold text-blue-700 dark:text-blue-300">Tool Call (Appel d'outil)</h4>
+                <h4 className="text-sm font-semibold text-blue-700 dark:text-blue-300">{t('prompts.toolCall')}</h4>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nom du tool *</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('prompts.toolNameRequired')}</label>
                     <input
                       type="text"
                       required
                       value={formData.tool_call_name}
                       onChange={(e) => setFormData({ ...formData, tool_call_name: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-mono text-sm"
-                      placeholder="ex: system_get_health"
+                      placeholder={t('prompts.toolNamePlaceholder')}
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Arguments (JSON)</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('prompts.toolArguments')}</label>
                     <input
                       type="text"
                       value={formData.tool_call_arguments}
                       onChange={(e) => setFormData({ ...formData, tool_call_arguments: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-mono text-sm"
-                      placeholder='ex: {"service": "ollama"}'
+                      placeholder={t('prompts.toolArgumentsPlaceholder')}
                     />
                   </div>
                 </div>
@@ -2035,46 +2037,46 @@ const PromptModal = ({
 
               {/* Tool Response Section */}
               <div className="space-y-2 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
-                <label className="block text-sm font-semibold text-green-700 dark:text-green-300">Réponse du Tool (JSON) *</label>
+                <label className="block text-sm font-semibold text-green-700 dark:text-green-300">{t('prompts.toolResponseRequired')}</label>
                 <textarea
                   required
                   value={formData.tool_response}
                   onChange={(e) => setFormData({ ...formData, tool_response: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-mono text-sm"
                   rows={4}
-                  placeholder='{"status": "healthy", "version": "0.1.0", "services": [...]}'
+                  placeholder={t('prompts.toolResponsePlaceholder')}
                 />
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Réponse réaliste que le tool retournerait (utilisée pour l'entraînement)
+                  {t('prompts.toolResponseHint')}
                 </p>
               </div>
 
               {/* Final Assistant Response */}
               <div className="space-y-2 p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
-                <label className="block text-sm font-semibold text-purple-700 dark:text-purple-300">Réponse finale de l'assistant *</label>
+                <label className="block text-sm font-semibold text-purple-700 dark:text-purple-300">{t('prompts.assistantResponseRequired')}</label>
                 <textarea
                   required
                   value={formData.assistant_response}
                   onChange={(e) => setFormData({ ...formData, assistant_response: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-mono text-sm"
                   rows={4}
-                  placeholder="Le système est en bonne santé. Ollama version 0.1.0 est opérationnel avec 3 services actifs..."
+                  placeholder={t('prompts.assistantResponsePlaceholder')}
                 />
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Comment l'assistant doit synthétiser et présenter les données du tool
+                  {t('prompts.assistantResponseHint')}
                 </p>
               </div>
             </>
           ) : (
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Sortie attendue *</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('prompts.expectedOutputRequired')}</label>
               <textarea
                 required
                 value={formData.expected_output}
                 onChange={(e) => setFormData({ ...formData, expected_output: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-mono text-sm"
                 rows={4}
-                placeholder="Réponse attendue du modèle..."
+                placeholder={t('prompts.expectedOutputPlaceholder')}
               />
             </div>
           )}
@@ -2200,10 +2202,10 @@ const SessionPromptsModal = ({
         <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
           <div>
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-              Sélection des prompts
+              {t('sessions.promptsSelection')}
             </h3>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Session: {session.name}
+              {t('sessions.name')}: {session.name}
             </p>
           </div>
           <button
@@ -2232,7 +2234,7 @@ const SessionPromptsModal = ({
               onChange={(e) => setServiceFilter(e.target.value)}
               className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
             >
-              <option value="">Tous les services</option>
+              <option value="">{t('sessions.allServices')}</option>
               {AVAILABLE_SERVICES.map((service) => (
                 <option key={service.id} value={service.id}>
                   {service.icon} {service.label}
@@ -2246,18 +2248,18 @@ const SessionPromptsModal = ({
                 onClick={selectAll}
                 className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400"
               >
-                Tout sélectionner
+                {t('sessions.selectAll')}
               </button>
               <span className="text-gray-300 dark:text-gray-600">|</span>
               <button
                 onClick={selectNone}
                 className="text-sm text-gray-500 hover:text-gray-600 dark:text-gray-400"
               >
-                Tout désélectionner
+                {t('sessions.selectNone')}
               </button>
             </div>
             <span className="text-sm text-gray-500 dark:text-gray-400">
-              {selectedPrompts.size} sélectionné{selectedPrompts.size !== 1 ? 's' : ''} / {filteredPrompts.length} affiché{filteredPrompts.length !== 1 ? 's' : ''}
+              {t('sessions.selectedOfTotalDisplayed', { selected: selectedPrompts.size, displayed: filteredPrompts.length })}
             </span>
           </div>
         </div>
@@ -2328,7 +2330,7 @@ const SessionPromptsModal = ({
         {/* Footer */}
         <div className="flex items-center justify-between p-4 border-t border-gray-200 dark:border-gray-700">
           <span className="text-sm text-gray-500 dark:text-gray-400">
-            {selectedPrompts.size} prompt{selectedPrompts.size !== 1 ? 's' : ''} sera{selectedPrompts.size !== 1 ? 'ont' : ''} utilisé{selectedPrompts.size !== 1 ? 's' : ''} pour l'entraînement
+            {t('sessions.promptsWillBeUsed', { count: selectedPrompts.size })}
           </span>
           <div className="flex gap-3">
             <button
@@ -2530,7 +2532,7 @@ export default function Training() {
   };
 
   const handleDeleteSession = async (id: string) => {
-    if (!confirm('Êtes-vous sûr de vouloir supprimer cette session ?')) return;
+    if (!confirm(t('sessions.confirmDelete'))) return;
     try {
       await api.training.sessions.delete(id);
       fetchData();
@@ -2580,7 +2582,7 @@ export default function Training() {
   };
 
   const handleDeletePrompt = async (id: string) => {
-    if (!confirm('Êtes-vous sûr de vouloir supprimer ce prompt ?')) return;
+    if (!confirm(t('prompts.confirmDelete'))) return;
     try {
       await api.training.prompts.delete(id);
       fetchData();
@@ -2629,7 +2631,7 @@ export default function Training() {
       const prompts = JSON.parse(text);
       await api.training.prompts.import(Array.isArray(prompts) ? prompts : [prompts]);
       fetchData();
-      alert('Prompts importés avec succès');
+      alert(t('prompts.importSuccess'));
     } catch (error) {
       console.error('Failed to import prompts:', error);
       alert(t('errors.importFailed'));
@@ -2654,7 +2656,7 @@ export default function Training() {
   };
 
   const handleSeedPrompts = async (reset: boolean = false) => {
-    if (reset && !confirm('Ceci va supprimer TOUS les prompts existants et les remplacer par les prompts par défaut. Continuer ?')) {
+    if (reset && !confirm(t('prompts.confirmResetAll'))) {
       return;
     }
     try {
@@ -2674,10 +2676,10 @@ export default function Training() {
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
             <Brain className="w-6 h-6 sm:w-8 sm:h-8 text-purple-600" />
-            Training IA
+            {t('title')}
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            Entraînement et fine-tuning avec Ollama
+            {t('subtitle')}
           </p>
         </div>
         <button
@@ -2693,11 +2695,11 @@ export default function Training() {
       <div className="mb-4 sm:mb-6 overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
         <nav className="flex gap-1.5 sm:gap-2 min-w-max sm:min-w-0 sm:flex-wrap">
           {[
-            { id: 'overview' as const, label: 'Stats', labelFull: 'Vue générale', icon: BarChart3 },
-            { id: 'sessions' as const, label: 'Sessions', labelFull: 'Sessions d\'entraînement', icon: History },
-            { id: 'prompts' as const, label: 'Prompts', labelFull: 'Prompts d\'entraînement', icon: FileText },
-            { id: 'workers' as const, label: 'Workers', labelFull: 'Workers GPU', icon: Monitor },
-            { id: 'models' as const, label: 'Models', labelFull: 'Modèles Ollama', icon: Brain },
+            { id: 'overview' as const, label: t('tabs.overviewShort'), labelFull: t('tabs.overviewFull'), icon: BarChart3 },
+            { id: 'sessions' as const, label: t('tabs.sessions'), labelFull: t('tabs.sessionsFull'), icon: History },
+            { id: 'prompts' as const, label: t('tabs.prompts'), labelFull: t('tabs.promptsFull'), icon: FileText },
+            { id: 'workers' as const, label: t('tabs.workers'), labelFull: t('tabs.workersFull'), icon: Monitor },
+            { id: 'models' as const, label: t('tabs.models'), labelFull: t('tabs.modelsFull'), icon: Brain },
           ].map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;

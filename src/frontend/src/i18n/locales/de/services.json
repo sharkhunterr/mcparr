@@ -1,0 +1,71 @@
+{
+  "title": "Dienste",
+  "subtitle": "{{count}} konfigurierter Dienst",
+  "subtitle_plural": "{{count}} konfigurierte Dienste",
+
+  "actions": {
+    "testAll": "Alle testen",
+    "testConnection": "Verbindung testen",
+    "toggleService": "Aktivieren/Deaktivieren"
+  },
+
+  "table": {
+    "headers": {
+      "service": "Dienst",
+      "url": "URL",
+      "status": "Status",
+      "test": "Test",
+      "actions": "Aktionen"
+    }
+  },
+
+  "status": {
+    "off": "Aus",
+    "ok": "OK",
+    "error": "Fehler",
+    "na": "N/A",
+    "disabled": "Deaktiviert",
+    "online": "Online",
+    "offline": "Offline",
+    "unknown": "Unbekannt"
+  },
+
+  "time": {
+    "never": "Nie",
+    "justNow": "Gerade eben",
+    "minutesAgo": "{{count}} Min.",
+    "hoursAgo": "{{count}}h",
+    "daysAgo": "{{count}}T"
+  },
+
+  "empty": {
+    "title": "Keine Dienste konfiguriert",
+    "description": "Beginnen Sie mit dem Hinzufügen Ihres ersten Dienstes.",
+    "action": "Dienst hinzufügen"
+  },
+
+  "testAll": {
+    "title": "Alle Dienste werden getestet",
+    "subtitle": "{{count}} aktivierter Dienst",
+    "subtitle_plural": "{{count}} aktivierte Dienste",
+    "testing": "Tests werden durchgeführt...",
+    "close": "Schließen",
+    "summary": {
+      "ok": "OK",
+      "error": "Fehler",
+      "inProgress": "In Bearbeitung"
+    }
+  },
+
+  "confirm": {
+    "delete": "Möchten Sie diesen Dienst wirklich löschen?"
+  },
+
+  "errors": {
+    "fetchFailed": "Fehler beim Abrufen der Dienste",
+    "createFailed": "Fehler beim Erstellen des Dienstes",
+    "updateFailed": "Fehler beim Aktualisieren des Dienstes",
+    "deleteFailed": "Fehler beim Löschen des Dienstes",
+    "toggleFailed": "Fehler beim Umschalten des Dienstes"
+  }
+}

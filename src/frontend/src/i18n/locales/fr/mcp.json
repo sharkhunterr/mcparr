@@ -22,23 +22,45 @@
 
   "stats": {
     "title": "Statistiques MCP",
+    "loading": "Chargement des données MCP...",
     "totalRequests": "Total Requêtes",
     "successRate": "Taux de Succès",
     "avgDuration": "Durée Moyenne",
     "periodHours": "Période ({{hours}}h)",
+    "lastHours": "Dernières {{hours}}h",
+    "completed": "{{count}} terminées",
+    "perRequest": "Par requête",
+    "errorsEncountered": "Erreurs rencontrées",
     "requestsOverTime": "Requêtes dans le Temps",
     "statusDistribution": "Distribution des Statuts",
     "total": "total",
     "byCategory": "Par Catégorie",
     "byService": "Par Service",
+    "byStatus": "Par Statut",
     "byUser": "Par Utilisateur",
     "topTools": "Outils les Plus Utilisés",
+    "noToolUsageData": "Aucune donnée d'utilisation des outils",
     "noData": "Aucune donnée disponible",
     "noUsageData": "Aucune donnée d'utilisation",
     "usage": "utilisation",
     "success": "Succès",
     "failed": "Échoué",
-    "noDataForPeriod": "Pas de données"
+    "noDataForPeriod": "Pas de données",
+    "avgDurationByService": "Durée moyenne par service",
+    "highlights": "Points Clés",
+    "mostUsed": "Plus utilisé",
+    "fastest": "Plus rapide",
+    "reliability": "Fiabilité",
+    "excellent": "Excellente",
+    "good": "Correcte",
+    "needsAttention": "À surveiller",
+    "requestsByUser": "Requêtes par utilisateur",
+    "servicesByUser": "Services par utilisateur",
+    "timeRange1h": "1h",
+    "timeRange6h": "6h",
+    "timeRange24h": "24h",
+    "timeRange3d": "3j",
+    "timeRange7d": "7j"
   },
 
   "history": {
@@ -49,7 +71,9 @@
       "category": "Catégorie",
       "service": "Service",
       "user": "Utilisateur",
-      "timeRange": "Période"
+      "timeRange": "Période",
+      "allCategories": "Toutes les catégories",
+      "allStatuses": "Tous les statuts"
     },
     "columns": {
       "time": "Heure",
@@ -59,7 +83,9 @@
       "user": "Utilisateur"
     },
     "noRequests": "Aucune requête trouvée",
-    "loadMore": "Charger plus"
+    "loadMore": "Charger plus",
+    "totalRequests": "{{count}} requêtes au total",
+    "by": "par"
   },
 
   "tools": {

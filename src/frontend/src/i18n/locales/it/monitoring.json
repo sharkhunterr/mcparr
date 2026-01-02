@@ -1,0 +1,99 @@
+{
+  "title": "Monitoraggio",
+  "subtitle": "Monitoraggio del sistema in tempo reale",
+
+  "tabs": {
+    "metrics": "Metriche",
+    "logs": "Log",
+    "alerts": "Avvisi"
+  },
+
+  "autoRefresh": "Auto",
+  "updatedAt": "Aggiornato",
+
+  "systemResources": {
+    "title": "Risorse di sistema",
+    "cpu": "CPU",
+    "memory": "Memoria",
+    "disk": "Disco",
+    "uptime": "Tempo di attivita",
+    "loadAvg": "Carico medio",
+    "failed": "Impossibile recuperare le metriche di sistema"
+  },
+
+  "metrics": {
+    "services": "Servizi",
+    "healthyServices": "funzionanti",
+    "activeAlerts": "Avvisi attivi",
+    "configs": "configurazioni",
+    "logs24h": "Log (24h)",
+    "errorRate": "errori",
+    "networkIO": "I/O di rete",
+    "totalTransferred": "Totale trasferito",
+    "loadingMetrics": "Caricamento metriche..."
+  },
+
+  "serviceContinuity": {
+    "title": "Continuita del servizio",
+    "ok": "OK",
+    "error": "Errore",
+    "noHistory": "Nessuno storico disponibile. Testi i servizi per generare dati.",
+    "noTest": "Nessun test"
+  },
+
+  "status": {
+    "error": "Errore"
+  },
+
+  "activate": "Attiva",
+
+  "actions": {
+    "refresh": "Aggiorna"
+  },
+
+  "scheduler": {
+    "title": "Test automatici",
+    "active": "Attivo - ogni {{interval}} min",
+    "disabled": "Disabilitato",
+    "lastRun": "Ultimo",
+    "settings": "Impostazioni",
+    "interval": "Intervallo",
+    "test": "Test",
+    "stop": "Ferma",
+    "enable": "Abilita",
+    "never": "Mai",
+    "intervals": {
+      "5min": "5 min",
+      "15min": "15 min",
+      "30min": "30 min",
+      "1hour": "1 ora"
+    }
+  },
+
+  "logDistribution": {
+    "byLevel": "Log per livello (24h)",
+    "bySource": "Log per origine (24h)",
+    "debug": "debug",
+    "info": "info",
+    "warning": "avviso",
+    "error": "errore",
+    "critical": "critico"
+  },
+
+  "alertSummary": {
+    "title": "Avvisi attivi ({{count}})",
+    "severity": {
+      "low": "basso",
+      "medium": "medio",
+      "high": "alto",
+      "critical": "critico"
+    },
+    "resolved24h": "{{count}} avvisi risolti nelle ultime 24 ore"
+  },
+
+  "uptime": {
+    "days": "{{days}}g {{hours}}h",
+    "hours": "{{hours}}h {{minutes}}m",
+    "minutes": "{{minutes}}m"
+  }
+}

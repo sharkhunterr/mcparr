@@ -311,11 +311,14 @@ export default function Configuration() {
           </div>
           <select
             value={settings.language}
-            onChange={(e) => updateSettings({ language: e.target.value as 'fr' | 'en' })}
+            onChange={(e) => updateSettings({ language: e.target.value as 'fr' | 'en' | 'it' | 'de' | 'es' })}
             className="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
           >
             <option value="fr">{t('general.language.options.fr')}</option>
             <option value="en">{t('general.language.options.en')}</option>
+            <option value="it">{t('general.language.options.it')}</option>
+            <option value="de">{t('general.language.options.de')}</option>
+            <option value="es">{t('general.language.options.es')}</option>
           </select>
         </div>
 

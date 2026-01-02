@@ -120,6 +120,7 @@ const StatusBadge = ({ status }: { status: string }) => {
 
 // Stacked bar chart component for hourly usage with success/failure breakdown
 const HourlyUsageChart = ({ data, timeRange }: { data: McpHourlyUsage[]; timeRange: number }) => {
+  const { t } = useTranslation('mcp');
   // Generate all hours for the timeRange with 0 values for missing hours
   // Backend uses UTC, so we need to generate UTC hours for matching
   const now = new Date();
@@ -154,20 +155,20 @@ const HourlyUsageChart = ({ data, timeRange }: { data: McpHourlyUsage[]; timeRan
     <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-          Requests Over Time
+          {t('stats.requestsOverTime')}
         </h3>
         <div className="flex items-center gap-3 text-xs">
           <div className="flex items-center gap-1">
             <div className="w-3 h-3 rounded-sm bg-green-500" />
-            <span className="text-gray-500 dark:text-gray-400">Success</span>
+            <span className="text-gray-500 dark:text-gray-400">{t('stats.success')}</span>
           </div>
           <div className="flex items-center gap-1">
             <div className="w-3 h-3 rounded-sm bg-red-500" />
-            <span className="text-gray-500 dark:text-gray-400">Failed</span>
+            <span className="text-gray-500 dark:text-gray-400">{t('stats.failed')}</span>
           </div>
           <div className="flex items-center gap-1">
             <div className="w-3 h-3 rounded-sm bg-gray-300 dark:bg-gray-600" />
-            <span className="text-gray-500 dark:text-gray-400">No data</span>
+            <span className="text-gray-500 dark:text-gray-400">{t('stats.noDataForPeriod')}</span>
           </div>
         </div>
       </div>
@@ -283,12 +284,13 @@ const StatCard = ({ title, value, subtitle, color = 'blue' }: {
 
 // Donut chart component for status breakdown
 const StatusDonutChart = ({ data, total }: { data: Record<string, number>; total: number }) => {
-  const statusColors: Record<string, { stroke: string; fill: string; label: string }> = {
-    completed: { stroke: '#22c55e', fill: 'bg-green-500', label: 'Completed' },
-    failed: { stroke: '#ef4444', fill: 'bg-red-500', label: 'Failed' },
-    pending: { stroke: '#eab308', fill: 'bg-yellow-500', label: 'Pending' },
-    processing: { stroke: '#3b82f6', fill: 'bg-blue-500', label: 'Processing' },
-    cancelled: { stroke: '#6b7280', fill: 'bg-gray-500', label: 'Cancelled' },
+  const { t } = useTranslation('mcp');
+  const statusColors: Record<string, { stroke: string; fill: string }> = {
+    completed: { stroke: '#22c55e', fill: 'bg-green-500' },
+    failed: { stroke: '#ef4444', fill: 'bg-red-500' },
+    pending: { stroke: '#eab308', fill: 'bg-yellow-500' },
+    processing: { stroke: '#3b82f6', fill: 'bg-blue-500' },
+    cancelled: { stroke: '#6b7280', fill: 'bg-gray-500' },
   };
 
   const size = 120;
@@ -356,7 +358,7 @@ const StatusDonutChart = ({ data, total }: { data: Record<string, number>; total
         {/* Center text */}
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           <span className="text-2xl font-bold text-gray-900 dark:text-white">{total}</span>
-          <span className="text-xs text-gray-500 dark:text-gray-400">total</span>
+          <span className="text-xs text-gray-500 dark:text-gray-400">{t('stats.total')}</span>
         </div>
       </div>
 
@@ -368,7 +370,7 @@ const StatusDonutChart = ({ data, total }: { data: Record<string, number>; total
           return (
             <div key={status} className="flex items-center gap-2">
               <div className={`w-3 h-3 rounded-full ${statusColors[status]?.fill || 'bg-gray-500'}`} />
-              <span className="text-sm text-gray-700 dark:text-gray-300 capitalize">{status}</span>
+              <span className="text-sm text-gray-700 dark:text-gray-300">{t(`status.${status}`)}</span>
               <span className="text-sm font-semibold text-gray-900 dark:text-white">{count}</span>
               <span className="text-xs text-gray-500 dark:text-gray-400">({percentage}%)</span>
             </div>
@@ -1773,7 +1775,7 @@ export default function MCP() {
             MCP Server
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            Model Context Protocol - Analytics et historique
+            {t('subtitle')}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -1782,11 +1784,11 @@ export default function MCP() {
             onChange={(e) => setTimeRange(Number(e.target.value))}
             className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
           >
-            <option value={1}>1h</option>
-            <option value={6}>6h</option>
-            <option value={24}>24h</option>
-            <option value={72}>3j</option>
-            <option value={168}>7j</option>
+            <option value={1}>{t('stats.timeRange1h')}</option>
+            <option value={6}>{t('stats.timeRange6h')}</option>
+            <option value={24}>{t('stats.timeRange24h')}</option>
+            <option value={72}>{t('stats.timeRange3d')}</option>
+            <option value={168}>{t('stats.timeRange7d')}</option>
           </select>
           <button
             onClick={fetchData}
@@ -1830,7 +1832,7 @@ export default function MCP() {
       </div>
 
       {loading ? (
-        <div className="text-center py-12 text-gray-500">Loading MCP data...</div>
+        <div className="text-center py-12 text-gray-500">{t('stats.loading')}</div>
       ) : (
         <>
           {/* Overview Tab */}
@@ -1839,27 +1841,27 @@ export default function MCP() {
               {/* Stats Grid */}
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
                 <StatCard
-                  title="Total Requests"
+                  title={t('stats.totalRequests')}
                   value={stats?.total || 0}
-                  subtitle={`Last ${timeRange}h`}
+                  subtitle={t('stats.lastHours', { hours: timeRange })}
                   color="blue"
                 />
                 <StatCard
-                  title="Success Rate"
+                  title={t('stats.successRate')}
                   value={`${stats?.success_rate || 100}%`}
-                  subtitle={`${stats?.by_status?.completed || 0} completed`}
+                  subtitle={t('stats.completed', { count: stats?.by_status?.completed || 0 })}
                   color={stats?.success_rate && stats.success_rate < 90 ? 'red' : 'green'}
                 />
                 <StatCard
-                  title="Avg Duration"
+                  title={t('stats.avgDuration')}
                   value={formatDuration(stats?.average_duration_ms || null)}
-                  subtitle="Per request"
+                  subtitle={t('stats.perRequest')}
                   color="purple"
                 />
                 <StatCard
-                  title="Failed"
+                  title={t('stats.failed')}
                   value={stats?.by_status?.failed || 0}
-                  subtitle="Errors encountered"
+                  subtitle={t('stats.errorsEncountered')}
                   color={(stats?.by_status?.failed || 0) > 0 ? 'red' : 'gray'}
                 />
               </div>
@@ -1872,7 +1874,7 @@ export default function MCP() {
                 {/* Top Tools */}
                 <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow">
                   <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
-                    Top Tools
+                    {t('stats.topTools')}
                   </h3>
                   {toolUsage.length > 0 ? (
                     <div className="space-y-2">
@@ -1913,14 +1915,14 @@ export default function MCP() {
                       })}
                     </div>
                   ) : (
-                    <p className="text-gray-500 dark:text-gray-400">No tool usage data</p>
+                    <p className="text-gray-500 dark:text-gray-400">{t('stats.noToolUsageData')}</p>
                   )}
                 </div>
 
                 {/* By Service */}
                 <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow">
                   <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
-                    Par Service
+                    {t('stats.byService')}
                   </h3>
                   {Object.keys(usageByService).length > 0 ? (
                     <div className="space-y-3">
@@ -1975,7 +1977,7 @@ export default function MCP() {
                 {/* Status Donut - Compact */}
                 <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow">
                   <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-3">
-                    Par Status
+                    {t('stats.byStatus')}
                   </h3>
                   {stats?.by_status && Object.keys(stats.by_status).length > 0 ? (
                     <StatusDonutChart data={stats.by_status} total={stats.total} />
@@ -1989,7 +1991,7 @@ export default function MCP() {
                 {/* Performance by Service - Bar chart style */}
                 <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow">
                   <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-3">
-                    Durée moyenne par service
+                    {t('stats.avgDurationByService')}
                   </h3>
                   {toolUsage.length > 0 ? (
                     <div className="space-y-2">
@@ -2049,7 +2051,7 @@ export default function MCP() {
                 {/* Quick Stats Cards */}
                 <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow">
                   <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-3">
-                    Highlights
+                    {t('stats.highlights')}
                   </h3>
                   <div className="space-y-3">
                     {/* Most used tool */}
@@ -2059,7 +2061,7 @@ export default function MCP() {
                           <BarChart3 className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-xs text-gray-500 dark:text-gray-400">Plus utilisé</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">{t('stats.mostUsed')}</p>
                           <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
                             {toolUsage[0]?.tool_name.replace(/^(plex_|tautulli_|overseerr_|zammad_|komga_|ollama_|openwebui_)/, '')}
                           </p>
@@ -2077,7 +2079,7 @@ export default function MCP() {
                           <RefreshCw className="w-4 h-4 text-green-600 dark:text-green-400" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-xs text-gray-500 dark:text-gray-400">Plus rapide</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">{t('stats.fastest')}</p>
                           <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
                             {[...toolUsage].sort((a, b) => a.avg_duration_ms - b.avg_duration_ms)[0]?.tool_name.replace(/^(plex_|tautulli_|overseerr_|zammad_|komga_|ollama_|openwebui_)/, '')}
                           </p>
@@ -2113,9 +2115,9 @@ export default function MCP() {
                           }`} />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-xs text-gray-500 dark:text-gray-400">Fiabilité</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">{t('stats.reliability')}</p>
                           <p className="text-sm font-medium text-gray-900 dark:text-white">
-                            {stats.success_rate >= 95 ? 'Excellente' : stats.success_rate >= 80 ? 'Correcte' : 'À surveiller'}
+                            {stats.success_rate >= 95 ? t('stats.excellent') : stats.success_rate >= 80 ? t('stats.good') : t('stats.needsAttention')}
                           </p>
                         </div>
                         <span className={`text-sm font-bold ${
@@ -2138,7 +2140,7 @@ export default function MCP() {
                 {/* User Stats Chart */}
                 <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow">
                   <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
-                    Requêtes par utilisateur
+                    {t('stats.requestsByUser')}
                   </h3>
                   <UserStatsChart data={userStats} />
                 </div>
@@ -2146,7 +2148,7 @@ export default function MCP() {
                 {/* User Service Breakdown */}
                 <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow">
                   <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
-                    Services par utilisateur
+                    {t('stats.servicesByUser')}
                   </h3>
                   <UserServiceChart data={userServiceStats} />
                 </div>
@@ -2167,26 +2169,26 @@ export default function MCP() {
                   onChange={(e) => setCategoryFilter(e.target.value)}
                   className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 >
-                  <option value="">All Categories</option>
-                  <option value="media">Media</option>
-                  <option value="requests">Requests</option>
-                  <option value="support">Support</option>
-                  <option value="system">System</option>
-                  <option value="users">Users</option>
+                  <option value="">{t('history.filters.allCategories')}</option>
+                  <option value="media">{t('categories.media')}</option>
+                  <option value="requests">{t('categories.requests')}</option>
+                  <option value="support">{t('categories.support')}</option>
+                  <option value="system">{t('categories.system')}</option>
+                  <option value="users">{t('categories.users')}</option>
                 </select>
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
                   className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 >
-                  <option value="">All Statuses</option>
-                  <option value="pending">Pending</option>
-                  <option value="processing">Processing</option>
-                  <option value="completed">Completed</option>
-                  <option value="failed">Failed</option>
+                  <option value="">{t('history.filters.allStatuses')}</option>
+                  <option value="pending">{t('status.pending')}</option>
+                  <option value="processing">{t('status.processing')}</option>
+                  <option value="completed">{t('status.completed')}</option>
+                  <option value="failed">{t('status.failed')}</option>
                 </select>
                 <span className="ml-auto text-sm text-gray-500 self-center">
-                  {totalRequests} total requests
+                  {t('history.totalRequests', { count: totalRequests })}
                 </span>
               </div>
 
@@ -2215,7 +2217,7 @@ export default function MCP() {
                         <ServiceBadge toolName={request.tool_name} />
                         {request.tool_category && <CategoryBadge category={request.tool_category} />}
                         {request.user_display_name && (
-                          <span className="text-xs text-gray-500">par {request.user_display_name}</span>
+                          <span className="text-xs text-gray-500">{t('history.by')} {request.user_display_name}</span>
                         )}
                         <span className="text-xs text-gray-400 ml-auto">
                           {formatDuration(request.duration_ms)}

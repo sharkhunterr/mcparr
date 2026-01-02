@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from '
 import i18n from '../i18n';
 
 export type LogLevel = 'debug' | 'info' | 'warning' | 'error' | 'critical';
-export type Language = 'fr' | 'en';
+export type Language = 'fr' | 'en' | 'it' | 'de' | 'es';
 
 interface AppSettings {
   // General

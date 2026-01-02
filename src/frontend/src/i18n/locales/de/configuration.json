@@ -1,0 +1,171 @@
+{
+  "title": "Konfiguration",
+  "description": "Anwendungseinstellungen",
+  "tabs": {
+    "appearance": "Erscheinungsbild",
+    "general": "Allgemein",
+    "logs": "Protokolle",
+    "notifications": "Benachrichtigungen",
+    "dashboard": "Dashboard",
+    "backup": "Sicherung"
+  },
+  "appearance": {
+    "title": "Design",
+    "themeOptions": {
+      "light": "Hell",
+      "dark": "Dunkel",
+      "system": "System"
+    }
+  },
+  "general": {
+    "language": {
+      "label": "Sprache",
+      "description": "Wählen Sie die Oberflächensprache",
+      "options": {
+        "fr": "Französisch",
+        "en": "Englisch"
+      }
+    },
+    "autoRefresh": {
+      "label": "Automatische Aktualisierung",
+      "description": "Daten automatisch aktualisieren"
+    },
+    "refreshInterval": {
+      "label": "Intervall",
+      "description": "Aktualisierungshäufigkeit"
+    },
+    "wizard": {
+      "label": "Konfigurationsassistent",
+      "description": "Den Erstkonfigurationsassistenten erneut anzeigen",
+      "resetButton": "Zurücksetzen",
+      "confirmMessage": "Möchten Sie den Konfigurationsassistenten wirklich zurücksetzen? Sie werden zum Assistenten weitergeleitet."
+    }
+  },
+  "logs": {
+    "logLevel": {
+      "label": "Protokollebene",
+      "description": "Nach Schweregrad filtern"
+    },
+    "logToConsole": {
+      "label": "Konsolenprotokolle",
+      "description": "In der Browser-Konsole anzeigen"
+    },
+    "logToBackend": {
+      "label": "Backend-Protokolle",
+      "description": "Protokolle an den Server senden"
+    },
+    "levelsPreview": "Erfasste Stufen mit \"{{level}}\":",
+    "levels": {
+      "debug": "Debug",
+      "info": "Info",
+      "warning": "Warnung",
+      "error": "Fehler",
+      "critical": "Kritisch"
+    }
+  },
+  "notifications": {
+    "enabled": {
+      "label": "Benachrichtigungen",
+      "description": "Benachrichtigungen aktivieren"
+    },
+    "sound": {
+      "label": "Töne",
+      "description": "Bei Warnungen einen Ton abspielen"
+    },
+    "alertOnError": {
+      "label": "Fehlerwarnungen",
+      "description": "Bei kritischen Fehlern benachrichtigen"
+    }
+  },
+  "dashboard": {
+    "compactMode": {
+      "label": "Kompaktmodus",
+      "description": "Abstände verringern"
+    },
+    "systemMetrics": {
+      "label": "Systemmetriken",
+      "description": "CPU, RAM, Festplatte anzeigen"
+    },
+    "mcpStats": {
+      "label": "MCP-Statistiken",
+      "description": "Gateway-Statistiken anzeigen"
+    }
+  },
+  "backup": {
+    "export": {
+      "title": "Konfiguration exportieren",
+      "description": "Elemente zum Sichern auswählen",
+      "button": "Exportieren",
+      "categoriesSelected": "{{count}} Kategorien ausgewählt"
+    },
+    "import": {
+      "title": "Konfiguration importieren",
+      "description": "Aus Sicherungsdatei wiederherstellen",
+      "button": "Konfiguration importieren",
+      "selectFile": "Klicken Sie, um eine Datei auszuwählen",
+      "fileType": "Nur .json",
+      "version": "Version {{version}}",
+      "dateUnknown": "Unbekanntes Datum",
+      "mergeMode": {
+        "label": "Zusammenführungsmodus",
+        "description": "Mit vorhandenen Daten zusammenführen statt zu ersetzen"
+      },
+      "result": {
+        "success": "Import erfolgreich",
+        "error": "Import mit Fehlern abgeschlossen",
+        "warnings": "Warnungen:",
+        "errors": "Fehler:",
+        "andMore": "... und {{count}} weitere"
+      }
+    },
+    "categories": {
+      "services": {
+        "label": "Dienste",
+        "description": "Dienstkonfigurationen (Plex, Authentik, usw.)"
+      },
+      "user_mappings": {
+        "label": "Benutzerzuordnungen",
+        "description": "Benutzerzuordnungen zwischen Diensten"
+      },
+      "groups": {
+        "label": "Gruppen",
+        "description": "MCP-Gruppen, Mitglieder und Berechtigungen"
+      },
+      "site_config": {
+        "label": "Konfiguration",
+        "description": "Website-Einstellungen"
+      },
+      "training_prompts": {
+        "label": "KI-Training",
+        "description": "Trainings-Prompts und Daten"
+      }
+    },
+    "reset": {
+      "title": "Gefahrenzone",
+      "description": "Alle Anwendungsdaten löschen",
+      "warningTitle": "⚠️ Unumkehrbare Aktion",
+      "warningDescription": "Diese Aktion löscht dauerhaft alle Daten:",
+      "warningItems": {
+        "services": "Alle konfigurierten Dienste",
+        "userMappings": "Alle Benutzerzuordnungen",
+        "groups": "Alle Gruppen und Berechtigungen",
+        "training": "Alle Trainings-Prompts",
+        "siteConfig": "Alle Website-Konfigurationen"
+      },
+      "warningFooter": "Diese Aktion kann nicht rückgängig gemacht werden. Stellen Sie sicher, dass Sie Ihre Daten bei Bedarf exportiert haben.",
+      "button": "Alle Daten zurücksetzen",
+      "confirmTitle": "Bestätigung erforderlich",
+      "confirmDescription": "Sind Sie absolut sicher, dass Sie alle Daten löschen möchten? Diese Aktion ist unumkehrbar.",
+      "showWizard": "Konfigurationsassistenten nach dem Zurücksetzen anzeigen",
+      "confirmButton": "Löschung bestätigen",
+      "deleting": "Wird gelöscht...",
+      "successMessage": "Alle Daten wurden erfolgreich gelöscht.",
+      "errorMessage": "Fehler beim Zurücksetzen: {{error}}"
+    }
+  },
+  "reset": {
+    "title": "Einstellungen zurücksetzen?",
+    "description": "Diese Aktion setzt alle Einstellungen auf ihre Standardwerte zurück.",
+    "button": "Zurücksetzen"
+  }
+}

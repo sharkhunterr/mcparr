@@ -1,0 +1,161 @@
+{
+  "welcome": {
+    "title": "Benvenuto in MCParr",
+    "subtitle": "Il Suo gateway IA per controllare l'homelab",
+    "description": "MCParr centralizza il controllo di tutti i servizi del Suo homelab attraverso un'interfaccia conversazionale basata su IA.",
+    "skipGuide": "Salta la guida",
+    "startConfiguration": "Avvia configurazione",
+    "importConfiguration": "Importa configurazione",
+    "or": "oppure",
+    "guideInfo": "Questa guida La accompagna nella configurazione iniziale. Potra modificare tutte queste impostazioni in seguito.",
+    "features": {
+      "services": "Connessione ai servizi",
+      "users": "Mappatura utenti",
+      "permissions": "Gestione permessi",
+      "mcp": "Server MCP integrato"
+    },
+    "import": {
+      "selectFile": "Clicchi per selezionare un file",
+      "jsonOnly": "Solo .json",
+      "version": "Versione",
+      "unknownDate": "Data sconosciuta",
+      "mergeMode": "Modalita unione",
+      "mergeDescription": "Unisci con esistenti",
+      "importButton": "Importa configurazione",
+      "importing": "Importazione...",
+      "success": "Importazione completata! Passaggio al passo successivo...",
+      "failed": "Importazione completata con errori",
+      "errors": "errore/i",
+      "cancel": "Annulla",
+      "continueAnyway": "Continua comunque",
+      "categories": {
+        "services": "Servizi",
+        "users": "Utenti",
+        "groups": "Gruppi",
+        "config": "Config",
+        "ai": "IA"
+      }
+    }
+  },
+  "complete": {
+    "title": "Configurazione completata!",
+    "subtitle": "MCParr e pronto all'uso",
+    "nextStepsTitle": "Prossimi passi consigliati",
+    "accessDashboard": "Accedi al Dashboard",
+    "guideInfo": "Puo accedere a questa guida in qualsiasi momento da",
+    "guideLocation": "Configurazione - Generale - Reimposta guida",
+    "steps": {
+      "configureServices": "Configura i servizi",
+      "mapUsers": "Mappa gli utenti",
+      "createGroups": "Crea i gruppi",
+      "testAI": "Testa l'interfaccia IA"
+    }
+  },
+  "steps": {
+    "services": {
+      "title": "Servizi homelab",
+      "subtitle": "Connetti le applicazioni",
+      "description": "Configuri i servizi homelab che MCParr controllera: Plex, Radarr, Sonarr, Overseerr, Tautulli, ecc. Per ogni servizio, dovra fornire l'URL e la chiave API o le credenziali.",
+      "linkText": "Configura servizi",
+      "steps": [
+        "Acceda alla pagina Servizi tramite il menu di navigazione",
+        "Clicchi su \"Aggiungi un servizio\" e compili il modulo",
+        "Testi la connessione per verificare la comunicazione",
+        "Ripeta per tutti i servizi (consigliato: almeno 2)"
+      ]
+    },
+    "users": {
+      "title": "Mappatura utenti",
+      "subtitle": "Colleghi gli account tra i servizi",
+      "description": "La mappatura utenti permette a MCParr di sapere quale account in Plex corrisponde allo stesso utente in Overseerr, Radarr, ecc. Questo abilita la gestione dei permessi e l'accesso agli strumenti MCP.",
+      "linkText": "Mappa utenti",
+      "tip": "Il rilevamento automatico funziona meglio con almeno 2 servizi configurati che hanno utenti.",
+      "steps": [
+        "Acceda alla pagina Utenti tramite il menu",
+        "Utilizzi la scheda \"Rilevamento automatico\" per scansionare i servizi",
+        "Validi i suggerimenti o crei mappature manuali"
+      ]
+    },
+    "groups": {
+      "title": "Gruppi e permessi",
+      "subtitle": "Controlli l'accesso agli strumenti MCP",
+      "description": "I gruppi definiscono quali strumenti MCP (Model Context Protocol) sono accessibili ai Suoi utenti. Ad esempio, un gruppo 'Admin' potrebbe avere accesso a tutti gli strumenti, mentre un gruppo 'Utente' avrebbe accesso solo agli strumenti di sola lettura.",
+      "linkText": "Gestisci gruppi",
+      "tip": "Gli strumenti MCP permettono all'IA di interagire con i servizi. I permessi controllano cosa puo fare ogni gruppo.",
+      "steps": [
+        "Acceda alla pagina Gruppi tramite il menu",
+        "Crei gruppi (Admin, Utente, Famiglia...) con \"Crea gruppo\"",
+        "Assegni i permessi MCP a ogni gruppo",
+        "Assegni gli utenti ai gruppi appropriati"
+      ]
+    },
+    "mcp": {
+      "title": "Server MCP",
+      "subtitle": "Model Context Protocol",
+      "description": "Il server MCP (Model Context Protocol) permette alla Sua IA di interagire con i servizi dell'homelab. E il ponte tra l'assistente conversazionale e le applicazioni (Plex, Radarr, ecc.).",
+      "linkText": "Visualizza configurazione MCP",
+      "tip": "Il server MCP funziona in background e espone gli strumenti che l'IA puo usare per controllare i servizi.",
+      "steps": [
+        "Verifichi che il server MCP sia avviato e accessibile",
+        "Esamini gli strumenti MCP disponibili per ogni servizio",
+        "Testi l'integrazione con il client IA (Claude Desktop, ecc.)",
+        "Configuri i permessi dei gruppi se necessario"
+      ]
+    },
+    "training": {
+      "title": "Addestramento IA",
+      "subtitle": "Personalizzi l'assistente",
+      "description": "Il modulo di addestramento Le permette di addestrare e personalizzare l'assistente IA in base alle Sue preferenze e al Suo utilizzo. Crei prompt personalizzati e ottimizzi il comportamento dell'IA.",
+      "linkText": "Accedi all'addestramento",
+      "tip": "I prompt personalizzati Le permettono di adattare il comportamento dell'IA alle Sue esigenze specifiche e al Suo stile di interazione.",
+      "steps": [
+        "Esamini i prompt di sistema attuali",
+        "Crei i Suoi prompt personalizzati per compiti specifici",
+        "Testi e affini le risposte dell'IA",
+        "Gestisca la cronologia e gli esempi di addestramento"
+      ]
+    },
+    "monitoring": {
+      "title": "Monitoraggio",
+      "subtitle": "Monitori il sistema",
+      "description": "Il monitoraggio Le permette di seguire in tempo reale lo stato dei servizi, le prestazioni del sistema e la cronologia delle interazioni IA. Rilevi rapidamente i problemi e ottimizzi l'infrastruttura.",
+      "linkText": "Visualizza monitoraggio",
+      "tip": "Il monitoraggio proattivo aiuta a identificare e risolvere i problemi prima che impattino gli utenti.",
+      "steps": [
+        "Controlli il dashboard di monitoraggio in tempo reale",
+        "Verifichi lo stato di salute di ogni servizio",
+        "Analizzi le metriche di prestazione (CPU, RAM, rete)",
+        "Configuri gli avvisi per essere notificato dei problemi"
+      ]
+    },
+    "config": {
+      "title": "Configurazione",
+      "subtitle": "Personalizzi MCParr",
+      "description": "La pagina di configurazione centralizza tutte le impostazioni dell'applicazione: aspetto, notifiche, log, dashboard e backup. Personalizzi MCParr secondo le Sue preferenze ed esporti la configurazione.",
+      "linkText": "Apri configurazione",
+      "tip": "Si ricordi di esportare regolarmente la configurazione per poterla ripristinare facilmente se necessario.",
+      "steps": [
+        "Regoli il tema (chiaro, scuro, sistema)",
+        "Configuri notifiche e avvisi",
+        "Imposti il livello di log e l'aggiornamento automatico",
+        "Esporti/importi la configurazione per il backup"
+      ]
+    }
+  },
+  "navigation": {
+    "previous": "Precedente",
+    "next": "Successivo",
+    "tipLabel": "Suggerimento:"
+  },
+  "progress": {
+    "stepLabels": {
+      "services": "servizi",
+      "users": "utenti",
+      "groups": "gruppi",
+      "mcp": "mcp",
+      "training": "addestramento",
+      "monitoring": "monitoraggio",
+      "config": "config"
+    }
+  }
+}

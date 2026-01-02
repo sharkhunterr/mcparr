@@ -1,0 +1,68 @@
+{
+  "title": "Dashboard",
+  "autoRefresh": "Automatisch",
+  "systemActive": "System aktiv",
+  "uptime": "Betriebszeit",
+  "cpu": "CPU",
+  "memory": "Arbeitsspeicher",
+  "disk": "Festplatte",
+  "network": "Netzwerk",
+  "services": {
+    "title": "Dienste",
+    "healthy": "{{healthy}}/{{enabled}}",
+    "noServices": "Keine Dienste konfiguriert",
+    "off": "aus"
+  },
+  "mcp": {
+    "title": "MCP Gateway",
+    "requests": "Anfragen",
+    "success": "erfolgreich",
+    "avgDuration": "Ø ms",
+    "byService": "Nach Dienst",
+    "byUser": "Nach Benutzer",
+    "noRequests": "Keine Anfragen",
+    "noUsers": "Keine Benutzer"
+  },
+  "users": {
+    "title": "Benutzer & Gruppen",
+    "totalUsers": "Benutzer",
+    "totalGroups": "Gruppen",
+    "totalMappings": "Zuordnungen",
+    "mcpGroups": "MCP-Gruppen",
+    "userCount": "{{count}} Ben.",
+    "toolCount": "{{count}} Tools",
+    "moreGroups": "+{{count}} weitere Gruppen",
+    "noGroups": "Keine Gruppen konfiguriert",
+    "createGroup": "Eine Gruppe erstellen"
+  },
+  "training": {
+    "title": "KI-Training",
+    "active": "{{count}} aktiv",
+    "actives": "{{count}} aktiv",
+    "prompts": "Prompts",
+    "validated": "validiert",
+    "sessions": "Sitzungen",
+    "completed": "abgeschlossen",
+    "workers": "Worker",
+    "byService": "Prompts nach Dienst",
+    "gpuWorkers": "GPU-Worker",
+    "noPrompts": "Keine Prompts mit Dienst-Tag",
+    "noWorkers": "Kein Worker konfiguriert",
+    "ready": "Bereit",
+    "training": "Training",
+    "offline": "Offline",
+    "successRate": "Sitzungserfolgsrate",
+    "completedSessions": "Abgeschlossen",
+    "failedSessions": "Fehlgeschlagen",
+    "activeSessions": "In Bearbeitung"
+  },
+  "observability": {
+    "title": "Überwachung",
+    "period": "24h",
+    "logs": "Protokolle",
+    "errorRate": "Fehlerrate",
+    "network": "Netzwerk",
+    "alerts": "Warnungen",
+    "totalPeriod": "Gesamt 24h"
+  }
+}

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { api } from '../../lib/api';
 
 interface Worker {
@@ -38,6 +39,7 @@ const statusColors: Record<string, { bg: string; text: string; dot: string }> = 
 };
 
 export function WorkerCard({ worker, onRefresh, onEdit, onDelete }: WorkerCardProps) {
+  const { t } = useTranslation('training');
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
   const [showMetrics, setShowMetrics] = useState(false);
@@ -54,7 +56,7 @@ export function WorkerCard({ worker, onRefresh, onEdit, onDelete }: WorkerCardPr
       setTestResult(result);
       onRefresh();
     } catch (err: any) {
-      setTestResult({ success: false, message: err.message || 'Test failed' });
+      setTestResult({ success: false, message: err.message || t('workers.testFailed') });
     } finally {
       setTesting(false);
     }
@@ -112,7 +114,7 @@ export function WorkerCard({ worker, onRefresh, onEdit, onDelete }: WorkerCardPr
           <div className="flex items-center space-x-2">
             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusStyle.bg} ${statusStyle.text}`}>
               <span className={`w-2 h-2 mr-1.5 rounded-full ${statusStyle.dot}`}></span>
-              {worker.status}
+              {t(`workers.${worker.status}`, worker.status)}
             </span>
           </div>
         </div>
@@ -130,11 +132,11 @@ export function WorkerCard({ worker, onRefresh, onEdit, onDelete }: WorkerCardPr
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
               </svg>
               <span className="text-sm font-medium text-gray-900 dark:text-white">
-                {worker.gpu_count} GPU{worker.gpu_count > 1 ? 's' : ''}
+                {t('workers.gpuCountLabel', { count: worker.gpu_count })}
               </span>
             </div>
             <span className="text-sm text-gray-500 dark:text-gray-400">
-              {(worker.gpu_memory_total_mb / 1024).toFixed(1)} GB VRAM
+              {t('workers.vram', { size: (worker.gpu_memory_total_mb / 1024).toFixed(1) })}
             </span>
           </div>
           {worker.gpu_names.length > 0 && (
@@ -149,19 +151,19 @@ export function WorkerCard({ worker, onRefresh, onEdit, onDelete }: WorkerCardPr
       <div className="px-4 py-3 grid grid-cols-3 gap-4 text-center border-b border-gray-200 dark:border-gray-700">
         <div>
           <p className="text-lg font-semibold text-gray-900 dark:text-white">{worker.total_jobs_completed}</p>
-          <p className="text-xs text-gray-500 dark:text-gray-400">Jobs</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">{t('workers.jobs')}</p>
         </div>
         <div>
           <p className="text-lg font-semibold text-gray-900 dark:text-white">
             {formatDuration(worker.total_training_time_seconds)}
           </p>
-          <p className="text-xs text-gray-500 dark:text-gray-400">Training time</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">{t('workers.trainingTime')}</p>
         </div>
         <div>
           <p className="text-lg font-semibold text-gray-900 dark:text-white">
             {worker.worker_version || '-'}
           </p>
-          <p className="text-xs text-gray-500 dark:text-gray-400">Version</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">{t('workers.version')}</p>
         </div>
       </div>
 
@@ -175,32 +177,32 @@ export function WorkerCard({ worker, onRefresh, onEdit, onDelete }: WorkerCardPr
           ) : metrics ? (
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
-                <span className="text-gray-500 dark:text-gray-400">CPU:</span>
+                <span className="text-gray-500 dark:text-gray-400">{t('workers.cpu')}:</span>
                 <span className="ml-2 text-gray-900 dark:text-white">{metrics.cpu_percent?.toFixed(1)}%</span>
               </div>
               <div>
-                <span className="text-gray-500 dark:text-gray-400">RAM:</span>
+                <span className="text-gray-500 dark:text-gray-400">{t('workers.ram')}:</span>
                 <span className="ml-2 text-gray-900 dark:text-white">{metrics.memory_percent?.toFixed(1)}%</span>
               </div>
               {metrics.gpu_utilization_percent !== null && (
                 <>
                   <div>
-                    <span className="text-gray-500 dark:text-gray-400">GPU:</span>
+                    <span className="text-gray-500 dark:text-gray-400">{t('workers.gpu')}:</span>
                     <span className="ml-2 text-gray-900 dark:text-white">{metrics.gpu_utilization_percent?.toFixed(1)}%</span>
                   </div>
                   <div>
-                    <span className="text-gray-500 dark:text-gray-400">VRAM:</span>
+                    <span className="text-gray-500 dark:text-gray-400">{t('workers.vramUsage')}:</span>
                     <span className="ml-2 text-gray-900 dark:text-white">{metrics.gpu_memory_percent?.toFixed(1)}%</span>
                   </div>
                   {metrics.gpu_temperature_c && (
                     <div>
-                      <span className="text-gray-500 dark:text-gray-400">GPU Temp:</span>
+                      <span className="text-gray-500 dark:text-gray-400">{t('workers.gpuTemp')}:</span>
                       <span className="ml-2 text-gray-900 dark:text-white">{metrics.gpu_temperature_c}°C</span>
                     </div>
                   )}
                   {metrics.gpu_power_draw_w && (
                     <div>
-                      <span className="text-gray-500 dark:text-gray-400">Power:</span>
+                      <span className="text-gray-500 dark:text-gray-400">{t('workers.power')}:</span>
                       <span className="ml-2 text-gray-900 dark:text-white">{metrics.gpu_power_draw_w?.toFixed(0)}W</span>
                     </div>
                   )}
@@ -208,7 +210,7 @@ export function WorkerCard({ worker, onRefresh, onEdit, onDelete }: WorkerCardPr
               )}
             </div>
           ) : (
-            <p className="text-sm text-gray-500 dark:text-gray-400">No metrics available</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">{t('workers.noMetrics')}</p>
           )}
         </div>
       )}
@@ -237,20 +239,20 @@ export function WorkerCard({ worker, onRefresh, onEdit, onDelete }: WorkerCardPr
             disabled={testing}
             className="px-3 py-1.5 text-sm font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-md disabled:opacity-50"
           >
-            {testing ? 'Testing...' : 'Test'}
+            {testing ? t('workers.testing') : t('workers.test')}
           </button>
           <button
             onClick={handleRefresh}
             className="px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md"
           >
-            Refresh
+            {t('workers.refresh')}
           </button>
           {worker.status !== 'offline' && (
             <button
               onClick={handleToggleMetrics}
               className="px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md"
             >
-              {showMetrics ? 'Hide Metrics' : 'Metrics'}
+              {showMetrics ? t('workers.hideMetrics') : t('workers.metrics')}
             </button>
           )}
         </div>
@@ -258,7 +260,7 @@ export function WorkerCard({ worker, onRefresh, onEdit, onDelete }: WorkerCardPr
           <button
             onClick={() => onEdit(worker)}
             className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-            title="Edit"
+            title={t('workers.edit')}
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -267,7 +269,7 @@ export function WorkerCard({ worker, onRefresh, onEdit, onDelete }: WorkerCardPr
           <button
             onClick={() => onDelete(worker)}
             className="p-2 text-gray-400 hover:text-red-600 dark:hover:text-red-400"
-            title="Delete"
+            title={t('workers.delete')}
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />

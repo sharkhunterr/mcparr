@@ -1,0 +1,171 @@
+{
+  "title": "Configuración",
+  "description": "Ajustes de la aplicación",
+  "tabs": {
+    "appearance": "Apariencia",
+    "general": "General",
+    "logs": "Registros",
+    "notifications": "Notificaciones",
+    "dashboard": "Panel de control",
+    "backup": "Copia de seguridad"
+  },
+  "appearance": {
+    "title": "Tema",
+    "themeOptions": {
+      "light": "Claro",
+      "dark": "Oscuro",
+      "system": "Sistema"
+    }
+  },
+  "general": {
+    "language": {
+      "label": "Idioma",
+      "description": "Elija el idioma de la interfaz",
+      "options": {
+        "fr": "Francés",
+        "en": "Inglés"
+      }
+    },
+    "autoRefresh": {
+      "label": "Actualización automática",
+      "description": "Actualizar datos automáticamente"
+    },
+    "refreshInterval": {
+      "label": "Intervalo",
+      "description": "Frecuencia de actualización"
+    },
+    "wizard": {
+      "label": "Asistente de configuración",
+      "description": "Mostrar nuevamente el asistente de configuración inicial",
+      "resetButton": "Restablecer",
+      "confirmMessage": "¿Realmente desea restablecer el asistente de configuración? Esto le redirigirá al asistente."
+    }
+  },
+  "logs": {
+    "logLevel": {
+      "label": "Nivel de registro",
+      "description": "Filtrar por severidad"
+    },
+    "logToConsole": {
+      "label": "Registros en consola",
+      "description": "Mostrar en la consola del navegador"
+    },
+    "logToBackend": {
+      "label": "Registros en servidor",
+      "description": "Enviar registros al servidor"
+    },
+    "levelsPreview": "Niveles registrados con \"{{level}}\":",
+    "levels": {
+      "debug": "Depuración",
+      "info": "Información",
+      "warning": "Advertencia",
+      "error": "Error",
+      "critical": "Crítico"
+    }
+  },
+  "notifications": {
+    "enabled": {
+      "label": "Notificaciones",
+      "description": "Activar notificaciones"
+    },
+    "sound": {
+      "label": "Sonidos",
+      "description": "Reproducir un sonido en las alertas"
+    },
+    "alertOnError": {
+      "label": "Alertas de error",
+      "description": "Notificar errores críticos"
+    }
+  },
+  "dashboard": {
+    "compactMode": {
+      "label": "Modo compacto",
+      "description": "Reducir el espaciado"
+    },
+    "systemMetrics": {
+      "label": "Métricas del sistema",
+      "description": "Mostrar CPU, RAM, disco"
+    },
+    "mcpStats": {
+      "label": "Estadísticas MCP",
+      "description": "Mostrar estadísticas de la pasarela"
+    }
+  },
+  "backup": {
+    "export": {
+      "title": "Exportar configuración",
+      "description": "Seleccione los elementos a respaldar",
+      "button": "Exportar",
+      "categoriesSelected": "{{count}} categorías seleccionadas"
+    },
+    "import": {
+      "title": "Importar configuración",
+      "description": "Restaurar desde archivo de respaldo",
+      "button": "Importar configuración",
+      "selectFile": "Haga clic para seleccionar un archivo",
+      "fileType": "Solo .json",
+      "version": "Versión {{version}}",
+      "dateUnknown": "Fecha desconocida",
+      "mergeMode": {
+        "label": "Modo de fusión",
+        "description": "Fusionar con datos existentes en lugar de reemplazar"
+      },
+      "result": {
+        "success": "Importación exitosa",
+        "error": "Importación completada con errores",
+        "warnings": "Advertencias:",
+        "errors": "Errores:",
+        "andMore": "... y {{count}} más"
+      }
+    },
+    "categories": {
+      "services": {
+        "label": "Servicios",
+        "description": "Configuraciones de servicios (Plex, Authentik, etc.)"
+      },
+      "user_mappings": {
+        "label": "Asignaciones de usuarios",
+        "description": "Asignaciones de usuarios entre servicios"
+      },
+      "groups": {
+        "label": "Grupos",
+        "description": "Grupos MCP, miembros y permisos"
+      },
+      "site_config": {
+        "label": "Configuración",
+        "description": "Ajustes del sitio"
+      },
+      "training_prompts": {
+        "label": "Entrenamiento IA",
+        "description": "Prompts y datos de entrenamiento"
+      }
+    },
+    "reset": {
+      "title": "Zona de peligro",
+      "description": "Eliminar todos los datos de la aplicación",
+      "warningTitle": "Acción irreversible",
+      "warningDescription": "Esta acción eliminará permanentemente todos los datos:",
+      "warningItems": {
+        "services": "Todos los servicios configurados",
+        "userMappings": "Todas las asignaciones de usuarios",
+        "groups": "Todos los grupos y permisos",
+        "training": "Todos los prompts de entrenamiento",
+        "siteConfig": "Toda la configuración del sitio"
+      },
+      "warningFooter": "Esta acción no se puede deshacer. Asegúrese de haber exportado sus datos si es necesario.",
+      "button": "Restablecer todos los datos",
+      "confirmTitle": "Confirmación requerida",
+      "confirmDescription": "¿Está absolutamente seguro de que desea eliminar todos los datos? Esta acción es irreversible.",
+      "showWizard": "Mostrar asistente de configuración después del restablecimiento",
+      "confirmButton": "Confirmar eliminación",
+      "deleting": "Eliminando...",
+      "successMessage": "Todos los datos han sido eliminados exitosamente.",
+      "errorMessage": "Error durante el restablecimiento: {{error}}"
+    }
+  },
+  "reset": {
+    "title": "¿Restablecer ajustes?",
+    "description": "Esta acción restaurará todos los ajustes a sus valores predeterminados.",
+    "button": "Restablecer"
+  }
+}
