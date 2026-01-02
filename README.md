@@ -294,6 +294,7 @@ When you first access MCParr, you'll be greeted with an interactive setup wizard
 - [API Reference](docs/API.md) - REST API endpoint documentation
 - [MCP Integration](docs/MCP.md) - Connect to Claude Desktop and AI assistants
 - [User Guide](docs/USER_GUIDE.md) - End-user documentation
+- [Integration Guide](docs/INTEGRATION_GUIDE.md) - Add new services to MCParr
 
 ## Supported Services
 
