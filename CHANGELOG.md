@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.2.10](https://github.com/sharkhunterr/mcparr/-/compare/v0.2.9...v0.2.10) (2026-01-02)
+
+
+### Bug Fixes
+
+* **i18n:** add type cast for returnObjects in Wizard components ([6e7197d](https://github.com/sharkhunterr/mcparr/-/commit/6e7197da6ccd2532ebb21e4d47f47ce2bd0dc028))
+
 ### [0.2.9](https://github.com/sharkhunterr/mcparr/-/compare/v0.2.8...v0.2.9) (2026-01-02)
 
 
