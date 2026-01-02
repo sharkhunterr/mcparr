@@ -25,6 +25,7 @@ import {
   Brain,
   Sparkles
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { api, apiClient } from '../lib/api';
 import { getServiceColor, getServiceFromToolName } from '../lib/serviceColors';
 import { Link } from 'react-router-dom';
@@ -279,6 +280,8 @@ const MiniBarChart = ({ data, hoursCount = 12 }: { data: HourlyUsage[]; hoursCou
 };
 
 export default function Dashboard() {
+  const { t } = useTranslation('dashboard');
+  const { t: tCommon } = useTranslation('common');
   const { settings } = useSettings();
   const [metrics, setMetrics] = useState<SystemMetrics | null>(null);
   const [services, setServices] = useState<ServiceHealth[]>([]);
@@ -449,7 +452,7 @@ export default function Dashboard() {
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
             <LayoutDashboard className="w-6 h-6 sm:w-7 sm:h-7 text-blue-600" />
-            Dashboard
+            {t('title')}
           </h1>
         </div>
 
@@ -471,7 +474,7 @@ export default function Dashboard() {
               onChange={(e) => setAutoRefresh(e.target.checked)}
               className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-3 h-3"
             />
-            Auto
+            {t('autoRefresh')}
           </label>
           <button
             onClick={fetchData}
@@ -492,7 +495,7 @@ export default function Dashboard() {
               <Cpu className={`w-5 h-5 ${cpuColor === 'red' ? 'text-red-600 dark:text-red-400' : cpuColor === 'yellow' ? 'text-yellow-600 dark:text-yellow-400' : 'text-blue-600 dark:text-blue-400'}`} />
             </div>
             <div className="ml-3 flex-1">
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">CPU</p>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{t('cpu')}</p>
               <p className="text-xl font-semibold text-gray-900 dark:text-white">
                 {metrics?.cpu_usage.toFixed(0) || 0}<span className="text-base text-gray-500 dark:text-gray-400">%</span>
               </p>
@@ -508,7 +511,7 @@ export default function Dashboard() {
               <MemoryStick className={`w-5 h-5 ${memColor === 'red' ? 'text-red-600 dark:text-red-400' : memColor === 'yellow' ? 'text-yellow-600 dark:text-yellow-400' : 'text-green-600 dark:text-green-400'}`} />
             </div>
             <div className="ml-3 flex-1">
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Mémoire</p>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{t('memory')}</p>
               <p className="text-xl font-semibold text-gray-900 dark:text-white">
                 {metrics?.memory_usage.toFixed(0) || 0}<span className="text-base text-gray-500 dark:text-gray-400">%</span>
               </p>
@@ -527,7 +530,7 @@ export default function Dashboard() {
               <HardDrive className={`w-5 h-5 ${diskColor === 'red' ? 'text-red-600 dark:text-red-400' : diskColor === 'yellow' ? 'text-yellow-600 dark:text-yellow-400' : 'text-purple-600 dark:text-purple-400'}`} />
             </div>
             <div className="ml-3 flex-1">
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Disque</p>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{t('disk')}</p>
               <p className="text-xl font-semibold text-gray-900 dark:text-white">
                 {metrics?.disk_usage.toFixed(0) || 0}<span className="text-base text-gray-500 dark:text-gray-400">%</span>
               </p>
@@ -546,7 +549,7 @@ export default function Dashboard() {
               <Clock className="w-5 h-5 text-orange-600 dark:text-orange-400" />
             </div>
             <div className="ml-3 flex-1">
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Uptime</p>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{t('uptime')}</p>
               <p className="text-xl font-semibold text-gray-900 dark:text-white">
                 {formatUptime(metrics?.uptime || 0)}
               </p>
@@ -554,7 +557,7 @@ export default function Dashboard() {
           </div>
           <div className="mt-3 flex items-center gap-1.5">
             <CheckCircle className="w-4 h-4 text-green-500" />
-            <span className="text-xs text-green-600 dark:text-green-400">Système actif</span>
+            <span className="text-xs text-green-600 dark:text-green-400">{t('systemActive')}</span>
           </div>
         </div>
       </div>
@@ -565,13 +568,13 @@ export default function Dashboard() {
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <Server className="w-4 h-4 text-blue-500" />
-            <span className="font-semibold text-sm text-gray-900 dark:text-white">Services</span>
+            <span className="font-semibold text-sm text-gray-900 dark:text-white">{t('services.title')}</span>
             <span className="text-xs px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400">
-              {healthyServices}/{enabledServices}
+              {t('services.healthy', { healthy: healthyServices, enabled: enabledServices })}
             </span>
           </div>
           <Link to="/services" className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1">
-            Gérer <ArrowRight className="w-3 h-3" />
+            {tCommon('actions.manage')} <ArrowRight className="w-3 h-3" />
           </Link>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -598,7 +601,7 @@ export default function Dashboard() {
                     {service.name}
                   </span>
                   {isDisabled ? (
-                    <span className="text-[10px] text-gray-400">off</span>
+                    <span className="text-[10px] text-gray-400">{t('services.off')}</span>
                   ) : isHealthy ? (
                     <CheckCircle className="w-3 h-3 text-green-500" />
                   ) : (
@@ -608,7 +611,7 @@ export default function Dashboard() {
               );
             })
           ) : (
-            <p className="text-xs text-gray-500 dark:text-gray-400">Aucun service configuré</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">{t('services.noServices')}</p>
           )}
         </div>
       </div>
@@ -621,11 +624,11 @@ export default function Dashboard() {
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <Bot className="w-4 h-4 text-violet-500" />
-              <span className="font-semibold text-sm text-gray-900 dark:text-white">MCP Gateway</span>
-              <span className="text-xs text-gray-500 dark:text-gray-400">(24h)</span>
+              <span className="font-semibold text-sm text-gray-900 dark:text-white">{t('mcp.title')}</span>
+              <span className="text-xs text-gray-500 dark:text-gray-400">({t('observability.period')})</span>
             </div>
             <Link to="/mcp" className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1">
-              Gérer <ArrowRight className="w-3 h-3" />
+              {tCommon('actions.manage')} <ArrowRight className="w-3 h-3" />
             </Link>
           </div>
 
@@ -634,19 +637,19 @@ export default function Dashboard() {
             <div className="flex items-center gap-5">
               <div>
                 <p className="text-2xl font-bold text-gray-900 dark:text-white">{mcpStats?.total ?? 0}</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">requêtes</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">{t('mcp.requests')}</p>
               </div>
               <div>
                 <p className="text-2xl font-bold text-green-600 dark:text-green-400">
                   {mcpStats?.total ? `${Math.round(mcpStats.success_rate)}%` : '—'}
                 </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">succès</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">{t('mcp.success')}</p>
               </div>
               <div>
                 <p className="text-2xl font-bold text-gray-700 dark:text-gray-300">
                   {mcpStats?.average_duration_ms ? `${Math.round(mcpStats.average_duration_ms)}` : '—'}
                 </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">ms moy.</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">{t('mcp.avgDuration')}</p>
               </div>
             </div>
             <div className="flex-1 min-w-0">
@@ -658,7 +661,7 @@ export default function Dashboard() {
           <div className="border-t border-gray-100 dark:border-gray-700 pt-3">
             <div className="flex items-center gap-2 mb-3">
               <Wrench className="w-3.5 h-3.5 text-gray-400" />
-              <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Par Service</span>
+              <span className="text-xs font-medium text-gray-500 dark:text-gray-400">{t('mcp.byService')}</span>
             </div>
             {mcpStats?.top_tools && Object.keys(mcpStats.top_tools).length > 0 ? (
               (() => {
@@ -723,7 +726,7 @@ export default function Dashboard() {
                 );
               })()
             ) : (
-              <p className="text-xs text-gray-500 dark:text-gray-400 text-center py-2">Aucune requête</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 text-center py-2">{t('mcp.noRequests')}</p>
             )}
           </div>
 
@@ -731,7 +734,7 @@ export default function Dashboard() {
           <div className="border-t border-gray-100 dark:border-gray-700 pt-3 mt-3">
             <div className="flex items-center gap-2 mb-3">
               <Users className="w-3.5 h-3.5 text-gray-400" />
-              <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Par Utilisateur</span>
+              <span className="text-xs font-medium text-gray-500 dark:text-gray-400">{t('mcp.byUser')}</span>
             </div>
             {mcpUserStats.length > 0 ? (
               (() => {
@@ -801,7 +804,7 @@ export default function Dashboard() {
                 );
               })()
             ) : (
-              <p className="text-xs text-gray-500 dark:text-gray-400 text-center py-2">Aucun utilisateur</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 text-center py-2">{t('mcp.noUsers')}</p>
             )}
           </div>
         </div>
@@ -811,10 +814,10 @@ export default function Dashboard() {
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <Users className="w-4 h-4 text-blue-500" />
-              <span className="font-semibold text-sm text-gray-900 dark:text-white">Utilisateurs & Groupes</span>
+              <span className="font-semibold text-sm text-gray-900 dark:text-white">{t('users.title')}</span>
             </div>
             <Link to="/users" className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1">
-              Gérer <ArrowRight className="w-3 h-3" />
+              {tCommon('actions.manage')} <ArrowRight className="w-3 h-3" />
             </Link>
           </div>
 
@@ -824,22 +827,22 @@ export default function Dashboard() {
               <p className="text-xl font-bold text-blue-600 dark:text-blue-400">
                 {new Set(userMappings.map(m => m.central_user_id)).size}
               </p>
-              <p className="text-[10px] text-gray-600 dark:text-gray-400">utilisateurs</p>
+              <p className="text-[10px] text-gray-600 dark:text-gray-400">{t('users.totalUsers')}</p>
             </div>
             <div className="text-center p-2 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
               <p className="text-xl font-bold text-purple-600 dark:text-purple-400">{groups.length}</p>
-              <p className="text-[10px] text-gray-600 dark:text-gray-400">groupes</p>
+              <p className="text-[10px] text-gray-600 dark:text-gray-400">{t('users.totalGroups')}</p>
             </div>
             <div className="text-center p-2 bg-green-50 dark:bg-green-900/20 rounded-lg">
               <p className="text-xl font-bold text-green-600 dark:text-green-400">{userMappingsCount}</p>
-              <p className="text-[10px] text-gray-600 dark:text-gray-400">mappings</p>
+              <p className="text-[10px] text-gray-600 dark:text-gray-400">{t('users.totalMappings')}</p>
             </div>
           </div>
 
           {/* Groups List */}
           {groups.length > 0 ? (
             <div className="space-y-1.5">
-              <p className="text-[10px] uppercase tracking-wider text-gray-500 dark:text-gray-400 font-medium mb-1">Groupes MCP</p>
+              <p className="text-[10px] uppercase tracking-wider text-gray-500 dark:text-gray-400 font-medium mb-1">{t('users.mcpGroups')}</p>
               {groups.slice(0, 4).map(group => (
                 <div
                   key={group.id}
@@ -854,25 +857,25 @@ export default function Dashboard() {
                   </span>
                   <div className="flex items-center gap-1.5 flex-shrink-0">
                     <span className="text-[10px] px-1.5 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded font-medium">
-                      {group.member_count} usr
+                      {t('users.userCount', { count: group.member_count })}
                     </span>
                     <span className="text-[10px] px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded font-medium">
-                      {group.tool_count} outils
+                      {t('users.toolCount', { count: group.tool_count })}
                     </span>
                   </div>
                 </div>
               ))}
               {groups.length > 4 && (
                 <p className="text-[10px] text-gray-400 dark:text-gray-500 text-center pt-1">
-                  +{groups.length - 4} autres groupes
+                  {t('users.moreGroups', { count: groups.length - 4 })}
                 </p>
               )}
             </div>
           ) : (
             <div className="text-center py-4">
-              <p className="text-xs text-gray-500 dark:text-gray-400">Aucun groupe configuré</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">{t('users.noGroups')}</p>
               <Link to="/users" className="text-xs text-blue-600 hover:text-blue-700 mt-1 inline-block">
-                Créer un groupe
+                {t('users.createGroup')}
               </Link>
             </div>
           )}
@@ -889,16 +892,16 @@ export default function Dashboard() {
               <div className="p-1.5 rounded-lg bg-violet-100 dark:bg-violet-900/30">
                 <Brain className="w-4 h-4 text-violet-600 dark:text-violet-400" />
               </div>
-              <span className="font-semibold text-sm text-gray-900 dark:text-white">AI Training</span>
+              <span className="font-semibold text-sm text-gray-900 dark:text-white">{t('training.title')}</span>
               {(trainingStats?.active_sessions ?? 0) > 0 && (
                 <span className="flex items-center gap-1.5 text-[10px] px-2 py-0.5 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">
                   <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                  {trainingStats?.active_sessions} actif{(trainingStats?.active_sessions ?? 0) > 1 ? 's' : ''}
+                  {(trainingStats?.active_sessions ?? 0) === 1 ? t('training.active', { count: trainingStats?.active_sessions }) : t('training.actives', { count: trainingStats?.active_sessions })}
                 </span>
               )}
             </div>
             <Link to="/training" className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1">
-              Gérer <ArrowRight className="w-3 h-3" />
+              {tCommon('actions.manage')} <ArrowRight className="w-3 h-3" />
             </Link>
           </div>
 
@@ -906,23 +909,23 @@ export default function Dashboard() {
           <div className="grid grid-cols-5 gap-3 mb-4">
             <div className="p-3 rounded-xl bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-900/20 dark:to-purple-900/20 border border-violet-100 dark:border-violet-800/50 text-center">
               <p className="text-2xl font-bold text-violet-600 dark:text-violet-400">{trainingStats?.total_prompts ?? 0}</p>
-              <p className="text-[10px] text-gray-600 dark:text-gray-400">prompts</p>
+              <p className="text-[10px] text-gray-600 dark:text-gray-400">{t('training.prompts')}</p>
             </div>
             <div className="p-3 rounded-xl bg-gradient-to-br from-fuchsia-50 to-pink-50 dark:from-fuchsia-900/20 dark:to-pink-900/20 border border-fuchsia-100 dark:border-fuchsia-800/50 text-center">
               <p className="text-2xl font-bold text-fuchsia-600 dark:text-fuchsia-400">{trainingStats?.validated_prompts ?? 0}</p>
-              <p className="text-[10px] text-gray-600 dark:text-gray-400">validés</p>
+              <p className="text-[10px] text-gray-600 dark:text-gray-400">{t('training.validated')}</p>
             </div>
             <div className="p-3 rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-100 dark:border-blue-800/50 text-center">
               <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{trainingStats?.total_sessions ?? 0}</p>
-              <p className="text-[10px] text-gray-600 dark:text-gray-400">sessions</p>
+              <p className="text-[10px] text-gray-600 dark:text-gray-400">{t('training.sessions')}</p>
             </div>
             <div className="p-3 rounded-xl bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-100 dark:border-green-800/50 text-center">
               <p className="text-2xl font-bold text-green-600 dark:text-green-400">{trainingStats?.completed_sessions ?? 0}</p>
-              <p className="text-[10px] text-gray-600 dark:text-gray-400">terminées</p>
+              <p className="text-[10px] text-gray-600 dark:text-gray-400">{t('training.completed')}</p>
             </div>
             <div className="p-3 rounded-xl bg-gradient-to-br from-cyan-50 to-teal-50 dark:from-cyan-900/20 dark:to-teal-900/20 border border-cyan-100 dark:border-cyan-800/50 text-center">
               <p className="text-2xl font-bold text-cyan-600 dark:text-cyan-400">{trainingWorkers.length}</p>
-              <p className="text-[10px] text-gray-600 dark:text-gray-400">workers</p>
+              <p className="text-[10px] text-gray-600 dark:text-gray-400">{t('training.workers')}</p>
             </div>
           </div>
 
@@ -932,7 +935,7 @@ export default function Dashboard() {
             <div className="border-t border-gray-100 dark:border-gray-700 pt-3">
               <div className="flex items-center gap-2 mb-3">
                 <Sparkles className="w-3.5 h-3.5 text-violet-500" />
-                <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Prompts par Service</span>
+                <span className="text-xs font-medium text-gray-500 dark:text-gray-400">{t('training.byService')}</span>
               </div>
               {Object.keys(promptsByService).length > 0 ? (
                 (() => {
@@ -1022,7 +1025,7 @@ export default function Dashboard() {
                 })()
               ) : (
                 <div className="h-20 flex items-center justify-center">
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Aucun prompt avec tag service</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{t('training.noPrompts')}</p>
                 </div>
               )}
             </div>
@@ -1031,7 +1034,7 @@ export default function Dashboard() {
             <div className="border-t border-gray-100 dark:border-gray-700 pt-3">
               <div className="flex items-center gap-2 mb-3">
                 <Server className="w-3.5 h-3.5 text-cyan-500" />
-                <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Workers GPU</span>
+                <span className="text-xs font-medium text-gray-500 dark:text-gray-400">{t('training.gpuWorkers')}</span>
               </div>
               {trainingWorkers.length > 0 ? (
                 <div className="space-y-2">
@@ -1066,7 +1069,7 @@ export default function Dashboard() {
                                 ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
                                 : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
                           }`}>
-                            {isBusy ? 'Training' : isOnline ? 'Ready' : 'Offline'}
+                            {isBusy ? t('training.training') : isOnline ? t('training.ready') : t('training.offline')}
                           </span>
                         </div>
                       </div>
@@ -1075,7 +1078,7 @@ export default function Dashboard() {
                 </div>
               ) : (
                 <div className="h-20 flex items-center justify-center">
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Aucun worker configuré</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{t('training.noWorkers')}</p>
                 </div>
               )}
             </div>
@@ -1085,7 +1088,7 @@ export default function Dashboard() {
           {(trainingStats?.total_sessions ?? 0) > 0 && (
             <div className="mt-4 pt-3 border-t border-gray-100 dark:border-gray-700">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Taux de réussite des sessions</span>
+                <span className="text-xs font-medium text-gray-500 dark:text-gray-400">{t('training.successRate')}</span>
                 <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">
                   {((trainingStats?.completed_sessions ?? 0) / (trainingStats?.total_sessions ?? 1) * 100).toFixed(0)}%
                 </span>
@@ -1094,29 +1097,29 @@ export default function Dashboard() {
                 <div
                   className="h-full bg-green-500 rounded-l-full"
                   style={{ width: `${((trainingStats?.completed_sessions ?? 0) / (trainingStats?.total_sessions ?? 1) * 100)}%` }}
-                  title={`Terminées: ${trainingStats?.completed_sessions ?? 0}`}
+                  title={`${t('training.completedSessions')}: ${trainingStats?.completed_sessions ?? 0}`}
                 />
                 <div
                   className="h-full bg-red-500"
                   style={{ width: `${((trainingStats?.failed_sessions ?? 0) / (trainingStats?.total_sessions ?? 1) * 100)}%` }}
-                  title={`Échouées: ${trainingStats?.failed_sessions ?? 0}`}
+                  title={`${t('training.failedSessions')}: ${trainingStats?.failed_sessions ?? 0}`}
                 />
                 <div
                   className="h-full bg-yellow-500"
                   style={{ width: `${((trainingStats?.active_sessions ?? 0) / (trainingStats?.total_sessions ?? 1) * 100)}%` }}
-                  title={`En cours: ${trainingStats?.active_sessions ?? 0}`}
+                  title={`${t('training.activeSessions')}: ${trainingStats?.active_sessions ?? 0}`}
                 />
               </div>
               <div className="flex items-center justify-between mt-1.5 text-[10px] text-gray-500 dark:text-gray-400">
                 <div className="flex items-center gap-3">
                   <span className="flex items-center gap-1">
-                    <span className="w-2 h-2 rounded-sm bg-green-500" /> Terminées: {trainingStats?.completed_sessions ?? 0}
+                    <span className="w-2 h-2 rounded-sm bg-green-500" /> {t('training.completedSessions')}: {trainingStats?.completed_sessions ?? 0}
                   </span>
                   <span className="flex items-center gap-1">
-                    <span className="w-2 h-2 rounded-sm bg-red-500" /> Échouées: {trainingStats?.failed_sessions ?? 0}
+                    <span className="w-2 h-2 rounded-sm bg-red-500" /> {t('training.failedSessions')}: {trainingStats?.failed_sessions ?? 0}
                   </span>
                   <span className="flex items-center gap-1">
-                    <span className="w-2 h-2 rounded-sm bg-yellow-500" /> En cours: {trainingStats?.active_sessions ?? 0}
+                    <span className="w-2 h-2 rounded-sm bg-yellow-500" /> {t('training.activeSessions')}: {trainingStats?.active_sessions ?? 0}
                   </span>
                 </div>
               </div>
@@ -1131,11 +1134,11 @@ export default function Dashboard() {
               <div className="p-1.5 rounded-lg bg-cyan-100 dark:bg-cyan-900/30">
                 <Activity className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
               </div>
-              <span className="font-semibold text-sm text-gray-900 dark:text-white">Observabilité</span>
-              <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400">24h</span>
+              <span className="font-semibold text-sm text-gray-900 dark:text-white">{t('observability.title')}</span>
+              <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400">{t('observability.period')}</span>
             </div>
             <Link to="/monitoring" className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1">
-              Gérer <ArrowRight className="w-3 h-3" />
+              {tCommon('actions.manage')} <ArrowRight className="w-3 h-3" />
             </Link>
           </div>
 
@@ -1147,14 +1150,14 @@ export default function Dashboard() {
                   <div className="p-1 rounded-md bg-blue-100 dark:bg-blue-900/50">
                     <FileText className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
                   </div>
-                  <span className="text-xs font-medium text-gray-700 dark:text-gray-300">Logs</span>
+                  <span className="text-xs font-medium text-gray-700 dark:text-gray-300">{t('observability.logs')}</span>
                 </div>
                 <span className="text-lg font-bold text-gray-900 dark:text-white">
                   {(logStats?.total ?? 0).toLocaleString()}
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-[10px] text-gray-500 dark:text-gray-400">Taux d'erreur</span>
+                <span className="text-[10px] text-gray-500 dark:text-gray-400">{t('observability.errorRate')}</span>
                 <span className={`text-xs font-semibold px-1.5 py-0.5 rounded ${
                   (logStats?.error_rate ?? 0) > 5
                     ? 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400'
@@ -1171,7 +1174,7 @@ export default function Dashboard() {
                 <div className="p-1 rounded-md bg-emerald-100 dark:bg-emerald-900/50">
                   <Wifi className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                 </div>
-                <span className="text-xs font-medium text-gray-700 dark:text-gray-300">Réseau</span>
+                <span className="text-xs font-medium text-gray-700 dark:text-gray-300">{t('observability.network')}</span>
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div className="flex items-center justify-between">
@@ -1208,7 +1211,7 @@ export default function Dashboard() {
                         : 'text-green-600 dark:text-green-400'
                     }`} />
                   </div>
-                  <span className="text-xs font-medium text-gray-700 dark:text-gray-300">Alertes</span>
+                  <span className="text-xs font-medium text-gray-700 dark:text-gray-300">{t('observability.alerts')}</span>
                 </div>
                 <span className={`text-lg font-bold ${
                   (alertStats?.active || 0) > 0
@@ -1219,7 +1222,7 @@ export default function Dashboard() {
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-[10px] text-gray-500 dark:text-gray-400">Total 24h</span>
+                <span className="text-[10px] text-gray-500 dark:text-gray-400">{t('observability.totalPeriod')}</span>
                 <span className="text-xs font-medium text-gray-700 dark:text-gray-300">{alertStats?.total || 0}</span>
               </div>
             </div>
