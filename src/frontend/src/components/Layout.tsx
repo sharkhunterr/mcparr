@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   Home,
   Server,
@@ -17,20 +18,20 @@ import {
 import { useTheme } from '../contexts/ThemeContext';
 
 interface NavigationItem {
-  name: string;
+  labelKey: string;
   href: string;
   icon: React.FC<any>;
   badge?: number;
 }
 
-const navigation: NavigationItem[] = [
-  { name: 'Dashboard', href: '/', icon: Home },
-  { name: 'Services', href: '/services', icon: Server },
-  { name: 'Users', href: '/users', icon: Users },
-  { name: 'MCP Server', href: '/mcp', icon: Bot },
-  { name: 'Training IA', href: '/training', icon: Brain },
-  { name: 'Monitoring', href: '/monitoring', icon: Activity },
-  { name: 'Configuration', href: '/configuration', icon: Settings },
+const getNavigation = (t: (key: string) => string): NavigationItem[] => [
+  { labelKey: 'nav.dashboard', href: '/', icon: Home },
+  { labelKey: 'nav.services', href: '/services', icon: Server },
+  { labelKey: 'nav.users', href: '/users', icon: Users },
+  { labelKey: 'nav.mcp', href: '/mcp', icon: Bot },
+  { labelKey: 'nav.training', href: '/training', icon: Brain },
+  { labelKey: 'nav.monitoring', href: '/monitoring', icon: Activity },
+  { labelKey: 'nav.configuration', href: '/configuration', icon: Settings },
 ];
 
 interface LayoutProps {
@@ -40,6 +41,8 @@ interface LayoutProps {
 export default function Layout({ children }: LayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { theme, resolvedTheme, setTheme } = useTheme();
+  const { t: tCommon } = useTranslation('common');
+  const navigation = getNavigation(tCommon);
 
   const toggleTheme = () => {
     if (theme === 'system') {
@@ -93,7 +96,7 @@ export default function Layout({ children }: LayoutProps) {
             <div className="space-y-1">
               {navigation.map((item) => (
                 <NavLink
-                  key={item.name}
+                  key={item.labelKey}
                   to={item.href}
                   className={({ isActive }) =>
                     `nav-link ${isActive ? 'nav-link-active' : 'nav-link-inactive'}`
@@ -101,7 +104,7 @@ export default function Layout({ children }: LayoutProps) {
                   onClick={() => setSidebarOpen(false)}
                 >
                   <item.icon className="mr-3 h-5 w-5 flex-shrink-0" />
-                  {item.name}
+                  {tCommon(item.labelKey)}
                   {item.badge && (
                     <span className="ml-auto bg-primary-100 text-primary-600 py-0.5 px-2.5 text-xs rounded-full">
                       {item.badge}

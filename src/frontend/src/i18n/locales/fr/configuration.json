@@ -1,1 +1,171 @@
-{"title": "Title", "description": "Description"}
+{
+  "title": "Configuration",
+  "description": "Parametres de l'application",
+  "tabs": {
+    "appearance": "Apparence",
+    "general": "General",
+    "logs": "Logs",
+    "notifications": "Alertes",
+    "dashboard": "Dashboard",
+    "backup": "Backup"
+  },
+  "appearance": {
+    "title": "Theme",
+    "themeOptions": {
+      "light": "Clair",
+      "dark": "Sombre",
+      "system": "Systeme"
+    }
+  },
+  "general": {
+    "language": {
+      "label": "Langue",
+      "description": "Choisir la langue de l'interface",
+      "options": {
+        "fr": "Français",
+        "en": "English"
+      }
+    },
+    "autoRefresh": {
+      "label": "Actualisation automatique",
+      "description": "Rafraichir les donnees automatiquement"
+    },
+    "refreshInterval": {
+      "label": "Intervalle",
+      "description": "Frequence de rafraichissement"
+    },
+    "wizard": {
+      "label": "Guide de configuration",
+      "description": "Réafficher le guide de première configuration",
+      "resetButton": "Réinitialiser",
+      "confirmMessage": "Voulez-vous vraiment réinitialiser le guide de configuration ? Cela vous redirigera vers le wizard."
+    }
+  },
+  "logs": {
+    "logLevel": {
+      "label": "Niveau de log",
+      "description": "Filtrer par severite"
+    },
+    "logToConsole": {
+      "label": "Logs console",
+      "description": "Afficher dans la console navigateur"
+    },
+    "logToBackend": {
+      "label": "Logs backend",
+      "description": "Envoyer les logs au serveur"
+    },
+    "levelsPreview": "Niveaux enregistres avec \"{{level}}\":",
+    "levels": {
+      "debug": "Debug",
+      "info": "Info",
+      "warning": "Warning",
+      "error": "Error",
+      "critical": "Critical"
+    }
+  },
+  "notifications": {
+    "enabled": {
+      "label": "Notifications",
+      "description": "Activer les notifications"
+    },
+    "sound": {
+      "label": "Sons",
+      "description": "Jouer un son lors des alertes"
+    },
+    "alertOnError": {
+      "label": "Alertes sur erreur",
+      "description": "Notifier lors d'erreurs critiques"
+    }
+  },
+  "dashboard": {
+    "compactMode": {
+      "label": "Mode compact",
+      "description": "Reduire l'espacement"
+    },
+    "systemMetrics": {
+      "label": "Metriques systeme",
+      "description": "Afficher CPU, RAM, disque"
+    },
+    "mcpStats": {
+      "label": "Statistiques MCP",
+      "description": "Afficher les stats du gateway"
+    }
+  },
+  "backup": {
+    "export": {
+      "title": "Exporter la configuration",
+      "description": "Selectionnez les elements a sauvegarder",
+      "button": "Exporter",
+      "categoriesSelected": "{{count}} categories selectionnees"
+    },
+    "import": {
+      "title": "Importer une configuration",
+      "description": "Restaurer depuis un fichier de backup",
+      "button": "Importer la configuration",
+      "selectFile": "Cliquer pour selectionner un fichier",
+      "fileType": ".json uniquement",
+      "version": "Version {{version}}",
+      "dateUnknown": "Date inconnue",
+      "mergeMode": {
+        "label": "Mode fusion",
+        "description": "Fusionner avec les donnees existantes au lieu de remplacer"
+      },
+      "result": {
+        "success": "Import reussi",
+        "error": "Import termine avec des erreurs",
+        "warnings": "Avertissements:",
+        "errors": "Erreurs:",
+        "andMore": "... et {{count}} autres"
+      }
+    },
+    "categories": {
+      "services": {
+        "label": "Services",
+        "description": "Configurations des services (Plex, Authentik, etc.)"
+      },
+      "user_mappings": {
+        "label": "User Mappings",
+        "description": "Mappings utilisateurs entre services"
+      },
+      "groups": {
+        "label": "Groupes",
+        "description": "Groupes, membres et permissions MCP"
+      },
+      "site_config": {
+        "label": "Configuration",
+        "description": "Parametres du site"
+      },
+      "training_prompts": {
+        "label": "AI Training",
+        "description": "Prompts et donnees d'entrainement"
+      }
+    },
+    "reset": {
+      "title": "Zone de danger",
+      "description": "Supprimer toutes les donnees de l'application",
+      "warningTitle": "⚠️ Action irreversible",
+      "warningDescription": "Cette action supprimera definitivement toutes les donnees :",
+      "warningItems": {
+        "services": "Tous les services configures",
+        "userMappings": "Tous les mappings utilisateurs",
+        "groups": "Tous les groupes et permissions",
+        "training": "Tous les prompts d'entrainement",
+        "siteConfig": "Toute la configuration du site"
+      },
+      "warningFooter": "Cette action ne peut pas etre annulee. Assurez-vous d'avoir exporte vos donnees si necessaire.",
+      "button": "Reinitialiser toutes les donnees",
+      "confirmTitle": "Confirmation requise",
+      "confirmDescription": "Etes-vous absolument certain de vouloir supprimer toutes les donnees ? Cette action est irreversible.",
+      "showWizard": "Afficher le wizard de configuration apres la reinitialisation",
+      "confirmButton": "Confirmer la suppression",
+      "deleting": "Suppression...",
+      "successMessage": "Toutes les données ont été supprimées avec succès.",
+      "errorMessage": "Erreur lors de la réinitialisation: {{error}}"
+    }
+  },
+  "reset": {
+    "title": "Reinitialiser les parametres ?",
+    "description": "Cette action va restaurer tous les parametres a leurs valeurs par defaut.",
+    "button": "Reinitialiser"
+  }
+}

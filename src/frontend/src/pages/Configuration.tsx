@@ -24,6 +24,7 @@ import {
   Loader2,
   FolderArchive,
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../contexts/ThemeContext';
 import { useSettings, type LogLevel } from '../contexts/SettingsContext';
 import { useWizard } from '../contexts/WizardContext';
@@ -31,15 +32,6 @@ import { useNavigate } from 'react-router-dom';
 import { api } from '../lib/api';
 
 type TabId = 'appearance' | 'general' | 'logs' | 'notifications' | 'dashboard' | 'backup';
-
-const tabs = [
-  { id: 'appearance' as const, label: 'Apparence', icon: Palette },
-  { id: 'general' as const, label: 'General', icon: RefreshCw },
-  { id: 'logs' as const, label: 'Logs', icon: FileText },
-  { id: 'notifications' as const, label: 'Alertes', icon: Bell },
-  { id: 'dashboard' as const, label: 'Dashboard', icon: LayoutDashboard },
-  { id: 'backup' as const, label: 'Backup', icon: FolderArchive },
-];
 
 interface ExportOptions {
   services: boolean;
@@ -63,13 +55,7 @@ interface PreviewStats {
   training_prompts?: number;
 }
 
-const logLevels: { value: LogLevel; label: string }[] = [
-  { value: 'debug', label: 'Debug' },
-  { value: 'info', label: 'Info' },
-  { value: 'warning', label: 'Warning' },
-  { value: 'error', label: 'Error' },
-  { value: 'critical', label: 'Critical' },
-];
+const logLevelValues: LogLevel[] = ['debug', 'info', 'warning', 'error', 'critical'];
 
 // Toggle Switch Component
 function Toggle({
@@ -100,12 +86,36 @@ function Toggle({
 }
 
 export default function Configuration() {
+  const { t } = useTranslation('configuration');
+  const { t: tCommon } = useTranslation('common');
   const [activeTab, setActiveTab] = useState<TabId>('appearance');
   const { theme, setTheme } = useTheme();
   const { settings, updateSettings, resetSettings } = useSettings();
   const { resetWizard } = useWizard();
   const navigate = useNavigate();
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+
+  const tabs = [
+    { id: 'appearance' as const, label: t('tabs.appearance'), icon: Palette },
+    { id: 'general' as const, label: t('tabs.general'), icon: RefreshCw },
+    { id: 'logs' as const, label: t('tabs.logs'), icon: FileText },
+    { id: 'notifications' as const, label: t('tabs.notifications'), icon: Bell },
+    { id: 'dashboard' as const, label: t('tabs.dashboard'), icon: LayoutDashboard },
+    { id: 'backup' as const, label: t('tabs.backup'), icon: FolderArchive },
+  ];
+
+  const logLevels: { value: LogLevel; label: string }[] = logLevelValues.map(value => ({
+    value,
+    label: t(`logs.levels.${value}`)
+  }));
+
+  const backupCategories = [
+    { key: 'services' as const, label: t('backup.categories.services.label'), icon: Server, description: t('backup.categories.services.description') },
+    { key: 'user_mappings' as const, label: t('backup.categories.user_mappings.label'), icon: Users, description: t('backup.categories.user_mappings.description') },
+    { key: 'groups' as const, label: t('backup.categories.groups.label'), icon: Shield, description: t('backup.categories.groups.description') },
+    { key: 'site_config' as const, label: t('backup.categories.site_config.label'), icon: Wrench, description: t('backup.categories.site_config.description') },
+    { key: 'training_prompts' as const, label: t('backup.categories.training_prompts.label'), icon: Brain, description: t('backup.categories.training_prompts.description') },
+  ];
 
   // Backup states
   const [exportOptions, setExportOptions] = useState<ExportOptions>({
@@ -227,7 +237,7 @@ export default function Configuration() {
       console.log('Reset result:', result);
 
       // Show success message
-      alert('Toutes les données ont été supprimées avec succès.');
+      alert(t('backup.reset.successMessage'));
 
       // Redirect to wizard or reload page
       if (showWizardAfterReset) {
@@ -238,7 +248,7 @@ export default function Configuration() {
       }
     } catch (error) {
       console.error('Reset failed:', error);
-      alert(`Erreur lors de la réinitialisation: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      alert(t('backup.reset.errorMessage', { error: error instanceof Error ? error.message : 'Unknown error' }));
     } finally {
       setResetting(false);
       setShowResetAllConfirm(false);
@@ -247,12 +257,12 @@ export default function Configuration() {
 
   const renderAppearanceTab = () => (
     <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-4 sm:p-6">
-      <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">Theme</h3>
+      <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">{t('appearance.title')}</h3>
       <div className="grid grid-cols-3 gap-3">
         {[
-          { value: 'light', label: 'Clair', icon: Sun },
-          { value: 'dark', label: 'Sombre', icon: Moon },
-          { value: 'system', label: 'Systeme', icon: Monitor },
+          { value: 'light', label: t('appearance.themeOptions.light'), icon: Sun },
+          { value: 'dark', label: t('appearance.themeOptions.dark'), icon: Moon },
+          { value: 'system', label: t('appearance.themeOptions.system'), icon: Monitor },
         ].map((option) => (
           <button
             key={option.value}
@@ -285,7 +295,7 @@ export default function Configuration() {
   );
 
   const handleResetWizard = () => {
-    if (window.confirm('Voulez-vous vraiment réinitialiser le guide de configuration ? Cela vous redirigera vers le wizard.')) {
+    if (window.confirm(t('general.wizard.confirmMessage'))) {
       resetWizard();
       navigate('/wizard');
     }
@@ -296,23 +306,23 @@ export default function Configuration() {
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-4 sm:p-6 space-y-4">
         <div className="flex items-center justify-between py-2">
           <div>
-            <p className="text-sm font-medium text-gray-900 dark:text-white">Langue</p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Choisir la langue de l'interface</p>
+            <p className="text-sm font-medium text-gray-900 dark:text-white">{t('general.language.label')}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">{t('general.language.description')}</p>
           </div>
           <select
             value={settings.language}
             onChange={(e) => updateSettings({ language: e.target.value as 'fr' | 'en' })}
             className="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
           >
-            <option value="fr">Français</option>
-            <option value="en">English</option>
+            <option value="fr">{t('general.language.options.fr')}</option>
+            <option value="en">{t('general.language.options.en')}</option>
           </select>
         </div>
 
         <div className="flex items-center justify-between py-2">
           <div>
-            <p className="text-sm font-medium text-gray-900 dark:text-white">Actualisation automatique</p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Rafraichir les donnees automatiquement</p>
+            <p className="text-sm font-medium text-gray-900 dark:text-white">{t('general.autoRefresh.label')}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">{t('general.autoRefresh.description')}</p>
           </div>
           <Toggle
             enabled={settings.autoRefresh}
@@ -323,8 +333,8 @@ export default function Configuration() {
         {settings.autoRefresh && (
           <div className="flex items-center justify-between py-2">
             <div>
-              <p className="text-sm font-medium text-gray-900 dark:text-white">Intervalle</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">Frequence de rafraichissement</p>
+              <p className="text-sm font-medium text-gray-900 dark:text-white">{t('general.refreshInterval.label')}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">{t('general.refreshInterval.description')}</p>
             </div>
             <select
               value={settings.refreshInterval}
@@ -344,9 +354,9 @@ export default function Configuration() {
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-4 sm:p-6">
         <div className="flex items-start justify-between">
           <div>
-            <p className="text-sm font-medium text-gray-900 dark:text-white">Guide de configuration</p>
+            <p className="text-sm font-medium text-gray-900 dark:text-white">{t('general.wizard.label')}</p>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              Réafficher le guide de première configuration
+              {t('general.wizard.description')}
             </p>
           </div>
           <button
@@ -354,7 +364,7 @@ export default function Configuration() {
             className="flex items-center gap-2 px-3 py-1.5 text-sm text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
           >
             <RotateCcw className="w-4 h-4" />
-            Réinitialiser
+            {t('general.wizard.resetButton')}
           </button>
         </div>
       </div>
@@ -365,8 +375,8 @@ export default function Configuration() {
     <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-4 sm:p-6 space-y-4">
       <div className="flex items-center justify-between py-2">
         <div>
-          <p className="text-sm font-medium text-gray-900 dark:text-white">Niveau de log</p>
-          <p className="text-xs text-gray-500 dark:text-gray-400">Filtrer par severite</p>
+          <p className="text-sm font-medium text-gray-900 dark:text-white">{t('logs.logLevel.label')}</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">{t('logs.logLevel.description')}</p>
         </div>
         <select
           value={settings.logLevel}
@@ -383,8 +393,8 @@ export default function Configuration() {
 
       <div className="flex items-center justify-between py-2">
         <div>
-          <p className="text-sm font-medium text-gray-900 dark:text-white">Logs console</p>
-          <p className="text-xs text-gray-500 dark:text-gray-400">Afficher dans la console navigateur</p>
+          <p className="text-sm font-medium text-gray-900 dark:text-white">{t('logs.logToConsole.label')}</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">{t('logs.logToConsole.description')}</p>
         </div>
         <Toggle
           enabled={settings.logToConsole}
@@ -394,8 +404,8 @@ export default function Configuration() {
 
       <div className="flex items-center justify-between py-2">
         <div>
-          <p className="text-sm font-medium text-gray-900 dark:text-white">Logs backend</p>
-          <p className="text-xs text-gray-500 dark:text-gray-400">Envoyer les logs au serveur</p>
+          <p className="text-sm font-medium text-gray-900 dark:text-white">{t('logs.logToBackend.label')}</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">{t('logs.logToBackend.description')}</p>
         </div>
         <Toggle
           enabled={settings.logToBackend}
@@ -406,7 +416,7 @@ export default function Configuration() {
       {/* Log Levels Preview */}
       <div className="pt-4 border-t border-gray-100 dark:border-gray-700">
         <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
-          Niveaux enregistres avec "{settings.logLevel}":
+          {t('logs.levelsPreview', { level: settings.logLevel })}
         </p>
         <div className="flex flex-wrap gap-2">
           {logLevels.map((level) => {
@@ -434,8 +444,8 @@ export default function Configuration() {
     <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-4 sm:p-6 space-y-4">
       <div className="flex items-center justify-between py-2">
         <div>
-          <p className="text-sm font-medium text-gray-900 dark:text-white">Notifications</p>
-          <p className="text-xs text-gray-500 dark:text-gray-400">Activer les notifications</p>
+          <p className="text-sm font-medium text-gray-900 dark:text-white">{t('notifications.enabled.label')}</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">{t('notifications.enabled.description')}</p>
         </div>
         <Toggle
           enabled={settings.notificationsEnabled}
@@ -445,8 +455,8 @@ export default function Configuration() {
 
       <div className="flex items-center justify-between py-2">
         <div>
-          <p className="text-sm font-medium text-gray-900 dark:text-white">Sons</p>
-          <p className="text-xs text-gray-500 dark:text-gray-400">Jouer un son lors des alertes</p>
+          <p className="text-sm font-medium text-gray-900 dark:text-white">{t('notifications.sound.label')}</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">{t('notifications.sound.description')}</p>
         </div>
         <Toggle
           enabled={settings.soundEnabled}
@@ -457,8 +467,8 @@ export default function Configuration() {
 
       <div className="flex items-center justify-between py-2">
         <div>
-          <p className="text-sm font-medium text-gray-900 dark:text-white">Alertes sur erreur</p>
-          <p className="text-xs text-gray-500 dark:text-gray-400">Notifier lors d'erreurs critiques</p>
+          <p className="text-sm font-medium text-gray-900 dark:text-white">{t('notifications.alertOnError.label')}</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">{t('notifications.alertOnError.description')}</p>
         </div>
         <Toggle
           enabled={settings.alertOnError}
@@ -473,8 +483,8 @@ export default function Configuration() {
     <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-4 sm:p-6 space-y-4">
       <div className="flex items-center justify-between py-2">
         <div>
-          <p className="text-sm font-medium text-gray-900 dark:text-white">Mode compact</p>
-          <p className="text-xs text-gray-500 dark:text-gray-400">Reduire l'espacement</p>
+          <p className="text-sm font-medium text-gray-900 dark:text-white">{t('dashboard.compactMode.label')}</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">{t('dashboard.compactMode.description')}</p>
         </div>
         <Toggle
           enabled={settings.dashboardCompactMode}
@@ -484,8 +494,8 @@ export default function Configuration() {
 
       <div className="flex items-center justify-between py-2">
         <div>
-          <p className="text-sm font-medium text-gray-900 dark:text-white">Metriques systeme</p>
-          <p className="text-xs text-gray-500 dark:text-gray-400">Afficher CPU, RAM, disque</p>
+          <p className="text-sm font-medium text-gray-900 dark:text-white">{t('dashboard.systemMetrics.label')}</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">{t('dashboard.systemMetrics.description')}</p>
         </div>
         <Toggle
           enabled={settings.showSystemMetrics}
@@ -495,8 +505,8 @@ export default function Configuration() {
 
       <div className="flex items-center justify-between py-2">
         <div>
-          <p className="text-sm font-medium text-gray-900 dark:text-white">Statistiques MCP</p>
-          <p className="text-xs text-gray-500 dark:text-gray-400">Afficher les stats du gateway</p>
+          <p className="text-sm font-medium text-gray-900 dark:text-white">{t('dashboard.mcpStats.label')}</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">{t('dashboard.mcpStats.description')}</p>
         </div>
         <Toggle
           enabled={settings.showMcpStats}
@@ -505,14 +515,6 @@ export default function Configuration() {
       </div>
     </div>
   );
-
-  const backupCategories = [
-    { key: 'services' as const, label: 'Services', icon: Server, description: 'Configurations des services (Plex, Authentik, etc.)' },
-    { key: 'user_mappings' as const, label: 'User Mappings', icon: Users, description: 'Mappings utilisateurs entre services' },
-    { key: 'groups' as const, label: 'Groupes', icon: Shield, description: 'Groupes, membres et permissions MCP' },
-    { key: 'site_config' as const, label: 'Configuration', icon: Wrench, description: 'Parametres du site' },
-    { key: 'training_prompts' as const, label: 'AI Training', icon: Brain, description: 'Prompts et donnees d\'entrainement' },
-  ];
 
   const renderBackupTab = () => (
     <div className="space-y-6">
@@ -523,8 +525,8 @@ export default function Configuration() {
             <Download className="w-5 h-5 text-blue-600 dark:text-blue-400" />
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Exporter la configuration</h3>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Selectionnez les elements a sauvegarder</p>
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-white">{t('backup.export.title')}</h3>
+            <p className="text-xs text-gray-500 dark:text-gray-400">{t('backup.export.description')}</p>
           </div>
         </div>
 
@@ -572,7 +574,7 @@ export default function Configuration() {
 
         <div className="flex items-center justify-between pt-3 border-t border-gray-100 dark:border-gray-700">
           <div className="text-xs text-gray-500 dark:text-gray-400">
-            {Object.values(exportOptions).filter(Boolean).length} categories selectionnees
+            {t('backup.export.categoriesSelected', { count: Object.values(exportOptions).filter(Boolean).length })}
           </div>
           <button
             onClick={handleFullExport}
@@ -584,7 +586,7 @@ export default function Configuration() {
             ) : (
               <Download className="w-4 h-4" />
             )}
-            Exporter
+            {t('backup.export.button')}
           </button>
         </div>
       </div>
@@ -596,8 +598,8 @@ export default function Configuration() {
             <Upload className="w-5 h-5 text-green-600 dark:text-green-400" />
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Importer une configuration</h3>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Restaurer depuis un fichier de backup</p>
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-white">{t('backup.import.title')}</h3>
+            <p className="text-xs text-gray-500 dark:text-gray-400">{t('backup.import.description')}</p>
           </div>
         </div>
 
@@ -615,7 +617,7 @@ export default function Configuration() {
                 <Database className="w-8 h-8 text-green-500 mx-auto mb-2" />
                 <p className="text-sm font-medium text-gray-900 dark:text-white">{importFileName}</p>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Version {importFile.version} - {importFile.exported_at ? new Date(importFile.exported_at).toLocaleDateString() : 'Date inconnue'}
+                  {t('backup.import.version', { version: importFile.version })} - {importFile.exported_at ? new Date(importFile.exported_at).toLocaleDateString() : t('backup.import.dateUnknown')}
                 </p>
                 {importFile.stats && (
                   <div className="flex flex-wrap gap-1 mt-2 justify-center">
@@ -630,8 +632,8 @@ export default function Configuration() {
             ) : (
               <div className="text-center">
                 <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                <p className="text-sm text-gray-600 dark:text-gray-400">Cliquer pour selectionner un fichier</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">.json uniquement</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">{t('backup.import.selectFile')}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">{t('backup.import.fileType')}</p>
               </div>
             )}
           </label>
@@ -674,8 +676,8 @@ export default function Configuration() {
               <div className="flex items-center gap-2">
                 <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400" />
                 <div>
-                  <p className="text-sm font-medium text-amber-800 dark:text-amber-200">Mode fusion</p>
-                  <p className="text-xs text-amber-600 dark:text-amber-400">Fusionner avec les donnees existantes au lieu de remplacer</p>
+                  <p className="text-sm font-medium text-amber-800 dark:text-amber-200">{t('backup.import.mergeMode.label')}</p>
+                  <p className="text-xs text-amber-600 dark:text-amber-400">{t('backup.import.mergeMode.description')}</p>
                 </div>
               </div>
               <Toggle
@@ -694,7 +696,7 @@ export default function Configuration() {
               ) : (
                 <Upload className="w-4 h-4" />
               )}
-              Importer la configuration
+              {t('backup.import.button')}
             </button>
           </>
         )}
@@ -713,7 +715,7 @@ export default function Configuration() {
                 <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
               )}
               <span className={`font-medium ${importResult.success ? 'text-green-800 dark:text-green-200' : 'text-red-800 dark:text-red-200'}`}>
-                {importResult.success ? 'Import reussi' : 'Import termine avec des erreurs'}
+                {importResult.success ? t('backup.import.result.success') : t('backup.import.result.error')}
               </span>
             </div>
 
@@ -731,13 +733,13 @@ export default function Configuration() {
             {/* Warnings */}
             {importResult.warnings.length > 0 && (
               <div className="mt-2">
-                <p className="text-xs font-medium text-amber-700 dark:text-amber-300 mb-1">Avertissements:</p>
+                <p className="text-xs font-medium text-amber-700 dark:text-amber-300 mb-1">{t('backup.import.result.warnings')}</p>
                 <ul className="text-xs text-amber-600 dark:text-amber-400 space-y-0.5">
                   {importResult.warnings.slice(0, 5).map((warning, i) => (
                     <li key={i}>• {warning}</li>
                   ))}
                   {importResult.warnings.length > 5 && (
-                    <li>... et {importResult.warnings.length - 5} autres</li>
+                    <li>{t('backup.import.result.andMore', { count: importResult.warnings.length - 5 })}</li>
                   )}
                 </ul>
               </div>
@@ -746,13 +748,13 @@ export default function Configuration() {
             {/* Errors */}
             {importResult.errors.length > 0 && (
               <div className="mt-2">
-                <p className="text-xs font-medium text-red-700 dark:text-red-300 mb-1">Erreurs:</p>
+                <p className="text-xs font-medium text-red-700 dark:text-red-300 mb-1">{t('backup.import.result.errors')}</p>
                 <ul className="text-xs text-red-600 dark:text-red-400 space-y-0.5">
                   {importResult.errors.slice(0, 5).map((error, i) => (
                     <li key={i}>• [{error.type}] {error.name}: {error.error}</li>
                   ))}
                   {importResult.errors.length > 5 && (
-                    <li>... et {importResult.errors.length - 5} autres</li>
+                    <li>{t('backup.import.result.andMore', { count: importResult.errors.length - 5 })}</li>
                   )}
                 </ul>
               </div>
@@ -768,27 +770,27 @@ export default function Configuration() {
             <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Zone de danger</h3>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Supprimer toutes les donnees de l'application</p>
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-white">{t('backup.reset.title')}</h3>
+            <p className="text-xs text-gray-500 dark:text-gray-400">{t('backup.reset.description')}</p>
           </div>
         </div>
 
         <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-4 mb-4">
           <p className="text-sm text-red-800 dark:text-red-200 mb-2 font-medium">
-            ⚠️ Action irreversible
+            {t('backup.reset.warningTitle')}
           </p>
           <p className="text-xs text-red-700 dark:text-red-300">
-            Cette action supprimera definitivement toutes les donnees :
+            {t('backup.reset.warningDescription')}
           </p>
           <ul className="text-xs text-red-700 dark:text-red-300 mt-2 space-y-1 ml-4">
-            <li>• Tous les services configures</li>
-            <li>• Tous les mappings utilisateurs</li>
-            <li>• Tous les groupes et permissions</li>
-            <li>• Tous les prompts d'entrainement</li>
-            <li>• Toute la configuration du site</li>
+            <li>• {t('backup.reset.warningItems.services')}</li>
+            <li>• {t('backup.reset.warningItems.userMappings')}</li>
+            <li>• {t('backup.reset.warningItems.groups')}</li>
+            <li>• {t('backup.reset.warningItems.training')}</li>
+            <li>• {t('backup.reset.warningItems.siteConfig')}</li>
           </ul>
           <p className="text-xs text-red-700 dark:text-red-300 mt-2 font-medium">
-            Cette action ne peut pas etre annulee. Assurez-vous d'avoir exporte vos donnees si necessaire.
+            {t('backup.reset.warningFooter')}
           </p>
         </div>
 
@@ -798,16 +800,16 @@ export default function Configuration() {
             className="w-full px-4 py-3 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
           >
             <AlertCircle className="w-5 h-5" />
-            Reinitialiser toutes les donnees
+            {t('backup.reset.button')}
           </button>
         ) : (
           <div className="space-y-3">
             <div className="bg-amber-50 dark:bg-amber-900/20 rounded-lg p-3 border border-amber-200 dark:border-amber-800">
               <p className="text-sm text-amber-800 dark:text-amber-200 font-medium mb-2">
-                Confirmation requise
+                {t('backup.reset.confirmTitle')}
               </p>
               <p className="text-xs text-amber-700 dark:text-amber-300">
-                Etes-vous absolument certain de vouloir supprimer toutes les donnees ? Cette action est irreversible.
+                {t('backup.reset.confirmDescription')}
               </p>
             </div>
 
@@ -820,7 +822,7 @@ export default function Configuration() {
                 className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
               />
               <span className="text-sm text-blue-800 dark:text-blue-200">
-                Afficher le wizard de configuration apres la reinitialisation
+                {t('backup.reset.showWizard')}
               </span>
             </label>
 
@@ -830,7 +832,7 @@ export default function Configuration() {
                 disabled={resetting}
                 className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
               >
-                Annuler
+                {tCommon('actions.cancel')}
               </button>
               <button
                 onClick={handleResetAll}
@@ -840,12 +842,12 @@ export default function Configuration() {
                 {resetting ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    Suppression...
+                    {t('backup.reset.deleting')}
                   </>
                 ) : (
                   <>
                     <AlertCircle className="w-4 h-4" />
-                    Confirmer la suppression
+                    {t('backup.reset.confirmButton')}
                   </>
                 )}
               </button>
@@ -882,10 +884,10 @@ export default function Configuration() {
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
             <Settings className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600" />
-            Configuration
+            {t('title')}
           </h1>
           <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-            Parametres de l'application
+            {t('description')}
           </p>
         </div>
       </div>
@@ -925,17 +927,17 @@ export default function Configuration() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl p-6 max-w-md w-full mx-4">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-              Reinitialiser les parametres ?
+              {t('reset.title')}
             </h3>
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
-              Cette action va restaurer tous les parametres a leurs valeurs par defaut.
+              {t('reset.description')}
             </p>
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => setShowResetConfirm(false)}
                 className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
               >
-                Annuler
+                {tCommon('actions.cancel')}
               </button>
               <button
                 onClick={() => {
@@ -945,7 +947,7 @@ export default function Configuration() {
                 }}
                 className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
               >
-                Reinitialiser
+                {t('reset.button')}
               </button>
             </div>
           </div>

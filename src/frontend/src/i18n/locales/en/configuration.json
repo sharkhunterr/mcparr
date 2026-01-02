@@ -1,1 +1,171 @@
-{"title": "Title", "description": "Description"}
+{
+  "title": "Configuration",
+  "description": "Application settings",
+  "tabs": {
+    "appearance": "Appearance",
+    "general": "General",
+    "logs": "Logs",
+    "notifications": "Notifications",
+    "dashboard": "Dashboard",
+    "backup": "Backup"
+  },
+  "appearance": {
+    "title": "Theme",
+    "themeOptions": {
+      "light": "Light",
+      "dark": "Dark",
+      "system": "System"
+    }
+  },
+  "general": {
+    "language": {
+      "label": "Language",
+      "description": "Choose the interface language",
+      "options": {
+        "fr": "French",
+        "en": "English"
+      }
+    },
+    "autoRefresh": {
+      "label": "Auto refresh",
+      "description": "Automatically refresh data"
+    },
+    "refreshInterval": {
+      "label": "Interval",
+      "description": "Refresh frequency"
+    },
+    "wizard": {
+      "label": "Configuration wizard",
+      "description": "Show the first-time configuration wizard again",
+      "resetButton": "Reset",
+      "confirmMessage": "Do you really want to reset the configuration wizard? This will redirect you to the wizard."
+    }
+  },
+  "logs": {
+    "logLevel": {
+      "label": "Log level",
+      "description": "Filter by severity"
+    },
+    "logToConsole": {
+      "label": "Console logs",
+      "description": "Display in browser console"
+    },
+    "logToBackend": {
+      "label": "Backend logs",
+      "description": "Send logs to server"
+    },
+    "levelsPreview": "Levels recorded with \"{{level}}\":",
+    "levels": {
+      "debug": "Debug",
+      "info": "Info",
+      "warning": "Warning",
+      "error": "Error",
+      "critical": "Critical"
+    }
+  },
+  "notifications": {
+    "enabled": {
+      "label": "Notifications",
+      "description": "Enable notifications"
+    },
+    "sound": {
+      "label": "Sounds",
+      "description": "Play a sound on alerts"
+    },
+    "alertOnError": {
+      "label": "Error alerts",
+      "description": "Notify on critical errors"
+    }
+  },
+  "dashboard": {
+    "compactMode": {
+      "label": "Compact mode",
+      "description": "Reduce spacing"
+    },
+    "systemMetrics": {
+      "label": "System metrics",
+      "description": "Display CPU, RAM, disk"
+    },
+    "mcpStats": {
+      "label": "MCP statistics",
+      "description": "Display gateway stats"
+    }
+  },
+  "backup": {
+    "export": {
+      "title": "Export configuration",
+      "description": "Select items to back up",
+      "button": "Export",
+      "categoriesSelected": "{{count}} categories selected"
+    },
+    "import": {
+      "title": "Import configuration",
+      "description": "Restore from backup file",
+      "button": "Import configuration",
+      "selectFile": "Click to select a file",
+      "fileType": ".json only",
+      "version": "Version {{version}}",
+      "dateUnknown": "Unknown date",
+      "mergeMode": {
+        "label": "Merge mode",
+        "description": "Merge with existing data instead of replacing"
+      },
+      "result": {
+        "success": "Import successful",
+        "error": "Import completed with errors",
+        "warnings": "Warnings:",
+        "errors": "Errors:",
+        "andMore": "... and {{count}} more"
+      }
+    },
+    "categories": {
+      "services": {
+        "label": "Services",
+        "description": "Service configurations (Plex, Authentik, etc.)"
+      },
+      "user_mappings": {
+        "label": "User Mappings",
+        "description": "User mappings between services"
+      },
+      "groups": {
+        "label": "Groups",
+        "description": "MCP groups, members and permissions"
+      },
+      "site_config": {
+        "label": "Configuration",
+        "description": "Site settings"
+      },
+      "training_prompts": {
+        "label": "AI Training",
+        "description": "Training prompts and data"
+      }
+    },
+    "reset": {
+      "title": "Danger zone",
+      "description": "Delete all application data",
+      "warningTitle": "⚠️ Irreversible action",
+      "warningDescription": "This action will permanently delete all data:",
+      "warningItems": {
+        "services": "All configured services",
+        "userMappings": "All user mappings",
+        "groups": "All groups and permissions",
+        "training": "All training prompts",
+        "siteConfig": "All site configuration"
+      },
+      "warningFooter": "This action cannot be undone. Make sure you have exported your data if necessary.",
+      "button": "Reset all data",
+      "confirmTitle": "Confirmation required",
+      "confirmDescription": "Are you absolutely sure you want to delete all data? This action is irreversible.",
+      "showWizard": "Show configuration wizard after reset",
+      "confirmButton": "Confirm deletion",
+      "deleting": "Deleting...",
+      "successMessage": "All data has been successfully deleted.",
+      "errorMessage": "Error during reset: {{error}}"
+    }
+  },
+  "reset": {
+    "title": "Reset settings?",
+    "description": "This action will restore all settings to their default values.",
+    "button": "Reset"
+  }
+}
