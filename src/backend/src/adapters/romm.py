@@ -175,10 +175,17 @@ class RommAdapter(TokenAuthAdapter):
             return []
 
     async def search_roms(self, query: str) -> List[Dict[str, Any]]:
-        """Search for ROMs."""
+        """Search for ROMs.
+
+        RomM API uses 'search_term' parameter for server-side search.
+        """
         try:
-            response = await self._make_request("GET", "/api/roms", params={"search": query})
+            # RomM uses 'search_term' for searching ROMs (not 'search')
+            response = await self._make_request("GET", "/api/roms", params={"search_term": query, "limit": 50})
             roms = response.json()
+
+            # RomM returns paginated response with 'items' key
+            rom_list = roms.get("items", []) if isinstance(roms, dict) else roms
 
             return [
                 {
@@ -187,7 +194,7 @@ class RommAdapter(TokenAuthAdapter):
                     "platform_slug": rom.get("platform_slug"),
                     "file_size": rom.get("file_size", 0),
                 }
-                for rom in (roms if isinstance(roms, list) else roms.get("items", []))[:20]
+                for rom in rom_list[:20]
             ]
         except Exception as e:
             self.logger.error(f"Failed to search ROMs: {e}")
