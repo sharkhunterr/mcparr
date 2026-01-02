@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🤖 MCParr AI Gateway
+# MCParr AI Gateway
 
 **AI-powered homelab management with MCP server and web administration**
 
@@ -9,6 +9,7 @@
 [![Python](https://img.shields.io/badge/python-3.11+-blue.svg)](https://python.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.104+-009688.svg)](https://fastapi.tiangolo.com)
 [![React](https://img.shields.io/badge/React-18+-61DAFB.svg)](https://reactjs.org)
+[![i18n](https://img.shields.io/badge/i18n-5%20languages-blueviolet.svg)](#-internationalization)
 
 ![MCParr Dashboard](docs/images/02-dashboard.png)
 
@@ -21,9 +22,13 @@
 
 ---
 
+> **Vibe Code Project** - This application was built **100% using AI-assisted development** with [Claude Code](https://claude.ai/claude-code) (Anthropic's CLI). See [Project Story](#-project-story) for details on why and how.
+
+---
+
 MCParr is your unified gateway for managing homelab services through AI. Built with FastAPI and React, it combines a powerful MCP (Model Context Protocol) server with a modern web interface for seamless AI-driven automation.
 
-## 💡 Project Story
+## Project Story
 
 ### The Need
 As a homelab enthusiast managing services for family and friends, I found myself constantly receiving messages for simple requests: "Can you add this movie?", "I can't find that show", "Can you create my account?". Each request required manual intervention and back-and-forth communication.
@@ -38,77 +43,70 @@ As my homelab grew, so did the complexity and the number of user requests. I nee
 - Time to learn all the best practices and architectural patterns
 - Experience with AI integration and MCP protocol
 
-**Claude Code enabled me to**:
-- Build a production-grade application despite limited technical knowledge
-- Implement complex features (MCP server, real-time monitoring, AI training) that would have taken months to learn
-- Follow best practices and modern patterns guided by AI assistance
-- Iterate quickly on features based on actual user needs
-- Maintain high code quality with automated testing and linting
-
 The result is a fully functional, well-documented homelab management platform that would have been impossible to build alone in a reasonable timeframe. This demonstrates how AI-assisted development can democratize software creation, allowing anyone with a vision to build complex systems regardless of their initial skill level.
 
-## ✨ Features
+## Features
 
-🧙 **Setup Wizard & Configuration**
+**Setup Wizard & Configuration**
 - Interactive first-time setup wizard
 - Import/export complete configuration
 - Guided step-by-step service configuration
 - One-click data reset with wizard restart option
 
-🎯 **Unified Service Management**
+**Unified Service Management**
 - Configure and control 15+ homelab services (Plex, Radarr, Sonarr, Overseerr, Prowlarr, etc.)
 - Centralized configuration and monitoring
 - Real-time health checks and status
 
-📊 **Real-time Observability**
+**Real-time Observability**
 - Live logs with WebSocket streaming
 - System metrics and performance monitoring
 - Alert management with customizable rules
 - Correlation IDs for request tracing
 
-🤖 **AI Training & Integration**
+**AI Training & Integration**
 - Custom Ollama model training with GPU support
 - Training progress tracking and session management
 - MCP server for AI-powered homelab automation
 - Open WebUI compatible tools
 
-👥 **User Management**
+**User Management**
 - Automatic user mapping across services
 - Centralized identity management
 - Group-based permissions for AI tools
 - Service-specific authentication
 
-🔧 **Developer Friendly**
+**Developer Friendly**
 - Complete REST API with OpenAPI documentation
 - WebSocket endpoints for real-time updates
 - Comprehensive logging and observability
 - Prometheus-compatible metrics
 
-## 🏗️ Architecture
+## Architecture
 
 ```mermaid
 graph TB
     subgraph "Client Layer"
-        WebUI[🌐 Web UI<br/>React + TypeScript]
-        OpenWebUI[💬 Open WebUI<br/>AI Chat Interface]
+        WebUI[Web UI<br/>React + TypeScript]
+        OpenWebUI[Open WebUI<br/>AI Chat Interface]
     end
 
     subgraph "MCParr Gateway"
-        API[⚡ FastAPI Backend<br/>Port 8000]
-        MCP[🤖 MCP Server<br/>Port 8001]
-        WS[📡 WebSocket<br/>Real-time Updates]
+        API[FastAPI Backend<br/>Port 8000]
+        MCP[MCP Server<br/>Port 8001]
+        WS[WebSocket<br/>Real-time Updates]
 
-        API --> DB[(🗄️ SQLite<br/>Configuration)]
-        API --> Cache[(⚡ Redis<br/>Cache)]
+        API --> DB[(SQLite<br/>Configuration)]
+        API --> Cache[(Redis<br/>Cache)]
     end
 
     subgraph "Service Adapters"
-        Media[🎬 Media Services<br/>Plex, Overseerr, Tautulli]
-        Arr[📥 Arr Stack<br/>Radarr, Sonarr, Prowlarr]
-        DL[⬇️ Downloads<br/>Deluge, Jackett]
-        Books[📚 Books & Games<br/>Komga, Audiobookshelf, ROMM]
-        Utils[🔧 Utilities<br/>Authentik, Wiki.js, Zammad]
-        AI[🧠 AI Services<br/>Ollama, Open WebUI]
+        Media[Media Services<br/>Plex, Overseerr, Tautulli]
+        Arr[Arr Stack<br/>Radarr, Sonarr, Prowlarr]
+        DL[Downloads<br/>Deluge, Jackett]
+        Books[Books & Games<br/>Komga, Audiobookshelf, ROMM]
+        Utils[Utilities<br/>Authentik, Wiki.js, Zammad]
+        AI[AI Services<br/>Ollama, Open WebUI]
     end
 
     WebUI --> API
@@ -137,28 +135,57 @@ graph TB
 <td width="50%">
 
 **Backend**
-- 🐍 Python 3.11+ with FastAPI
-- 🗄️ SQLAlchemy ORM + Alembic migrations
-- ⚡ Redis for caching
-- 📡 WebSocket for real-time updates
-- 🔌 15+ service adapters
-- 🤖 MCP server implementation
+- Python 3.11+ with FastAPI
+- SQLAlchemy ORM + Alembic migrations
+- Redis for caching
+- WebSocket for real-time updates
+- 15+ service adapters
+- MCP server implementation
 
 </td>
 <td width="50%">
 
 **Frontend**
-- ⚛️ React 18 + TypeScript
-- 🎨 Tailwind CSS + shadcn/ui
-- 📊 Recharts for visualization
-- 🔄 Real-time WebSocket integration
-- 📱 Responsive dark/light themes
+- React 18 + TypeScript
+- Tailwind CSS + shadcn/ui
+- Recharts for visualization
+- Real-time WebSocket integration
+- Responsive dark/light themes
 
 </td>
 </tr>
 </table>
 
-## 📋 Requirements
+## Internationalization
+
+MCParr is fully translated into **5 languages**:
+
+| Language | Code | Status |
+|----------|------|--------|
+| English | `en` | Complete |
+| French | `fr` | Complete |
+| German | `de` | Complete |
+| Spanish | `es` | Complete |
+| Italian | `it` | Complete |
+
+### Translation Tools
+
+Translations are managed using [react-i18next](https://react.i18next.com/) with JSON locale files. All translations were generated with assistance from **Claude Code**.
+
+### Contributing Translations
+
+Want to add a new language? Here's how:
+
+1. **Fork the repository**
+2. **Create a new locale folder**: `src/frontend/src/i18n/locales/{lang_code}/`
+3. **Copy English files** from `en/` folder as templates
+4. **Translate** all JSON files (common.json, mcp.json, training.json, etc.)
+5. **Register the language** in `src/frontend/src/i18n/index.ts`
+6. **Submit a Pull Request**
+
+The locale files are in `src/frontend/src/i18n/locales/`. Each namespace (common, mcp, training, users, etc.) has its own JSON file.
+
+## Requirements
 
 ### For Docker Deployment (Recommended)
 - Docker 24+
@@ -172,7 +199,7 @@ graph TB
 - Poetry (Python dependency management)
 - SQLite (default) or PostgreSQL
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Docker Deployment (Production)
 
@@ -213,12 +240,12 @@ npm run reports       # Generate test/lint reports
 
 ### Access Your Gateway
 
-- 🌐 **Web UI**: http://localhost:3000
-- 📡 **API Docs**: http://localhost:8000/docs
-- 📗 **ReDoc**: http://localhost:8000/redoc
-- 🤖 **MCP Server**: http://localhost:8001
+- **Web UI**: http://localhost:3000
+- **API Docs**: http://localhost:8000/docs
+- **ReDoc**: http://localhost:8000/redoc
+- **MCP Server**: http://localhost:8001
 
-## 🧙 First-Time Setup Wizard
+## First-Time Setup Wizard
 
 When you first access MCParr, you'll be greeted with an interactive setup wizard that guides you through the initial configuration:
 
@@ -247,55 +274,55 @@ When you first access MCParr, you'll be greeted with an interactive setup wizard
 - Deletes all services, user mappings, groups, training prompts, and settings
 
 ### Skip or Complete Later
-- Click "Passer le guide" (Skip) to access the interface immediately
+- Click "Skip" to access the interface immediately
 - Wizard completion is saved - it won't show again after first setup
-- Access wizard anytime via Configuration → General → "Reinitialiser le guide"
+- Access wizard anytime via Configuration → General → "Reset wizard"
 
-## 📚 Documentation
+## Documentation
 
-- 📦 [Installation Guide](docs/INSTALLATION.md) - Complete installation and setup
-- ⚙️ [Configuration Guide](docs/CONFIGURATION.md) - Environment variables and service config
-- 🔌 [API Reference](docs/API.md) - REST API endpoint documentation
-- 🛠️ [MCP Integration](docs/MCP.md) - Connect to Claude Desktop and AI assistants
-- 👥 [User Guide](docs/USER_GUIDE.md) - End-user documentation
+- [Installation Guide](docs/INSTALLATION.md) - Complete installation and setup
+- [Configuration Guide](docs/CONFIGURATION.md) - Environment variables and service config
+- [API Reference](docs/API.md) - REST API endpoint documentation
+- [MCP Integration](docs/MCP.md) - Connect to Claude Desktop and AI assistants
+- [User Guide](docs/USER_GUIDE.md) - End-user documentation
 
-## 🔧 Supported Services
+## Supported Services
 
 MCParr integrates with 15+ homelab services:
 
 **Media Management**
 | Service | Description | MCP Tools |
 |---------|-------------|-----------|
-| 🎬 Plex | Media server | Search libraries, get playback info |
-| 📥 Overseerr | Request management | Request movies/TV shows |
-| 🎥 Radarr | Movie management | Add, search, manage movies |
-| 📺 Sonarr | TV management | Add, search, manage series |
-| 📊 Tautulli | Plex analytics | View history, stats, users |
-| 🔍 Prowlarr | Indexer manager | Search across indexers |
+| Plex | Media server | Search libraries, get playback info |
+| Overseerr | Request management | Request movies/TV shows |
+| Radarr | Movie management | Add, search, manage movies |
+| Sonarr | TV management | Add, search, manage series |
+| Tautulli | Plex analytics | View history, stats, users |
+| Prowlarr | Indexer manager | Search across indexers |
 
 **Downloads & Storage**
 | Service | Description | MCP Tools |
 |---------|-------------|-----------|
-| ⬇️ Deluge | Torrent client | Manage torrents, view status |
-| 🔎 Jackett | Torrent indexer | Search torrents |
+| Deluge | Torrent client | Manage torrents, view status |
+| Jackett | Torrent indexer | Search torrents |
 
 **Books & Games**
 | Service | Description | MCP Tools |
 |---------|-------------|-----------|
-| 📚 Komga | Comics library | Browse, read comics |
-| 🎧 Audiobookshelf | Audiobook library | Manage audiobooks, playback |
-| 🎮 ROMM | ROM manager | Manage game ROMs |
+| Komga | Comics library | Browse, read comics |
+| Audiobookshelf | Audiobook library | Manage audiobooks, playback |
+| ROMM | ROM manager | Manage game ROMs |
 
 **Utilities**
 | Service | Description | MCP Tools |
 |---------|-------------|-----------|
-| 📖 Wiki.js | Documentation | Search pages, create content |
-| 🎫 Zammad | Ticketing system | Manage tickets, users |
-| 🔑 Authentik | Identity provider | Manage users, groups, auth |
-| 💬 Open WebUI | AI chat interface | Manage models, chats |
-| 🤖 Ollama | Local LLM hosting | List models, generate text |
+| Wiki.js | Documentation | Search pages, create content |
+| Zammad | Ticketing system | Manage tickets, users |
+| Authentik | Identity provider | Manage users, groups, auth |
+| Open WebUI | AI chat interface | Manage models, chats |
+| Ollama | Local LLM hosting | List models, generate text |
 
-## 🤝 AI Integration with Open WebUI
+## AI Integration with Open WebUI
 
 MCParr is designed to work seamlessly with **Open WebUI**, providing a ChatGPT-like interface to control your entire homelab through natural language.
 
@@ -313,7 +340,7 @@ sequenceDiagram
     MCParr->>Services: POST to Overseerr API
     Services-->>MCParr: Request created
     MCParr-->>OpenWebUI: {status: "success", id: 123}
-    OpenWebUI-->>User: "✅ Requested Inception via Overseerr!"
+    OpenWebUI-->>User: "Requested Inception via Overseerr!"
 
     Note over User,Services: AI automatically uses the right tools
 ```
@@ -332,15 +359,14 @@ docker run -d -p 3000:8080 \
 **2. Add MCParr Tools to Open WebUI**
 
 In Open WebUI:
-1. Go to **Settings** → **Admin Settings** → **Tools** (or **Outils**)
-2. Click **"+ Add Tool"** or **"+ Nouvelle Connexion"**
+1. Go to **Settings** → **Admin Settings** → **Tools**
+2. Click **"+ Add Tool"**
 3. Configure the connection:
    - **Type**: Select **"OpenAPI"**
    - **URL**: `http://YOUR_MCPARR_HOST:8000` (replace with your MCParr IP/hostname)
    - **OpenAPI Spec**: Select `/tools/openapi.json` from dropdown
    - **Auth**: Select **"Session"**
    - **Username**: Give it a descriptive name like "MCParr Homelab Tools"
-   - **Description**: Optional description like "Outils serveur Homelab"
    - **Visibility**: Choose **"Public"** to share with all users
 4. Click **Save** to add the tools
 
@@ -392,20 +418,20 @@ Add to `~/.config/claude/claude_desktop_config.json`:
 ### Available MCP Tools
 
 Once connected, AI assistants can:
-- 🎬 **Search Plex** libraries for movies, TV shows, music
-- 📥 **Request media** via Overseerr with automatic quality selection
-- 🎥 **Manage downloads** in Radarr, Sonarr, Prowlarr
-- ⬇️ **Control torrents** in Deluge
-- 📚 **Browse libraries** in Komga, Audiobookshelf, ROMM
-- 🎫 **Create tickets** in Zammad
-- 👥 **Manage users** in Authentik
-- 📖 **Search documentation** in Wiki.js
-- 🤖 **Interact with Ollama** for local AI models
-- 📊 **Monitor system** health and metrics
+- **Search Plex** libraries for movies, TV shows, music
+- **Request media** via Overseerr with automatic quality selection
+- **Manage downloads** in Radarr, Sonarr, Prowlarr
+- **Control torrents** in Deluge
+- **Browse libraries** in Komga, Audiobookshelf, ROMM
+- **Create tickets** in Zammad
+- **Manage users** in Authentik
+- **Search documentation** in Wiki.js
+- **Interact with Ollama** for local AI models
+- **Monitor system** health and metrics
 
 See [MCP Integration Guide](docs/MCP.md) for complete tool documentation and advanced configuration.
 
-## 📊 Monitoring & Observability
+## Monitoring & Observability
 
 - **Metrics**: Prometheus-compatible metrics at `/metrics`
 - **Health Check**: `/health` endpoint for Docker/Kubernetes
@@ -413,7 +439,7 @@ See [MCP Integration Guide](docs/MCP.md) for complete tool documentation and adv
 - **WebSocket**: Real-time log streaming at `/ws/logs`
 - **Alerts**: Customizable alert rules and notifications
 
-## 🧪 Testing
+## Testing
 
 ```bash
 # Run all tests
@@ -429,7 +455,7 @@ npm run test:front
 npm run reports
 ```
 
-## 🔒 Security
+## Security
 
 - Local network trust model (no auth required by default)
 - Configurable CORS origins
@@ -438,7 +464,7 @@ npm run reports
 - Rate limiting and circuit breakers
 - Secure service-to-service communication
 
-## 🐳 Docker Configuration
+## Docker Configuration
 
 MCParr uses a **single unified Docker image** containing both backend (FastAPI + MCP) and frontend (React):
 
@@ -464,10 +490,10 @@ volumes:
 
 See [docker/DOCKERHUB.md](docker/DOCKERHUB.md) for complete Docker documentation.
 
-## 📸 Screenshots
+## Screenshots
 
 <details open>
-<summary><b>🎯 Services Management</b></summary>
+<summary><b>Services Management</b></summary>
 
 ![Services List](docs/images/03-services-list.png)
 *Manage 15+ homelab services with health monitoring and connection testing*
@@ -478,7 +504,7 @@ See [docker/DOCKERHUB.md](docker/DOCKERHUB.md) for complete Docker documentation
 </details>
 
 <details>
-<summary><b>👥 User & Group Management</b></summary>
+<summary><b>User & Group Management</b></summary>
 
 ![User Auto-Detection](docs/images/07-users-auto-detection.png)
 *Automatic user discovery across all services*
@@ -489,7 +515,7 @@ See [docker/DOCKERHUB.md](docker/DOCKERHUB.md) for complete Docker documentation
 </details>
 
 <details>
-<summary><b>🤖 AI Training with Ollama</b></summary>
+<summary><b>AI Training with Ollama</b></summary>
 
 ![Training Overview](docs/images/11-training-overview.png)
 *Monitor training sessions with GPU support*
@@ -503,7 +529,7 @@ See [docker/DOCKERHUB.md](docker/DOCKERHUB.md) for complete Docker documentation
 </details>
 
 <details>
-<summary><b>📊 Monitoring & Observability</b></summary>
+<summary><b>Monitoring & Observability</b></summary>
 
 ![System Metrics](docs/images/18-monitoring-metrics.png)
 *Real-time system metrics with auto-refresh*
@@ -514,7 +540,7 @@ See [docker/DOCKERHUB.md](docker/DOCKERHUB.md) for complete Docker documentation
 </details>
 
 <details>
-<summary><b>⚙️ Configuration</b></summary>
+<summary><b>Configuration</b></summary>
 
 ![Appearance Settings](docs/images/21-config-appearance.png)
 *Light/Dark/System theme options*
@@ -524,7 +550,7 @@ See [docker/DOCKERHUB.md](docker/DOCKERHUB.md) for complete Docker documentation
 
 </details>
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Please:
 
@@ -534,45 +560,25 @@ Contributions are welcome! Please:
 4. Run tests and linting: `npm run lint && npm test`
 5. Submit a pull request
 
-## 🛠️ Development Tools
+## AI Tools Used
 
-This project was built using modern AI-assisted development tools:
+This project was built using AI-assisted development:
 
-### Claude Code by Anthropic
-**100% of the codebase** was developed using [Claude Code](https://claude.ai/claude-code), Anthropic's CLI tool for AI-assisted development. This enabled rapid iteration, best-practice implementation, and complex feature development without requiring deep expertise in every technology.
+| Tool | Usage |
+|------|-------|
+| [Claude Code](https://claude.ai/claude-code) | 100% of codebase development (Anthropic's CLI) |
+| [GitHub Spec-Kit](https://github.com/github/spec-kit) | Project planning and architecture design |
 
-**Key benefits experienced:**
-- Faster development cycle (features that would take weeks completed in hours)
-- Consistent code quality and architecture across frontend/backend
-- Automated testing and documentation generation
-- Real-time problem-solving and debugging assistance
-- Learning while building - understanding patterns through implementation
-
-### GitHub Spec-Kit
-Project planning and architecture were designed using [GitHub's Spec-Kit](https://github.com/github/spec-kit), enabling clear specification of features and requirements before implementation.
-
-### Why This Matters
-This project demonstrates that **AI-assisted development democratizes software creation**. You don't need to be an expert in React, FastAPI, Docker, WebSockets, MCP protocol, or any specific technology to build production-grade applications. With the right tools and a clear vision, anyone can create complex, maintainable software systems.
-
-**If you're considering AI-assisted development:**
-- ✅ You can build features you don't fully understand yet
-- ✅ Best practices are enforced automatically
-- ✅ Documentation writes itself alongside code
-- ✅ Testing becomes integrated from day one
-- ✅ Learning happens through building, not before
-
-The entire MCParr project - from initial concept to production deployment - was built by someone with limited web development experience, proving that AI tools have fundamentally changed what's possible for individual developers.
-
-## 📄 License
+## License
 
 MIT License - see [LICENSE](LICENSE) file for details
 
-## 🆘 Support
+## Support
 
-- 📘 [GitHub Repository](https://github.com/sharkhunterr/mcparr)
-- 📖 [Documentation](docs/)
-- 🐛 [Issues](https://github.com/sharkhunterr/mcparr/issues)
+- [GitHub Repository](https://github.com/sharkhunterr/mcparr)
+- [Documentation](docs/)
+- [Issues](https://github.com/sharkhunterr/mcparr/issues)
 
 ---
 
-**Built with** ❤️ **for the homelab community**
+**Built with** Claude Code **for the homelab community**
