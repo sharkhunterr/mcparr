@@ -91,6 +91,11 @@ The result is a fully functional, well-documented homelab management platform th
 - Comprehensive logging and observability
 - Prometheus-compatible metrics
 
+**Extensible Architecture**
+- Add new services via adapter pattern ([Integration Guide](docs/INTEGRATION_GUIDE.md))
+- Modular design for custom service integrations
+- Full i18n support for new features
+
 ## Architecture
 
 ```mermaid
