@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.2.9](https://github.com/sharkhunterr/mcparr/-/compare/v0.2.8...v0.2.9) (2026-01-02)
+
+
+### Features
+
+* add i18n infrastructure with French and English support ([ef87fe5](https://github.com/sharkhunterr/mcparr/-/commit/ef87fe56002ec7ad84cb3c1fd3024255edeb2496))
+* **i18n:** complete Workers tab and MCP Stats tab translations ([c35e02f](https://github.com/sharkhunterr/mcparr/-/commit/c35e02f2bd193a44641bcb1f8bd331e7cb9ace04))
+* **i18n:** translate all major pages (Services, Users, MCP, Training, Monitoring) ([afd94ec](https://github.com/sharkhunterr/mcparr/-/commit/afd94ec71245cb0e68b304e4f5bd5369d5cc5410))
+* **i18n:** translate Dashboard page to use i18n ([29baa99](https://github.com/sharkhunterr/mcparr/-/commit/29baa99e0b32b6cd5ed7d1cd5ee3f77567ed93a9))
+* **i18n:** translate Layout navigation and Configuration page ([7e9ad61](https://github.com/sharkhunterr/mcparr/-/commit/7e9ad615e80b55750476f251d2608ba76727426a))
+* **i18n:** translate MCP page configuration tab ([fe86b6d](https://github.com/sharkhunterr/mcparr/-/commit/fe86b6da1c0401203db88a19d45556fd9687119f))
+* **i18n:** translate Wizard component and all step components ([a2077b2](https://github.com/sharkhunterr/mcparr/-/commit/a2077b238bf9ed509f074a70884e02303a586815))
+
+
+### Bug Fixes
+
+* correct backend URL port from 8002 to 8000 in MCP page ([330e31b](https://github.com/sharkhunterr/mcparr/-/commit/330e31b272a3734fe466e99135aeac635d965c3d))
+* **i18n:** add missing translation keys for Users, MCP, and Training pages ([43ba581](https://github.com/sharkhunterr/mcparr/-/commit/43ba5816ec7195558c669be25e8940d232465bd9))
+* **i18n:** translate MCP tools tab and test modal ([ad47773](https://github.com/sharkhunterr/mcparr/-/commit/ad47773f9ea76e878ef9bf4aa3a26d5abed9c150))
+* remove unused parameter in Layout navigation ([015a34f](https://github.com/sharkhunterr/mcparr/-/commit/015a34f3709b1dfa31d1ca8e07f1e2df655ed949))
+
 ### [0.2.8](https://github.com/sharkhunterr/mcparr/-/compare/v0.2.7...v0.2.8) (2026-01-01)
 
 
