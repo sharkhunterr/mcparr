@@ -31,6 +31,14 @@ MCParr is your unified gateway for managing homelab services through AI. Built w
 
 ## Project Story
 
+### Why "MCParr"?
+
+The name **MCParr** combines two key concepts:
+- **MCP** (Model Context Protocol) - The protocol that connects AI assistants to external tools
+- **\*arr** - A reference to the popular homelab suite (Rad**arr**, Son**arr**, Prowl**arr**, etc.)
+
+MCParr is the bridge between AI and your media center, allowing natural language control of your entire homelab ecosystem.
+
 ### The Need
 As a homelab enthusiast managing services for family and friends, I found myself constantly receiving messages for simple requests: "Can you add this movie?", "I can't find that show", "Can you create my account?". Each request required manual intervention and back-and-forth communication.
 
