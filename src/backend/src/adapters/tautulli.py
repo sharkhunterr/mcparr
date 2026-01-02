@@ -464,9 +464,14 @@ class TautulliAdapter(TokenAuthAdapter):
             data = response.json()
 
             if data.get("response", {}).get("result") != "success":
+                self.logger.warning(f"get_home_stats failed: {data.get('response', {})}")
                 return []
 
             stats_data = data.get("response", {}).get("data", [])
+            # When stat_id is specified, Tautulli returns a single dict instead of a list
+            # Normalize to always return a list for consistent handling
+            if isinstance(stats_data, dict):
+                stats_data = [stats_data]
             return stats_data if isinstance(stats_data, list) else []
 
         except Exception as e:
