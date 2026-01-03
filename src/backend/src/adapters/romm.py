@@ -28,6 +28,24 @@ class RommAdapter(TokenAuthAdapter):
     def service_type(self) -> str:
         return "romm"
 
+    def _get_rom_url(self, rom_id: int) -> str:
+        """Generate RomM web UI URL for a ROM."""
+        if rom_id:
+            return f"{self.public_url}/rom/{rom_id}"
+        return ""
+
+    def _get_platform_url(self, platform_slug: str) -> str:
+        """Generate RomM web UI URL for a platform."""
+        if platform_slug:
+            return f"{self.public_url}/platform/{platform_slug}"
+        return ""
+
+    def _get_collection_url(self, collection_id: int) -> str:
+        """Generate RomM web UI URL for a collection."""
+        if collection_id:
+            return f"{self.public_url}/collection/{collection_id}"
+        return ""
+
     @property
     def supported_capabilities(self) -> List[ServiceCapability]:
         return [ServiceCapability.MEDIA_CONTENT, ServiceCapability.USER_MANAGEMENT, ServiceCapability.API_ACCESS]
@@ -140,6 +158,7 @@ class RommAdapter(TokenAuthAdapter):
                     "igdb_id": platform.get("igdb_id"),
                     "rom_count": platform.get("rom_count", 0),
                     "logo_path": platform.get("logo_path"),
+                    "url": self._get_platform_url(platform.get("slug")),
                 }
                 for platform in platforms
             ]
@@ -167,6 +186,7 @@ class RommAdapter(TokenAuthAdapter):
                     "igdb_id": rom.get("igdb_id"),
                     "summary": rom.get("summary", "")[:200] if rom.get("summary") else None,
                     "path": rom.get("path"),
+                    "url": self._get_rom_url(rom.get("id")),
                 }
                 for rom in (roms if isinstance(roms, list) else roms.get("items", []))[:limit]
             ]
@@ -208,6 +228,7 @@ class RommAdapter(TokenAuthAdapter):
                     "name": rom.get("name"),
                     "platform_slug": rom.get("platform_slug"),
                     "file_size": rom.get("file_size", 0),
+                    "url": self._get_rom_url(rom.get("id")),
                 }
                 for rom in rom_list[:limit]
             ]
@@ -249,6 +270,7 @@ class RommAdapter(TokenAuthAdapter):
                     "description": col.get("description"),
                     "rom_count": col.get("rom_count", 0),
                     "is_public": col.get("is_public", False),
+                    "url": self._get_collection_url(col.get("id")),
                 }
                 for col in collection_list[:limit]
             ]

@@ -22,6 +22,18 @@ class AudiobookshelfAdapter(TokenAuthAdapter):
     def service_type(self) -> str:
         return "audiobookshelf"
 
+    def _get_item_url(self, item_id: str) -> str:
+        """Generate Audiobookshelf web UI URL for a library item."""
+        if item_id:
+            return f"{self.public_url}/item/{item_id}"
+        return ""
+
+    def _get_library_url(self, library_id: str) -> str:
+        """Generate Audiobookshelf web UI URL for a library."""
+        if library_id:
+            return f"{self.public_url}/library/{library_id}"
+        return ""
+
     @property
     def supported_capabilities(self) -> List[ServiceCapability]:
         return [ServiceCapability.MEDIA_CONTENT, ServiceCapability.USER_MANAGEMENT, ServiceCapability.API_ACCESS]
@@ -168,6 +180,7 @@ class AudiobookshelfAdapter(TokenAuthAdapter):
                         "cover_aspect_ratio": lib.get("settings", {}).get("coverAspectRatio"),
                         "disable_watcher": lib.get("settings", {}).get("disableWatcher", False),
                     },
+                    "url": self._get_library_url(lib.get("id")),
                 }
                 for lib in libraries
             ]
@@ -208,6 +221,7 @@ class AudiobookshelfAdapter(TokenAuthAdapter):
                         "num_audio_files": item.get("media", {}).get("numAudioFiles", 0),
                         "added_at": item.get("addedAt"),
                         "updated_at": item.get("updatedAt"),
+                        "url": self._get_item_url(item.get("id")),
                     }
                     for item in data.get("results", [])
                 ],

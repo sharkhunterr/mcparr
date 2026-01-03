@@ -15,6 +15,24 @@ class SonarrAdapter(TokenAuthAdapter):
     def service_type(self) -> str:
         return "sonarr"
 
+    def _get_series_url(self, series_id: int) -> str:
+        """Generate Sonarr web UI URL for a series."""
+        if series_id:
+            return f"{self.public_url}/series/{series_id}"
+        return ""
+
+    def _get_tvdb_url(self, tvdb_id: int) -> str:
+        """Generate TVDB external URL."""
+        if tvdb_id:
+            return f"https://thetvdb.com/?id={tvdb_id}&tab=series"
+        return ""
+
+    def _get_imdb_url(self, imdb_id: str) -> str:
+        """Generate IMDB external URL."""
+        if imdb_id:
+            return f"https://www.imdb.com/title/{imdb_id}"
+        return ""
+
     @property
     def supported_capabilities(self) -> List[ServiceCapability]:
         return [ServiceCapability.MEDIA_CONTENT, ServiceCapability.API_ACCESS]
@@ -116,6 +134,9 @@ class SonarrAdapter(TokenAuthAdapter):
                     "path": series.get("path"),
                     "size_on_disk": series.get("sizeOnDisk", 0),
                     "network": series.get("network"),
+                    "url": self._get_series_url(series.get("id")),
+                    "tvdb_url": self._get_tvdb_url(series.get("tvdbId")),
+                    "imdb_url": self._get_imdb_url(series.get("imdbId")),
                 }
                 for series in series_list[:limit]
             ]
@@ -139,6 +160,8 @@ class SonarrAdapter(TokenAuthAdapter):
                     "network": series.get("network"),
                     "season_count": series.get("seasonCount", 0),
                     "in_library": series.get("id") is not None,
+                    "tvdb_url": self._get_tvdb_url(series.get("tvdbId")),
+                    "imdb_url": self._get_imdb_url(series.get("imdbId")),
                 }
                 for series in results[:20]
             ]

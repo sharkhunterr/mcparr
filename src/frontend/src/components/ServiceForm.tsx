@@ -6,6 +6,7 @@ interface ServiceFormData {
   service_type: string;
   description: string;
   base_url: string;
+  external_url: string;
   port: string;
   api_key: string;
   username: string;
@@ -200,6 +201,7 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
     service_type: '',
     description: '',
     base_url: '',
+    external_url: '',
     port: '',
     api_key: '',
     username: '',
@@ -258,6 +260,15 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
 
     if (formData.port && (isNaN(Number(formData.port)) || Number(formData.port) < 1 || Number(formData.port) > 65535)) {
       newErrors.port = 'Port must be a number between 1 and 65535';
+    }
+
+    // Validate external URL if provided
+    if (formData.external_url && formData.external_url.trim()) {
+      try {
+        new URL(formData.external_url);
+      } catch {
+        newErrors.external_url = 'Invalid URL format';
+      }
     }
 
     // Validate auth fields based on service type
@@ -442,6 +453,32 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
                   </p>
                 )}
               </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                External URL
+                <HelpCircle className="w-4 h-4 inline ml-1 text-gray-400" title="Public URL for external access (used for clickable links)" />
+              </label>
+              <input
+                type="url"
+                value={formData.external_url}
+                onChange={(e) => handleChange('external_url', e.target.value)}
+                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white ${
+                  errors.external_url ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                }`}
+                placeholder="https://service.example.com"
+                disabled={loading}
+              />
+              {errors.external_url && (
+                <p className="mt-1 text-sm text-red-600 flex items-center">
+                  <AlertCircle className="w-4 h-4 mr-1" />
+                  {errors.external_url}
+                </p>
+              )}
+              <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                Public URL for users to access the service (used for clickable links in AI responses)
+              </p>
             </div>
           </div>
 

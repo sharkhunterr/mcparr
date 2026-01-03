@@ -133,6 +133,7 @@ class PlexTools(BaseTool):
                     self.api_key = config.get("api_key")
                     # Support both 'base_url' and 'url' keys for compatibility
                     self.base_url = config.get("base_url") or config.get("url", "")
+                    self.external_url = config.get("external_url")  # Public URL for user links
                     self.port = config.get("port")
                     self.config = config.get("config") or config.get("extra_config", {})
 
@@ -172,6 +173,7 @@ class PlexTools(BaseTool):
                         "type": lib.get("type"),
                         "key": lib.get("key"),
                         "count": lib.get("count", 0),
+                        "url": lib.get("url"),
                     }
                     for lib in libraries
                 ]
@@ -201,6 +203,7 @@ class PlexTools(BaseTool):
                         else item.get("summary"),
                         "rating": item.get("rating"),
                         "duration_minutes": item.get("duration", 0) // 60000 if item.get("duration") else None,
+                        "url": item.get("url"),
                     }
                     for item in results[:limit]
                 ],
@@ -214,20 +217,47 @@ class PlexTools(BaseTool):
 
         items = await adapter.get_recently_added(library_name=library_name, limit=limit)
 
+        # Apply limit (adapter may return more than requested)
+        items = items[:limit]
+
+        result_items = []
+        for item in items:
+            item_data = {
+                "title": item.get("title"),
+                "type": item.get("type"),
+                "year": item.get("year"),
+                "added_at": item.get("addedAt"),
+                "library": item.get("librarySectionTitle"),
+                "url": item.get("url"),
+            }
+            # For episodes, add series and season info
+            if item.get("type") == "episode":
+                item_data["series"] = item.get("grandparentTitle")
+                item_data["season"] = item.get("parentIndex")
+                item_data["episode"] = item.get("index")
+                # Build a more descriptive title
+                series = item.get("grandparentTitle", "")
+                season = item.get("parentIndex")
+                episode = item.get("index")
+                ep_title = item.get("title", "")
+                if series and season is not None and episode is not None:
+                    item_data["full_title"] = f"{series} S{season:02d}E{episode:02d} - {ep_title}"
+            # For seasons, add series info
+            elif item.get("type") == "season":
+                item_data["series"] = item.get("parentTitle")
+                item_data["season_number"] = item.get("index")
+                series = item.get("parentTitle", "")
+                season_num = item.get("index")
+                if series and season_num is not None:
+                    item_data["full_title"] = f"{series} - Season {season_num}"
+
+            result_items.append(item_data)
+
         return {
             "success": True,
             "result": {
-                "count": len(items),
-                "items": [
-                    {
-                        "title": item.get("title"),
-                        "type": item.get("type"),
-                        "year": item.get("year"),
-                        "added_at": item.get("addedAt"),
-                        "library": item.get("librarySectionTitle"),
-                    }
-                    for item in items
-                ],
+                "count": len(result_items),
+                "items": result_items,
             },
         }
 
@@ -292,6 +322,7 @@ class PlexTools(BaseTool):
                 "actors": item.get("Role", [])[:5],  # Limit actors
                 "studio": item.get("studio"),
                 "added_at": item.get("addedAt"),
+                "url": item.get("url"),
             },
         }
 

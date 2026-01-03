@@ -28,6 +28,18 @@ class WikiJSAdapter(TokenAuthAdapter):
     def service_type(self) -> str:
         return "wikijs"
 
+    def _get_page_url(self, locale: str, path: str) -> str:
+        """Generate WikiJS web UI URL for a page."""
+        if locale and path:
+            return f"{self.public_url}/{locale}/{path}"
+        return ""
+
+    def _get_page_edit_url(self, page_id: int) -> str:
+        """Generate WikiJS web UI URL to edit a page."""
+        if page_id:
+            return f"{self.public_url}/e/{page_id}"
+        return ""
+
     @property
     def supported_capabilities(self) -> List[ServiceCapability]:
         return [
@@ -252,6 +264,7 @@ class WikiJSAdapter(TokenAuthAdapter):
                     "tags": page.get("tags", []),  # tags is already a string array
                     "created_at": page.get("createdAt"),
                     "updated_at": page.get("updatedAt"),
+                    "url": self._get_page_url(page.get("locale"), page.get("path")),
                 }
                 for page in pages
             ]

@@ -23,6 +23,24 @@ class KomgaAdapter(TokenAuthAdapter):
     def service_type(self) -> str:
         return "komga"
 
+    def _get_series_url(self, series_id: str) -> str:
+        """Generate Komga web UI URL for a series."""
+        if series_id:
+            return f"{self.public_url}/series/{series_id}"
+        return ""
+
+    def _get_book_url(self, book_id: str) -> str:
+        """Generate Komga web UI URL for a book."""
+        if book_id:
+            return f"{self.public_url}/book/{book_id}"
+        return ""
+
+    def _get_library_url(self, library_id: str) -> str:
+        """Generate Komga web UI URL for a library."""
+        if library_id:
+            return f"{self.public_url}/libraries/{library_id}"
+        return ""
+
     @property
     def supported_capabilities(self) -> List[ServiceCapability]:
         return [ServiceCapability.MEDIA_CONTENT, ServiceCapability.USER_MANAGEMENT, ServiceCapability.API_ACCESS]
@@ -152,6 +170,7 @@ class KomgaAdapter(TokenAuthAdapter):
                     "name": lib.get("name"),
                     "root": lib.get("root"),
                     "unavailable_date": lib.get("unavailableDate"),
+                    "url": self._get_library_url(lib.get("id")),
                 }
                 for lib in libraries
             ]
@@ -180,6 +199,7 @@ class KomgaAdapter(TokenAuthAdapter):
                     "status": series.get("metadata", {}).get("status"),
                     "publisher": series.get("metadata", {}).get("publisher"),
                     "genres": series.get("metadata", {}).get("genres", []),
+                    "url": self._get_series_url(series.get("id")),
                 }
                 for series in data.get("content", [])
             ]
@@ -206,6 +226,7 @@ class KomgaAdapter(TokenAuthAdapter):
                     "size_bytes": book.get("sizeBytes", 0),
                     "read_progress": book.get("readProgress", {}).get("page", 0),
                     "completed": book.get("readProgress", {}).get("completed", False),
+                    "url": self._get_book_url(book.get("id")),
                 }
                 for book in data.get("content", [])
             ]
@@ -225,6 +246,7 @@ class KomgaAdapter(TokenAuthAdapter):
                         "id": s.get("id"),
                         "name": s.get("metadata", {}).get("title", s.get("name")),
                         "books_count": s.get("booksCount", 0),
+                        "url": self._get_series_url(s.get("id")),
                     }
                     for s in data.get("series", {}).get("content", [])[:10]
                 ],
@@ -233,6 +255,7 @@ class KomgaAdapter(TokenAuthAdapter):
                         "id": b.get("id"),
                         "name": b.get("metadata", {}).get("title", b.get("name")),
                         "series_id": b.get("seriesId"),
+                        "url": self._get_book_url(b.get("id")),
                     }
                     for b in data.get("books", {}).get("content", [])[:10]
                 ],

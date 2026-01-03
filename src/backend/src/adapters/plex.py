@@ -17,9 +17,53 @@ from .base import (
 class PlexAdapter(TokenAuthAdapter):
     """Adapter for Plex Media Server integration."""
 
+    _machine_identifier: Optional[str] = None
+
     @property
     def service_type(self) -> str:
         return "plex"
+
+    def _get_web_url(self, key: str) -> str:
+        """Generate Plex web UI URL for a media item.
+
+        Args:
+            key: The media key (e.g., '/library/metadata/123')
+        """
+        # Extract the rating key from the full key path
+        rating_key = key.split("/")[-1] if key else ""
+        if self._machine_identifier and rating_key:
+            public = self.public_url
+            # Handle app.plex.tv special case - uses different URL structure
+            if "app.plex.tv" in public:
+                # app.plex.tv format: https://app.plex.tv/desktop/#!/server/{id}/details?key=...
+                base = public.rstrip("/")
+                if not base.endswith("/desktop"):
+                    base = f"{base}/desktop"
+                return f"{base}/#!/server/{self._machine_identifier}/details?key=%2Flibrary%2Fmetadata%2F{rating_key}"
+            else:
+                # Local Plex format: {base_url}/web/index.html#!/server/{id}/details?key=...
+                base = f"{public}/web/index.html#!/server/{self._machine_identifier}"
+                return f"{base}/details?key=%2Flibrary%2Fmetadata%2F{rating_key}"
+        return ""
+
+    def _get_library_url(self, section_key: str) -> str:
+        """Generate Plex web UI URL for a library."""
+        if self._machine_identifier and section_key:
+            public = self.public_url
+            # Handle app.plex.tv special case
+            if "app.plex.tv" in public:
+                base = public.rstrip("/")
+                if not base.endswith("/desktop"):
+                    base = f"{base}/desktop"
+                return f"{base}/#!/server/{self._machine_identifier}/section?key={section_key}"
+            else:
+                return f"{public}/web/index.html#!/server/{self._machine_identifier}/section?key={section_key}"
+        return ""
+
+    async def _ensure_machine_identifier(self) -> None:
+        """Ensure machine identifier is available for URL generation."""
+        if not self._machine_identifier:
+            await self.get_service_info()
 
     @property
     def supported_capabilities(self) -> List[ServiceCapability]:
@@ -111,12 +155,15 @@ class PlexAdapter(TokenAuthAdapter):
 
             container = data["MediaContainer"]
 
+            # Cache machine identifier for URL generation
+            self._machine_identifier = container.get("machineIdentifier")
+
             return {
                 "service": "plex",
                 "version": container.get("version", "unknown"),
                 "platform": container.get("platform", "unknown"),
                 "server_name": container.get("friendlyName", "Plex Server"),
-                "machine_identifier": container.get("machineIdentifier"),
+                "machine_identifier": self._machine_identifier,
                 "updated_at": container.get("updatedAt"),
                 "multiuser": container.get("multiuser", False),
                 "my_plex": container.get("myPlex", False),
@@ -132,6 +179,7 @@ class PlexAdapter(TokenAuthAdapter):
     async def get_libraries(self) -> List[Dict[str, Any]]:
         """Get Plex libraries."""
         try:
+            await self._ensure_machine_identifier()
             response = await self._make_request("GET", "/library/sections")
             data = response.json()
 
@@ -142,9 +190,10 @@ class PlexAdapter(TokenAuthAdapter):
             libraries = []
 
             for directory in directories:
+                key = directory.get("key")
                 libraries.append(
                     {
-                        "key": directory.get("key"),
+                        "key": key,
                         "title": directory.get("title"),
                         "type": directory.get("type"),
                         "agent": directory.get("agent"),
@@ -152,6 +201,7 @@ class PlexAdapter(TokenAuthAdapter):
                         "refreshing": directory.get("refreshing", False),
                         "created_at": directory.get("createdAt"),
                         "updated_at": directory.get("updatedAt"),
+                        "url": self._get_library_url(key),
                     }
                 )
 
@@ -268,13 +318,15 @@ class PlexAdapter(TokenAuthAdapter):
             if "MediaContainer" not in data:
                 return []
 
+            await self._ensure_machine_identifier()
             metadata = data["MediaContainer"].get("Metadata", [])
             recent_items = []
 
             for item in metadata:
+                key = item.get("key")
                 recent_items.append(
                     {
-                        "key": item.get("key"),
+                        "key": key,
                         "title": item.get("title"),
                         "type": item.get("type"),
                         "year": item.get("year"),
@@ -285,6 +337,12 @@ class PlexAdapter(TokenAuthAdapter):
                         "thumb": item.get("thumb"),
                         "art": item.get("art"),
                         "librarySectionTitle": item.get("librarySectionTitle"),
+                        # Episode/Season specific fields
+                        "grandparentTitle": item.get("grandparentTitle"),  # Series name for episodes
+                        "parentTitle": item.get("parentTitle"),  # Series name for seasons
+                        "parentIndex": item.get("parentIndex"),  # Season number for episodes
+                        "index": item.get("index"),  # Episode number or season number
+                        "url": self._get_web_url(key),
                     }
                 )
 
@@ -297,6 +355,7 @@ class PlexAdapter(TokenAuthAdapter):
     async def search_content(self, query: str, limit: int = 20) -> List[Dict[str, Any]]:
         """Search for content in Plex."""
         try:
+            await self._ensure_machine_identifier()
             response = await self._make_request("GET", "/search", params={"query": query, "limit": str(limit)})
             data = response.json()
 
@@ -307,15 +366,17 @@ class PlexAdapter(TokenAuthAdapter):
             search_results = []
 
             for item in metadata:
+                key = item.get("key")
                 search_results.append(
                     {
-                        "key": item.get("key"),
+                        "key": key,
                         "title": item.get("title"),
                         "type": item.get("type"),
                         "year": item.get("year"),
                         "score": item.get("score"),
                         "library_section_title": item.get("librarySectionTitle"),
                         "thumb": item.get("thumb"),
+                        "url": self._get_web_url(key),
                     }
                 )
 
@@ -334,6 +395,7 @@ class PlexAdapter(TokenAuthAdapter):
             limit: Maximum results to return
         """
         try:
+            await self._ensure_machine_identifier()
             params = {"query": query, "limit": str(limit)}
             if media_type:
                 # Map our media types to Plex types
@@ -351,9 +413,10 @@ class PlexAdapter(TokenAuthAdapter):
             search_results = []
 
             for item in metadata:
+                key = item.get("key")
                 search_results.append(
                     {
-                        "key": item.get("key"),
+                        "key": key,
                         "title": item.get("title"),
                         "type": item.get("type"),
                         "year": item.get("year"),
@@ -368,6 +431,7 @@ class PlexAdapter(TokenAuthAdapter):
                         "Role": [r.get("tag") for r in item.get("Role", [])],
                         "studio": item.get("studio"),
                         "addedAt": item.get("addedAt"),
+                        "url": self._get_web_url(key),
                     }
                 )
 

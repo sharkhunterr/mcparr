@@ -38,6 +38,7 @@ async def load_service_configs():
                     "name": service.name,
                     "service_type": service.service_type,
                     "base_url": service.base_url,
+                    "external_url": getattr(service, "external_url", None),
                     "port": service.port,
                     "api_key": service.api_key,
                     "username": service.username,

@@ -303,39 +303,44 @@ When you first access MCParr, you'll be greeted with an interactive setup wizard
 
 ## Supported Services
 
-MCParr integrates with 15+ homelab services:
+MCParr integrates with 15+ homelab services. Each tool returns clickable URLs to open items directly in the service web interface.
 
-**Media Management**
-| Service | Description | MCP Tools |
-|---------|-------------|-----------|
-| Plex | Media server | Search libraries, get playback info |
-| Overseerr | Request management | Request movies/TV shows |
-| Radarr | Movie management | Add, search, manage movies |
-| Sonarr | TV management | Add, search, manage series |
-| Tautulli | Plex analytics | View history, stats, users |
-| Prowlarr | Indexer manager | Search across indexers |
+### Media Management
 
-**Downloads & Storage**
-| Service | Description | MCP Tools |
-|---------|-------------|-----------|
-| Deluge | Torrent client | Manage torrents, view status |
-| Jackett | Torrent indexer | Search torrents |
+| Service | Description | MCP Tools | Actions |
+|---------|-------------|-----------|---------|
+| 🎬 Plex | Media server | `plex_get_libraries`, `plex_search_media`, `plex_get_recently_added`, `plex_get_on_deck`, `plex_get_media_details`, `plex_get_active_sessions` | Search content, list libraries, view sessions, get recently added (with links) |
+| 🎫 Overseerr | Request management | `overseerr_search_media`, `overseerr_get_requests`, `overseerr_request_media`, `overseerr_get_trending`, `overseerr_check_availability`, `overseerr_get_users`, `overseerr_get_statistics` | Request movies/TV, check availability (with TMDB links) |
+| 🎥 Radarr | Movie automation | `radarr_get_movies`, `radarr_search_movie`, `radarr_get_queue`, `radarr_get_calendar`, `radarr_get_statistics`, `radarr_get_indexers`, `radarr_test_indexer`, `radarr_test_all_indexers` | Manage movies, search, view queue/calendar (with TMDB/IMDB links) |
+| 📺 Sonarr | TV automation | `sonarr_get_series`, `sonarr_search_series`, `sonarr_get_queue`, `sonarr_get_calendar`, `sonarr_get_statistics`, `sonarr_get_indexers`, `sonarr_test_indexer`, `sonarr_test_all_indexers` | Manage series, search, view queue/calendar (with TVDB/IMDB links) |
+| 📊 Tautulli | Plex analytics | `tautulli_get_activity`, `tautulli_get_history`, `tautulli_get_users`, `tautulli_get_libraries`, `tautulli_get_statistics`, `tautulli_get_recently_added`, `tautulli_get_server_info`, `tautulli_get_top_users`, `tautulli_get_top_movies`, `tautulli_get_top_tv_shows`, `tautulli_get_top_music`, `tautulli_get_top_platforms`, `tautulli_get_user_stats`, `tautulli_get_watch_stats_summary` | View activity, history, stats, top users/content (with Plex links) |
+| 🔍 Prowlarr | Indexer manager | `prowlarr_get_indexers`, `prowlarr_search`, `prowlarr_get_indexer_stats`, `prowlarr_get_applications`, `prowlarr_get_statistics`, `prowlarr_test_indexer`, `prowlarr_test_all_indexers` | Search across indexers, manage and test indexers |
 
-**Books & Games**
-| Service | Description | MCP Tools |
-|---------|-------------|-----------|
-| Komga | Comics library | Browse, read comics |
-| Audiobookshelf | Audiobook library | Manage audiobooks, playback |
-| ROMM | ROM manager | Manage game ROMs |
+### Downloads & Storage
 
-**Utilities**
-| Service | Description | MCP Tools |
-|---------|-------------|-----------|
-| Wiki.js | Documentation | Search pages, create content |
-| Zammad | Ticketing system | Manage tickets, users |
-| Authentik | Identity provider | Manage users, groups, auth |
-| Open WebUI | AI chat interface | Manage models, chats |
-| Ollama | Local LLM hosting | List models, generate text |
+| Service | Description | MCP Tools | Actions |
+|---------|-------------|-----------|---------|
+| ⬇️ Deluge | Torrent client | `deluge_get_torrents`, `deluge_add_torrent`, `deluge_pause_torrent`, `deluge_resume_torrent`, `deluge_remove_torrent`, `deluge_get_statistics` | Manage torrents, add/pause/resume/remove, view stats |
+| 🔎 Jackett | Torrent indexer | `jackett_get_indexers`, `jackett_search`, `jackett_test_indexer`, `jackett_get_statistics`, `jackett_test_all_indexers` | Search across indexers, test and manage indexers |
+
+### Books & Games
+
+| Service | Description | MCP Tools | Actions |
+|---------|-------------|-----------|---------|
+| 📚 Komga | Comics/Manga | `komga_get_libraries`, `komga_get_series`, `komga_get_books`, `komga_search`, `komga_get_users`, `komga_get_statistics` | Browse libraries, series, books (with reader links) |
+| 🎧 Audiobookshelf | Audiobooks | `audiobookshelf_get_libraries`, `audiobookshelf_get_library_items`, `audiobookshelf_get_item`, `audiobookshelf_search`, `audiobookshelf_get_users`, `audiobookshelf_get_listening_stats`, `audiobookshelf_get_media_progress`, `audiobookshelf_get_statistics` | Manage audiobooks, track progress (with player links) |
+| 🎮 RomM | ROM manager | `romm_get_platforms`, `romm_get_roms`, `romm_search_roms`, `romm_get_collections`, `romm_get_users`, `romm_get_statistics` | Browse platforms, ROMs, collections (with game links) |
+
+### Utilities & Infrastructure
+
+| Service | Description | MCP Tools | Actions |
+|---------|-------------|-----------|---------|
+| 📖 Wiki.js | Documentation | `wikijs_get_pages`, `wikijs_get_page`, `wikijs_search`, `wikijs_get_page_tree`, `wikijs_get_tags`, `wikijs_get_users`, `wikijs_get_statistics`, `wikijs_create_page` | Search/browse/create wiki pages (with page links) |
+| 🎫 Zammad | Ticketing | `zammad_get_tickets`, `zammad_get_ticket_details`, `zammad_search_tickets`, `zammad_create_ticket`, `zammad_add_comment`, `zammad_update_ticket_status`, `zammad_get_ticket_stats` | Manage tickets, create/update/comment (with ticket links) |
+| 🔐 Authentik | Identity | `authentik_get_users`, `authentik_get_user`, `authentik_search_users`, `authentik_get_groups`, `authentik_get_applications`, `authentik_get_events`, `authentik_get_statistics`, `authentik_get_server_info`, `authentik_deactivate_user` | Manage users, groups, applications, view events |
+| 💬 Open WebUI | AI interface | `openwebui_get_status`, `openwebui_get_users`, `openwebui_get_models`, `openwebui_get_chats`, `openwebui_get_statistics`, `openwebui_search_users` | Manage AI models, chats, users |
+
+> **Note**: Adding new services requires development work. See the [Integration Guide](docs/INTEGRATION_GUIDE.md) for details on implementing new service adapters.
 
 ## AI Integration with Open WebUI
 

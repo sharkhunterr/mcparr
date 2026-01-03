@@ -33,15 +33,9 @@ class Settings(BaseSettings):
     redis_url: str = Field(default="redis://localhost:6379", alias="REDIS_URL")
     cache_ttl: int = Field(default=300, alias="CACHE_TTL")
 
-    # CORS
+    # CORS - Use "*" in development to allow any origin
     cors_origins: List[str] = Field(
-        default=[
-            "http://localhost:3000",
-            "http://localhost:5173",
-            "http://localhost:5174",
-            "http://192.168.1.21:5173",
-            "http://192.168.1.21:5174",
-        ],
+        default=["*"],
         alias="CORS_ORIGINS",
     )
 
