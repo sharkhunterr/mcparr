@@ -296,7 +296,11 @@ class PlexAdapter(TokenAuthAdapter):
             # If library_name is specified, get items from that specific library
             if library_name:
                 libraries = await self.get_libraries()
-                library = next((lib for lib in libraries if lib.get("title", "").lower() == library_name.lower()), None)
+                # Exact match (case-insensitive)
+                library = next(
+                    (lib for lib in libraries if lib.get("title", "").lower() == library_name.lower()),
+                    None
+                )
                 if library:
                     response = await self._make_request(
                         "GET",
@@ -458,22 +462,30 @@ class PlexAdapter(TokenAuthAdapter):
             if "MediaContainer" not in data:
                 return []
 
+            await self._ensure_machine_identifier()
             metadata = data["MediaContainer"].get("Metadata", [])
             on_deck_items = []
 
             for item in metadata:
+                rating_key = item.get("ratingKey")
+                url_key = f"/library/metadata/{rating_key}" if rating_key else item.get("key")
                 on_deck_items.append(
                     {
                         "key": item.get("key"),
+                        "ratingKey": rating_key,
                         "title": item.get("title"),
                         "grandparentTitle": item.get("grandparentTitle"),  # Show name for episodes
+                        "parentIndex": item.get("parentIndex"),  # Season number
+                        "index": item.get("index"),  # Episode number
                         "type": item.get("type"),
                         "year": item.get("year"),
+                        "parentYear": item.get("parentYear"),
                         "viewOffset": item.get("viewOffset", 0),
                         "duration": item.get("duration", 0),
                         "thumb": item.get("thumb"),
                         "art": item.get("art"),
                         "librarySectionTitle": item.get("librarySectionTitle"),
+                        "url": self._get_web_url(url_key),
                     }
                 )
 
