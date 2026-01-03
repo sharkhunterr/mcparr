@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.2.19](https://github.com/sharkhunterr/mcparr/-/compare/v0.2.18...v0.2.19) (2026-01-03)
+
+
+### Bug Fixes
+
+* **frontend:** use relative URLs in production for nginx proxy ([fb5ad6e](https://github.com/sharkhunterr/mcparr/-/commit/fb5ad6ef0aa322ae2a2a8def266071379912dca9))
+
 ### [0.2.18](https://github.com/sharkhunterr/mcparr/-/compare/v0.2.17...v0.2.18) (2026-01-03)
 
 
