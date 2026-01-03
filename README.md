@@ -327,8 +327,8 @@ MCParr integrates with 15+ homelab services. Each tool returns clickable URLs to
 
 | Service | Description | MCP Tools | Actions |
 |---------|-------------|-----------|---------|
-| 📚 Komga | Comics/Manga | `komga_get_libraries`, `komga_get_series`, `komga_get_books`, `komga_search`, `komga_get_users`, `komga_get_statistics` | Browse libraries, series, books (with reader links) |
-| 🎧 Audiobookshelf | Audiobooks | `audiobookshelf_get_libraries`, `audiobookshelf_get_library_items`, `audiobookshelf_get_item`, `audiobookshelf_search`, `audiobookshelf_get_users`, `audiobookshelf_get_listening_stats`, `audiobookshelf_get_media_progress`, `audiobookshelf_get_statistics` | Manage audiobooks, track progress (with player links) |
+| 📚 Komga | Comics/Manga | `komga_get_libraries`, `komga_search`, `komga_get_users`, `komga_get_statistics` | Search by title with library name filter, browse libraries (with reader links) |
+| 🎧 Audiobookshelf | Audiobooks | `audiobookshelf_get_libraries`, `audiobookshelf_get_library_items`, `audiobookshelf_search`, `audiobookshelf_get_users`, `audiobookshelf_get_listening_stats`, `audiobookshelf_get_media_progress`, `audiobookshelf_get_statistics` | Search by library name, track progress (with player links) |
 | 🎮 RomM | ROM manager | `romm_get_platforms`, `romm_get_roms`, `romm_search_roms`, `romm_get_collections`, `romm_get_users`, `romm_get_statistics` | Browse platforms, ROMs, collections (with game links) |
 
 ### Utilities & Infrastructure
