@@ -96,6 +96,7 @@ async def export_configuration(
                     "name": s.name,
                     "service_type": s.service_type.value if hasattr(s.service_type, "value") else str(s.service_type),
                     "base_url": s.base_url,
+                    "external_url": s.external_url,
                     "api_key": s.api_key,  # Note: sensitive data included
                     "enabled": s.enabled,
                     "config": s.config or {},
@@ -307,6 +308,7 @@ async def import_configuration(request: ImportRequest, db: AsyncSession = Depend
                             name=service_data["name"],
                             service_type=ServiceType(service_data["service_type"]),
                             base_url=service_data["base_url"],
+                            external_url=service_data.get("external_url"),
                             api_key=service_data.get("api_key"),
                             enabled=service_data.get("enabled", True),
                             config=service_data.get("config", {}),

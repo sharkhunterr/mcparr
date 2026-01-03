@@ -56,10 +56,10 @@ The result is a fully functional, well-documented homelab management platform th
 
 ## Features
 
-**Setup Wizard & Configuration**
-- Interactive first-time setup wizard
+**Setup Wizard & Internationalization**
+- First-time setup wizard with feature overview
+- Multi-language support (FR, EN, DE, ES, IT)
 - Import/export complete configuration
-- Guided step-by-step service configuration
 - One-click data reset with wizard restart option
 
 **Unified Service Management**
@@ -261,36 +261,16 @@ npm run reports       # Generate test/lint reports
 
 ## First-Time Setup Wizard
 
-When you first access MCParr, you'll be greeted with an interactive setup wizard that guides you through the initial configuration:
+On first access, an interactive wizard guides you through MCParr's features:
 
-### Wizard Features
+- **Language Selection**: Choose your preferred language (FR, EN, DE, ES, IT)
+- **Import Backup**: Restore a previous configuration to skip manual setup
+- **Feature Tour**: Overview of each section (Services, Users, Groups, MCP, Training, Monitoring, Configuration)
+- **Quick Navigation**: Direct links to configure each feature
 
-**1. Welcome Screen**
-- Option to import an existing configuration (skip all manual setup)
-- Or start fresh with guided configuration
+The wizard is informational only - actual configuration is done in each dedicated page.
 
-**2. Guided Steps**
-- **Services**: Configure your homelab services (Plex, Radarr, Sonarr, etc.)
-- **User Mapping**: Automatic user discovery across all services
-- **Groups & Permissions**: Set up access control for AI tools
-- **Information Pages**: Learn about MCP, Training, Monitoring, and Configuration features
-
-**3. Configuration Import/Export**
-- **Import at Welcome**: Upload a backup file to restore complete configuration
-- **Export Anytime**: Backup your entire setup (services, users, groups, prompts, settings)
-- **Selective Restore**: Choose which data categories to import
-- **Merge Mode**: Import without overwriting existing data
-
-**4. Data Reset**
-- Complete application reset via Configuration → Backup tab
-- Double confirmation to prevent accidental deletion
-- Option to launch wizard after reset
-- Deletes all services, user mappings, groups, training prompts, and settings
-
-### Skip or Complete Later
-- Click "Skip" to access the interface immediately
-- Wizard completion is saved - it won't show again after first setup
-- Access wizard anytime via Configuration → General → "Reset wizard"
+**Skip or Reset**: Click "Skip" to access the interface directly. Reset the wizard anytime via Configuration → General.
 
 ## Documentation
 

@@ -1,9 +1,18 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Sparkles, ArrowRight, X, Upload, Database, AlertCircle, CheckCircle, Loader2, Server, Users, Shield, Brain, Wrench, Check } from 'lucide-react';
+import { Sparkles, ArrowRight, X, Upload, Database, AlertCircle, CheckCircle, Loader2, Server, Users, Shield, Brain, Wrench, Check, Globe } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useWizard } from '../../contexts/WizardContext';
 import { api } from '../../lib/api';
+
+// Language configuration with flags
+const languages = [
+  { code: 'fr', name: 'Français', flag: '🇫🇷' },
+  { code: 'en', name: 'English', flag: '🇬🇧' },
+  { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
+  { code: 'es', name: 'Español', flag: '🇪🇸' },
+  { code: 'it', name: 'Italiano', flag: '🇮🇹' },
+];
 
 // Toggle Switch Component
 function Toggle({
@@ -43,9 +52,15 @@ interface ImportOptions {
 }
 
 export default function WelcomeStep() {
-  const { t } = useTranslation(['wizard']);
+  const { t, i18n } = useTranslation(['wizard']);
   const navigate = useNavigate();
   const { nextStep, skipWizard } = useWizard();
+
+  const currentLanguage = languages.find(l => l.code === i18n.language) || languages[0];
+
+  const changeLanguage = (langCode: string) => {
+    i18n.changeLanguage(langCode);
+  };
   const [showImport, setShowImport] = useState(false);
   const [importing, setImporting] = useState(false);
   const [importFile, setImportFile] = useState<any>(null);
@@ -131,8 +146,27 @@ export default function WelcomeStep() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
       <div className="max-w-3xl w-full">
-        {/* Skip button */}
-        <div className="flex justify-end mb-4">
+        {/* Top bar with language selector and skip button */}
+        <div className="flex justify-between items-center mb-4">
+          {/* Language selector */}
+          <div className="flex items-center gap-1 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-1">
+            {languages.map((lang) => (
+              <button
+                key={lang.code}
+                onClick={() => changeLanguage(lang.code)}
+                className={`px-2 py-1.5 rounded-md text-sm transition-all ${
+                  lang.code === i18n.language
+                    ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300'
+                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                }`}
+                title={lang.name}
+              >
+                <span className="text-base" style={{ fontFamily: 'Apple Color Emoji, Segoe UI Emoji, Noto Color Emoji, sans-serif' }}>{lang.flag}</span>
+              </button>
+            ))}
+          </div>
+
+          {/* Skip button */}
           <button
             onClick={handleSkip}
             className="flex items-center gap-2 px-4 py-2 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
