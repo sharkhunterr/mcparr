@@ -222,36 +222,31 @@ class PlexTools(BaseTool):
 
         result_items = []
         for item in items:
-            item_data = {
-                "title": item.get("title"),
-                "type": item.get("type"),
-                "year": item.get("year"),
-                "added_at": item.get("addedAt"),
-                "library": item.get("librarySectionTitle"),
-                "url": item.get("url"),
-            }
-            # For episodes, add series and season info
-            if item.get("type") == "episode":
-                item_data["series"] = item.get("grandparentTitle")
-                item_data["season"] = item.get("parentIndex")
-                item_data["episode"] = item.get("index")
-                # Build a more descriptive title
+            item_type = item.get("type")
+            title = item.get("title")
+            year = item.get("year") or item.get("parentYear")  # Use parent year for seasons/episodes
+
+            # Build descriptive title for episodes and seasons
+            if item_type == "episode":
                 series = item.get("grandparentTitle", "")
                 season = item.get("parentIndex")
                 episode = item.get("index")
-                ep_title = item.get("title", "")
                 if series and season is not None and episode is not None:
-                    item_data["full_title"] = f"{series} S{season:02d}E{episode:02d} - {ep_title}"
-            # For seasons, add series info
-            elif item.get("type") == "season":
-                item_data["series"] = item.get("parentTitle")
-                item_data["season_number"] = item.get("index")
+                    title = f"{series} S{season:02d}E{episode:02d} - {title}"
+            elif item_type == "season":
                 series = item.get("parentTitle", "")
                 season_num = item.get("index")
                 if series and season_num is not None:
-                    item_data["full_title"] = f"{series} - Season {season_num}"
+                    title = f"{series} - Season {season_num}"
 
-            result_items.append(item_data)
+            result_items.append({
+                "title": title,
+                "type": item_type,
+                "year": year,
+                "added_at": item.get("addedAt"),
+                "library": item.get("librarySectionTitle"),
+                "url": item.get("url"),
+            })
 
         return {
             "success": True,

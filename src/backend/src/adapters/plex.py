@@ -323,13 +323,17 @@ class PlexAdapter(TokenAuthAdapter):
             recent_items = []
 
             for item in metadata:
-                key = item.get("key")
+                # Use ratingKey for URL generation (key may contain /children suffix for seasons)
+                rating_key = item.get("ratingKey")
+                url_key = f"/library/metadata/{rating_key}" if rating_key else item.get("key")
                 recent_items.append(
                     {
-                        "key": key,
+                        "key": item.get("key"),
+                        "ratingKey": rating_key,
                         "title": item.get("title"),
                         "type": item.get("type"),
                         "year": item.get("year"),
+                        "parentYear": item.get("parentYear"),  # Series year for seasons/episodes
                         "rating": item.get("rating"),
                         "duration": item.get("duration"),
                         "addedAt": item.get("addedAt"),
@@ -342,7 +346,7 @@ class PlexAdapter(TokenAuthAdapter):
                         "parentTitle": item.get("parentTitle"),  # Series name for seasons
                         "parentIndex": item.get("parentIndex"),  # Season number for episodes
                         "index": item.get("index"),  # Episode number or season number
-                        "url": self._get_web_url(key),
+                        "url": self._get_web_url(url_key),
                     }
                 )
 
