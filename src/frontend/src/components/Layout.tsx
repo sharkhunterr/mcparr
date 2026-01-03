@@ -151,19 +151,15 @@ export default function Layout({ children }: LayoutProps) {
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top navigation - height matches sidebar header */}
         <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 md:px-6 h-[57px] flex items-center flex-shrink-0">
-          <div className="flex items-center justify-between w-full">
-            <div className="flex items-center">
-              <button
-                type="button"
-                className="md:hidden p-1 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 mr-3"
-                onClick={() => setSidebarOpen(true)}
-              >
-                <Menu className="h-6 w-6" />
-              </button>
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Dashboard
-              </h2>
-            </div>
+          <div className="flex items-center justify-end w-full">
+            {/* Mobile menu button */}
+            <button
+              type="button"
+              className="md:hidden p-1 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 mr-auto"
+              onClick={() => setSidebarOpen(true)}
+            >
+              <Menu className="h-6 w-6" />
+            </button>
 
             <div className="flex items-center space-x-3">
               {/* Theme toggle */}
