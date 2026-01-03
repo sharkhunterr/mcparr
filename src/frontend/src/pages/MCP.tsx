@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Bot, RefreshCw, BarChart3, History, Wrench, Settings, ChevronDown, ChevronRight, Play, X, Loader2 } from 'lucide-react';
+import { Bot, RefreshCw, BarChart3, History, Wrench, Settings, ChevronDown, ChevronRight, Play, X, Loader2, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { api, getApiBaseUrl } from '../lib/api';
 import { getServiceColor, getServiceFromToolName } from '../lib/serviceColors';
 
@@ -20,6 +20,19 @@ interface McpRequest {
   completed_at: string | null;
 }
 
+interface McpStatsComparison {
+  total: number;
+  total_change: number | null;
+  average_duration_ms: number;
+  duration_change: number | null;
+  success_rate: number;
+  success_rate_change: number | null;
+  completed: number;
+  completed_change: number | null;
+  failed: number;
+  failed_change: number | null;
+}
+
 interface McpStats {
   total: number;
   by_status: Record<string, number>;
@@ -28,6 +41,7 @@ interface McpStats {
   average_duration_ms: number;
   success_rate: number;
   period_hours: number;
+  comparison?: McpStatsComparison;
 }
 
 interface McpToolUsage {
@@ -265,17 +279,62 @@ const ServiceBadge = ({ toolName, requiresService }: { toolName: string; require
   );
 };
 
-const StatCard = ({ title, value, subtitle, color = 'blue' }: {
+// Trend indicator component
+const TrendIndicator = ({
+  change,
+  inverted = false,
+  isAbsolute = false,
+}: {
+  change: number | null | undefined;
+  inverted?: boolean; // true means decrease is good
+  isAbsolute?: boolean; // true for absolute change (like success rate points)
+}) => {
+  if (change === null || change === undefined) return null;
+
+  const isPositive = change > 0;
+  const isNeutral = change === 0;
+  const isGood = inverted ? !isPositive : isPositive;
+
+  if (isNeutral) {
+    return (
+      <span className="inline-flex items-center gap-0.5 text-[9px] sm:text-[10px] text-gray-400">
+        <Minus className="w-3 h-3" />
+        0{isAbsolute ? 'pt' : '%'}
+      </span>
+    );
+  }
+
+  return (
+    <span className={`inline-flex items-center gap-0.5 text-[9px] sm:text-[10px] ${
+      isGood ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+    }`}>
+      {isPositive ? (
+        <TrendingUp className="w-3 h-3" />
+      ) : (
+        <TrendingDown className="w-3 h-3" />
+      )}
+      {isPositive ? '+' : ''}{isAbsolute ? change.toFixed(1) : change.toFixed(0)}{isAbsolute ? 'pt' : '%'}
+    </span>
+  );
+};
+
+const StatCard = ({ title, value, subtitle, color = 'blue', change, changeInverted, changeAbsolute }: {
   title: string;
   value: string | number;
   subtitle?: string;
   color?: string;
+  change?: number | null;
+  changeInverted?: boolean;
+  changeAbsolute?: boolean;
 }) => (
   <div className="bg-white dark:bg-gray-800 rounded-lg p-2.5 sm:p-4 shadow">
     <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 truncate">{title}</p>
-    <p className={`text-lg sm:text-2xl font-bold text-${color}-600 dark:text-${color}-400`}>
-      {value}
-    </p>
+    <div className="flex items-center gap-2">
+      <p className={`text-lg sm:text-2xl font-bold text-${color}-600 dark:text-${color}-400`}>
+        {value}
+      </p>
+      <TrendIndicator change={change} inverted={changeInverted} isAbsolute={changeAbsolute} />
+    </div>
     {subtitle && (
       <p className="text-[10px] sm:text-xs text-gray-400 dark:text-gray-500 mt-0.5 sm:mt-1 truncate">{subtitle}</p>
     )}
@@ -1641,7 +1700,7 @@ export default function MCP() {
     setLoading(true);
     try {
       const [statsRes, toolUsageRes, hourlyRes, userStatsRes, userServiceStatsRes, hourlyUserRes, requestsRes, toolsRes, toolGroupsRes] = await Promise.all([
-        api.mcp.stats(timeRange).catch(() => null),
+        api.mcp.statsWithComparison(timeRange).catch(() => null),
         api.mcp.toolUsage(timeRange).catch(() => []),
         api.mcp.hourlyUsage(timeRange).catch(() => []),
         api.mcp.userStats(timeRange).catch(() => []),
@@ -1845,24 +1904,31 @@ export default function MCP() {
                   value={stats?.total || 0}
                   subtitle={t('stats.lastHours', { hours: timeRange })}
                   color="blue"
+                  change={stats?.comparison?.total_change}
                 />
                 <StatCard
                   title={t('stats.successRate')}
                   value={`${stats?.success_rate || 100}%`}
                   subtitle={t('stats.completed', { count: stats?.by_status?.completed || 0 })}
                   color={stats?.success_rate && stats.success_rate < 90 ? 'red' : 'green'}
+                  change={stats?.comparison?.success_rate_change}
+                  changeAbsolute={true}
                 />
                 <StatCard
                   title={t('stats.avgDuration')}
                   value={formatDuration(stats?.average_duration_ms || null)}
                   subtitle={t('stats.perRequest')}
                   color="purple"
+                  change={stats?.comparison?.duration_change}
+                  changeInverted={true}
                 />
                 <StatCard
                   title={t('stats.failed')}
                   value={stats?.by_status?.failed || 0}
                   subtitle={t('stats.errorsEncountered')}
                   color={(stats?.by_status?.failed || 0) > 0 ? 'red' : 'gray'}
+                  change={stats?.comparison?.failed_change}
+                  changeInverted={true}
                 />
               </div>
 

@@ -23,7 +23,10 @@ import {
   FileText,
   Wrench,
   Brain,
-  Sparkles
+  Sparkles,
+  TrendingUp,
+  TrendingDown,
+  Minus
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { api, apiClient } from '../lib/api';
@@ -58,6 +61,19 @@ interface ServiceHealth {
   last_error: string | null;
 }
 
+interface McpStatsComparison {
+  total: number;
+  total_change: number | null;
+  average_duration_ms: number;
+  duration_change: number | null;
+  success_rate: number;
+  success_rate_change: number | null;
+  completed: number;
+  completed_change: number | null;
+  failed: number;
+  failed_change: number | null;
+}
+
 interface McpStats {
   total: number;
   success_rate: number;
@@ -66,6 +82,7 @@ interface McpStats {
   by_category: Record<string, number>;
   top_tools: Record<string, number>;
   period_hours: number;
+  comparison?: McpStatsComparison;
 }
 
 interface AlertStats {
@@ -199,6 +216,50 @@ const ProgressBar = ({ value, color }: { value: number; color: 'blue' | 'green' 
   );
 };
 
+// Trend indicator component for showing comparison with previous period
+const TrendIndicator = ({
+  change,
+  inverted = false,
+  showValue = true,
+  size = 'sm'
+}: {
+  change: number | null | undefined;
+  inverted?: boolean; // true means decrease is good (e.g., for duration)
+  showValue?: boolean;
+  size?: 'sm' | 'xs';
+}) => {
+  if (change === null || change === undefined) return null;
+
+  const isPositive = change > 0;
+  const isNeutral = change === 0;
+  const isGood = inverted ? !isPositive : isPositive;
+
+  const iconSize = size === 'xs' ? 'w-3 h-3' : 'w-3.5 h-3.5';
+  const textSize = size === 'xs' ? 'text-[9px]' : 'text-[10px]';
+
+  if (isNeutral) {
+    return (
+      <span className={`inline-flex items-center gap-0.5 ${textSize} text-gray-400`}>
+        <Minus className={iconSize} />
+        {showValue && '0%'}
+      </span>
+    );
+  }
+
+  return (
+    <span className={`inline-flex items-center gap-0.5 ${textSize} ${
+      isGood ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+    }`}>
+      {isPositive ? (
+        <TrendingUp className={iconSize} />
+      ) : (
+        <TrendingDown className={iconSize} />
+      )}
+      {showValue && `${isPositive ? '+' : ''}${change.toFixed(0)}%`}
+    </span>
+  );
+};
+
 // Mini stacked bar chart for MCP hourly usage with success/failure breakdown
 const MiniBarChart = ({ data, hoursCount = 12 }: { data: HourlyUsage[]; hoursCount?: number }) => {
   // Generate hours with 0 values for missing hours
@@ -310,7 +371,7 @@ export default function Dashboard() {
       const [metricsRes, servicesRes, mcpStatsRes, alertStatsRes, mappingsRes, hourlyUsageRes, logStatsRes, trainingStatsRes, groupsRes, mcpUserStatsRes, workersRes, promptsRes] = await Promise.all([
         api.system.currentMetrics().catch(() => null),
         api.services.list().catch(() => []),
-        api.mcp.stats(24).catch(() => null),
+        api.mcp.statsWithComparison(24).catch(() => null),
         api.alerts.stats(24).catch(() => null),
         apiClient.get('/api/users/').catch(() => ({ mappings: [], total: 0 })),
         api.mcp.hourlyUsage(24).catch(() => []),
@@ -642,19 +703,38 @@ export default function Dashboard() {
           <div className="flex items-center gap-6 mb-4">
             <div className="flex items-center gap-5">
               <div>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">{mcpStats?.total ?? 0}</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{mcpStats?.total ?? 0}</p>
+                  <TrendIndicator change={mcpStats?.comparison?.total_change} />
+                </div>
                 <p className="text-xs text-gray-500 dark:text-gray-400">{t('mcp.requests')}</p>
               </div>
               <div>
-                <p className="text-2xl font-bold text-green-600 dark:text-green-400">
-                  {mcpStats?.total ? `${Math.round(mcpStats.success_rate)}%` : '—'}
-                </p>
+                <div className="flex items-center gap-2">
+                  <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+                    {mcpStats?.total ? `${Math.round(mcpStats.success_rate)}%` : '—'}
+                  </p>
+                  {mcpStats?.comparison?.success_rate_change !== null && mcpStats?.comparison?.success_rate_change !== undefined && (
+                    <span className={`text-[10px] ${
+                      mcpStats.comparison.success_rate_change > 0
+                        ? 'text-green-600 dark:text-green-400'
+                        : mcpStats.comparison.success_rate_change < 0
+                          ? 'text-red-600 dark:text-red-400'
+                          : 'text-gray-400'
+                    }`}>
+                      {mcpStats.comparison.success_rate_change > 0 ? '+' : ''}{mcpStats.comparison.success_rate_change.toFixed(1)}pt
+                    </span>
+                  )}
+                </div>
                 <p className="text-xs text-gray-500 dark:text-gray-400">{t('mcp.success')}</p>
               </div>
               <div>
-                <p className="text-2xl font-bold text-gray-700 dark:text-gray-300">
-                  {mcpStats?.average_duration_ms ? `${Math.round(mcpStats.average_duration_ms)}` : '—'}
-                </p>
+                <div className="flex items-center gap-2">
+                  <p className="text-2xl font-bold text-gray-700 dark:text-gray-300">
+                    {mcpStats?.average_duration_ms ? `${Math.round(mcpStats.average_duration_ms)}` : '—'}
+                  </p>
+                  <TrendIndicator change={mcpStats?.comparison?.duration_change} inverted={true} />
+                </div>
                 <p className="text-xs text-gray-500 dark:text-gray-400">{t('mcp.avgDuration')}</p>
               </div>
             </div>

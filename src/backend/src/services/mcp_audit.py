@@ -67,22 +67,25 @@ class McpAuditService:
         result = await session.execute(select(McpRequest).where(McpRequest.id == request_id))
         return result.scalar_one_or_none()
 
-    async def get_stats(
+    async def _get_period_stats(
         self,
         session: AsyncSession,
-        hours: int = 24,
+        start_time: datetime,
+        end_time: datetime,
     ) -> dict:
-        """Get MCP request statistics for the specified time period."""
-        since = datetime.utcnow() - timedelta(hours=hours)
-
+        """Get statistics for a specific time period."""
         # Total requests
-        total_result = await session.execute(select(func.count(McpRequest.id)).where(McpRequest.created_at >= since))
+        total_result = await session.execute(
+            select(func.count(McpRequest.id)).where(
+                and_(McpRequest.created_at >= start_time, McpRequest.created_at < end_time)
+            )
+        )
         total = total_result.scalar() or 0
 
         # By status
         status_result = await session.execute(
             select(McpRequest.status, func.count(McpRequest.id))
-            .where(McpRequest.created_at >= since)
+            .where(and_(McpRequest.created_at >= start_time, McpRequest.created_at < end_time))
             .group_by(McpRequest.status)
         )
         by_status = {row[0]: row[1] for row in status_result.fetchall()}
@@ -90,7 +93,7 @@ class McpAuditService:
         # By category
         category_result = await session.execute(
             select(McpRequest.tool_category, func.count(McpRequest.id))
-            .where(McpRequest.created_at >= since)
+            .where(and_(McpRequest.created_at >= start_time, McpRequest.created_at < end_time))
             .group_by(McpRequest.tool_category)
         )
         by_category = {row[0]: row[1] for row in category_result.fetchall()}
@@ -98,7 +101,7 @@ class McpAuditService:
         # By tool
         tool_result = await session.execute(
             select(McpRequest.tool_name, func.count(McpRequest.id))
-            .where(McpRequest.created_at >= since)
+            .where(and_(McpRequest.created_at >= start_time, McpRequest.created_at < end_time))
             .group_by(McpRequest.tool_name)
             .order_by(func.count(McpRequest.id).desc())
             .limit(10)
@@ -108,7 +111,11 @@ class McpAuditService:
         # Average duration
         avg_duration_result = await session.execute(
             select(func.avg(McpRequest.duration_ms)).where(
-                and_(McpRequest.created_at >= since, McpRequest.duration_ms.isnot(None))
+                and_(
+                    McpRequest.created_at >= start_time,
+                    McpRequest.created_at < end_time,
+                    McpRequest.duration_ms.isnot(None),
+                )
             )
         )
         avg_duration = avg_duration_result.scalar() or 0
@@ -125,7 +132,68 @@ class McpAuditService:
             "top_tools": top_tools,
             "average_duration_ms": round(avg_duration, 2),
             "success_rate": round(success_rate, 2),
+            "completed": completed,
+            "failed": failed,
+        }
+
+    async def get_stats(
+        self,
+        session: AsyncSession,
+        hours: int = 24,
+    ) -> dict:
+        """Get MCP request statistics for the specified time period."""
+        now = datetime.utcnow()
+        since = now - timedelta(hours=hours)
+
+        stats = await self._get_period_stats(session, since, now)
+        stats["period_hours"] = hours
+
+        return stats
+
+    async def get_stats_with_comparison(
+        self,
+        session: AsyncSession,
+        hours: int = 24,
+    ) -> dict:
+        """Get MCP request statistics with comparison to previous period."""
+        now = datetime.utcnow()
+        current_start = now - timedelta(hours=hours)
+        previous_start = current_start - timedelta(hours=hours)
+
+        # Get current period stats
+        current = await self._get_period_stats(session, current_start, now)
+
+        # Get previous period stats
+        previous = await self._get_period_stats(session, previous_start, current_start)
+
+        # Calculate changes
+        def calc_change(current_val: float, previous_val: float) -> Optional[float]:
+            if previous_val == 0:
+                return None if current_val == 0 else 100.0
+            return round(((current_val - previous_val) / previous_val) * 100, 1)
+
+        return {
+            "total": current["total"],
+            "by_status": current["by_status"],
+            "by_category": current["by_category"],
+            "top_tools": current["top_tools"],
+            "average_duration_ms": current["average_duration_ms"],
+            "success_rate": current["success_rate"],
             "period_hours": hours,
+            "comparison": {
+                "total": previous["total"],
+                "total_change": calc_change(current["total"], previous["total"]),
+                "average_duration_ms": previous["average_duration_ms"],
+                "duration_change": calc_change(current["average_duration_ms"], previous["average_duration_ms"]),
+                "success_rate": previous["success_rate"],
+                "success_rate_change": round(current["success_rate"] - previous["success_rate"], 1)
+                if previous["total"] > 0
+                else None,
+                "completed": previous.get("completed", 0),
+                "completed_change": calc_change(current.get("completed", 0), previous.get("completed", 0)),
+                "failed": previous.get("failed", 0),
+                "failed_change": calc_change(current.get("failed", 0), previous.get("failed", 0)),
+            },
         }
 
     async def get_tool_usage(

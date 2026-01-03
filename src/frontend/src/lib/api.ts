@@ -359,6 +359,8 @@ export const api = {
     },
     stats: (hours: number = 24) =>
       apiClient.get('/api/mcp/stats', { params: { hours } }),
+    statsWithComparison: (hours: number = 24) =>
+      apiClient.get('/api/mcp/stats/comparison', { params: { hours } }),
     toolUsage: (hours: number = 24) =>
       apiClient.get('/api/mcp/tools/usage', { params: { hours } }),
     hourlyUsage: (hours: number = 24) =>

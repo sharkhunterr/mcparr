@@ -215,6 +215,30 @@ class McpStatsResponse(BaseModel):
     period_hours: int
 
 
+class McpStatsComparisonResponse(BaseModel):
+    total: int
+    total_change: Optional[float]  # % change from previous period
+    average_duration_ms: float
+    duration_change: Optional[float]  # % change from previous period
+    success_rate: float
+    success_rate_change: Optional[float]  # absolute change (not %)
+    completed: int
+    completed_change: Optional[float]
+    failed: int
+    failed_change: Optional[float]
+
+
+class McpStatsWithComparisonResponse(BaseModel):
+    total: int
+    by_status: dict
+    by_category: dict
+    top_tools: dict
+    average_duration_ms: float
+    success_rate: float
+    period_hours: int
+    comparison: McpStatsComparisonResponse
+
+
 class McpToolUsageResponse(BaseModel):
     tool_name: str
     category: Optional[str]
@@ -355,6 +379,16 @@ async def get_mcp_stats(
     """Get MCP request statistics for the specified time period."""
     stats = await mcp_audit_service.get_stats(session, hours=hours)
     return McpStatsResponse(**stats)
+
+
+@router.get("/stats/comparison", response_model=McpStatsWithComparisonResponse)
+async def get_mcp_stats_with_comparison(
+    hours: int = Query(24, ge=1, le=720, description="Time period in hours"),
+    session: AsyncSession = Depends(get_db_session),
+):
+    """Get MCP request statistics with comparison to previous period."""
+    stats = await mcp_audit_service.get_stats_with_comparison(session, hours=hours)
+    return McpStatsWithComparisonResponse(**stats)
 
 
 @router.get("/tools/usage", response_model=list[McpToolUsageResponse])
