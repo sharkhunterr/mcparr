@@ -43,13 +43,26 @@ class RommTools(BaseTool):
             ),
             ToolDefinition(
                 name="romm_search_roms",
-                description="Search for ROMs in RomM",
+                description="Search for ROMs in RomM by game title",
                 parameters=[
                     ToolParameter(
                         name="query",
                         description="Search query (game title)",
                         type="string",
                         required=True,
+                    ),
+                    ToolParameter(
+                        name="platform_slug",
+                        description="Filter by platform (e.g., 'psx', 'n64', 'snes')",
+                        type="string",
+                        required=False,
+                    ),
+                    ToolParameter(
+                        name="limit",
+                        description="Maximum results to return (default: 20)",
+                        type="number",
+                        required=False,
+                        default=20,
                     ),
                 ],
                 category="gaming",
@@ -58,8 +71,22 @@ class RommTools(BaseTool):
             ),
             ToolDefinition(
                 name="romm_get_collections",
-                description="Get list of ROM collections",
-                parameters=[],
+                description="Get list of ROM collections with optional filtering",
+                parameters=[
+                    ToolParameter(
+                        name="name",
+                        description="Filter collections by name (partial match)",
+                        type="string",
+                        required=False,
+                    ),
+                    ToolParameter(
+                        name="limit",
+                        description="Maximum collections to return (default: 50)",
+                        type="number",
+                        required=False,
+                        default=50,
+                    ),
+                ],
                 category="gaming",
                 is_mutation=False,
                 requires_service="romm",
@@ -98,6 +125,7 @@ class RommTools(BaseTool):
                     self.base_url = config.get("base_url") or config.get("url", "")
                     self.username = config.get("username")
                     self.password = config.get("password")
+                    self.external_url = config.get("external_url")  # Public URL for user links
                     self.port = config.get("port")
                     self.config = config.get("config") or config.get("extra_config", {})
 
@@ -114,7 +142,7 @@ class RommTools(BaseTool):
             elif tool_name == "romm_search_roms":
                 return await self._search_roms(adapter, arguments)
             elif tool_name == "romm_get_collections":
-                return await self._get_collections(adapter)
+                return await self._get_collections(adapter, arguments)
             elif tool_name == "romm_get_users":
                 return await self._get_users(adapter)
             elif tool_name == "romm_get_statistics":
@@ -142,15 +170,29 @@ class RommTools(BaseTool):
     async def _search_roms(self, adapter, arguments: dict) -> dict:
         """Search for ROMs."""
         query = arguments.get("query")
-        results = await adapter.search_roms(query)
+        platform_slug = arguments.get("platform_slug")
+        limit = arguments.get("limit", 20)
 
-        return {"success": True, "result": {"query": query, "count": len(results), "results": results}}
+        results = await adapter.search_roms(query, platform_slug=platform_slug, limit=limit)
 
-    async def _get_collections(self, adapter) -> dict:
+        result = {"query": query, "count": len(results), "results": results}
+        if platform_slug:
+            result["platform_filter"] = platform_slug
+
+        return {"success": True, "result": result}
+
+    async def _get_collections(self, adapter, arguments: dict) -> dict:
         """Get collections from RomM."""
-        collections = await adapter.get_collections()
+        name_filter = arguments.get("name")
+        limit = arguments.get("limit", 50)
 
-        return {"success": True, "result": {"count": len(collections), "collections": collections}}
+        collections = await adapter.get_collections(name_filter=name_filter, limit=limit)
+
+        result = {"count": len(collections), "collections": collections}
+        if name_filter:
+            result["filter"] = name_filter
+
+        return {"success": True, "result": result}
 
     async def _get_users(self, adapter) -> dict:
         """Get users from RomM."""

@@ -165,6 +165,7 @@ class OverseerrTools(BaseTool):
                     self.api_key = config.get("api_key")
                     # base_url can come as 'url' from tool test or 'base_url' from MCP server
                     self.base_url = config.get("base_url") or config.get("url", "")
+                    self.external_url = config.get("external_url")  # Public URL for user links
                     self.port = config.get("port")  # Port is separate from base_url
                     self.config = config.get("config", config.get("extra_config", {}))
 
@@ -227,6 +228,10 @@ class OverseerrTools(BaseTool):
                         else item.get("overview"),
                         "tmdb_id": item.get("id"),
                         "status": item.get("mediaInfo", {}).get("status") if item.get("mediaInfo") else "not_requested",
+                        "url": adapter._get_media_url(
+                            "movie" if item.get("mediaType") == "movie" else "tv",
+                            item.get("id")
+                        ),
                     }
                     for item in results[:10]
                 ],
@@ -255,6 +260,8 @@ class OverseerrTools(BaseTool):
                         "status": req.get("status_name"),
                         "requested_by": req.get("requested_by"),
                         "requested_at": req.get("created_at"),
+                        "url": req.get("url"),
+                        "media_url": req.get("media_url"),
                     }
                     for req in requests_list
                 ],
@@ -326,7 +333,12 @@ class OverseerrTools(BaseTool):
                         "overview": (item.get("overview", "")[:150] + "...")
                         if item.get("overview") and len(item.get("overview", "")) > 150
                         else item.get("overview"),
+                        "tmdb_id": item.get("id"),
                         "available": item.get("mediaInfo", {}).get("status") == 5 if item.get("mediaInfo") else False,
+                        "url": adapter._get_media_url(
+                            "movie" if item.get("mediaType") == "movie" else "tv",
+                            item.get("id")
+                        ),
                     }
                     for item in items
                 ]
@@ -340,25 +352,49 @@ class OverseerrTools(BaseTool):
 
         results = await adapter.search_media(title)
 
-        # Filter by year if provided
-        if year:
-            filtered = []
-            for item in results:
-                item_year = (
-                    item.get("releaseDate", "")[:4]
-                    if item.get("releaseDate")
-                    else item.get("firstAirDate", "")[:4]
-                    if item.get("firstAirDate")
-                    else None
-                )
-                if item_year and int(item_year) == year:
-                    filtered.append(item)
-            results = filtered or results  # Fall back to unfiltered if no year match
-
         if not results:
             return {"success": True, "result": {"found": False, "message": f"No media found with title '{title}'"}}
 
-        media = results[0]
+        # Helper to extract year from item
+        def get_item_year(item):
+            release = item.get("releaseDate") or item.get("release_date") or ""
+            first_air = item.get("firstAirDate") or item.get("first_air_date") or ""
+            year_str = release[:4] if release else first_air[:4] if first_air else None
+            try:
+                return int(year_str) if year_str else None
+            except (ValueError, TypeError):
+                return None
+
+        # Score and sort results for best match
+        def score_result(item):
+            score = 0
+            item_title = (item.get("title") or item.get("name") or "").lower()
+            search_title = title.lower()
+
+            # Exact title match gets highest score
+            if item_title == search_title:
+                score += 100
+            elif search_title in item_title:
+                score += 50
+
+            # Year match if provided
+            if year:
+                item_year = get_item_year(item)
+                if item_year == year:
+                    score += 80
+                elif item_year and abs(item_year - year) <= 1:
+                    score += 30  # Close year match
+
+            # Prefer movies over TV for exact title matches (movies often have same name as TV)
+            if item.get("mediaType") == "movie":
+                score += 5
+
+            return score
+
+        # Sort by score descending
+        sorted_results = sorted(results, key=score_result, reverse=True)
+        media = sorted_results[0]
+
         media_info = media.get("mediaInfo")
 
         status_map = {
@@ -373,20 +409,25 @@ class OverseerrTools(BaseTool):
         if media_info:
             status = status_map.get(media_info.get("status", 1), "unknown")
 
+        # Get the actual media type from the result
+        media_type = media.get("mediaType") or media.get("media_type")
+        is_movie = media_type == "movie"
+
+        # Get year properly
+        result_year = get_item_year(media)
+
         return {
             "success": True,
             "result": {
                 "found": True,
                 "title": media.get("title") or media.get("name"),
-                "type": "movie" if media.get("mediaType") == "movie" else "tv",
-                "year": media.get("releaseDate", "")[:4]
-                if media.get("releaseDate")
-                else media.get("firstAirDate", "")[:4]
-                if media.get("firstAirDate")
-                else None,
+                "type": "movie" if is_movie else "tv",
+                "year": result_year,
+                "tmdb_id": media.get("id"),
                 "status": status,
                 "available": status == "available",
                 "can_request": status == "not_requested",
+                "url": adapter._get_media_url("movie" if is_movie else "tv", media.get("id")),
             },
         }
 

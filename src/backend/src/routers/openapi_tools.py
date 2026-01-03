@@ -1293,23 +1293,26 @@ def generate_openwebui_openapi_spec() -> dict:
                     },
                 }
             },
-            "/tools/komga_get_series": {
+            "/tools/komga_search": {
                 "post": {
-                    "operationId": "komga_get_series",
-                    "summary": "Get Komga series",
-                    "description": "Get list of comic/manga series.",
+                    "operationId": "komga_search",
+                    "summary": "Search Komga",
+                    "description": "Search for series and books in Komga by title. Returns detailed information including genres, publisher, read progress, and URLs. Can optionally filter by library name.",
                     "requestBody": {
+                        "required": True,
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "type": "object",
+                                    "required": ["query"],
                                     "properties": {
-                                        "library_id": {"type": "string", "description": "Library ID to filter"},
-                                        "limit": {"type": "integer", "default": 50, "description": "Max results"},
+                                        "query": {"type": "string", "description": "Search query (searches in titles)"},
+                                        "library_name": {"type": "string", "description": "Library name to search in (e.g., 'Comics', 'Manga')"},
+                                        "limit": {"type": "integer", "default": 20, "description": "Maximum number of results per category"},
                                     },
                                 }
                             }
-                        }
+                        },
                     },
                     "responses": {
                         "200": {
@@ -1319,23 +1322,11 @@ def generate_openwebui_openapi_spec() -> dict:
                     },
                 }
             },
-            "/tools/komga_search": {
+            "/tools/komga_get_users": {
                 "post": {
-                    "operationId": "komga_search",
-                    "summary": "Search Komga",
-                    "description": "Search for series and books in Komga.",
-                    "requestBody": {
-                        "required": True,
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "required": ["query"],
-                                    "properties": {"query": {"type": "string", "description": "Search query"}},
-                                }
-                            }
-                        },
-                    },
+                    "operationId": "komga_get_users",
+                    "summary": "Get Komga users",
+                    "description": "Get list of users in Komga.",
                     "responses": {
                         "200": {
                             "description": "Successful response",
@@ -2997,17 +2988,12 @@ async def romm_get_statistics(request: Request, session: AsyncSession = Depends(
 # ============================================================================
 
 
-class KomgaSeriesRequest(BaseModel):
-    """Get series request."""
-
-    library_id: Optional[str] = Field(None, description="Filter by library ID")
-    limit: int = Field(50, description="Maximum number of series to return")
-
-
 class KomgaSearchRequest(BaseModel):
     """Search Komga request."""
 
-    query: str = Field(..., description="Search query")
+    query: str = Field(..., description="Search query (searches in titles)")
+    library_name: Optional[str] = Field(None, description="Library name to search in (e.g., 'Comics', 'Manga')")
+    limit: int = Field(20, description="Maximum number of results per category")
 
 
 @router.post(
@@ -3023,28 +3009,26 @@ async def komga_get_libraries(request: Request, session: AsyncSession = Depends(
 
 
 @router.post(
-    "/komga_get_series",
+    "/komga_search",
     response_model=ToolResponse,
-    summary="Get Komga series",
-    description="Get list of comic/manga series.",
+    summary="Search Komga",
+    description="Search for series and books in Komga by title. Returns detailed information including genres, publisher, read progress, and URLs. Can optionally filter by library name.",
 )
-async def komga_get_series(
-    request: Request, body: KomgaSeriesRequest = KomgaSeriesRequest(), session: AsyncSession = Depends(get_db_session)
-):
-    """Get Komga series."""
-    result = await execute_tool_with_logging(session, "komga_get_series", body.model_dump(exclude_none=True), request)
+async def komga_search(request: Request, body: KomgaSearchRequest, session: AsyncSession = Depends(get_db_session)):
+    """Search Komga."""
+    result = await execute_tool_with_logging(session, "komga_search", body.model_dump(exclude_none=True), request)
     return ToolResponse(**result)
 
 
 @router.post(
-    "/komga_search",
+    "/komga_get_users",
     response_model=ToolResponse,
-    summary="Search Komga",
-    description="Search for series and books in Komga.",
+    summary="Get Komga users",
+    description="Get list of users in Komga.",
 )
-async def komga_search(request: Request, body: KomgaSearchRequest, session: AsyncSession = Depends(get_db_session)):
-    """Search Komga."""
-    result = await execute_tool_with_logging(session, "komga_search", body.model_dump(), request)
+async def komga_get_users(request: Request, session: AsyncSession = Depends(get_db_session)):
+    """Get Komga users."""
+    result = await execute_tool_with_logging(session, "komga_get_users", {}, request)
     return ToolResponse(**result)
 
 
@@ -3328,26 +3312,6 @@ async def audiobookshelf_get_library_items(
 ):
     """Get Audiobookshelf library items."""
     result = await execute_tool_with_logging(session, "audiobookshelf_get_library_items", body.model_dump(), request)
-    return ToolResponse(**result)
-
-
-class AudiobookshelfItemRequest(BaseModel):
-    """Request for a specific item."""
-
-    item_id: str = Field(..., description="ID of the audiobook/podcast to get")
-
-
-@router.post(
-    "/audiobookshelf_get_item",
-    response_model=ToolResponse,
-    summary="Get Audiobookshelf item",
-    description="Get detailed information about a specific audiobook or podcast.",
-)
-async def audiobookshelf_get_item(
-    request: Request, body: AudiobookshelfItemRequest, session: AsyncSession = Depends(get_db_session)
-):
-    """Get Audiobookshelf item."""
-    result = await execute_tool_with_logging(session, "audiobookshelf_get_item", body.model_dump(), request)
     return ToolResponse(**result)
 
 

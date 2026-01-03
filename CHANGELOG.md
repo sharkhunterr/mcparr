@@ -2,6 +2,38 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.2.14](https://github.com/sharkhunterr/mcparr/-/compare/v0.2.13...v0.2.14) (2026-01-03)
+
+
+### Features
+
+* add external_url support for public-facing service links ([3593b3e](https://github.com/sharkhunterr/mcparr/-/commit/3593b3e))
+* **audiobookshelf:** improve tools UX with name-based lookups and detailed search ([f2e7528](https://github.com/sharkhunterr/mcparr/-/commit/f2e7528))
+* **romm:** enhance search and collections tools with filtering ([9aa3ae3](https://github.com/sharkhunterr/mcparr/-/commit/9aa3ae3))
+* **wikijs:** add URLs to page responses ([79f4c0f](https://github.com/sharkhunterr/mcparr/-/commit/79f4c0f))
+
+
+### Bug Fixes
+
+* **deluge:** implement abstract method and fix connection test ([4904546](https://github.com/sharkhunterr/mcparr/-/commit/4904546))
+* **komga:** update search to use POST API and improve tool UX ([d55caa5](https://github.com/sharkhunterr/mcparr/-/commit/d55caa5))
+* **plex:** improve recently added output format ([ecb8d61](https://github.com/sharkhunterr/mcparr/-/commit/ecb8d61))
+* **plex:** improve tool outputs with URLs and formatted titles ([eea2797](https://github.com/sharkhunterr/mcparr/-/commit/eea2797))
+* **romm:** use correct search_term parameter for ROM search ([fb96371](https://github.com/sharkhunterr/mcparr/-/commit/fb96371))
+* **romm:** use platform ID instead of slug for platform URLs ([614a6eb](https://github.com/sharkhunterr/mcparr/-/commit/614a6eb))
+* **tautulli:** handle dict response from get_home_stats API ([8e33ef1](https://github.com/sharkhunterr/mcparr/-/commit/8e33ef1))
+
+
+### Refactor
+
+* sync openapi_tools.py with MCP tool changes ([b96cf83](https://github.com/sharkhunterr/mcparr/-/commit/b96cf83))
+
+
+### Documentation
+
+* add Extensible Architecture section in Features ([03a2d00](https://github.com/sharkhunterr/mcparr/-/commit/03a2d00))
+* add Integration Guide with i18n section ([8e33ef1](https://github.com/sharkhunterr/mcparr/-/commit/8e33ef1))
+
 ### [0.2.13](https://github.com/sharkhunterr/mcparr/-/compare/v0.2.12...v0.2.13) (2026-01-02)
 
 ### [0.2.12](https://github.com/sharkhunterr/mcparr/-/compare/v0.2.11...v0.2.12) (2026-01-02)

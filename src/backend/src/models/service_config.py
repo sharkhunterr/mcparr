@@ -58,6 +58,7 @@ class ServiceConfig(Base, UUIDMixin, TimestampMixin):
 
     # Connection details
     base_url: Mapped[str] = mapped_column(String(255), nullable=False)
+    external_url: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)  # Public URL for user links
     port: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
 
     # Authentication

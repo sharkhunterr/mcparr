@@ -15,6 +15,24 @@ class RadarrAdapter(TokenAuthAdapter):
     def service_type(self) -> str:
         return "radarr"
 
+    def _get_movie_url(self, movie_id: int) -> str:
+        """Generate Radarr web UI URL for a movie."""
+        if movie_id:
+            return f"{self.public_url}/movie/{movie_id}"
+        return ""
+
+    def _get_tmdb_url(self, tmdb_id: int) -> str:
+        """Generate TMDB external URL."""
+        if tmdb_id:
+            return f"https://www.themoviedb.org/movie/{tmdb_id}"
+        return ""
+
+    def _get_imdb_url(self, imdb_id: str) -> str:
+        """Generate IMDB external URL."""
+        if imdb_id:
+            return f"https://www.imdb.com/title/{imdb_id}"
+        return ""
+
     @property
     def supported_capabilities(self) -> List[ServiceCapability]:
         return [ServiceCapability.MEDIA_CONTENT, ServiceCapability.API_ACCESS]
@@ -114,6 +132,9 @@ class RadarrAdapter(TokenAuthAdapter):
                     "quality_profile_id": movie.get("qualityProfileId"),
                     "path": movie.get("path"),
                     "size_on_disk": movie.get("sizeOnDisk", 0),
+                    "url": self._get_movie_url(movie.get("id")),
+                    "tmdb_url": self._get_tmdb_url(movie.get("tmdbId")),
+                    "imdb_url": self._get_imdb_url(movie.get("imdbId")),
                 }
                 for movie in movies[:limit]
             ]
@@ -135,6 +156,8 @@ class RadarrAdapter(TokenAuthAdapter):
                     "imdb_id": movie.get("imdbId"),
                     "overview": movie.get("overview", "")[:200],
                     "in_library": movie.get("id") is not None,
+                    "tmdb_url": self._get_tmdb_url(movie.get("tmdbId")),
+                    "imdb_url": self._get_imdb_url(movie.get("imdbId")),
                 }
                 for movie in results[:20]
             ]

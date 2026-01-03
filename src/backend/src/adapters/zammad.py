@@ -40,6 +40,18 @@ class ZammadAdapter(TokenAuthAdapter):
     def service_type(self) -> str:
         return "zammad"
 
+    def _get_ticket_url(self, ticket_id: int) -> str:
+        """Generate Zammad web UI URL for a ticket."""
+        if ticket_id:
+            return f"{self.public_url}/#ticket/zoom/{ticket_id}"
+        return ""
+
+    def _get_user_url(self, user_id: int) -> str:
+        """Generate Zammad web UI URL for a user profile."""
+        if user_id:
+            return f"{self.public_url}/#user/profile/{user_id}"
+        return ""
+
     @property
     def supported_capabilities(self) -> List[ServiceCapability]:
         return [ServiceCapability.TICKET_SYSTEM, ServiceCapability.USER_MANAGEMENT, ServiceCapability.API_ACCESS]
@@ -196,8 +208,9 @@ class ZammadAdapter(TokenAuthAdapter):
             # Process tickets to add user-friendly information
             processed_tickets = []
             for ticket in tickets:
+                ticket_id = ticket.get("id")
                 processed_ticket = {
-                    "id": ticket.get("id"),
+                    "id": ticket_id,
                     "number": ticket.get("number"),
                     "title": ticket.get("title"),
                     "state": self._get_field_value(ticket, "state"),
@@ -209,6 +222,7 @@ class ZammadAdapter(TokenAuthAdapter):
                     "updated_at": ticket.get("updated_at"),
                     "close_at": ticket.get("close_at"),
                     "article_count": ticket.get("article_count", 0),
+                    "url": self._get_ticket_url(ticket_id),
                 }
                 processed_tickets.append(processed_ticket)
 

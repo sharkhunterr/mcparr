@@ -30,6 +30,7 @@ interface Service {
   service_type: string;
   description?: string;
   base_url: string;
+  external_url?: string;
   port?: number;
   api_key?: string;
   username?: string;
@@ -605,6 +606,7 @@ const Services: React.FC = () => {
             service_type: selectedService.service_type,
             description: selectedService.description || '',
             base_url: selectedService.base_url,
+            external_url: selectedService.external_url || '',
             port: selectedService.port?.toString() || '',
             api_key: selectedService.api_key || '',
             username: selectedService.username || '',

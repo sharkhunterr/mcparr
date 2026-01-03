@@ -592,6 +592,8 @@ async def test_tool(
     for svc in enabled_services:
         service_configs[svc.service_type.lower()] = {
             "url": svc.base_url,
+            "base_url": svc.base_url,
+            "external_url": getattr(svc, "external_url", None),
             "port": svc.port,
             "api_key": svc.api_key,
             "username": getattr(svc, "username", None),

@@ -38,6 +38,24 @@ class OverseerrAdapter(TokenAuthAdapter):
     def service_type(self) -> str:
         return "overseerr"
 
+    def _get_request_url(self, request_id: int) -> str:
+        """Generate Overseerr web UI URL for a request."""
+        if request_id:
+            return f"{self.public_url}/requests/{request_id}"
+        return ""
+
+    def _get_media_url(self, media_type: str, tmdb_id: int) -> str:
+        """Generate Overseerr web UI URL for a media item."""
+        if media_type and tmdb_id:
+            return f"{self.public_url}/{media_type}/{tmdb_id}"
+        return ""
+
+    def _get_tmdb_url(self, media_type: str, tmdb_id: int) -> str:
+        """Generate TMDB external URL for a media item."""
+        if media_type and tmdb_id:
+            return f"https://www.themoviedb.org/{media_type}/{tmdb_id}"
+        return ""
+
     @property
     def supported_capabilities(self) -> List[ServiceCapability]:
         return [ServiceCapability.MEDIA_CONTENT, ServiceCapability.USER_MANAGEMENT, ServiceCapability.API_ACCESS]
@@ -181,8 +199,9 @@ class OverseerrAdapter(TokenAuthAdapter):
                 # Get title from TMDB ID
                 title = await self._get_media_title(media_type, tmdb_id)
 
+                request_id = request.get("id")
                 processed_request = {
-                    "id": request.get("id"),
+                    "id": request_id,
                     "status": request.get("status"),
                     "status_name": self._get_status_name(request.get("status")),
                     "media_type": media_type,
@@ -191,6 +210,9 @@ class OverseerrAdapter(TokenAuthAdapter):
                     "requested_by": request.get("requestedBy", {}).get("displayName"),
                     "requested_by_id": request.get("requestedBy", {}).get("id"),
                     "media_info": {**self._extract_media_info(media), "title": title},  # Add title from TMDB lookup
+                    "url": self._get_request_url(request_id),
+                    "media_url": self._get_media_url(media_type, tmdb_id),
+                    "tmdb_url": self._get_tmdb_url(media_type, tmdb_id),
                 }
 
                 # Add seasons for TV shows

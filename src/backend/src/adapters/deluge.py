@@ -30,6 +30,14 @@ class DelugeAdapter(BaseServiceAdapter):
     def supported_capabilities(self) -> List[ServiceCapability]:
         return [ServiceCapability.API_ACCESS]
 
+    def get_auth_headers(self) -> Dict[str, str]:
+        """Get authentication headers.
+
+        Deluge uses session cookies for authentication, not headers.
+        This method returns empty headers as auth is handled via _auth().
+        """
+        return {"Content-Type": "application/json"}
+
     def _get_next_request_id(self) -> int:
         """Get next JSON-RPC request ID."""
         self._request_id += 1
@@ -38,7 +46,14 @@ class DelugeAdapter(BaseServiceAdapter):
     async def _auth(self) -> bool:
         """Authenticate with Deluge Web API."""
         try:
-            password = self.get_config_value("password") or self.service_config.password or ""
+            # Try password field first, then api_key as fallback
+            password = (
+                self.get_config_value("password")
+                or getattr(self.service_config, "password", None)
+                or self.get_config_value("api_key")
+                or getattr(self.service_config, "api_key", None)
+                or ""
+            )
 
             async with httpx.AsyncClient(timeout=30.0) as client:
                 response = await client.post(
@@ -91,8 +106,8 @@ class DelugeAdapter(BaseServiceAdapter):
 
         try:
             if await self._auth():
-                # Try to get daemon info
-                info = await self._rpc_call("web.get_host_status", [])
+                # Check if connected to daemon
+                connected = await self._rpc_call("web.connected")
 
                 end_time = datetime.utcnow()
                 response_time = int((end_time - start_time).total_seconds() * 1000)
@@ -101,7 +116,7 @@ class DelugeAdapter(BaseServiceAdapter):
                     success=True,
                     message="Successfully connected to Deluge",
                     response_time_ms=response_time,
-                    details={"status": "connected", "host_info": info},
+                    details={"status": "connected", "daemon_connected": connected},
                 )
             else:
                 return ConnectionTestResult(

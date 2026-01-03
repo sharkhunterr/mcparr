@@ -100,6 +100,7 @@ class JackettTools(BaseTool):
                     self._config = config
                     self.api_key = config.get("api_key")
                     self.base_url = config.get("base_url") or config.get("url", "")
+                    self.external_url = config.get("external_url")  # Public URL for user links
                     self.port = config.get("port")
                     self.config = config.get("config", config.get("extra_config", {}))
 

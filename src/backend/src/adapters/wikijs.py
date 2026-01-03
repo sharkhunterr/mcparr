@@ -28,6 +28,18 @@ class WikiJSAdapter(TokenAuthAdapter):
     def service_type(self) -> str:
         return "wikijs"
 
+    def _get_page_url(self, locale: str, path: str) -> str:
+        """Generate WikiJS web UI URL for a page."""
+        if locale and path:
+            return f"{self.public_url}/{locale}/{path}"
+        return ""
+
+    def _get_page_edit_url(self, page_id: int) -> str:
+        """Generate WikiJS web UI URL to edit a page."""
+        if page_id:
+            return f"{self.public_url}/e/{page_id}"
+        return ""
+
     @property
     def supported_capabilities(self) -> List[ServiceCapability]:
         return [
@@ -252,6 +264,7 @@ class WikiJSAdapter(TokenAuthAdapter):
                     "tags": page.get("tags", []),  # tags is already a string array
                     "created_at": page.get("createdAt"),
                     "updated_at": page.get("updatedAt"),
+                    "url": self._get_page_url(page.get("locale"), page.get("path")),
                 }
                 for page in pages
             ]
@@ -307,6 +320,8 @@ class WikiJSAdapter(TokenAuthAdapter):
                 "toc": page.get("toc"),
                 "created_at": page.get("createdAt"),
                 "updated_at": page.get("updatedAt"),
+                "url": self._get_page_url(page.get("locale"), page.get("path")),
+                "edit_url": self._get_page_edit_url(page.get("id")),
             }
         except Exception as e:
             self.logger.error(f"Failed to get page {page_id}: {e}")
@@ -345,6 +360,7 @@ class WikiJSAdapter(TokenAuthAdapter):
                         "title": r.get("title"),
                         "description": r.get("description"),
                         "locale": r.get("locale"),
+                        "url": self._get_page_url(r.get("locale"), r.get("path")),
                     }
                     for r in search_results.get("results", [])
                 ],
@@ -405,6 +421,7 @@ class WikiJSAdapter(TokenAuthAdapter):
                     "is_folder": item.get("isFolder", False),
                     "depth": item.get("depth", 0),
                     "page_id": item.get("pageId"),
+                    "url": self._get_page_url(locale, item.get("path")) if not item.get("isFolder") else None,
                 }
                 for item in tree
             ]
@@ -561,7 +578,12 @@ class WikiJSAdapter(TokenAuthAdapter):
                 page = result.get("page", {})
                 return {
                     "success": True,
-                    "page": {"id": page.get("id"), "path": page.get("path"), "title": page.get("title")},
+                    "page": {
+                        "id": page.get("id"),
+                        "path": page.get("path"),
+                        "title": page.get("title"),
+                        "url": self._get_page_url(locale, page.get("path")),
+                    },
                 }
             else:
                 return {

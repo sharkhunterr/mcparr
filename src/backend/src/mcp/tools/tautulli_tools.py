@@ -342,6 +342,7 @@ class TautulliTools(BaseTool):
                     self.api_key = config.get("api_key")
                     # Support both 'base_url' and 'url' keys for compatibility
                     self.base_url = config.get("base_url") or config.get("url", "")
+                    self.external_url = config.get("external_url")  # Public URL for user links
                     self.port = config.get("port")
                     self.config = config.get("config") or config.get("extra_config", {})
 
@@ -600,10 +601,28 @@ class TautulliTools(BaseTool):
             return f"{hours}h"
 
     def _extract_stat_rows(self, stats_data: list, stat_id: str) -> list:
-        """Extract rows for a specific stat_id from home stats data."""
+        """Extract rows for a specific stat_id from home stats data.
+
+        Handles two formats:
+        1. When stat_id filter is used: returns list with single stat object containing rows
+        2. When no filter: returns list of all stats, each with stat_id and rows
+        """
+        if not stats_data:
+            return []
+
+        # Check if this is a filtered response (single stat with rows directly)
+        if len(stats_data) == 1 and stats_data[0].get("stat_id") == stat_id:
+            return stats_data[0].get("rows", [])
+
+        # Also handle case where rows are directly in the response
+        if len(stats_data) == 1 and "rows" in stats_data[0] and "stat_id" not in stats_data[0]:
+            return stats_data[0].get("rows", [])
+
+        # Standard format: search for matching stat_id
         for stat in stats_data:
             if stat.get("stat_id") == stat_id:
                 return stat.get("rows", [])
+
         return []
 
     async def _get_top_users(self, adapter, arguments: dict) -> dict:

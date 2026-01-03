@@ -15,6 +15,7 @@ class ServiceConfigBase(BaseModel):
     service_type: ServiceType
     description: Optional[str] = None
     base_url: str = Field(..., min_length=1, max_length=255)
+    external_url: Optional[str] = Field(None, max_length=255)  # Public URL for user links
     port: Optional[int] = Field(None, ge=1, le=65535)
     config: Dict[str, Any] = Field(default_factory=dict)
     enabled: bool = True
@@ -38,6 +39,7 @@ class ServiceConfigUpdate(BaseModel):
     name: Optional[str] = Field(None, min_length=1, max_length=100)
     description: Optional[str] = None
     base_url: Optional[str] = Field(None, min_length=1, max_length=255)
+    external_url: Optional[str] = Field(None, max_length=255)  # Public URL for user links
     port: Optional[int] = Field(None, ge=1, le=65535)
     api_key: Optional[str] = Field(None, max_length=2000)  # JWT tokens can be long
     username: Optional[str] = Field(None, max_length=100)
