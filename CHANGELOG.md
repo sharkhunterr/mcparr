@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.2.22](https://github.com/sharkhunterr/mcparr/-/compare/v0.2.21...v0.2.22) (2026-01-03)
+
+
+### Features
+
+* **dashboard:** add period comparison indicators for MCP stats ([ca64c5f](https://github.com/sharkhunterr/mcparr/-/commit/ca64c5f7de5b97f3a66c68b724a317b4ff5f3327))
+
 ### [0.2.21](https://github.com/sharkhunterr/mcparr/-/compare/v0.2.20...v0.2.21) (2026-01-03)
 
 
