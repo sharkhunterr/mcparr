@@ -7,6 +7,27 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### Features
 
+* add external_url support for public-facing service links ([f9e7d49](https://github.com/sharkhunterr/mcparr/-/commit/f9e7d496328fe037aa632612b83606cb3d700be8))
+* **audiobookshelf:** improve tools UX with name-based lookups and detailed search ([f2e7528](https://github.com/sharkhunterr/mcparr/-/commit/f2e752814d95e347e61c2318ef2523bf1b90a331))
+* **romm:** enhance search and collections tools with filtering ([3593b3e](https://github.com/sharkhunterr/mcparr/-/commit/3593b3e2d33fd9608f9e5e74e43d8da477c63744))
+* **wikijs:** add URLs to page responses ([79f4c0f](https://github.com/sharkhunterr/mcparr/-/commit/79f4c0fa9be4df562fb30f86eb72c904252e7777))
+
+
+### Bug Fixes
+
+* **deluge:** implement abstract method and fix connection test ([4904546](https://github.com/sharkhunterr/mcparr/-/commit/490454656ea1a4e3fd1e54f5d9ba7e01ef38a3c3))
+* **komga:** update search to use POST API and improve tool UX ([d55caa5](https://github.com/sharkhunterr/mcparr/-/commit/d55caa536288e5e4cbd1b89fbc1a40b68f5b7f89))
+* **plex:** improve recently added output format ([ecb8d61](https://github.com/sharkhunterr/mcparr/-/commit/ecb8d612e48e4f98810ebcfc0008c852f78ab3a3))
+* **plex:** improve tool outputs with URLs and formatted titles ([eea2797](https://github.com/sharkhunterr/mcparr/-/commit/eea2797844f38bf65bdb70303e04e10545f3ad73))
+* **romm:** use correct search_term parameter for ROM search ([9aa3ae3](https://github.com/sharkhunterr/mcparr/-/commit/9aa3ae315081632a23ae36c32646225461d954da))
+* **romm:** use platform ID instead of slug for platform URLs ([614a6eb](https://github.com/sharkhunterr/mcparr/-/commit/614a6eb3c51ea0540fe1e7e7fe830f7cf4004d3c))
+* **tautulli:** handle dict response from get_home_stats API ([fb96371](https://github.com/sharkhunterr/mcparr/-/commit/fb9637157eab1c21ef447dbd5bc77ea7ef152c82))
+
+### [0.2.14](https://github.com/sharkhunterr/mcparr/-/compare/v0.2.13...v0.2.14) (2026-01-03)
+
+
+### Features
+
 * add external_url support for public-facing service links ([3593b3e](https://github.com/sharkhunterr/mcparr/-/commit/3593b3e))
 * **audiobookshelf:** improve tools UX with name-based lookups and detailed search ([f2e7528](https://github.com/sharkhunterr/mcparr/-/commit/f2e7528))
 * **romm:** enhance search and collections tools with filtering ([9aa3ae3](https://github.com/sharkhunterr/mcparr/-/commit/9aa3ae3))
