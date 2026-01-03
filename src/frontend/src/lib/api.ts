@@ -16,12 +16,18 @@ const getApiBaseUrl = (): string => {
   // Check for explicit environment variable first
   const envApiUrl = import.meta.env.VITE_API_URL;
 
-  // In production, use the environment variable if set
-  if (import.meta.env.PROD && envApiUrl) {
+  // If VITE_API_URL is set, use it
+  if (envApiUrl) {
     return envApiUrl;
   }
 
-  // In development or if no env var, dynamically use the current hostname
+  // In production (Docker), use empty string so requests go through nginx proxy
+  // nginx will proxy /api/* to the backend on port 8000
+  if (import.meta.env.PROD) {
+    return '';
+  }
+
+  // In development, dynamically use the current hostname with backend port
   // This allows access from other devices on the local network
   const hostname = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
   return `http://${hostname}:8000`;
@@ -43,17 +49,36 @@ class ApiClient {
   }
 
   private buildUrl(path: string, params?: Record<string, any>): string {
-    const url = new URL(path, this.baseUrl);
-
-    if (params) {
-      Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          url.searchParams.append(key, value.toString());
+    // Handle empty baseUrl (production mode with nginx proxy)
+    let urlString: string;
+    if (this.baseUrl) {
+      const url = new URL(path, this.baseUrl);
+      if (params) {
+        Object.entries(params).forEach(([key, value]) => {
+          if (value !== undefined && value !== null) {
+            url.searchParams.append(key, value.toString());
+          }
+        });
+      }
+      urlString = url.toString();
+    } else {
+      // No baseUrl - use relative path (for nginx proxy)
+      urlString = path;
+      if (params) {
+        const searchParams = new URLSearchParams();
+        Object.entries(params).forEach(([key, value]) => {
+          if (value !== undefined && value !== null) {
+            searchParams.append(key, value.toString());
+          }
+        });
+        const queryString = searchParams.toString();
+        if (queryString) {
+          urlString += (path.includes('?') ? '&' : '?') + queryString;
         }
-      });
+      }
     }
 
-    return url.toString();
+    return urlString;
   }
 
   private async makeRequest<T = any>(
