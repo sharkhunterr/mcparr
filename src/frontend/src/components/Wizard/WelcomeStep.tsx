@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Sparkles, ArrowRight, X, Upload, Database, AlertCircle, CheckCircle, Loader2, Server, Users, Shield, Brain, Wrench, Check, Globe } from 'lucide-react';
+import { Sparkles, ArrowRight, X, Upload, Database, AlertCircle, CheckCircle, Loader2, Server, Users, Shield, Brain, Wrench, Check } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useWizard } from '../../contexts/WizardContext';
 import { api } from '../../lib/api';
@@ -55,8 +55,6 @@ export default function WelcomeStep() {
   const { t, i18n } = useTranslation(['wizard']);
   const navigate = useNavigate();
   const { nextStep, skipWizard } = useWizard();
-
-  const currentLanguage = languages.find(l => l.code === i18n.language) || languages[0];
 
   const changeLanguage = (langCode: string) => {
     i18n.changeLanguage(langCode);

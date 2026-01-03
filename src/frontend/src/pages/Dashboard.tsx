@@ -445,10 +445,16 @@ export default function Dashboard() {
     );
   }
 
+  // Compact mode classes
+  const spacing = settings.dashboardCompactMode ? 'space-y-2' : 'space-y-4';
+  const padding = settings.dashboardCompactMode ? 'p-3 sm:p-4' : 'p-4 sm:p-6';
+  const cardPadding = settings.dashboardCompactMode ? 'p-3' : 'p-4';
+  const gridGap = settings.dashboardCompactMode ? 'gap-2' : 'gap-4';
+
   return (
-    <div className="p-4 sm:p-6 space-y-4">
+    <div className={`${padding} ${spacing}`}>
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div className={`flex flex-col sm:flex-row sm:items-center sm:justify-between ${settings.dashboardCompactMode ? 'gap-2' : 'gap-3'}`}>
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
             <LayoutDashboard className="w-6 h-6 sm:w-7 sm:h-7 text-blue-600" />
@@ -487,17 +493,17 @@ export default function Dashboard() {
 
       {/* System Metrics Row */}
       {settings.showSystemMetrics && (
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className={`grid grid-cols-2 lg:grid-cols-4 ${gridGap}`}>
         {/* CPU */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-700">
-          <div className="flex items-center mb-3">
-            <div className={`p-2 rounded-lg ${cpuColor === 'red' ? 'bg-red-100 dark:bg-red-900/30' : cpuColor === 'yellow' ? 'bg-yellow-100 dark:bg-yellow-900/30' : 'bg-blue-100 dark:bg-blue-900/30'}`}>
-              <Cpu className={`w-5 h-5 ${cpuColor === 'red' ? 'text-red-600 dark:text-red-400' : cpuColor === 'yellow' ? 'text-yellow-600 dark:text-yellow-400' : 'text-blue-600 dark:text-blue-400'}`} />
+        <div className={`bg-white dark:bg-gray-800 rounded-xl ${cardPadding} shadow-sm border border-gray-100 dark:border-gray-700`}>
+          <div className={`flex items-center ${settings.dashboardCompactMode ? 'mb-2' : 'mb-3'}`}>
+            <div className={`${settings.dashboardCompactMode ? 'p-1.5' : 'p-2'} rounded-lg ${cpuColor === 'red' ? 'bg-red-100 dark:bg-red-900/30' : cpuColor === 'yellow' ? 'bg-yellow-100 dark:bg-yellow-900/30' : 'bg-blue-100 dark:bg-blue-900/30'}`}>
+              <Cpu className={`${settings.dashboardCompactMode ? 'w-4 h-4' : 'w-5 h-5'} ${cpuColor === 'red' ? 'text-red-600 dark:text-red-400' : cpuColor === 'yellow' ? 'text-yellow-600 dark:text-yellow-400' : 'text-blue-600 dark:text-blue-400'}`} />
             </div>
             <div className="ml-3 flex-1">
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{t('cpu')}</p>
-              <p className="text-xl font-semibold text-gray-900 dark:text-white">
-                {metrics?.cpu_usage.toFixed(0) || 0}<span className="text-base text-gray-500 dark:text-gray-400">%</span>
+              <p className={`${settings.dashboardCompactMode ? 'text-xs' : 'text-sm'} font-medium text-gray-600 dark:text-gray-400`}>{t('cpu')}</p>
+              <p className={`${settings.dashboardCompactMode ? 'text-lg' : 'text-xl'} font-semibold text-gray-900 dark:text-white`}>
+                {metrics?.cpu_usage.toFixed(0) || 0}<span className={`${settings.dashboardCompactMode ? 'text-sm' : 'text-base'} text-gray-500 dark:text-gray-400`}>%</span>
               </p>
             </div>
           </div>
@@ -505,15 +511,15 @@ export default function Dashboard() {
         </div>
 
         {/* Memory */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-700">
-          <div className="flex items-center mb-3">
-            <div className={`p-2 rounded-lg ${memColor === 'red' ? 'bg-red-100 dark:bg-red-900/30' : memColor === 'yellow' ? 'bg-yellow-100 dark:bg-yellow-900/30' : 'bg-green-100 dark:bg-green-900/30'}`}>
-              <MemoryStick className={`w-5 h-5 ${memColor === 'red' ? 'text-red-600 dark:text-red-400' : memColor === 'yellow' ? 'text-yellow-600 dark:text-yellow-400' : 'text-green-600 dark:text-green-400'}`} />
+        <div className={`bg-white dark:bg-gray-800 rounded-xl ${cardPadding} shadow-sm border border-gray-100 dark:border-gray-700`}>
+          <div className={`flex items-center ${settings.dashboardCompactMode ? 'mb-2' : 'mb-3'}`}>
+            <div className={`${settings.dashboardCompactMode ? 'p-1.5' : 'p-2'} rounded-lg ${memColor === 'red' ? 'bg-red-100 dark:bg-red-900/30' : memColor === 'yellow' ? 'bg-yellow-100 dark:bg-yellow-900/30' : 'bg-green-100 dark:bg-green-900/30'}`}>
+              <MemoryStick className={`${settings.dashboardCompactMode ? 'w-4 h-4' : 'w-5 h-5'} ${memColor === 'red' ? 'text-red-600 dark:text-red-400' : memColor === 'yellow' ? 'text-yellow-600 dark:text-yellow-400' : 'text-green-600 dark:text-green-400'}`} />
             </div>
             <div className="ml-3 flex-1">
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{t('memory')}</p>
-              <p className="text-xl font-semibold text-gray-900 dark:text-white">
-                {metrics?.memory_usage.toFixed(0) || 0}<span className="text-base text-gray-500 dark:text-gray-400">%</span>
+              <p className={`${settings.dashboardCompactMode ? 'text-xs' : 'text-sm'} font-medium text-gray-600 dark:text-gray-400`}>{t('memory')}</p>
+              <p className={`${settings.dashboardCompactMode ? 'text-lg' : 'text-xl'} font-semibold text-gray-900 dark:text-white`}>
+                {metrics?.memory_usage.toFixed(0) || 0}<span className={`${settings.dashboardCompactMode ? 'text-sm' : 'text-base'} text-gray-500 dark:text-gray-400`}>%</span>
               </p>
             </div>
           </div>
@@ -524,15 +530,15 @@ export default function Dashboard() {
         </div>
 
         {/* Disk */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-700">
-          <div className="flex items-center mb-3">
-            <div className={`p-2 rounded-lg ${diskColor === 'red' ? 'bg-red-100 dark:bg-red-900/30' : diskColor === 'yellow' ? 'bg-yellow-100 dark:bg-yellow-900/30' : 'bg-purple-100 dark:bg-purple-900/30'}`}>
-              <HardDrive className={`w-5 h-5 ${diskColor === 'red' ? 'text-red-600 dark:text-red-400' : diskColor === 'yellow' ? 'text-yellow-600 dark:text-yellow-400' : 'text-purple-600 dark:text-purple-400'}`} />
+        <div className={`bg-white dark:bg-gray-800 rounded-xl ${cardPadding} shadow-sm border border-gray-100 dark:border-gray-700`}>
+          <div className={`flex items-center ${settings.dashboardCompactMode ? 'mb-2' : 'mb-3'}`}>
+            <div className={`${settings.dashboardCompactMode ? 'p-1.5' : 'p-2'} rounded-lg ${diskColor === 'red' ? 'bg-red-100 dark:bg-red-900/30' : diskColor === 'yellow' ? 'bg-yellow-100 dark:bg-yellow-900/30' : 'bg-purple-100 dark:bg-purple-900/30'}`}>
+              <HardDrive className={`${settings.dashboardCompactMode ? 'w-4 h-4' : 'w-5 h-5'} ${diskColor === 'red' ? 'text-red-600 dark:text-red-400' : diskColor === 'yellow' ? 'text-yellow-600 dark:text-yellow-400' : 'text-purple-600 dark:text-purple-400'}`} />
             </div>
             <div className="ml-3 flex-1">
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{t('disk')}</p>
-              <p className="text-xl font-semibold text-gray-900 dark:text-white">
-                {metrics?.disk_usage.toFixed(0) || 0}<span className="text-base text-gray-500 dark:text-gray-400">%</span>
+              <p className={`${settings.dashboardCompactMode ? 'text-xs' : 'text-sm'} font-medium text-gray-600 dark:text-gray-400`}>{t('disk')}</p>
+              <p className={`${settings.dashboardCompactMode ? 'text-lg' : 'text-xl'} font-semibold text-gray-900 dark:text-white`}>
+                {metrics?.disk_usage.toFixed(0) || 0}<span className={`${settings.dashboardCompactMode ? 'text-sm' : 'text-base'} text-gray-500 dark:text-gray-400`}>%</span>
               </p>
             </div>
           </div>
@@ -543,20 +549,20 @@ export default function Dashboard() {
         </div>
 
         {/* Uptime */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-700">
+        <div className={`bg-white dark:bg-gray-800 rounded-xl ${cardPadding} shadow-sm border border-gray-100 dark:border-gray-700`}>
           <div className="flex items-center">
-            <div className="p-2 rounded-lg bg-orange-100 dark:bg-orange-900/30">
-              <Clock className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+            <div className={`${settings.dashboardCompactMode ? 'p-1.5' : 'p-2'} rounded-lg bg-orange-100 dark:bg-orange-900/30`}>
+              <Clock className={`${settings.dashboardCompactMode ? 'w-4 h-4' : 'w-5 h-5'} text-orange-600 dark:text-orange-400`} />
             </div>
             <div className="ml-3 flex-1">
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{t('uptime')}</p>
-              <p className="text-xl font-semibold text-gray-900 dark:text-white">
+              <p className={`${settings.dashboardCompactMode ? 'text-xs' : 'text-sm'} font-medium text-gray-600 dark:text-gray-400`}>{t('uptime')}</p>
+              <p className={`${settings.dashboardCompactMode ? 'text-lg' : 'text-xl'} font-semibold text-gray-900 dark:text-white`}>
                 {formatUptime(metrics?.uptime || 0)}
               </p>
             </div>
           </div>
-          <div className="mt-3 flex items-center gap-1.5">
-            <CheckCircle className="w-4 h-4 text-green-500" />
+          <div className={`${settings.dashboardCompactMode ? 'mt-2' : 'mt-3'} flex items-center gap-1.5`}>
+            <CheckCircle className={`${settings.dashboardCompactMode ? 'w-3.5 h-3.5' : 'w-4 h-4'} text-green-500`} />
             <span className="text-xs text-green-600 dark:text-green-400">{t('systemActive')}</span>
           </div>
         </div>
@@ -564,8 +570,8 @@ export default function Dashboard() {
       )}
 
       {/* Services - Modern pills */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-4">
-        <div className="flex items-center justify-between mb-3">
+      <div className={`bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 ${cardPadding}`}>
+        <div className={`flex items-center justify-between ${settings.dashboardCompactMode ? 'mb-2' : 'mb-3'}`}>
           <div className="flex items-center gap-2">
             <Server className="w-4 h-4 text-blue-500" />
             <span className="font-semibold text-sm text-gray-900 dark:text-white">{t('services.title')}</span>
@@ -618,10 +624,10 @@ export default function Dashboard() {
 
       {/* Bottom Grid: MCP Gateway + Top Tools | Users */}
       {settings.showMcpStats && (
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className={`grid grid-cols-1 lg:grid-cols-3 ${gridGap}`}>
         {/* MCP Gateway + Top Tools Combined */}
-        <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-4">
-          <div className="flex items-center justify-between mb-3">
+        <div className={`lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 ${cardPadding}`}>
+          <div className={`flex items-center justify-between ${settings.dashboardCompactMode ? 'mb-2' : 'mb-3'}`}>
             <div className="flex items-center gap-2">
               <Bot className="w-4 h-4 text-violet-500" />
               <span className="font-semibold text-sm text-gray-900 dark:text-white">{t('mcp.title')}</span>
@@ -810,8 +816,8 @@ export default function Dashboard() {
         </div>
 
         {/* Users & Groups Block */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-4">
-          <div className="flex items-center justify-between mb-3">
+        <div className={`bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 ${cardPadding}`}>
+          <div className={`flex items-center justify-between ${settings.dashboardCompactMode ? 'mb-2' : 'mb-3'}`}>
             <div className="flex items-center gap-2">
               <Users className="w-4 h-4 text-blue-500" />
               <span className="font-semibold text-sm text-gray-900 dark:text-white">{t('users.title')}</span>
@@ -884,10 +890,10 @@ export default function Dashboard() {
       )}
 
       {/* Second Row: AI Training (expanded) | Observability (compact) */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className={`grid grid-cols-1 lg:grid-cols-3 ${gridGap}`}>
         {/* AI Training - Expanded Block with Charts */}
-        <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-4">
-          <div className="flex items-center justify-between mb-4">
+        <div className={`lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 ${cardPadding}`}>
+          <div className={`flex items-center justify-between ${settings.dashboardCompactMode ? 'mb-3' : 'mb-4'}`}>
             <div className="flex items-center gap-2">
               <div className="p-1.5 rounded-lg bg-violet-100 dark:bg-violet-900/30">
                 <Brain className="w-4 h-4 text-violet-600 dark:text-violet-400" />
@@ -1128,8 +1134,8 @@ export default function Dashboard() {
         </div>
 
         {/* Observability Block - Compact */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-4">
-          <div className="flex items-center justify-between mb-4">
+        <div className={`bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 ${cardPadding}`}>
+          <div className={`flex items-center justify-between ${settings.dashboardCompactMode ? 'mb-3' : 'mb-4'}`}>
             <div className="flex items-center gap-2">
               <div className="p-1.5 rounded-lg bg-cyan-100 dark:bg-cyan-900/30">
                 <Activity className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
