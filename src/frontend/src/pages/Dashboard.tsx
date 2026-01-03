@@ -911,34 +911,32 @@ export default function Dashboard() {
             </Link>
           </div>
 
-          {/* Main Stats Row */}
-          <div className="grid grid-cols-5 gap-3 mb-4">
-            <div className="p-3 rounded-xl bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-900/20 dark:to-purple-900/20 border border-violet-100 dark:border-violet-800/50 text-center">
-              <p className="text-2xl font-bold text-violet-600 dark:text-violet-400">{trainingStats?.total_prompts ?? 0}</p>
+          {/* Main Stats Row - Compact */}
+          <div className="grid grid-cols-5 gap-2 mb-3">
+            <div className="text-center p-2 bg-violet-50 dark:bg-violet-900/20 rounded-lg">
+              <p className="text-xl font-bold text-violet-600 dark:text-violet-400">{trainingStats?.total_prompts ?? 0}</p>
               <p className="text-[10px] text-gray-600 dark:text-gray-400">{t('training.prompts')}</p>
             </div>
-            <div className="p-3 rounded-xl bg-gradient-to-br from-fuchsia-50 to-pink-50 dark:from-fuchsia-900/20 dark:to-pink-900/20 border border-fuchsia-100 dark:border-fuchsia-800/50 text-center">
-              <p className="text-2xl font-bold text-fuchsia-600 dark:text-fuchsia-400">{trainingStats?.validated_prompts ?? 0}</p>
+            <div className="text-center p-2 bg-fuchsia-50 dark:bg-fuchsia-900/20 rounded-lg">
+              <p className="text-xl font-bold text-fuchsia-600 dark:text-fuchsia-400">{trainingStats?.validated_prompts ?? 0}</p>
               <p className="text-[10px] text-gray-600 dark:text-gray-400">{t('training.validated')}</p>
             </div>
-            <div className="p-3 rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-100 dark:border-blue-800/50 text-center">
-              <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{trainingStats?.total_sessions ?? 0}</p>
+            <div className="text-center p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+              <p className="text-xl font-bold text-blue-600 dark:text-blue-400">{trainingStats?.total_sessions ?? 0}</p>
               <p className="text-[10px] text-gray-600 dark:text-gray-400">{t('training.sessions')}</p>
             </div>
-            <div className="p-3 rounded-xl bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-100 dark:border-green-800/50 text-center">
-              <p className="text-2xl font-bold text-green-600 dark:text-green-400">{trainingStats?.completed_sessions ?? 0}</p>
+            <div className="text-center p-2 bg-green-50 dark:bg-green-900/20 rounded-lg">
+              <p className="text-xl font-bold text-green-600 dark:text-green-400">{trainingStats?.completed_sessions ?? 0}</p>
               <p className="text-[10px] text-gray-600 dark:text-gray-400">{t('training.completed')}</p>
             </div>
-            <div className="p-3 rounded-xl bg-gradient-to-br from-cyan-50 to-teal-50 dark:from-cyan-900/20 dark:to-teal-900/20 border border-cyan-100 dark:border-cyan-800/50 text-center">
-              <p className="text-2xl font-bold text-cyan-600 dark:text-cyan-400">{trainingWorkers.length}</p>
+            <div className="text-center p-2 bg-cyan-50 dark:bg-cyan-900/20 rounded-lg">
+              <p className="text-xl font-bold text-cyan-600 dark:text-cyan-400">{trainingWorkers.length}</p>
               <p className="text-[10px] text-gray-600 dark:text-gray-400">{t('training.workers')}</p>
             </div>
           </div>
 
-          {/* Two Column Layout: Prompts by Category + Workers */}
-          <div className="grid grid-cols-2 gap-4">
-            {/* Prompts by Service - Stacked Bar (same style as TrainingOverview) */}
-            <div className="border-t border-gray-100 dark:border-gray-700 pt-3">
+          {/* Prompts by Service - Full Width */}
+          <div className="border-t border-gray-100 dark:border-gray-700 pt-3">
               <div className="flex items-center gap-2 mb-3">
                 <Sparkles className="w-3.5 h-3.5 text-violet-500" />
                 <span className="text-xs font-medium text-gray-500 dark:text-gray-400">{t('training.byService')}</span>
@@ -1030,65 +1028,49 @@ export default function Dashboard() {
                   );
                 })()
               ) : (
-                <div className="h-20 flex items-center justify-center">
+                <div className="h-16 flex items-center justify-center">
                   <p className="text-xs text-gray-500 dark:text-gray-400">{t('training.noPrompts')}</p>
                 </div>
               )}
-            </div>
+          </div>
 
-            {/* Workers Status */}
-            <div className="border-t border-gray-100 dark:border-gray-700 pt-3">
-              <div className="flex items-center gap-2 mb-3">
+          {/* Workers Status - Compact inline */}
+          {trainingWorkers.length > 0 && (
+            <div className="border-t border-gray-100 dark:border-gray-700 pt-3 mt-3">
+              <div className="flex items-center gap-2 mb-2">
                 <Server className="w-3.5 h-3.5 text-cyan-500" />
                 <span className="text-xs font-medium text-gray-500 dark:text-gray-400">{t('training.gpuWorkers')}</span>
               </div>
-              {trainingWorkers.length > 0 ? (
-                <div className="space-y-2">
-                  {trainingWorkers.map(worker => {
-                    const isOnline = worker.status === 'online';
-                    const isBusy = !!worker.current_job_id;
-                    const gpuMemoryGb = worker.gpu_memory_total_mb ? (worker.gpu_memory_total_mb / 1024).toFixed(0) : '—';
+              <div className="flex flex-wrap gap-2">
+                {trainingWorkers.map(worker => {
+                  const isOnline = worker.status === 'online';
+                  const isBusy = !!worker.current_job_id;
+                  const gpuMemoryGb = worker.gpu_memory_total_mb ? (worker.gpu_memory_total_mb / 1024).toFixed(0) : null;
 
-                    return (
-                      <div key={worker.id} className="flex items-center justify-between text-xs p-2 rounded-lg bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800">
-                        <div className="flex items-center gap-2">
-                          <div className={`w-2 h-2 rounded-full ${
-                            isBusy ? 'bg-yellow-500 animate-pulse' : isOnline ? 'bg-green-500' : 'bg-gray-400'
-                          }`} />
-                          <span className="text-gray-700 dark:text-gray-300 font-medium">{worker.name}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          {worker.gpu_names && worker.gpu_names[0] && (
-                            <span className="text-[10px] text-gray-500 dark:text-gray-400 truncate max-w-[100px]">
-                              {worker.gpu_names[0].replace('NVIDIA ', '').replace('GeForce ', '')}
-                            </span>
-                          )}
-                          {worker.gpu_available && (
-                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-cyan-100 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-300 font-medium">
-                              {gpuMemoryGb} GB
-                            </span>
-                          )}
-                          <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${
-                            isBusy
-                              ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300'
-                              : isOnline
-                                ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
-                                : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
-                          }`}>
-                            {isBusy ? t('training.training') : isOnline ? t('training.ready') : t('training.offline')}
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="h-20 flex items-center justify-center">
-                  <p className="text-xs text-gray-500 dark:text-gray-400">{t('training.noWorkers')}</p>
-                </div>
-              )}
+                  return (
+                    <div
+                      key={worker.id}
+                      className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full border text-xs ${
+                        isBusy
+                          ? 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800'
+                          : isOnline
+                            ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
+                            : 'bg-gray-50 dark:bg-gray-900/50 border-gray-200 dark:border-gray-700'
+                      }`}
+                    >
+                      <div className={`w-1.5 h-1.5 rounded-full ${
+                        isBusy ? 'bg-yellow-500 animate-pulse' : isOnline ? 'bg-green-500' : 'bg-gray-400'
+                      }`} />
+                      <span className="text-gray-700 dark:text-gray-300 font-medium">{worker.name}</span>
+                      {gpuMemoryGb && (
+                        <span className="text-[10px] text-gray-500 dark:text-gray-400">{gpuMemoryGb}GB</span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Sessions Success Rate Bar */}
           {(trainingStats?.total_sessions ?? 0) > 0 && (
