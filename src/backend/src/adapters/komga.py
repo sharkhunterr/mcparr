@@ -224,8 +224,8 @@ class KomgaAdapter(TokenAuthAdapter):
                     "number": book.get("metadata", {}).get("number"),
                     "pages_count": book.get("media", {}).get("pagesCount", 0),
                     "size_bytes": book.get("sizeBytes", 0),
-                    "read_progress": book.get("readProgress", {}).get("page", 0),
-                    "completed": book.get("readProgress", {}).get("completed", False),
+                    "read_progress": (book.get("readProgress") or {}).get("page", 0),
+                    "completed": (book.get("readProgress") or {}).get("completed", False),
                     "url": self._get_book_url(book.get("id")),
                 }
                 for book in data.get("content", [])
@@ -234,11 +234,40 @@ class KomgaAdapter(TokenAuthAdapter):
             self.logger.error(f"Failed to get books: {e}")
             return []
 
-    async def search(self, query: str) -> Dict[str, Any]:
-        """Search for series and books."""
+    async def search(
+        self, query: str, library_id: Optional[str] = None, limit: int = 20
+    ) -> Dict[str, Any]:
+        """Search for series and books.
+
+        Args:
+            query: Search query
+            library_id: Optional library ID to filter results
+            limit: Maximum number of results per category
+
+        Uses POST /api/v1/series/list and /api/v1/books/list with fullTextSearch in body.
+        """
         try:
-            response = await self._make_request("GET", "/api/v1/search", params={"q": query})
-            data = response.json()
+            # Search series using POST with fullTextSearch in body
+            series_params: Dict[str, Any] = {"size": limit}
+            series_body: Dict[str, Any] = {"fullTextSearch": query}
+            if library_id:
+                series_body["libraryIds"] = [library_id]
+
+            series_response = await self._make_request(
+                "POST", "/api/v1/series/list", params=series_params, json=series_body
+            )
+            series_data = series_response.json()
+
+            # Search books using POST with fullTextSearch in body
+            books_params: Dict[str, Any] = {"size": limit}
+            books_body: Dict[str, Any] = {"fullTextSearch": query}
+            if library_id:
+                books_body["libraryIds"] = [library_id]
+
+            books_response = await self._make_request(
+                "POST", "/api/v1/books/list", params=books_params, json=books_body
+            )
+            books_data = books_response.json()
 
             return {
                 "series": [
@@ -246,18 +275,29 @@ class KomgaAdapter(TokenAuthAdapter):
                         "id": s.get("id"),
                         "name": s.get("metadata", {}).get("title", s.get("name")),
                         "books_count": s.get("booksCount", 0),
+                        "books_read_count": s.get("booksReadCount", 0),
+                        "books_unread_count": s.get("booksUnreadCount", 0),
+                        "library_id": s.get("libraryId"),
+                        "status": s.get("metadata", {}).get("status"),
+                        "publisher": s.get("metadata", {}).get("publisher"),
+                        "genres": s.get("metadata", {}).get("genres", []),
                         "url": self._get_series_url(s.get("id")),
                     }
-                    for s in data.get("series", {}).get("content", [])[:10]
+                    for s in series_data.get("content", [])[:limit]
                 ],
                 "books": [
                     {
                         "id": b.get("id"),
                         "name": b.get("metadata", {}).get("title", b.get("name")),
                         "series_id": b.get("seriesId"),
+                        "number": b.get("metadata", {}).get("number"),
+                        "pages_count": b.get("media", {}).get("pagesCount", 0),
+                        "size_bytes": b.get("sizeBytes", 0),
+                        "read_progress": (b.get("readProgress") or {}).get("page", 0),
+                        "completed": (b.get("readProgress") or {}).get("completed", False),
                         "url": self._get_book_url(b.get("id")),
                     }
-                    for b in data.get("books", {}).get("content", [])[:10]
+                    for b in books_data.get("content", [])[:limit]
                 ],
             }
         except Exception as e:
