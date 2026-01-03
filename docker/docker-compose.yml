@@ -9,8 +9,7 @@ services:
     container_name: mcparr
     ports:
       - "3000:3000"  # Frontend (nginx)
-      - "8000:8000"  # Backend API
-      - "8001:8001"  # MCP Server
+      - "8000:8000"  # Backend API (includes OpenAPI tools endpoint)
     environment:
       - DATABASE_URL=sqlite+aiosqlite:////app/data/mcparr.db
       - REDIS_URL=redis://redis:6379

@@ -8,8 +8,7 @@ services:
     container_name: mcparr
     ports:
       - "3000:3000"  # Web UI (Frontend)
-      - "8000:8000"  # Backend API
-      - "8001:8001"  # MCP Server (for Claude Desktop / Open WebUI)
+      - "8000:8000"  # Backend API (includes OpenAPI tools endpoint)
     environment:
       # Database
       - DATABASE_URL=sqlite+aiosqlite:////app/data/mcparr.db
@@ -68,8 +67,7 @@ networks:
 # PORTS REFERENCE
 # =============================================================================
 # 3000 - Web UI (Frontend) - Main interface
-# 8000 - Backend API - REST API endpoints
-# 8001 - MCP Server - Model Context Protocol for AI assistants
+# 8000 - Backend API - REST API + OpenAPI tools endpoint
 # 6379 - Redis - Internal cache (optional to expose)
 #
 # =============================================================================
@@ -84,7 +82,6 @@ networks:
 # 1. Create directory: mkdir -p /mnt/user/appdata/mcparr/{data,redis}
 # 2. Start: docker-compose -f docker-compose.unraid.yml up -d
 # 3. Access: http://YOUR_UNRAID_IP:3000
-# 4. MCP endpoint: http://YOUR_UNRAID_IP:8001/sse
 #
 # =============================================================================
 # OPEN WEBUI INTEGRATION
