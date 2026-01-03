@@ -34,10 +34,10 @@ class RommAdapter(TokenAuthAdapter):
             return f"{self.public_url}/rom/{rom_id}"
         return ""
 
-    def _get_platform_url(self, platform_slug: str) -> str:
+    def _get_platform_url(self, platform_id: int) -> str:
         """Generate RomM web UI URL for a platform."""
-        if platform_slug:
-            return f"{self.public_url}/platform/{platform_slug}"
+        if platform_id:
+            return f"{self.public_url}/platform/{platform_id}"
         return ""
 
     def _get_collection_url(self, collection_id: int) -> str:
@@ -158,7 +158,7 @@ class RommAdapter(TokenAuthAdapter):
                     "igdb_id": platform.get("igdb_id"),
                     "rom_count": platform.get("rom_count", 0),
                     "logo_path": platform.get("logo_path"),
-                    "url": self._get_platform_url(platform.get("slug")),
+                    "url": self._get_platform_url(platform.get("id")),
                 }
                 for platform in platforms
             ]
