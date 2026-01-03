@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.2.15](https://github.com/sharkhunterr/mcparr/-/compare/v0.2.14...v0.2.15) (2026-01-03)
+
+
+### Bug Fixes
+
+* **frontend:** wrap HelpCircle icon with span for title attribute ([46191f7](https://github.com/sharkhunterr/mcparr/-/commit/46191f78e85fcd227ed41c87630da66044ef380c))
+
 ### [0.2.14](https://github.com/sharkhunterr/mcparr/-/compare/v0.2.13...v0.2.14) (2026-01-03)
 
 
