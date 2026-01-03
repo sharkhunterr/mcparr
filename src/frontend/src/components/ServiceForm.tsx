@@ -458,7 +458,9 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 External URL
-                <HelpCircle className="w-4 h-4 inline ml-1 text-gray-400" title="Public URL for external access (used for clickable links)" />
+                <span title="Public URL for external access (used for clickable links)">
+                  <HelpCircle className="w-4 h-4 inline ml-1 text-gray-400" />
+                </span>
               </label>
               <input
                 type="url"
