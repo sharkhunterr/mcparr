@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.2.21](https://github.com/sharkhunterr/mcparr/-/compare/v0.2.20...v0.2.21) (2026-01-03)
+
+
+### Features
+
+* **dashboard:** implement compact mode setting ([6da18ec](https://github.com/sharkhunterr/mcparr/-/commit/6da18ec06034b1e14a41ee251efc0ccd9aac71db))
+
 ### [0.2.20](https://github.com/sharkhunterr/mcparr/-/compare/v0.2.19...v0.2.20) (2026-01-03)
 
 
