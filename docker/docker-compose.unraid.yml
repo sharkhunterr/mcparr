@@ -1,0 +1,95 @@
+# MCParr - Docker Compose for Unraid
+# Place this file in /boot/config/plugins/compose.manager/projects/mcparr/
+# Or use it with: docker-compose -f docker-compose.unraid.yml up -d
+
+services:
+  mcparr:
+    image: sharkhunterr/mcparr:latest
+    container_name: mcparr
+    ports:
+      - "3000:3000"  # Web UI (Frontend)
+      - "8000:8000"  # Backend API
+      - "8001:8001"  # MCP Server (for Claude Desktop / Open WebUI)
+    environment:
+      # Database
+      - DATABASE_URL=sqlite+aiosqlite:////app/data/mcparr.db
+      # Redis connection
+      - REDIS_URL=redis://mcparr-redis:6379
+      # Logging
+      - LOG_LEVEL=INFO
+      # CORS - add your Unraid IP if needed
+      - CORS_ORIGINS=["http://localhost:3000","http://192.168.1.0/24:3000"]
+      # Optional: Set timezone
+      - TZ=Europe/Paris
+    volumes:
+      # Persistent data storage in appdata
+      - /mnt/user/appdata/mcparr/data:/app/data
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - mcparr-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    labels:
+      - "net.unraid.docker.icon=https://raw.githubusercontent.com/sharkhunterr/mcparr/master/docs/screenshots/icon.png"
+      - "net.unraid.docker.webui=http://[IP]:[PORT:3000]/"
+      - "net.unraid.docker.managed=compose"
+
+  redis:
+    image: redis:7-alpine
+    container_name: mcparr-redis
+    ports:
+      - "6379:6379"  # Optional: expose for debugging, can be removed
+    volumes:
+      # Redis persistent storage
+      - /mnt/user/appdata/mcparr/redis:/data
+    networks:
+      - mcparr-network
+    restart: unless-stopped
+    command: redis-server --appendonly yes --save 60 1
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+networks:
+  mcparr-network:
+    name: mcparr-network
+    driver: bridge
+
+# =============================================================================
+# PORTS REFERENCE
+# =============================================================================
+# 3000 - Web UI (Frontend) - Main interface
+# 8000 - Backend API - REST API endpoints
+# 8001 - MCP Server - Model Context Protocol for AI assistants
+# 6379 - Redis - Internal cache (optional to expose)
+#
+# =============================================================================
+# VOLUMES REFERENCE
+# =============================================================================
+# /mnt/user/appdata/mcparr/data - SQLite database, logs, backups
+# /mnt/user/appdata/mcparr/redis - Redis persistence
+#
+# =============================================================================
+# USAGE
+# =============================================================================
+# 1. Create directory: mkdir -p /mnt/user/appdata/mcparr/{data,redis}
+# 2. Start: docker-compose -f docker-compose.unraid.yml up -d
+# 3. Access: http://YOUR_UNRAID_IP:3000
+# 4. MCP endpoint: http://YOUR_UNRAID_IP:8001/sse
+#
+# =============================================================================
+# OPEN WEBUI INTEGRATION
+# =============================================================================
+# Add this to Open WebUI Functions/Tools URL:
+#   http://YOUR_UNRAID_IP:8000/tools/openapi.json
+#
+# =============================================================================
