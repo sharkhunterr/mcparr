@@ -270,34 +270,60 @@ class AudiobookshelfAdapter(TokenAuthAdapter):
             return None
 
     async def search(self, library_id: str, query: str, limit: int = 25) -> Dict[str, Any]:
-        """Search for items in a library."""
+        """Search for items in a library with detailed results."""
         try:
             response = await self._make_request(
                 "GET", f"/api/libraries/{library_id}/search", params={"q": query, "limit": limit}
             )
             data = response.json()
 
+            books = []
+            for item in data.get("book", []):
+                lib_item = item.get("libraryItem", {})
+                media = lib_item.get("media", {})
+                metadata = media.get("metadata", {})
+                books.append({
+                    "id": lib_item.get("id"),
+                    "title": metadata.get("title"),
+                    "subtitle": metadata.get("subtitle"),
+                    "author": metadata.get("authorName"),
+                    "narrator": metadata.get("narratorName"),
+                    "series": metadata.get("seriesName"),
+                    "description": metadata.get("description"),
+                    "publisher": metadata.get("publisher"),
+                    "publish_year": metadata.get("publishedYear"),
+                    "language": metadata.get("language"),
+                    "genres": metadata.get("genres", []),
+                    "duration": media.get("duration", 0),
+                    "num_chapters": len(media.get("chapters", [])),
+                    "num_audio_files": media.get("numAudioFiles", 0),
+                    "match_key": item.get("matchKey"),
+                    "match_text": item.get("matchText"),
+                    "url": self._get_item_url(lib_item.get("id")),
+                })
+
+            podcasts = []
+            for item in data.get("podcast", []):
+                lib_item = item.get("libraryItem", {})
+                media = lib_item.get("media", {})
+                metadata = media.get("metadata", {})
+                podcasts.append({
+                    "id": lib_item.get("id"),
+                    "title": metadata.get("title"),
+                    "author": metadata.get("author"),
+                    "description": metadata.get("description"),
+                    "release_date": metadata.get("releaseDate"),
+                    "language": metadata.get("language"),
+                    "genres": metadata.get("genres", []),
+                    "num_episodes": media.get("numEpisodes", 0),
+                    "match_key": item.get("matchKey"),
+                    "match_text": item.get("matchText"),
+                    "url": self._get_item_url(lib_item.get("id")),
+                })
+
             return {
-                "book": [
-                    {
-                        "id": item.get("libraryItem", {}).get("id"),
-                        "title": item.get("libraryItem", {}).get("media", {}).get("metadata", {}).get("title"),
-                        "author": item.get("libraryItem", {}).get("media", {}).get("metadata", {}).get("authorName"),
-                        "match_key": item.get("matchKey"),
-                        "match_text": item.get("matchText"),
-                    }
-                    for item in data.get("book", [])
-                ],
-                "podcast": [
-                    {
-                        "id": item.get("libraryItem", {}).get("id"),
-                        "title": item.get("libraryItem", {}).get("media", {}).get("metadata", {}).get("title"),
-                        "author": item.get("libraryItem", {}).get("media", {}).get("metadata", {}).get("author"),
-                        "match_key": item.get("matchKey"),
-                        "match_text": item.get("matchText"),
-                    }
-                    for item in data.get("podcast", [])
-                ],
+                "book": books,
+                "podcast": podcasts,
                 "authors": [{"id": a.get("id"), "name": a.get("name")} for a in data.get("authors", [])],
                 "series": [
                     {
