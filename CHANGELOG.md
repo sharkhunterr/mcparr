@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.2.20](https://github.com/sharkhunterr/mcparr/-/compare/v0.2.19...v0.2.20) (2026-01-03)
+
+
+### Features
+
+* **i18n:** add language selector to header and wizard ([1ccdc53](https://github.com/sharkhunterr/mcparr/-/commit/1ccdc536ba6a2d418092ad67c8dfb30fc7c25ea9))
+
 ### [0.2.19](https://github.com/sharkhunterr/mcparr/-/compare/v0.2.18...v0.2.19) (2026-01-03)
 
 
