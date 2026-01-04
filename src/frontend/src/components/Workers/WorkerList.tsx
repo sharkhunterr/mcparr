@@ -110,34 +110,34 @@ export function WorkerList() {
   return (
     <div>
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{t('workers.title')}</h2>
           <p className="text-sm text-gray-500 dark:text-gray-400">
             {t('workers.subtitle')}
           </p>
         </div>
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center gap-2 self-start sm:self-auto">
           <button
             onClick={handleRefreshAll}
             className="px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700"
           >
             <span className="flex items-center">
-              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
               </svg>
-              {t('workers.refreshAll')}
+              <span className="hidden sm:inline">{t('workers.refreshAll')}</span>
             </span>
           </button>
           <button
             onClick={() => setShowForm(true)}
-            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md"
+            className="px-3 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md"
           >
             <span className="flex items-center">
-              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
               </svg>
-              {t('workers.addWorker')}
+              <span className="hidden sm:inline">{t('workers.addWorker')}</span>
             </span>
           </button>
         </div>

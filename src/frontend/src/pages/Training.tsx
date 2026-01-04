@@ -869,62 +869,66 @@ const PromptsTab = ({
   return (
     <div className="space-y-4">
       {/* Filters */}
-      <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow flex flex-wrap gap-4 items-center">
-        <div className="flex-1 min-w-[200px] relative">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input
-            type="text"
-            placeholder={t('prompts.search')}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-          />
+      <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow space-y-3">
+        {/* Search and filter row */}
+        <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex-1 min-w-0 relative">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              placeholder={t('prompts.search')}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-9 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            />
+          </div>
+          <select
+            value={serviceFilter}
+            onChange={(e) => setServiceFilter(e.target.value)}
+            className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+          >
+            <option value="">{t('prompts.allServicesCount', { count: prompts.length })}</option>
+            <option value="plex">🎬 Plex ({serviceCounts['plex'] || 0})</option>
+            <option value="tautulli">📊 Tautulli ({serviceCounts['tautulli'] || 0})</option>
+            <option value="overseerr">🎯 Overseerr ({serviceCounts['overseerr'] || 0})</option>
+            <option value="radarr">🎥 Radarr ({serviceCounts['radarr'] || 0})</option>
+            <option value="sonarr">📺 Sonarr ({serviceCounts['sonarr'] || 0})</option>
+            <option value="prowlarr">🔍 Prowlarr ({serviceCounts['prowlarr'] || 0})</option>
+            <option value="jackett">🧥 Jackett ({serviceCounts['jackett'] || 0})</option>
+            <option value="system">⚙️ System ({serviceCounts['system'] || 0})</option>
+            <option value="zammad">🎫 Zammad ({serviceCounts['zammad'] || 0})</option>
+          </select>
         </div>
-        <select
-          value={serviceFilter}
-          onChange={(e) => setServiceFilter(e.target.value)}
-          className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-        >
-          <option value="">{t('prompts.allServicesCount', { count: prompts.length })}</option>
-          <option value="plex">🎬 Plex ({serviceCounts['plex'] || 0})</option>
-          <option value="tautulli">📊 Tautulli ({serviceCounts['tautulli'] || 0})</option>
-          <option value="overseerr">🎯 Overseerr ({serviceCounts['overseerr'] || 0})</option>
-          <option value="radarr">🎥 Radarr ({serviceCounts['radarr'] || 0})</option>
-          <option value="sonarr">📺 Sonarr ({serviceCounts['sonarr'] || 0})</option>
-          <option value="prowlarr">🔍 Prowlarr ({serviceCounts['prowlarr'] || 0})</option>
-          <option value="jackett">🧥 Jackett ({serviceCounts['jackett'] || 0})</option>
-          <option value="system">⚙️ System ({serviceCounts['system'] || 0})</option>
-          <option value="zammad">🎫 Zammad ({serviceCounts['zammad'] || 0})</option>
-        </select>
-        <div className="flex items-center gap-2">
+        {/* Actions row */}
+        <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={() => onSeed(true)}
-            className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center gap-2"
+            className="px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center gap-2 text-sm"
             title={t('prompts.deleteAll')}
           >
             <Zap className="w-4 h-4" />
-            {t('prompts.resetPrompts')}
+            <span className="hidden sm:inline">{t('prompts.resetPrompts')}</span>
           </button>
           <button
             onClick={onImport}
-            className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2"
+            className="px-3 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2 text-sm"
           >
             <Upload className="w-4 h-4" />
-            {t('prompts.import')}
+            <span className="hidden sm:inline">{t('prompts.import')}</span>
           </button>
           <button
             onClick={onExport}
-            className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2"
+            className="px-3 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2 text-sm"
           >
             <Download className="w-4 h-4" />
-            {t('prompts.export')}
+            <span className="hidden sm:inline">{t('prompts.export')}</span>
           </button>
           <button
             onClick={onCreate}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
+            className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 text-sm ml-auto"
           >
             <Plus className="w-4 h-4" />
-            {t('prompts.new')}
+            <span className="hidden sm:inline">{t('prompts.new')}</span>
           </button>
         </div>
       </div>
