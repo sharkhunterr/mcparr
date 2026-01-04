@@ -22,6 +22,7 @@ class AlertService:
         threshold_value: float,
         severity: str = AlertSeverity.MEDIUM.value,
         description: Optional[str] = None,
+        enabled: bool = True,
         duration_seconds: int = 60,
         service_id: Optional[str] = None,
         service_type: Optional[str] = None,
@@ -34,6 +35,7 @@ class AlertService:
         config = AlertConfiguration(
             name=name,
             description=description,
+            enabled=enabled,
             severity=severity,
             metric_type=metric_type,
             threshold_operator=threshold_operator,
@@ -125,9 +127,21 @@ class AlertService:
         session: AsyncSession,
         config: AlertConfiguration,
         current_value: float,
+        context: Optional[Dict[str, Any]] = None,
     ) -> Optional[AlertHistory]:
-        """Check if an alert should be triggered and create history entry."""
+        """Check if an alert should be triggered and create history entry.
+
+        Args:
+            session: Database session
+            config: Alert configuration to check
+            current_value: Current metric value
+            context: Optional context dict with extra info:
+                - service_name: Name of the affected service
+                - error_message: Error message from the test
+                - failed_services: List of failed service names (for global alerts)
+        """
         should_trigger = config.check_threshold(current_value)
+        context = context or {}
 
         if should_trigger and not config.is_firing:
             # Check cooldown
@@ -141,7 +155,9 @@ class AlertService:
             config.trigger_count += 1
             config.last_triggered_at = datetime.utcnow()
 
-            # Create history entry
+            # Build a clear, informative message
+            message = self._build_alert_message(config, current_value, context)
+
             history = AlertHistory(
                 alert_config_id=config.id,
                 alert_name=config.name,
@@ -150,10 +166,7 @@ class AlertService:
                 metric_value=current_value,
                 threshold_value=config.threshold_value,
                 service_id=config.service_id,
-                message=(
-                    f"Alert '{config.name}' triggered: {current_value} "
-                    f"{config.threshold_operator} {config.threshold_value}"
-                ),
+                message=message,
             )
             session.add(history)
             await session.commit()
@@ -183,6 +196,10 @@ class AlertService:
 
         history.is_resolved = True
         history.resolved_at = datetime.utcnow()
+        # Also acknowledge the alert when resolving
+        if not history.acknowledged:
+            history.acknowledged = True
+            history.acknowledged_at = datetime.utcnow()
         if message:
             history.message = f"{history.message}\nResolution: {message}"
 
@@ -236,7 +253,7 @@ class AlertService:
 
     async def get_active_alerts(self, session: AsyncSession) -> List[AlertHistory]:
         """Get all currently active (unresolved) alerts."""
-        query = select(AlertHistory).where(AlertHistory.is_resolved is False).order_by(AlertHistory.triggered_at.desc())
+        query = select(AlertHistory).where(AlertHistory.is_resolved == False).order_by(AlertHistory.triggered_at.desc())
         result = await session.execute(query)
         return list(result.scalars().all())
 
@@ -253,8 +270,11 @@ class AlertService:
         severity_result = await session.execute(severity_query)
         severity_counts = dict(severity_result.all())
 
-        # Count active alerts
-        active_query = select(func.count(AlertHistory.id)).where(AlertHistory.is_resolved is False)
+        # Count unacknowledged alerts (for notification badge)
+        active_query = select(func.count(AlertHistory.id)).where(
+            AlertHistory.is_resolved == False,
+            AlertHistory.acknowledged == False
+        )
         active_count = await session.scalar(active_query) or 0
 
         # Total triggered in period
@@ -264,7 +284,7 @@ class AlertService:
         # Mean time to resolution
         resolved_query = select(AlertHistory).where(
             AlertHistory.triggered_at >= cutoff,
-            AlertHistory.is_resolved is True,
+            AlertHistory.is_resolved == True,
             AlertHistory.resolved_at.isnot(None),
         )
         resolved_result = await session.execute(resolved_query)
@@ -298,6 +318,75 @@ class AlertService:
             hours = int(seconds / 3600)
             minutes = int((seconds % 3600) / 60)
             return f"{hours}h {minutes}m"
+
+    def _build_alert_message(
+        self,
+        config: AlertConfiguration,
+        current_value: float,
+        context: Dict[str, Any],
+    ) -> str:
+        """Build a clear, human-readable alert message.
+
+        Args:
+            config: Alert configuration
+            current_value: Current metric value
+            context: Context dict with service_name, error_message, failed_services, etc.
+        """
+        service_name = context.get("service_name")
+        error_message = context.get("error_message")
+        failed_services = context.get("failed_services", [])
+
+        # For service-specific alerts (service down, test failed)
+        if config.metric_type in ("service_test_failed", "service_down"):
+            if service_name:
+                # Single service alert
+                msg = f"Service '{service_name}' is down"
+                if error_message:
+                    msg += f": {error_message}"
+                return msg
+            elif failed_services:
+                # Global alert with multiple services
+                if len(failed_services) == 1:
+                    return f"Service '{failed_services[0]}' is down"
+                else:
+                    services_str = ", ".join(failed_services[:3])
+                    if len(failed_services) > 3:
+                        services_str += f" (+{len(failed_services) - 3} more)"
+                    return f"{len(failed_services)} services down: {services_str}"
+            else:
+                return f"Service test failed"
+
+        # For metric-based alerts (CPU, memory, etc.)
+        operator_symbols = {
+            "gt": ">",
+            "lt": "<",
+            "eq": "=",
+            "ne": "≠",
+            "gte": "≥",
+            "lte": "≤",
+        }
+        op_symbol = operator_symbols.get(config.threshold_operator, config.threshold_operator)
+
+        # Add unit based on metric type
+        units = {
+            "cpu": "%",
+            "memory": "%",
+            "disk": "%",
+            "response_time": "ms",
+        }
+        unit = units.get(config.metric_type, "")
+
+        msg = f"{config.metric_type}: {current_value}{unit} {op_symbol} {config.threshold_value}{unit}"
+
+        # Add description if available
+        if config.description:
+            msg = f"{config.description} ({msg})"
+
+        # Add service name if available
+        if service_name:
+            msg = f"[{service_name}] {msg}"
+
+        return msg
 
 
 # Global alert service instance

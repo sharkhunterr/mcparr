@@ -8,6 +8,108 @@
     "alerts": "Alertas"
   },
 
+  "alerts": {
+    "title": "Gestión de Alertas",
+    "subtitle": "Configurar y gestionar alertas del sistema",
+    "create": "Crear alerta",
+    "createTitle": "Nueva Alerta",
+    "creating": "Creando...",
+    "confirmDelete": "¿Está seguro de que desea eliminar esta alerta?",
+    "manuallyResolved": "Resuelto manualmente",
+    "noActive": "No hay alertas activas - ¡todo funciona correctamente!",
+    "noConfigs": "No hay configuraciones de alerta. ¡Cree una para comenzar!",
+    "noHistory": "Sin historial de alertas",
+    "eventTrigger": "Disparador de evento",
+    "eventBased": "Se activa al ocurrir el evento",
+    "thresholdBased": "Basado en umbral (predeterminado: {{default}})",
+    "firing": "Activa",
+    "activeLabel": "Activa",
+    "resolve": "Resolver",
+    "resolveAll": "Resolver Todo",
+    "triggeredAt": "Activada {{time}}",
+
+    "tabs": {
+      "active": "Alertas Activas",
+      "configs": "Configuraciones",
+      "history": "Historial"
+    },
+
+    "stats": {
+      "active": "Alertas Activas",
+      "triggered24h": "Activadas (24h)",
+      "mttr": "MTTR",
+      "critical24h": "Críticas (24h)"
+    },
+
+    "table": {
+      "name": "Nombre",
+      "type": "Tipo",
+      "condition": "Condición",
+      "status": "Estado",
+      "actions": "Acciones",
+      "alert": "Alerta",
+      "triggered": "Activada",
+      "resolved": "Resuelta",
+      "message": "Mensaje"
+    },
+
+    "form": {
+      "name": "Nombre de la alerta",
+      "namePlaceholder": "ej: CPU alto",
+      "category": "Categoría",
+      "metric": "Tipo de alerta",
+      "severity": "Severidad",
+      "threshold": "Umbral",
+      "description": "Descripción",
+      "duration": "Duración",
+      "cooldown": "Tiempo de recuperación",
+      "showAdvanced": "Mostrar opciones avanzadas",
+      "hideAdvanced": "Ocultar opciones avanzadas"
+    },
+
+    "categories": {
+      "system": "Sistema",
+      "services": "Servicios",
+      "mcp": "MCP",
+      "users": "Usuarios",
+      "training": "Entrenamiento"
+    },
+
+    "severity": {
+      "low": "Baja",
+      "medium": "Media",
+      "high": "Alta",
+      "critical": "Crítica"
+    },
+
+    "operators": {
+      "gt": "mayor que",
+      "gte": "mayor o igual",
+      "lt": "menor que",
+      "lte": "menor o igual",
+      "eq": "igual a"
+    },
+
+    "metricTypes": {
+      "cpu": "Uso de CPU",
+      "memory": "Uso de memoria",
+      "disk": "Uso de disco",
+      "error_rate": "Tasa de errores",
+      "log_volume": "Volumen de registros",
+      "service_down": "Servicio fuera de línea",
+      "service_test_failed": "Prueba de servicio fallida",
+      "service_latency": "Latencia del servicio",
+      "mcp_error_rate": "Tasa de errores MCP",
+      "mcp_request_volume": "Volumen de solicitudes MCP",
+      "mcp_duration": "Tiempo de respuesta MCP",
+      "user_sync_failed": "Sincronización de usuario fallida",
+      "user_permission_denied": "Permiso denegado",
+      "worker_offline": "Worker fuera de línea",
+      "worker_gpu_usage": "Uso de GPU",
+      "training_failed": "Entrenamiento fallido"
+    }
+  },
+
   "autoRefresh": "Auto",
   "updatedAt": "Actualizado",
 

@@ -146,6 +146,11 @@ class AlertHistory(Base, UUIDMixin, TimestampMixin):
 
     notification_details: Mapped[Dict[str, Any]] = mapped_column(JSON, nullable=False, default=dict)
 
+    # Acknowledgment status
+    acknowledged: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    acknowledged_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    acknowledged_by: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+
     def __repr__(self) -> str:
         status = "resolved" if self.is_resolved else "firing"
         return f"<AlertHistory {self.id[:8]} {self.alert_name} [{status}]>"
@@ -166,5 +171,8 @@ class AlertHistory(Base, UUIDMixin, TimestampMixin):
             "message": self.message,
             "notifications_sent": self.notifications_sent,
             "notification_details": self.notification_details,
+            "acknowledged": self.acknowledged,
+            "acknowledged_at": self.acknowledged_at.isoformat() if self.acknowledged_at else None,
+            "acknowledged_by": self.acknowledged_by,
             "created_at": self.created_at.isoformat() if self.created_at else None,
         }

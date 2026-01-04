@@ -3,13 +3,15 @@
 import asyncio
 import logging
 from datetime import datetime
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 from sqlalchemy import select
 
 from ..database.connection import get_db_manager
 from ..models.service_config import ServiceConfig
+from ..models.alert_config import AlertConfiguration
 from .service_tester import ServiceTester
+from .alert_service import alert_service
 
 logger = logging.getLogger(__name__)
 
@@ -116,6 +118,7 @@ class HealthCheckScheduler:
 
                 success_count = 0
                 error_count = 0
+                failed_services: List[ServiceConfig] = []
 
                 for service in services:
                     try:
@@ -124,16 +127,72 @@ class HealthCheckScheduler:
                             success_count += 1
                         else:
                             error_count += 1
+                            failed_services.append(service)
                     except Exception as e:
                         logger.error(f"Error testing service {service.name}: {e}")
                         error_count += 1
+                        failed_services.append(service)
 
                 logger.info(f"Scheduled health checks completed: {success_count} success, {error_count} errors")
+
+                # Check alerts for service test failures
+                await self._check_service_alerts(session, failed_services, error_count > 0)
 
         except Exception as e:
             logger.error(f"Error running scheduled health checks: {e}")
         finally:
             self._running = False
+
+    async def _check_service_alerts(
+        self,
+        session,
+        failed_services: List[ServiceConfig],
+        has_failures: bool
+    ) -> None:
+        """Check and trigger alerts for service test failures."""
+        try:
+            # Get all enabled alerts for service_test_failed metric type
+            alert_result = await session.execute(
+                select(AlertConfiguration).where(
+                    AlertConfiguration.enabled == True,
+                    AlertConfiguration.metric_type.in_(["service_test_failed", "service_down"])
+                )
+            )
+            alerts = list(alert_result.scalars().all())
+
+            if not alerts:
+                return
+
+            # Build context with failed service names
+            failed_service_names = [s.name for s in failed_services]
+
+            for alert_config in alerts:
+                # For event-based alerts (service_test_failed), trigger when there are failures
+                if alert_config.metric_type == "service_test_failed":
+                    # If alert is specific to a service, check only that service
+                    if alert_config.service_id:
+                        failed_ids = [s.id for s in failed_services]
+                        failed_service = next((s for s in failed_services if s.id == alert_config.service_id), None)
+                        if alert_config.service_id in failed_ids and failed_service:
+                            # Service failed - trigger alert with context
+                            context = {"service_name": failed_service.name}
+                            await alert_service.check_and_trigger_alert(session, alert_config, 1, context)
+                        else:
+                            # Service is OK - resolve if firing
+                            if alert_config.is_firing:
+                                await alert_service.check_and_trigger_alert(session, alert_config, 0)
+                    else:
+                        # Global alert - trigger if any service failed
+                        if has_failures:
+                            context = {"failed_services": failed_service_names}
+                            await alert_service.check_and_trigger_alert(session, alert_config, len(failed_services), context)
+                        elif alert_config.is_firing:
+                            await alert_service.check_and_trigger_alert(session, alert_config, 0)
+
+            logger.info(f"Alert check completed for {len(alerts)} alert configurations")
+
+        except Exception as e:
+            logger.error(f"Error checking service alerts: {e}")
 
     async def run_now(self) -> Dict[str, Any]:
         """Run health checks immediately (manual trigger)."""

@@ -8,6 +8,108 @@
     "alerts": "Alertes"
   },
 
+  "alerts": {
+    "title": "Gestion des Alertes",
+    "subtitle": "Configurer et gérer les alertes système",
+    "create": "Créer une alerte",
+    "createTitle": "Nouvelle Alerte",
+    "creating": "Création...",
+    "confirmDelete": "Êtes-vous sûr de vouloir supprimer cette alerte ?",
+    "manuallyResolved": "Résolu manuellement",
+    "noActive": "Aucune alerte active - tout fonctionne correctement !",
+    "noConfigs": "Aucune configuration d'alerte. Créez-en une pour commencer !",
+    "noHistory": "Aucun historique d'alertes",
+    "eventTrigger": "Déclencheur d'événement",
+    "eventBased": "Se déclenche à l'occurrence de l'événement",
+    "thresholdBased": "Basé sur un seuil (défaut: {{default}})",
+    "firing": "Active",
+    "activeLabel": "Active",
+    "resolve": "Résoudre",
+    "resolveAll": "Tout résoudre",
+    "triggeredAt": "Déclenchée {{time}}",
+
+    "tabs": {
+      "active": "Alertes Actives",
+      "configs": "Configurations",
+      "history": "Historique"
+    },
+
+    "stats": {
+      "active": "Alertes Actives",
+      "triggered24h": "Déclenchées (24h)",
+      "mttr": "MTTR",
+      "critical24h": "Critiques (24h)"
+    },
+
+    "table": {
+      "name": "Nom",
+      "type": "Type",
+      "condition": "Condition",
+      "status": "Statut",
+      "actions": "Actions",
+      "alert": "Alerte",
+      "triggered": "Déclenchée",
+      "resolved": "Résolue",
+      "message": "Message"
+    },
+
+    "form": {
+      "name": "Nom de l'alerte",
+      "namePlaceholder": "ex: CPU élevé",
+      "category": "Catégorie",
+      "metric": "Type d'alerte",
+      "severity": "Sévérité",
+      "threshold": "Seuil",
+      "description": "Description",
+      "duration": "Durée",
+      "cooldown": "Délai de récupération",
+      "showAdvanced": "Afficher les options avancées",
+      "hideAdvanced": "Masquer les options avancées"
+    },
+
+    "categories": {
+      "system": "Système",
+      "services": "Services",
+      "mcp": "MCP",
+      "users": "Utilisateurs",
+      "training": "Training"
+    },
+
+    "severity": {
+      "low": "Faible",
+      "medium": "Moyenne",
+      "high": "Haute",
+      "critical": "Critique"
+    },
+
+    "operators": {
+      "gt": "supérieur à",
+      "gte": "supérieur ou égal",
+      "lt": "inférieur à",
+      "lte": "inférieur ou égal",
+      "eq": "égal à"
+    },
+
+    "metricTypes": {
+      "cpu": "Utilisation CPU",
+      "memory": "Utilisation mémoire",
+      "disk": "Utilisation disque",
+      "error_rate": "Taux d'erreur",
+      "log_volume": "Volume de logs",
+      "service_down": "Service hors ligne",
+      "service_test_failed": "Test de service échoué",
+      "service_latency": "Latence du service",
+      "mcp_error_rate": "Taux d'erreur MCP",
+      "mcp_request_volume": "Volume de requêtes MCP",
+      "mcp_duration": "Temps de réponse MCP",
+      "user_sync_failed": "Synchronisation utilisateur échouée",
+      "user_permission_denied": "Permission refusée",
+      "worker_offline": "Worker hors ligne",
+      "worker_gpu_usage": "Utilisation GPU",
+      "training_failed": "Entraînement échoué"
+    }
+  },
+
   "autoRefresh": "Auto",
   "updatedAt": "Mis à jour",
 

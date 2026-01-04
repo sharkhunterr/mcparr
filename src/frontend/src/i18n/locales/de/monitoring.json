@@ -8,6 +8,108 @@
     "alerts": "Warnungen"
   },
 
+  "alerts": {
+    "title": "Warnungsverwaltung",
+    "subtitle": "Systemwarnungen konfigurieren und verwalten",
+    "create": "Warnung erstellen",
+    "createTitle": "Neue Warnung",
+    "creating": "Erstellen...",
+    "confirmDelete": "Sind Sie sicher, dass Sie diese Warnung löschen möchten?",
+    "manuallyResolved": "Manuell gelöst",
+    "noActive": "Keine aktiven Warnungen - alles läuft reibungslos!",
+    "noConfigs": "Keine Warnungskonfigurationen. Erstellen Sie eine, um zu beginnen!",
+    "noHistory": "Kein Warnungsverlauf",
+    "eventTrigger": "Ereignisauslöser",
+    "eventBased": "Wird beim Eintreten des Ereignisses ausgelöst",
+    "thresholdBased": "Schwellenwertbasiert (Standard: {{default}})",
+    "firing": "Aktiv",
+    "activeLabel": "Aktiv",
+    "resolve": "Lösen",
+    "resolveAll": "Alle lösen",
+    "triggeredAt": "Ausgelöst {{time}}",
+
+    "tabs": {
+      "active": "Aktive Warnungen",
+      "configs": "Konfigurationen",
+      "history": "Verlauf"
+    },
+
+    "stats": {
+      "active": "Aktive Warnungen",
+      "triggered24h": "Ausgelöst (24h)",
+      "mttr": "MTTR",
+      "critical24h": "Kritisch (24h)"
+    },
+
+    "table": {
+      "name": "Name",
+      "type": "Typ",
+      "condition": "Bedingung",
+      "status": "Status",
+      "actions": "Aktionen",
+      "alert": "Warnung",
+      "triggered": "Ausgelöst",
+      "resolved": "Gelöst",
+      "message": "Nachricht"
+    },
+
+    "form": {
+      "name": "Warnungsname",
+      "namePlaceholder": "z.B.: Hohe CPU",
+      "category": "Kategorie",
+      "metric": "Warnungstyp",
+      "severity": "Schweregrad",
+      "threshold": "Schwellenwert",
+      "description": "Beschreibung",
+      "duration": "Dauer",
+      "cooldown": "Abklingzeit",
+      "showAdvanced": "Erweiterte Optionen anzeigen",
+      "hideAdvanced": "Erweiterte Optionen ausblenden"
+    },
+
+    "categories": {
+      "system": "System",
+      "services": "Dienste",
+      "mcp": "MCP",
+      "users": "Benutzer",
+      "training": "Training"
+    },
+
+    "severity": {
+      "low": "Niedrig",
+      "medium": "Mittel",
+      "high": "Hoch",
+      "critical": "Kritisch"
+    },
+
+    "operators": {
+      "gt": "größer als",
+      "gte": "größer oder gleich",
+      "lt": "kleiner als",
+      "lte": "kleiner oder gleich",
+      "eq": "gleich"
+    },
+
+    "metricTypes": {
+      "cpu": "CPU-Auslastung",
+      "memory": "Speicherauslastung",
+      "disk": "Festplattenauslastung",
+      "error_rate": "Fehlerrate",
+      "log_volume": "Protokollvolumen",
+      "service_down": "Dienst offline",
+      "service_test_failed": "Diensttest fehlgeschlagen",
+      "service_latency": "Dienstlatenz",
+      "mcp_error_rate": "MCP-Fehlerrate",
+      "mcp_request_volume": "MCP-Anfragevolumen",
+      "mcp_duration": "MCP-Antwortzeit",
+      "user_sync_failed": "Benutzersynchronisierung fehlgeschlagen",
+      "user_permission_denied": "Berechtigung verweigert",
+      "worker_offline": "Worker offline",
+      "worker_gpu_usage": "GPU-Auslastung",
+      "training_failed": "Training fehlgeschlagen"
+    }
+  },
+
   "autoRefresh": "Automatisch",
   "updatedAt": "Aktualisiert",
 

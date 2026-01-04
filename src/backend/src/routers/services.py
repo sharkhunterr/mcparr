@@ -116,9 +116,41 @@ async def test_service_connection(service_id: str, db: AsyncSession = Depends(ge
 
     # Import the service tester
     from ..services.service_tester import ServiceTester
+    from ..services.alert_service import alert_service
+    from ..models.alert_config import AlertConfiguration
 
     # Test the connection using the appropriate adapter
     test_result = await ServiceTester.test_service_connection(service, db)
+
+    # Check alerts for this service test
+    try:
+        alert_result = await db.execute(
+            select(AlertConfiguration).where(
+                AlertConfiguration.enabled == True,
+                AlertConfiguration.metric_type.in_(["service_test_failed", "service_down"]),
+            )
+        )
+        alerts = list(alert_result.scalars().all())
+
+        for alert_config in alerts:
+            # Check if alert applies to this service or is global
+            if alert_config.service_id is None or alert_config.service_id == service_id:
+                # Build context with service info
+                context = {
+                    "service_name": service.name,
+                    "error_message": test_result.message if not test_result.success else None,
+                }
+                if test_result.success:
+                    # Service is OK - resolve if firing
+                    if alert_config.is_firing:
+                        await alert_service.check_and_trigger_alert(db, alert_config, 0, context)
+                else:
+                    # Service failed - trigger alert
+                    await alert_service.check_and_trigger_alert(db, alert_config, 1, context)
+    except Exception as e:
+        # Don't fail the test response if alert check fails
+        import logging
+        logging.getLogger(__name__).error(f"Error checking alerts: {e}")
 
     return ServiceTestResult(
         service_id=service_id,

@@ -8,6 +8,108 @@
     "alerts": "Avvisi"
   },
 
+  "alerts": {
+    "title": "Gestione Avvisi",
+    "subtitle": "Configura e gestisci gli avvisi di sistema",
+    "create": "Crea avviso",
+    "createTitle": "Nuovo Avviso",
+    "creating": "Creazione...",
+    "confirmDelete": "Sei sicuro di voler eliminare questo avviso?",
+    "manuallyResolved": "Risolto manualmente",
+    "noActive": "Nessun avviso attivo - tutto funziona correttamente!",
+    "noConfigs": "Nessuna configurazione di avviso. Creane una per iniziare!",
+    "noHistory": "Nessuno storico degli avvisi",
+    "eventTrigger": "Trigger evento",
+    "eventBased": "Si attiva al verificarsi dell'evento",
+    "thresholdBased": "Basato su soglia (predefinito: {{default}})",
+    "firing": "Attivo",
+    "activeLabel": "Attivo",
+    "resolve": "Risolvi",
+    "resolveAll": "Risolvi Tutto",
+    "triggeredAt": "Attivato {{time}}",
+
+    "tabs": {
+      "active": "Avvisi Attivi",
+      "configs": "Configurazioni",
+      "history": "Cronologia"
+    },
+
+    "stats": {
+      "active": "Avvisi Attivi",
+      "triggered24h": "Attivati (24h)",
+      "mttr": "MTTR",
+      "critical24h": "Critici (24h)"
+    },
+
+    "table": {
+      "name": "Nome",
+      "type": "Tipo",
+      "condition": "Condizione",
+      "status": "Stato",
+      "actions": "Azioni",
+      "alert": "Avviso",
+      "triggered": "Attivato",
+      "resolved": "Risolto",
+      "message": "Messaggio"
+    },
+
+    "form": {
+      "name": "Nome dell'avviso",
+      "namePlaceholder": "es: CPU alto",
+      "category": "Categoria",
+      "metric": "Tipo di avviso",
+      "severity": "Gravita",
+      "threshold": "Soglia",
+      "description": "Descrizione",
+      "duration": "Durata",
+      "cooldown": "Tempo di recupero",
+      "showAdvanced": "Mostra opzioni avanzate",
+      "hideAdvanced": "Nascondi opzioni avanzate"
+    },
+
+    "categories": {
+      "system": "Sistema",
+      "services": "Servizi",
+      "mcp": "MCP",
+      "users": "Utenti",
+      "training": "Addestramento"
+    },
+
+    "severity": {
+      "low": "Bassa",
+      "medium": "Media",
+      "high": "Alta",
+      "critical": "Critica"
+    },
+
+    "operators": {
+      "gt": "maggiore di",
+      "gte": "maggiore o uguale",
+      "lt": "minore di",
+      "lte": "minore o uguale",
+      "eq": "uguale a"
+    },
+
+    "metricTypes": {
+      "cpu": "Utilizzo CPU",
+      "memory": "Utilizzo memoria",
+      "disk": "Utilizzo disco",
+      "error_rate": "Tasso di errori",
+      "log_volume": "Volume dei log",
+      "service_down": "Servizio offline",
+      "service_test_failed": "Test del servizio fallito",
+      "service_latency": "Latenza del servizio",
+      "mcp_error_rate": "Tasso di errori MCP",
+      "mcp_request_volume": "Volume richieste MCP",
+      "mcp_duration": "Tempo di risposta MCP",
+      "user_sync_failed": "Sincronizzazione utente fallita",
+      "user_permission_denied": "Permesso negato",
+      "worker_offline": "Worker offline",
+      "worker_gpu_usage": "Utilizzo GPU",
+      "training_failed": "Addestramento fallito"
+    }
+  },
+
   "autoRefresh": "Auto",
   "updatedAt": "Aggiornato",
 

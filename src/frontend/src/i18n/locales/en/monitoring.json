@@ -8,6 +8,108 @@
     "alerts": "Alerts"
   },
 
+  "alerts": {
+    "title": "Alert Management",
+    "subtitle": "Configure and manage system alerts",
+    "create": "Create Alert",
+    "createTitle": "New Alert",
+    "creating": "Creating...",
+    "confirmDelete": "Are you sure you want to delete this alert?",
+    "manuallyResolved": "Manually resolved",
+    "noActive": "No active alerts - everything is running smoothly!",
+    "noConfigs": "No alert configurations. Create one to get started!",
+    "noHistory": "No alert history yet",
+    "eventTrigger": "Event trigger",
+    "eventBased": "Triggers on event occurrence",
+    "thresholdBased": "Threshold-based (default: {{default}})",
+    "firing": "Firing",
+    "activeLabel": "Active",
+    "resolve": "Resolve",
+    "resolveAll": "Resolve All",
+    "triggeredAt": "Triggered {{time}}",
+
+    "tabs": {
+      "active": "Active Alerts",
+      "configs": "Configurations",
+      "history": "History"
+    },
+
+    "stats": {
+      "active": "Active Alerts",
+      "triggered24h": "Triggered (24h)",
+      "mttr": "MTTR",
+      "critical24h": "Critical (24h)"
+    },
+
+    "table": {
+      "name": "Name",
+      "type": "Type",
+      "condition": "Condition",
+      "status": "Status",
+      "actions": "Actions",
+      "alert": "Alert",
+      "triggered": "Triggered",
+      "resolved": "Resolved",
+      "message": "Message"
+    },
+
+    "form": {
+      "name": "Alert name",
+      "namePlaceholder": "e.g., High CPU usage",
+      "category": "Category",
+      "metric": "Alert type",
+      "severity": "Severity",
+      "threshold": "Threshold",
+      "description": "Description",
+      "duration": "Duration",
+      "cooldown": "Cooldown",
+      "showAdvanced": "Show advanced options",
+      "hideAdvanced": "Hide advanced options"
+    },
+
+    "categories": {
+      "system": "System",
+      "services": "Services",
+      "mcp": "MCP",
+      "users": "Users",
+      "training": "Training"
+    },
+
+    "severity": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High",
+      "critical": "Critical"
+    },
+
+    "operators": {
+      "gt": "greater than",
+      "gte": "greater or equal",
+      "lt": "less than",
+      "lte": "less or equal",
+      "eq": "equals"
+    },
+
+    "metricTypes": {
+      "cpu": "CPU Usage",
+      "memory": "Memory Usage",
+      "disk": "Disk Usage",
+      "error_rate": "Error Rate",
+      "log_volume": "Log Volume",
+      "service_down": "Service Down",
+      "service_test_failed": "Service Test Failed",
+      "service_latency": "Service Latency",
+      "mcp_error_rate": "MCP Error Rate",
+      "mcp_request_volume": "MCP Request Volume",
+      "mcp_duration": "MCP Response Time",
+      "user_sync_failed": "User Sync Failed",
+      "user_permission_denied": "Permission Denied",
+      "worker_offline": "Worker Offline",
+      "worker_gpu_usage": "GPU Usage",
+      "training_failed": "Training Failed"
+    }
+  },
+
   "autoRefresh": "Auto",
   "updatedAt": "Updated",
 

@@ -102,6 +102,9 @@ class AlertHistoryResponse(BaseModel):
     message: str
     notifications_sent: bool
     notification_details: dict
+    acknowledged: bool = False
+    acknowledged_at: Optional[datetime] = None
+    acknowledged_by: Optional[str] = None
     created_at: datetime
 
 

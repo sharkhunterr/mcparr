@@ -84,11 +84,21 @@
     "days": "jours",
     "day": "jour",
     "weeks": "semaines",
-    "week": "semaine"
+    "week": "semaine",
+    "justNow": "À l'instant",
+    "minutesAgo": "Il y a {{count}} min",
+    "hoursAgo": "Il y a {{count}}h",
+    "daysAgo": "Il y a {{count}}j"
   },
   "units": {
     "bytes": "octets",
     "percentage": "%",
     "milliseconds": "ms"
+  },
+  "alerts": {
+    "title": "Alertes",
+    "activeAlerts": "alertes actives",
+    "noActiveAlerts": "Aucune alerte active",
+    "viewAll": "Voir toutes les alertes"
   }
 }

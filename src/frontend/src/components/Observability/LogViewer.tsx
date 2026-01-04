@@ -172,28 +172,28 @@ export const LogViewer: React.FC = () => {
 
       {/* Stats Cards */}
       {stats && (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow">
-            <div className="text-sm text-gray-500 dark:text-gray-400">Total Logs (24h)</div>
-            <div className="text-2xl font-bold text-gray-900 dark:text-white">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-2.5 sm:p-4 shadow">
+            <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 truncate">Total Logs (24h)</div>
+            <div className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white">
               {stats.total.toLocaleString()}
             </div>
           </div>
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow">
-            <div className="text-sm text-gray-500 dark:text-gray-400">Error Rate</div>
-            <div className="text-2xl font-bold text-red-600 dark:text-red-400">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-2.5 sm:p-4 shadow">
+            <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 truncate">Error Rate</div>
+            <div className="text-lg sm:text-2xl font-bold text-red-600 dark:text-red-400">
               {stats.error_rate}%
             </div>
           </div>
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow">
-            <div className="text-sm text-gray-500 dark:text-gray-400">Errors</div>
-            <div className="text-2xl font-bold text-red-600 dark:text-red-400">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-2.5 sm:p-4 shadow">
+            <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 truncate">Errors</div>
+            <div className="text-lg sm:text-2xl font-bold text-red-600 dark:text-red-400">
               {(stats.by_level?.error || 0) + (stats.by_level?.critical || 0)}
             </div>
           </div>
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow">
-            <div className="text-sm text-gray-500 dark:text-gray-400">Warnings</div>
-            <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-2.5 sm:p-4 shadow">
+            <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 truncate">Warnings</div>
+            <div className="text-lg sm:text-2xl font-bold text-yellow-600 dark:text-yellow-400">
               {stats.by_level?.warning || 0}
             </div>
           </div>

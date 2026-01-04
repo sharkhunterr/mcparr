@@ -102,13 +102,35 @@ class PromptSource(str, Enum):
 class MetricType(str, Enum):
     """System metric types."""
 
+    # System metrics
     CPU = "cpu"
     MEMORY = "memory"
     DISK = "disk"
     NETWORK = "network"
     DOCKER_CONTAINER = "docker_container"
+
+    # Service metrics
     SERVICE_DOWN = "service_down"
+    SERVICE_TEST_FAILED = "service_test_failed"
+    SERVICE_LATENCY = "service_latency"
+
+    # MCP metrics
+    MCP_ERROR_RATE = "mcp_error_rate"
+    MCP_REQUEST_VOLUME = "mcp_request_volume"
+    MCP_DURATION = "mcp_duration"
+
+    # User metrics
+    USER_SYNC_FAILED = "user_sync_failed"
+    USER_PERMISSION_DENIED = "user_permission_denied"
+
+    # Training/Worker metrics
+    WORKER_OFFLINE = "worker_offline"
+    WORKER_GPU_USAGE = "worker_gpu_usage"
+    TRAINING_FAILED = "training_failed"
+
+    # Log-based metrics
     ERROR_RATE = "error_rate"
+    LOG_VOLUME = "log_volume"
 
 
 class AlertSeverity(str, Enum):

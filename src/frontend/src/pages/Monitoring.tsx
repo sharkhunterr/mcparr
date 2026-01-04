@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { FC } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Activity, FileText, Bell, RefreshCw, Wifi, WifiOff, CheckCircle, XCircle, Clock, Play, Pause, Settings, Loader2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { api, apiClient, getApiBaseUrl } from '../lib/api';
@@ -640,7 +641,20 @@ const MetricsTab: React.FC<{
 
 const Monitoring: FC = () => {
   const { t } = useTranslation('monitoring');
-  const [activeTab, setActiveTab] = useState<TabType>('metrics');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialTab = (searchParams.get('tab') as TabType) || 'metrics';
+  const [activeTab, setActiveTab] = useState<TabType>(initialTab);
+
+  // Update URL when tab changes
+  const handleTabChange = (tab: TabType) => {
+    setActiveTab(tab);
+    if (tab === 'metrics') {
+      searchParams.delete('tab');
+    } else {
+      searchParams.set('tab', tab);
+    }
+    setSearchParams(searchParams, { replace: true });
+  };
   const [metrics, setMetrics] = useState<SystemMetrics | null>(null);
   const [services, setServices] = useState<ServiceHealth[]>([]);
   const [healthHistory, setHealthHistory] = useState<ServiceHealthHistory[]>([]);
@@ -766,7 +780,7 @@ const Monitoring: FC = () => {
           {tabs.map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => handleTabChange(tab.id)}
               className={`flex items-center gap-1.5 py-1.5 px-2.5 sm:py-2 sm:px-3 rounded-full font-medium text-xs sm:text-sm transition-all whitespace-nowrap ${
                 activeTab === tab.id
                   ? 'bg-blue-600 text-white shadow-sm'
