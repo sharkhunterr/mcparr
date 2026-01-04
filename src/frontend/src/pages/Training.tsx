@@ -345,17 +345,22 @@ const SessionsTab = ({
 
   return (
     <div className="space-y-4">
-      {/* Actions */}
-      <div className="flex items-center justify-between bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
-        <span className="text-sm text-gray-500">
-          {t('sessions.count', { count: sessions.length })}
-        </span>
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+            {t('tabs.sessionsFull')}
+          </h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            {t('sessions.count', { count: sessions.length })}
+          </p>
+        </div>
         <button
           onClick={onCreate}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
+          className="px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-2 self-start sm:self-auto"
         >
           <Plus className="w-4 h-4" />
-          {t('sessions.newSession')}
+          <span className="hidden sm:inline">{t('sessions.newSession')}</span>
         </button>
       </div>
 
