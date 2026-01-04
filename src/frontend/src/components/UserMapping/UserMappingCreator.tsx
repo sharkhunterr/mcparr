@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import type { FC } from 'react';
 import {
   Search,
-  Link,
   CheckCircle,
   XCircle,
   RefreshCw,
@@ -444,30 +443,16 @@ const UserMappingCreator: FC<UserMappingCreatorProps> = ({
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      {/* Header */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-3 sm:p-4">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div className="flex items-center space-x-3 min-w-0">
-            <Link className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600 flex-shrink-0" />
-            <div className="min-w-0">
-              <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">
-                {t('creator.title')}
-              </h3>
-              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-                {t('creator.description')}
-              </p>
-            </div>
-          </div>
-
-          <button
-            onClick={enumerateUsers}
-            disabled={loading}
-            className="w-full sm:w-auto flex items-center justify-center space-x-2 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 transition-colors"
-          >
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-            <span>{t('creator.refresh')}</span>
-          </button>
-        </div>
+      {/* Actions bar */}
+      <div className="flex gap-2 mb-4">
+        <button
+          onClick={enumerateUsers}
+          disabled={loading}
+          className="px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 flex items-center gap-2 transition-colors"
+        >
+          <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+          <span className="hidden sm:inline">{t('creator.refresh')}</span>
+        </button>
       </div>
 
       {/* Error Display */}
@@ -508,7 +493,7 @@ const UserMappingCreator: FC<UserMappingCreatorProps> = ({
               <button
                 onClick={handleCreateMappingClick}
                 disabled={creating}
-                className="px-3 sm:px-4 py-1.5 sm:py-2 bg-blue-600 text-white text-xs sm:text-sm rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                className="px-3 sm:px-4 py-1.5 sm:py-2 bg-green-600 text-white text-xs sm:text-sm rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors"
               >
                 {creating ? t('creator.creating') : t('creator.create')}
               </button>
@@ -815,7 +800,7 @@ const UserMappingCreator: FC<UserMappingCreatorProps> = ({
               <button
                 onClick={proceedWithMappingCreation}
                 disabled={!selectedUsernameOption || (selectedUsernameOption === 'custom' && !customUsernameInput.trim())}
-                className="px-3 sm:px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                className="px-3 sm:px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors"
               >
                 {t('creator.create')}
               </button>

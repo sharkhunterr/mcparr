@@ -267,7 +267,7 @@ const UserMappingDetector: FC<UserMappingDetectorProps> = ({
           <button
             onClick={startDetection}
             disabled={detecting || availableServices.length < 2}
-            className="w-full sm:w-auto flex items-center justify-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
+            className="w-full sm:w-auto flex items-center justify-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
             title={availableServices.length < 2 ? t('detector.needTwoServices') : t('detector.detect')}
           >
             {detecting ? (
@@ -352,7 +352,7 @@ const UserMappingDetector: FC<UserMappingDetectorProps> = ({
                 <button
                   onClick={createMappingsFromSelected}
                   disabled={selectedSuggestions.size === 0}
-                  className="px-3 py-1.5 text-xs sm:text-sm bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                  className="px-3 py-1.5 text-xs sm:text-sm bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50 transition-colors"
                 >
                   {t('detector.create', { count: selectedSuggestions.size })}
                 </button>

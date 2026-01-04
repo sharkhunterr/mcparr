@@ -886,7 +886,7 @@ export default function Configuration() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            <Settings className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600" />
+            <Settings className="w-6 h-6 sm:w-8 sm:h-8 text-slate-600" />
             {t('title')}
           </h1>
           <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
@@ -908,7 +908,7 @@ export default function Configuration() {
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center gap-1.5 py-1.5 px-2.5 sm:py-2 sm:px-3 rounded-full font-medium text-xs sm:text-sm transition-all whitespace-nowrap ${
                   isActive
-                    ? 'bg-blue-600 text-white shadow-sm'
+                    ? 'bg-slate-600 text-white shadow-sm'
                     : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                 }`}
               >

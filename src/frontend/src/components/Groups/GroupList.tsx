@@ -98,7 +98,7 @@ const GroupList: FC<GroupListProps> = ({ onSelectGroup, onCreateGroup, selectedG
       <div className="p-4 border-b border-gray-200 dark:border-gray-700">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center space-x-2">
-            <Shield className="w-5 h-5 text-indigo-600" />
+            <Shield className="w-5 h-5 text-green-600" />
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{t('list.title')}</h2>
           </div>
           <div className="flex items-center space-x-2">
@@ -112,7 +112,7 @@ const GroupList: FC<GroupListProps> = ({ onSelectGroup, onCreateGroup, selectedG
             </button>
             <button
               onClick={onCreateGroup}
-              className="flex items-center space-x-1 px-3 py-1.5 bg-indigo-600 text-white text-sm rounded-lg hover:bg-indigo-700 transition-colors"
+              className="flex items-center space-x-1 px-3 py-1.5 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors"
             >
               <Plus className="w-4 h-4" />
               <span>{t('list.new')}</span>
@@ -128,7 +128,7 @@ const GroupList: FC<GroupListProps> = ({ onSelectGroup, onCreateGroup, selectedG
             placeholder={t('list.search')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            className="w-full pl-9 pr-3 py-2 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
           />
         </div>
 
@@ -146,7 +146,7 @@ const GroupList: FC<GroupListProps> = ({ onSelectGroup, onCreateGroup, selectedG
             />
             <span className="text-xs text-gray-500 dark:text-gray-400">{t('list.showDisabled')}</span>
             {showDisabled ? (
-              <ToggleRight className="w-5 h-5 text-indigo-600" />
+              <ToggleRight className="w-5 h-5 text-green-600" />
             ) : (
               <ToggleLeft className="w-5 h-5 text-gray-400" />
             )}
@@ -172,7 +172,7 @@ const GroupList: FC<GroupListProps> = ({ onSelectGroup, onCreateGroup, selectedG
             onClick={() => onSelectGroup(group)}
             className={`p-3 rounded-lg border cursor-pointer transition-all ${
               selectedGroupId === group.id
-                ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20'
+                ? 'border-green-500 bg-green-50 dark:bg-green-900/20'
                 : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800'
             } ${!group.enabled ? 'opacity-60' : ''}`}
           >
@@ -257,7 +257,7 @@ const GroupList: FC<GroupListProps> = ({ onSelectGroup, onCreateGroup, selectedG
             {!searchTerm && (
               <button
                 onClick={onCreateGroup}
-                className="mt-3 text-sm text-indigo-600 hover:text-indigo-700 dark:text-indigo-400"
+                className="mt-3 text-sm text-green-600 hover:text-green-700 dark:text-green-400"
               >
                 {t('list.createFirst')}
               </button>

@@ -226,7 +226,7 @@ const CentralizedUserDashboard: FC<CentralizedUserDashboardProps> = ({
               <button
                 onClick={() => syncUserMetadata(selectedUser)}
                 disabled={syncing}
-                className="flex items-center space-x-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-blue-600 text-white text-xs sm:text-sm rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                className="flex items-center space-x-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-green-600 text-white text-xs sm:text-sm rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors"
               >
                 <Database className={`w-4 h-4 ${syncing ? 'animate-pulse' : ''}`} />
                 <span>{syncing ? t('centralized.syncing') : t('centralized.sync')}</span>

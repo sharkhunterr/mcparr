@@ -501,43 +501,27 @@ const UserMappingList: FC<UserMappingListProps> = ({
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-      <div className="p-3 sm:p-4 border-b border-gray-200 dark:border-gray-700">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div className="flex items-center space-x-3 min-w-0">
-            <Users className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600 flex-shrink-0" />
-            <div className="min-w-0">
-              <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">
-                {t('list.title')}
-              </h3>
-              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-                {t('list.count', { count: total })}
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button
-              onClick={fetchMappings}
-              disabled={loading}
-              className="flex items-center space-x-2 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 transition-colors"
-            >
-              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-              <span className="hidden sm:inline">{t('list.refresh')}</span>
-            </button>
-            {onCreateMapping && (
-              <button
-                onClick={onCreateMapping}
-                className="flex items-center space-x-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-blue-600 text-white text-xs sm:text-sm rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                <Plus className="w-4 h-4" />
-                <span className="hidden sm:inline">{t('list.add')}</span>
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
-
       <div className="p-3 sm:p-4">
+        {/* Actions bar */}
+        <div className="flex gap-2 mb-4">
+          <button
+            onClick={fetchMappings}
+            disabled={loading}
+            className="px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 flex items-center gap-2 transition-colors"
+          >
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            <span className="hidden sm:inline">{t('list.refresh')}</span>
+          </button>
+          {onCreateMapping && (
+            <button
+              onClick={onCreateMapping}
+              className="px-3 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg flex items-center gap-2 transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              <span className="hidden sm:inline">{t('list.add')}</span>
+            </button>
+          )}
+        </div>
         {/* Filters */}
         <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 mb-4">
           <div className="relative flex-1">
@@ -732,7 +716,7 @@ const UserMappingList: FC<UserMappingListProps> = ({
             {onCreateMapping && (
               <button
                 onClick={onCreateMapping}
-                className="inline-flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
+                className="inline-flex items-center space-x-2 px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors"
               >
                 <Plus className="w-4 h-4" />
                 <span>{t('list.createMapping')}</span>
@@ -927,7 +911,7 @@ const UserMappingList: FC<UserMappingListProps> = ({
                           <button
                             onClick={addServiceMapping}
                             disabled={!selectedServiceId || !selectedServiceUser || addingMapping}
-                            className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 transition-colors flex items-center"
+                            className="px-3 py-1.5 text-sm bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50 transition-colors flex items-center"
                           >
                             {addingMapping ? (
                               <>
@@ -964,7 +948,7 @@ const UserMappingList: FC<UserMappingListProps> = ({
                 <button
                   onClick={saveUserEdit}
                   disabled={!editUsername.trim()}
-                  className="px-3 sm:px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                  className="px-3 sm:px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors"
                 >
                   {t('list.save')}
                 </button>

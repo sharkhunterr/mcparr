@@ -146,41 +146,31 @@ export const LogViewer: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
-            {t('logs.title')}
-          </h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            {t('logs.subtitle')}
-          </p>
-        </div>
-        <div className="flex items-center gap-2 self-start sm:self-auto">
-          <label className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg">
-            <input
-              type="checkbox"
-              checked={autoRefresh}
-              onChange={e => setAutoRefresh(e.target.checked)}
-              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-            />
-            <span className="hidden sm:inline">{t('autoRefresh')}</span>
-          </label>
-          <button
-            onClick={() => setShowExportModal(true)}
-            className="px-3 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-2"
-          >
-            <Download className="w-4 h-4" />
-            <span className="hidden sm:inline">{t('logs.export')}</span>
-          </button>
-          <button
-            onClick={() => { fetchLogs(); fetchStats(); }}
-            className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
-          >
-            <RefreshCw className="w-4 h-4" />
-            <span className="hidden sm:inline">{t('actions.refresh')}</span>
-          </button>
-        </div>
+      {/* Actions bar */}
+      <div className="flex gap-2">
+        <label className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg">
+          <input
+            type="checkbox"
+            checked={autoRefresh}
+            onChange={e => setAutoRefresh(e.target.checked)}
+            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+          />
+          <span className="hidden sm:inline">{t('autoRefresh')}</span>
+        </label>
+        <button
+          onClick={() => setShowExportModal(true)}
+          className="px-3 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-2"
+        >
+          <Download className="w-4 h-4" />
+          <span className="hidden sm:inline">{t('logs.export')}</span>
+        </button>
+        <button
+          onClick={() => { fetchLogs(); fetchStats(); }}
+          className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+        >
+          <RefreshCw className="w-4 h-4" />
+          <span className="hidden sm:inline">{t('actions.refresh')}</span>
+        </button>
       </div>
 
       {/* Stats Cards */}

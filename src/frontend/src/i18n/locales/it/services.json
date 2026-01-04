@@ -9,6 +9,45 @@
     "toggleService": "Abilita/Disabilita"
   },
 
+  "testModal": {
+    "title": "Testa connessione",
+    "connectionTest": "Test di connessione",
+    "runTest": "Avvia test",
+    "testing": "Test in corso...",
+    "close": "Chiudi",
+    "testingInProgress": "Test in corso...",
+    "serviceDisabled": "Il servizio è attualmente disabilitato. Abilitalo prima per eseguire i test.",
+    "steps": {
+      "dns": {
+        "name": "Risoluzione DNS",
+        "description": "Risoluzione del nome host in indirizzo IP"
+      },
+      "connection": {
+        "name": "Connessione di rete",
+        "description": "Stabilimento della connessione TCP"
+      },
+      "http": {
+        "name": "Risposta HTTP",
+        "description": "Verifica dello stato della risposta HTTP"
+      },
+      "authentication": {
+        "name": "Autenticazione",
+        "description": "Validazione delle credenziali API"
+      },
+      "serviceHealth": {
+        "name": "Stato del servizio",
+        "description": "Verifica degli endpoint specifici del servizio"
+      }
+    },
+    "result": {
+      "passed": "Test superato",
+      "failed": "Test fallito",
+      "successMessage": "Il servizio è raggiungibile e risponde correttamente",
+      "failedMessage": "Connessione fallita: {{error}}",
+      "responseTime": "Tempo di risposta totale: {{time}}ms"
+    }
+  },
+
   "table": {
     "headers": {
       "service": "Servizio",

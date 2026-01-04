@@ -307,7 +307,7 @@ const Services: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            <Server className="w-6 h-6 sm:w-7 sm:h-7 text-blue-600" />
+            <Server className="w-6 h-6 sm:w-7 sm:h-7 text-orange-600" />
             {t('services:title')}
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
@@ -325,7 +325,7 @@ const Services: React.FC = () => {
           <button
             onClick={handleTestAll}
             disabled={testingAll || services.filter(s => s.enabled).length === 0}
-            className="bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+            className="bg-orange-600 hover:bg-orange-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
             title={t('services:actions.testAll')}
           >
             {testingAll ? (
@@ -337,7 +337,7 @@ const Services: React.FC = () => {
           </button>
           <button
             onClick={() => setShowCreateModal(true)}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+            className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
           >
             <Plus className="w-4 h-4" />
             <span className="hidden sm:inline">{t('common:actions.add')}</span>
@@ -363,7 +363,7 @@ const Services: React.FC = () => {
           </p>
           <button
             onClick={() => setShowCreateModal(true)}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg inline-flex items-center gap-2"
+            className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg inline-flex items-center gap-2"
           >
             <Plus className="w-4 h-4" />
             {t('services:empty.action')}
@@ -445,7 +445,7 @@ const Services: React.FC = () => {
                         <button
                           onClick={() => handleTestConnection(service)}
                           disabled={!service.enabled}
-                          className="p-1.5 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors disabled:opacity-40"
+                          className="p-1.5 text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded transition-colors disabled:opacity-40"
                           title={t('common:actions.test')}
                         >
                           <Zap className="w-4 h-4" />
@@ -546,7 +546,7 @@ const Services: React.FC = () => {
                       <button
                         onClick={() => handleTestConnection(service)}
                         disabled={!service.enabled}
-                        className="p-1.5 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                        className="p-1.5 text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                         title={t('services:actions.testConnection')}
                       >
                         <Zap className="w-4 h-4" />

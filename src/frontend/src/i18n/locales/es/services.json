@@ -9,6 +9,45 @@
     "toggleService": "Activar/Desactivar"
   },
 
+  "testModal": {
+    "title": "Probar conexión",
+    "connectionTest": "Prueba de conexión",
+    "runTest": "Iniciar prueba",
+    "testing": "Probando...",
+    "close": "Cerrar",
+    "testingInProgress": "Prueba en progreso...",
+    "serviceDisabled": "El servicio está actualmente desactivado. Actívelo primero para ejecutar las pruebas.",
+    "steps": {
+      "dns": {
+        "name": "Resolución DNS",
+        "description": "Resolución del nombre de host a dirección IP"
+      },
+      "connection": {
+        "name": "Conexión de red",
+        "description": "Establecimiento de la conexión TCP"
+      },
+      "http": {
+        "name": "Respuesta HTTP",
+        "description": "Verificación del estado de la respuesta HTTP"
+      },
+      "authentication": {
+        "name": "Autenticación",
+        "description": "Validación de las credenciales de la API"
+      },
+      "serviceHealth": {
+        "name": "Estado del servicio",
+        "description": "Verificación de los endpoints específicos del servicio"
+      }
+    },
+    "result": {
+      "passed": "Prueba exitosa",
+      "failed": "Prueba fallida",
+      "successMessage": "El servicio es accesible y responde correctamente",
+      "failedMessage": "Conexión fallida: {{error}}",
+      "responseTime": "Tiempo de respuesta total: {{time}}ms"
+    }
+  },
+
   "table": {
     "headers": {
       "service": "Servicio",

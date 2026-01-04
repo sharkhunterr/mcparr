@@ -9,6 +9,45 @@
     "toggleService": "Activer/Désactiver"
   },
 
+  "testModal": {
+    "title": "Tester la connexion",
+    "connectionTest": "Test de connexion",
+    "runTest": "Lancer le test",
+    "testing": "Test en cours...",
+    "close": "Fermer",
+    "testingInProgress": "Test en cours...",
+    "serviceDisabled": "Le service est actuellement désactivé. Activez-le d'abord pour lancer les tests.",
+    "steps": {
+      "dns": {
+        "name": "Résolution DNS",
+        "description": "Résolution du nom d'hôte en adresse IP"
+      },
+      "connection": {
+        "name": "Connexion réseau",
+        "description": "Établissement de la connexion TCP"
+      },
+      "http": {
+        "name": "Réponse HTTP",
+        "description": "Vérification du statut de la réponse HTTP"
+      },
+      "authentication": {
+        "name": "Authentification",
+        "description": "Validation des identifiants API"
+      },
+      "serviceHealth": {
+        "name": "Santé du service",
+        "description": "Vérification des points de terminaison du service"
+      }
+    },
+    "result": {
+      "passed": "Test réussi",
+      "failed": "Test échoué",
+      "successMessage": "Le service est accessible et répond correctement",
+      "failedMessage": "La connexion a échoué : {{error}}",
+      "responseTime": "Temps de réponse total : {{time}}ms"
+    }
+  },
+
   "table": {
     "headers": {
       "service": "Service",

@@ -9,6 +9,45 @@
     "toggleService": "Enable/Disable"
   },
 
+  "testModal": {
+    "title": "Test Connection",
+    "connectionTest": "Connection Test",
+    "runTest": "Run Test",
+    "testing": "Testing...",
+    "close": "Close",
+    "testingInProgress": "Testing in progress...",
+    "serviceDisabled": "Service is currently disabled. Enable it first to run tests.",
+    "steps": {
+      "dns": {
+        "name": "DNS Resolution",
+        "description": "Resolving hostname to IP address"
+      },
+      "connection": {
+        "name": "Network Connection",
+        "description": "Establishing TCP connection"
+      },
+      "http": {
+        "name": "HTTP Response",
+        "description": "Checking HTTP response status"
+      },
+      "authentication": {
+        "name": "Authentication",
+        "description": "Validating API credentials"
+      },
+      "serviceHealth": {
+        "name": "Service Health",
+        "description": "Checking service-specific endpoints"
+      }
+    },
+    "result": {
+      "passed": "Test Passed",
+      "failed": "Test Failed",
+      "successMessage": "Service is reachable and responding correctly",
+      "failedMessage": "Connection failed: {{error}}",
+      "responseTime": "Total response time: {{time}}ms"
+    }
+  },
+
   "table": {
     "headers": {
       "service": "Service",

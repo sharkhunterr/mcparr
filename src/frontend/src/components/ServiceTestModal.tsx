@@ -10,6 +10,7 @@ import {
   Zap,
   Activity
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { getApiBaseUrl } from '../lib/api';
 
 interface ServiceTestResult {
@@ -51,6 +52,7 @@ const ServiceTestModal: FC<ServiceTestModalProps> = ({
   service,
   onTestComplete
 }) => {
+  const { t } = useTranslation('services');
   const [testing, setTesting] = useState(false);
   const [testSteps, setTestSteps] = useState<TestStep[]>([]);
   const [overallResult, setOverallResult] = useState<ServiceTestResult | null>(null);
@@ -60,32 +62,32 @@ const ServiceTestModal: FC<ServiceTestModalProps> = ({
     const steps: TestStep[] = [
       {
         id: 'dns',
-        name: 'DNS Resolution',
-        description: 'Resolving hostname to IP address',
+        name: t('testModal.steps.dns.name'),
+        description: t('testModal.steps.dns.description'),
         status: 'pending'
       },
       {
         id: 'connection',
-        name: 'Network Connection',
-        description: 'Establishing TCP connection',
+        name: t('testModal.steps.connection.name'),
+        description: t('testModal.steps.connection.description'),
         status: 'pending'
       },
       {
         id: 'http',
-        name: 'HTTP Response',
-        description: 'Checking HTTP response status',
+        name: t('testModal.steps.http.name'),
+        description: t('testModal.steps.http.description'),
         status: 'pending'
       },
       {
         id: 'authentication',
-        name: 'Authentication',
-        description: 'Validating API credentials',
+        name: t('testModal.steps.authentication.name'),
+        description: t('testModal.steps.authentication.description'),
         status: 'pending'
       },
       {
         id: 'service_health',
-        name: 'Service Health',
-        description: 'Checking service-specific endpoints',
+        name: t('testModal.steps.serviceHealth.name'),
+        description: t('testModal.steps.serviceHealth.description'),
         status: 'pending'
       }
     ];
@@ -100,7 +102,7 @@ const ServiceTestModal: FC<ServiceTestModalProps> = ({
       // Only initialize if we're opening the modal fresh (not when closing)
       initializeTestSteps();
     }
-  }, [isOpen, service.id]); // Add service.id to reset when testing different service
+  }, [isOpen, service.id, t]); // Add service.id to reset when testing different service
 
   const runTest = async () => {
     console.log('🧪 Starting service test for:', service.name, 'ID:', service.id);
@@ -302,7 +304,7 @@ const ServiceTestModal: FC<ServiceTestModalProps> = ({
               {getOverallIcon()}
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  Test Connection: {service.name}
+                  {t('testModal.title')}: {service.name}
                 </h3>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
                   {service.base_url}{service.port ? `:${service.port}` : ''}
@@ -328,14 +330,14 @@ const ServiceTestModal: FC<ServiceTestModalProps> = ({
         <div className="p-6">
           <div className="mb-6">
             <div className="flex items-center justify-between mb-4">
-              <h4 className="text-md font-medium text-gray-900 dark:text-white">Connection Test</h4>
+              <h4 className="text-md font-medium text-gray-900 dark:text-white">{t('testModal.connectionTest')}</h4>
               <button
                 onClick={runTest}
                 disabled={testing || !service.enabled}
-                className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="flex items-center space-x-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 <Play className="w-4 h-4" />
-                <span>{testing ? 'Testing...' : 'Run Test'}</span>
+                <span>{testing ? t('testModal.testing') : t('testModal.runTest')}</span>
               </button>
             </div>
 
@@ -344,7 +346,7 @@ const ServiceTestModal: FC<ServiceTestModalProps> = ({
                 <div className="flex items-center">
                   <AlertCircle className="w-5 h-5 text-yellow-500 mr-2" />
                   <span className="text-sm text-yellow-700 dark:text-yellow-400">
-                    Service is currently disabled. Enable it first to run tests.
+                    {t('testModal.serviceDisabled')}
                   </span>
                 </div>
               </div>
@@ -406,17 +408,17 @@ const ServiceTestModal: FC<ServiceTestModalProps> = ({
                 )}
                 <div>
                   <h4 className="text-md font-medium text-gray-900 dark:text-white">
-                    {overallResult.success ? 'Test Passed' : 'Test Failed'}
+                    {overallResult.success ? t('testModal.result.passed') : t('testModal.result.failed')}
                   </h4>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
                     {overallResult.success
-                      ? `Service is reachable and responding correctly`
-                      : `Connection failed: ${overallResult.error_message}`
+                      ? t('testModal.result.successMessage')
+                      : t('testModal.result.failedMessage', { error: overallResult.error_message })
                     }
                   </p>
                   {overallResult.response_time_ms && (
                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                      Total response time: {overallResult.response_time_ms}ms
+                      {t('testModal.result.responseTime', { time: overallResult.response_time_ms })}
                     </p>
                   )}
                 </div>
@@ -438,7 +440,7 @@ const ServiceTestModal: FC<ServiceTestModalProps> = ({
               className="px-6 py-2 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
               disabled={testing}
             >
-              {testing ? 'Testing in progress...' : 'Close'}
+              {testing ? t('testModal.testingInProgress') : t('testModal.close')}
             </button>
           </div>
         </div>

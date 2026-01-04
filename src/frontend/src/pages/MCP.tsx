@@ -1687,7 +1687,7 @@ export default function MCP() {
   const [requests, setRequests] = useState<McpRequest[]>([]);
   const [tools, setTools] = useState<McpToolsResponse | null>(null);
   const [toolGroups, setToolGroups] = useState<Record<string, ToolGroup[]>>({});
-  const [totalRequests, setTotalRequests] = useState(0);
+  const [, setTotalRequests] = useState(0);
   const [loading, setLoading] = useState(true);
   const [selectedRequest, setSelectedRequest] = useState<McpRequest | null>(null);
   const [selectedToolToTest, setSelectedToolToTest] = useState<McpTool | null>(null);
@@ -1829,7 +1829,7 @@ export default function MCP() {
       {/* Header */}
       <div>
         <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-          <Bot className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600" />
+          <Bot className="w-6 h-6 sm:w-8 sm:h-8 text-teal-600" />
           MCP Server
         </h1>
         <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
@@ -1856,7 +1856,7 @@ export default function MCP() {
                 title={t(`tabs.${tab.labelFullKey}`)}
                 className={`flex items-center gap-1.5 py-1.5 px-2.5 sm:py-2 sm:px-3 rounded-full font-medium text-xs sm:text-sm transition-all whitespace-nowrap ${
                   isActive
-                    ? 'bg-blue-600 text-white shadow-sm'
+                    ? 'bg-teal-600 text-white shadow-sm'
                     : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                 }`}
               >
@@ -1875,36 +1875,26 @@ export default function MCP() {
           {/* Overview Tab */}
           {activeTab === 'overview' && (
             <div className="space-y-6">
-              {/* Header with controls */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                    {t('tabs.statsFull')}
-                  </h2>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    {t('stats.lastHours', { hours: timeRange })}
-                  </p>
-                </div>
-                <div className="flex items-center gap-2 self-start sm:self-auto">
-                  <select
-                    value={timeRange}
-                    onChange={(e) => setTimeRange(Number(e.target.value))}
-                    className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  >
-                    <option value={1}>{t('stats.timeRange1h')}</option>
-                    <option value={6}>{t('stats.timeRange6h')}</option>
-                    <option value={24}>{t('stats.timeRange24h')}</option>
-                    <option value={72}>{t('stats.timeRange3d')}</option>
-                    <option value={168}>{t('stats.timeRange7d')}</option>
-                  </select>
-                  <button
-                    onClick={fetchData}
-                    className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
-                  >
-                    <RefreshCw className="w-4 h-4" />
-                    <span className="hidden sm:inline">{t('refresh')}</span>
-                  </button>
-                </div>
+              {/* Actions bar */}
+              <div className="flex gap-2">
+                <select
+                  value={timeRange}
+                  onChange={(e) => setTimeRange(Number(e.target.value))}
+                  className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                >
+                  <option value={1}>{t('stats.timeRange1h')}</option>
+                  <option value={6}>{t('stats.timeRange6h')}</option>
+                  <option value={24}>{t('stats.timeRange24h')}</option>
+                  <option value={72}>{t('stats.timeRange3d')}</option>
+                  <option value={168}>{t('stats.timeRange7d')}</option>
+                </select>
+                <button
+                  onClick={fetchData}
+                  className="px-3 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors flex items-center gap-2"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                  <span className="hidden sm:inline">{t('refresh')}</span>
+                </button>
               </div>
               {/* Stats Grid */}
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
@@ -2237,36 +2227,26 @@ export default function MCP() {
           {/* History Tab */}
           {activeTab === 'history' && (
             <div className="space-y-4">
-              {/* Header with controls */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                    {t('tabs.historyFull')}
-                  </h2>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    {t('history.totalRequests', { count: totalRequests })}
-                  </p>
-                </div>
-                <div className="flex items-center gap-2 self-start sm:self-auto">
-                  <select
-                    value={timeRange}
-                    onChange={(e) => setTimeRange(Number(e.target.value))}
-                    className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  >
-                    <option value={1}>{t('stats.timeRange1h')}</option>
-                    <option value={6}>{t('stats.timeRange6h')}</option>
-                    <option value={24}>{t('stats.timeRange24h')}</option>
-                    <option value={72}>{t('stats.timeRange3d')}</option>
-                    <option value={168}>{t('stats.timeRange7d')}</option>
-                  </select>
-                  <button
-                    onClick={fetchData}
-                    className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
-                  >
-                    <RefreshCw className="w-4 h-4" />
-                    <span className="hidden sm:inline">{t('refresh')}</span>
-                  </button>
-                </div>
+              {/* Actions bar */}
+              <div className="flex gap-2">
+                <select
+                  value={timeRange}
+                  onChange={(e) => setTimeRange(Number(e.target.value))}
+                  className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                >
+                  <option value={1}>{t('stats.timeRange1h')}</option>
+                  <option value={6}>{t('stats.timeRange6h')}</option>
+                  <option value={24}>{t('stats.timeRange24h')}</option>
+                  <option value={72}>{t('stats.timeRange3d')}</option>
+                  <option value={168}>{t('stats.timeRange7d')}</option>
+                </select>
+                <button
+                  onClick={fetchData}
+                  className="px-3 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors flex items-center gap-2"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                  <span className="hidden sm:inline">{t('refresh')}</span>
+                </button>
               </div>
               {/* Filters */}
               <div className="flex flex-wrap gap-2 sm:gap-4 bg-white dark:bg-gray-800 p-4 rounded-lg shadow">

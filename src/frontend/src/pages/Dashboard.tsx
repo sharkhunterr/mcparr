@@ -634,7 +634,7 @@ export default function Dashboard() {
       <div className={`bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 ${cardPadding}`}>
         <div className={`flex items-center justify-between ${settings.dashboardCompactMode ? 'mb-2' : 'mb-3'}`}>
           <div className="flex items-center gap-2">
-            <Server className="w-4 h-4 text-blue-500" />
+            <Server className="w-4 h-4 text-orange-500" />
             <span className="font-semibold text-sm text-gray-900 dark:text-white">{t('services.title')}</span>
             <span className="text-xs px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400">
               {t('services.healthy', { healthy: healthyServices, enabled: enabledServices })}
@@ -690,7 +690,7 @@ export default function Dashboard() {
         <div className={`lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 ${cardPadding}`}>
           <div className={`flex items-center justify-between ${settings.dashboardCompactMode ? 'mb-2' : 'mb-3'}`}>
             <div className="flex items-center gap-2">
-              <Bot className="w-4 h-4 text-violet-500" />
+              <Bot className="w-4 h-4 text-teal-500" />
               <span className="font-semibold text-sm text-gray-900 dark:text-white">{t('mcp.title')}</span>
               <span className="text-xs text-gray-500 dark:text-gray-400">({t('observability.period')})</span>
             </div>
@@ -899,10 +899,10 @@ export default function Dashboard() {
         <div className={`bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 ${cardPadding}`}>
           <div className={`flex items-center justify-between ${settings.dashboardCompactMode ? 'mb-2' : 'mb-3'}`}>
             <div className="flex items-center gap-2">
-              <Users className="w-4 h-4 text-blue-500" />
+              <Users className="w-4 h-4 text-green-500" />
               <span className="font-semibold text-sm text-gray-900 dark:text-white">{t('users.title')}</span>
             </div>
-            <Link to="/users" className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1">
+            <Link to="/users" className="text-xs text-green-600 hover:text-green-700 flex items-center gap-1">
               {tCommon('actions.manage')} <ArrowRight className="w-3 h-3" />
             </Link>
           </div>

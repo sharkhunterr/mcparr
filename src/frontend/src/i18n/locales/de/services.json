@@ -9,6 +9,45 @@
     "toggleService": "Aktivieren/Deaktivieren"
   },
 
+  "testModal": {
+    "title": "Verbindung testen",
+    "connectionTest": "Verbindungstest",
+    "runTest": "Test starten",
+    "testing": "Test läuft...",
+    "close": "Schließen",
+    "testingInProgress": "Test läuft...",
+    "serviceDisabled": "Der Dienst ist derzeit deaktiviert. Aktivieren Sie ihn zuerst, um Tests auszuführen.",
+    "steps": {
+      "dns": {
+        "name": "DNS-Auflösung",
+        "description": "Auflösung des Hostnamens zur IP-Adresse"
+      },
+      "connection": {
+        "name": "Netzwerkverbindung",
+        "description": "Aufbau der TCP-Verbindung"
+      },
+      "http": {
+        "name": "HTTP-Antwort",
+        "description": "Überprüfung des HTTP-Antwortstatus"
+      },
+      "authentication": {
+        "name": "Authentifizierung",
+        "description": "Validierung der API-Anmeldedaten"
+      },
+      "serviceHealth": {
+        "name": "Dienststatus",
+        "description": "Überprüfung der dienstspezifischen Endpunkte"
+      }
+    },
+    "result": {
+      "passed": "Test bestanden",
+      "failed": "Test fehlgeschlagen",
+      "successMessage": "Der Dienst ist erreichbar und antwortet korrekt",
+      "failedMessage": "Verbindung fehlgeschlagen: {{error}}",
+      "responseTime": "Gesamtantwortzeit: {{time}}ms"
+    }
+  },
+
   "table": {
     "headers": {
       "service": "Dienst",
