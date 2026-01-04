@@ -961,25 +961,25 @@ interface McpServerStatus {
   docs_url: string;
 }
 
-// Descriptions des services pour le prompt système
+// Descriptions des services pour le prompt système - avec mots-clés pour meilleure sélection d'outil
 const SERVICE_DESCRIPTIONS: Record<string, { name: string; description: string }> = {
-  system: { name: 'Système', description: 'Monitoring et administration' },
-  plex: { name: 'Plex', description: 'Bibliothèque multimédia' },
-  tautulli: { name: 'Tautulli', description: 'Monitoring Plex' },
-  overseerr: { name: 'Overseerr', description: 'Demandes et disponibilité' },
-  openwebui: { name: 'Open WebUI', description: 'Interface IA' },
-  radarr: { name: 'Radarr', description: 'Gestion des films' },
-  sonarr: { name: 'Sonarr', description: 'Gestion des séries TV' },
-  prowlarr: { name: 'Prowlarr', description: 'Indexeurs de torrents' },
-  jackett: { name: 'Jackett', description: 'Proxy d\'indexeurs' },
-  deluge: { name: 'Deluge', description: 'Client torrent' },
-  komga: { name: 'Komga', description: 'Bibliothèque de comics/mangas' },
-  romm: { name: 'RomM', description: 'Gestion de ROMs de jeux' },
-  audiobookshelf: { name: 'Audiobookshelf', description: 'Livres audio et podcasts' },
-  wikijs: { name: 'Wiki.js', description: 'Documentation et wiki' },
-  zammad: { name: 'Zammad', description: 'Support et tickets' },
-  authentik: { name: 'Authentik', description: 'Authentification SSO' },
-  ollama: { name: 'Ollama', description: 'Modèles IA locaux' },
+  system: { name: 'Système', description: 'Monitoring serveur, CPU, mémoire, disque, logs, alertes' },
+  plex: { name: 'Plex', description: 'Films et séries TV en streaming VIDÉO (regarder des vidéos)' },
+  tautulli: { name: 'Tautulli', description: 'Statistiques Plex: qui regarde quoi, historique de visionnage' },
+  overseerr: { name: 'Overseerr', description: 'Demander un film ou série TV non disponible' },
+  openwebui: { name: 'Open WebUI', description: 'Interface IA, modèles LLM' },
+  radarr: { name: 'Radarr', description: 'Télécharger/ajouter des FILMS, file d\'attente films' },
+  sonarr: { name: 'Sonarr', description: 'Télécharger/ajouter des SÉRIES TV, file d\'attente séries' },
+  prowlarr: { name: 'Prowlarr', description: 'Indexeurs torrents centralisés, recherche sur indexeurs' },
+  jackett: { name: 'Jackett', description: 'Proxy indexeurs torrents alternatif' },
+  deluge: { name: 'Deluge', description: 'Torrents actifs, téléchargements en cours, vitesse' },
+  komga: { name: 'Komga', description: 'Comics, mangas, BD, bandes dessinées (LECTURE de BD)' },
+  romm: { name: 'RomM', description: 'ROMs de jeux vidéo rétro, émulateurs, jeux retro gaming' },
+  audiobookshelf: { name: 'Audiobookshelf', description: 'LIVRES AUDIO, audiobooks, podcasts, ÉCOUTER (PAS vidéo!)' },
+  wikijs: { name: 'Wiki.js', description: 'Documentation, wiki, tutoriels, pages de documentation' },
+  zammad: { name: 'Zammad', description: 'Tickets de support, problèmes, demandes d\'aide' },
+  authentik: { name: 'Authentik', description: 'Utilisateurs SSO, groupes, authentification' },
+  ollama: { name: 'Ollama', description: 'Modèles IA locaux, LLM' },
 };
 
 // Génère le prompt système dynamiquement basé sur les outils disponibles
@@ -1262,6 +1262,49 @@ ${t('systemPrompt.indexerTestsDesc')}
 11. ${t('systemPrompt.format11')}`;
   }
 
+  // Générer le guide de sélection d'outils dynamiquement
+  let toolSelectionGuide = `\n## ${t('systemPrompt.toolSelectionGuide')}\n\n${t('systemPrompt.toolSelectionIntro')}\n\n`;
+  toolSelectionGuide += `| ${t('systemPrompt.contentType')} | ${t('systemPrompt.serviceToUse')} | ${t('systemPrompt.toolToUse')} |\n`;
+  toolSelectionGuide += `|---|---|---|\n`;
+
+  // Ajouter les lignes pour chaque service activé
+  if (enabledServices.includes('audiobookshelf')) {
+    toolSelectionGuide += `| ${t('systemPrompt.toolSelection.audiobook.content')} | ${t('systemPrompt.toolSelection.audiobook.service')} | ${t('systemPrompt.toolSelection.audiobook.tool')} |\n`;
+  }
+  if (enabledServices.includes('plex')) {
+    toolSelectionGuide += `| ${t('systemPrompt.toolSelection.video.content')} | ${t('systemPrompt.toolSelection.video.service')} | ${t('systemPrompt.toolSelection.video.tool')} |\n`;
+  }
+  if (enabledServices.includes('komga')) {
+    toolSelectionGuide += `| ${t('systemPrompt.toolSelection.comic.content')} | ${t('systemPrompt.toolSelection.comic.service')} | ${t('systemPrompt.toolSelection.comic.tool')} |\n`;
+  }
+  if (enabledServices.includes('romm')) {
+    toolSelectionGuide += `| ${t('systemPrompt.toolSelection.game.content')} | ${t('systemPrompt.toolSelection.game.service')} | ${t('systemPrompt.toolSelection.game.tool')} |\n`;
+  }
+  if (enabledServices.includes('zammad')) {
+    toolSelectionGuide += `| ${t('systemPrompt.toolSelection.ticket.content')} | ${t('systemPrompt.toolSelection.ticket.service')} | ${t('systemPrompt.toolSelection.ticket.tool')} |\n`;
+  }
+  if (enabledServices.includes('wikijs')) {
+    toolSelectionGuide += `| ${t('systemPrompt.toolSelection.wiki.content')} | ${t('systemPrompt.toolSelection.wiki.service')} | ${t('systemPrompt.toolSelection.wiki.tool')} |\n`;
+  }
+  if (enabledServices.includes('deluge')) {
+    toolSelectionGuide += `| ${t('systemPrompt.toolSelection.torrent.content')} | ${t('systemPrompt.toolSelection.torrent.service')} | ${t('systemPrompt.toolSelection.torrent.tool')} |\n`;
+  }
+  if (enabledServices.includes('radarr')) {
+    toolSelectionGuide += `| ${t('systemPrompt.toolSelection.movieDownload.content')} | ${t('systemPrompt.toolSelection.movieDownload.service')} | ${t('systemPrompt.toolSelection.movieDownload.tool')} |\n`;
+  }
+  if (enabledServices.includes('sonarr')) {
+    toolSelectionGuide += `| ${t('systemPrompt.toolSelection.seriesDownload.content')} | ${t('systemPrompt.toolSelection.seriesDownload.service')} | ${t('systemPrompt.toolSelection.seriesDownload.tool')} |\n`;
+  }
+  if (enabledServices.includes('tautulli')) {
+    toolSelectionGuide += `| ${t('systemPrompt.toolSelection.plexStats.content')} | ${t('systemPrompt.toolSelection.plexStats.service')} | ${t('systemPrompt.toolSelection.plexStats.tool')} |\n`;
+  }
+  if (enabledServices.includes('overseerr')) {
+    toolSelectionGuide += `| ${t('systemPrompt.toolSelection.request.content')} | ${t('systemPrompt.toolSelection.request.service')} | ${t('systemPrompt.toolSelection.request.tool')} |\n`;
+  }
+  if (enabledServices.includes('authentik')) {
+    toolSelectionGuide += `| ${t('systemPrompt.toolSelection.sso.content')} | ${t('systemPrompt.toolSelection.sso.service')} | ${t('systemPrompt.toolSelection.sso.tool')} |\n`;
+  }
+
   return `Tu es un assistant homelab avec accès à des outils externes.
 
 ## ${t('systemPrompt.criticalRules')}
@@ -1273,7 +1316,7 @@ ${t('systemPrompt.indexerTestsDesc')}
 3. ${t('systemPrompt.rule3')}
 
 4. ${t('systemPrompt.rule4')}
-
+${toolSelectionGuide}
 ## ${t('systemPrompt.availableTools')}
 ${toolSections}
 ${rules}

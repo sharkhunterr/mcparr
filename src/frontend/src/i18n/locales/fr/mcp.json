@@ -250,7 +250,74 @@
     "format10": "Pour tester tous les indexeurs d'un service → utilise {service}_test_all_indexers",
     "format11": "Pour tester un indexeur spécifique → {service}_test_indexer avec indexer_id",
     "usageExamples": "Exemples d'utilisation",
-    "language": "Langue: Réponds en français sauf si l'utilisateur utilise une autre langue."
+    "language": "Langue: Réponds en français sauf si l'utilisateur utilise une autre langue.",
+    "toolSelectionGuide": "GUIDE DE SÉLECTION D'OUTIL - TRÈS IMPORTANT",
+    "toolSelectionIntro": "Choisis le bon outil selon le TYPE DE CONTENU demandé. Ne confonds pas les services!",
+    "contentType": "Type de contenu",
+    "serviceToUse": "Service",
+    "toolToUse": "Outil à utiliser",
+    "toolSelection": {
+      "audiobook": {
+        "content": "Livre audio, audiobook, podcast, ÉCOUTER un livre",
+        "service": "Audiobookshelf",
+        "tool": "audiobookshelf_search"
+      },
+      "video": {
+        "content": "Film, série TV, VIDÉO, REGARDER",
+        "service": "Plex",
+        "tool": "plex_search_media"
+      },
+      "comic": {
+        "content": "Comic, manga, BD, bande dessinée",
+        "service": "Komga",
+        "tool": "komga_search"
+      },
+      "game": {
+        "content": "ROM, jeu vidéo rétro, émulateur",
+        "service": "RomM",
+        "tool": "romm_search_roms"
+      },
+      "ticket": {
+        "content": "Ticket de support, problème, aide technique",
+        "service": "Zammad",
+        "tool": "zammad_search_tickets"
+      },
+      "wiki": {
+        "content": "Documentation, wiki, tutoriel, howto",
+        "service": "Wiki.js",
+        "tool": "wikijs_search_pages"
+      },
+      "torrent": {
+        "content": "Téléchargement torrent actif, vitesse",
+        "service": "Deluge",
+        "tool": "deluge_get_torrents"
+      },
+      "movieDownload": {
+        "content": "Télécharger/ajouter un FILM",
+        "service": "Radarr",
+        "tool": "radarr_search ou radarr_add_movie"
+      },
+      "seriesDownload": {
+        "content": "Télécharger/ajouter une SÉRIE TV",
+        "service": "Sonarr",
+        "tool": "sonarr_search ou sonarr_add_series"
+      },
+      "plexStats": {
+        "content": "Qui regarde quoi, statistiques Plex, historique",
+        "service": "Tautulli",
+        "tool": "tautulli_get_activity ou tautulli_get_*"
+      },
+      "request": {
+        "content": "Demander un film/série non disponible",
+        "service": "Overseerr",
+        "tool": "overseerr_request_media"
+      },
+      "sso": {
+        "content": "Utilisateurs SSO, groupes, authentification",
+        "service": "Authentik",
+        "tool": "authentik_get_users"
+      }
+    }
   },
 
   "examples": {

@@ -250,7 +250,74 @@
     "format10": "To test all service indexers → use {service}_test_all_indexers",
     "format11": "To test specific indexer → {service}_test_indexer with indexer_id",
     "usageExamples": "Usage examples",
-    "language": "Language: Respond in English unless the user uses another language."
+    "language": "Language: Respond in English unless the user uses another language.",
+    "toolSelectionGuide": "TOOL SELECTION GUIDE - VERY IMPORTANT",
+    "toolSelectionIntro": "Choose the right tool based on the TYPE OF CONTENT requested. Don't confuse services!",
+    "contentType": "Content type",
+    "serviceToUse": "Service",
+    "toolToUse": "Tool to use",
+    "toolSelection": {
+      "audiobook": {
+        "content": "Audiobook, audio book, podcast, LISTEN to a book",
+        "service": "Audiobookshelf",
+        "tool": "audiobookshelf_search"
+      },
+      "video": {
+        "content": "Movie, TV series, VIDEO, WATCH",
+        "service": "Plex",
+        "tool": "plex_search_media"
+      },
+      "comic": {
+        "content": "Comic, manga, graphic novel",
+        "service": "Komga",
+        "tool": "komga_search"
+      },
+      "game": {
+        "content": "ROM, retro video game, emulator",
+        "service": "RomM",
+        "tool": "romm_search_roms"
+      },
+      "ticket": {
+        "content": "Support ticket, issue, technical help",
+        "service": "Zammad",
+        "tool": "zammad_search_tickets"
+      },
+      "wiki": {
+        "content": "Documentation, wiki, tutorial, howto",
+        "service": "Wiki.js",
+        "tool": "wikijs_search_pages"
+      },
+      "torrent": {
+        "content": "Active torrent download, speed",
+        "service": "Deluge",
+        "tool": "deluge_get_torrents"
+      },
+      "movieDownload": {
+        "content": "Download/add a MOVIE",
+        "service": "Radarr",
+        "tool": "radarr_search or radarr_add_movie"
+      },
+      "seriesDownload": {
+        "content": "Download/add a TV SERIES",
+        "service": "Sonarr",
+        "tool": "sonarr_search or sonarr_add_series"
+      },
+      "plexStats": {
+        "content": "Who's watching what, Plex stats, history",
+        "service": "Tautulli",
+        "tool": "tautulli_get_activity or tautulli_get_*"
+      },
+      "request": {
+        "content": "Request unavailable movie/series",
+        "service": "Overseerr",
+        "tool": "overseerr_request_media"
+      },
+      "sso": {
+        "content": "SSO users, groups, authentication",
+        "service": "Authentik",
+        "tool": "authentik_get_users"
+      }
+    }
   },
 
   "examples": {
