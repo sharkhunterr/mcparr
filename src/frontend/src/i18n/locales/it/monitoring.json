@@ -197,5 +197,46 @@
     "days": "{{days}}g {{hours}}h",
     "hours": "{{hours}}h {{minutes}}m",
     "minutes": "{{minutes}}m"
+  },
+  "logs": {
+    "title": "Visualizzatore Log",
+    "subtitle": "Cerca e analizza i log di sistema",
+    "export": "Esporta",
+    "searchPlaceholder": "Cerca nei messaggi...",
+    "clearFilters": "Cancella",
+    "allLevels": "Tutti i livelli",
+    "allSources": "Tutte le fonti",
+    "allServices": "Tutti i servizi",
+    "noLogs": "Nessun log trovato",
+    "loading": "Caricamento log...",
+    "stats": {
+      "total": "Log totali (24h)",
+      "errorRate": "Tasso di errore",
+      "errors": "Errori",
+      "warnings": "Avvisi"
+    },
+    "table": {
+      "time": "Ora",
+      "level": "Livello",
+      "source": "Fonte",
+      "message": "Messaggio",
+      "duration": "Durata"
+    },
+    "detail": {
+      "title": "Dettagli Log",
+      "component": "Componente",
+      "correlationId": "ID di correlazione",
+      "exception": "Eccezione",
+      "extraData": "Dati aggiuntivi"
+    },
+    "pagination": {
+      "showing": "Visualizzando da {{start}} a {{end}} di {{total}} log",
+      "previous": "Precedente",
+      "next": "Successivo",
+      "page": "Pagina {{current}} di {{total}}"
+    },
+    "exportModal": {
+      "title": "Esporta Log"
+    }
   }
 }

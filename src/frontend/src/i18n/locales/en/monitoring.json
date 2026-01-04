@@ -197,5 +197,47 @@
     "days": "{{days}}d {{hours}}h",
     "hours": "{{hours}}h {{minutes}}m",
     "minutes": "{{minutes}}m"
+  },
+
+  "logs": {
+    "title": "Log Viewer",
+    "subtitle": "Search and analyze system logs",
+    "export": "Export",
+    "searchPlaceholder": "Search in messages...",
+    "clearFilters": "Clear",
+    "allLevels": "All levels",
+    "allSources": "All sources",
+    "allServices": "All services",
+    "noLogs": "No logs found",
+    "loading": "Loading logs...",
+    "stats": {
+      "total": "Total Logs (24h)",
+      "errorRate": "Error Rate",
+      "errors": "Errors",
+      "warnings": "Warnings"
+    },
+    "table": {
+      "time": "Time",
+      "level": "Level",
+      "source": "Source",
+      "message": "Message",
+      "duration": "Duration"
+    },
+    "detail": {
+      "title": "Log Details",
+      "component": "Component",
+      "correlationId": "Correlation ID",
+      "exception": "Exception",
+      "extraData": "Extra Data"
+    },
+    "pagination": {
+      "showing": "Showing {{start}} to {{end}} of {{total}} logs",
+      "previous": "Previous",
+      "next": "Next",
+      "page": "Page {{current}} of {{total}}"
+    },
+    "exportModal": {
+      "title": "Export Logs"
+    }
   }
 }

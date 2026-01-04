@@ -439,8 +439,11 @@ const MetricsTab: React.FC<{
   logStats: LogStats | null;
   loading: boolean;
   scheduler: SchedulerStatus | null;
+  autoRefresh: boolean;
+  setAutoRefresh: (value: boolean) => void;
+  lastUpdated: Date | null;
   onRefresh: () => void;
-}> = ({ metrics, services, healthHistory, alertStats, logStats, loading, scheduler, onRefresh }) => {
+}> = ({ metrics, services, healthHistory, alertStats, logStats, loading, scheduler, autoRefresh, setAutoRefresh, lastUpdated, onRefresh }) => {
   const { t } = useTranslation('monitoring');
   const healthyServices = services.filter(s => s.healthy && s.enabled).length;
   const enabledServices = services.filter(s => s.enabled).length;
@@ -451,11 +454,44 @@ const MetricsTab: React.FC<{
 
   return (
     <div className="space-y-4 sm:space-y-6">
+      {/* Header with actions */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+            {t('systemResources.title')}
+          </h2>
+          {lastUpdated && (
+            <p className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1 mt-1">
+              {autoRefresh ? (
+                <Wifi className="w-3.5 h-3.5 text-green-500" />
+              ) : (
+                <WifiOff className="w-3.5 h-3.5 text-gray-400" />
+              )}
+              {t('updatedAt')}: {lastUpdated.toLocaleTimeString()}
+            </p>
+          )}
+        </div>
+        <div className="flex items-center gap-2 self-start sm:self-auto">
+          <label className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg">
+            <input
+              type="checkbox"
+              checked={autoRefresh}
+              onChange={e => setAutoRefresh(e.target.checked)}
+              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+            />
+            <span className="hidden sm:inline">{t('autoRefresh')}</span>
+          </label>
+          <button
+            onClick={onRefresh}
+            className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+          >
+            <RefreshCw className="w-4 h-4" />
+            <span className="hidden sm:inline">{t('actions.refresh')}</span>
+          </button>
+        </div>
+      </div>
       {/* System Resources */}
       <div className="bg-white dark:bg-gray-800 rounded-lg p-4 sm:p-6 shadow">
-        <h2 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white mb-4">
-          {t('systemResources.title')}
-        </h2>
         {metrics ? (
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
             <div>
@@ -731,47 +767,14 @@ const Monitoring: FC = () => {
   return (
     <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            <Activity className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600" />
-            {t('title')}
-          </h1>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-            {t('subtitle')}
-          </p>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-          {activeTab === 'metrics' && lastUpdated && (
-            <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1">
-              {autoRefresh ? (
-                <Wifi className="w-3 h-3 sm:w-4 sm:h-4 text-green-500" />
-              ) : (
-                <WifiOff className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
-              )}
-              <span className="hidden sm:inline">{t('updatedAt')}:</span> {lastUpdated.toLocaleTimeString()}
-            </span>
-          )}
-          {activeTab === 'metrics' && (
-            <label className="flex items-center gap-2 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-              <input
-                type="checkbox"
-                checked={autoRefresh}
-                onChange={(e) => setAutoRefresh(e.target.checked)}
-                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-              />
-              <span className="hidden sm:inline">{t('autoRefresh')}</span>
-            </label>
-          )}
-          <button
-            onClick={fetchData}
-            className="p-2 sm:px-4 sm:py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-2"
-          >
-            <RefreshCw className="w-4 h-4" />
-            <span className="hidden sm:inline">{t('actions.refresh')}</span>
-          </button>
-        </div>
+      <div>
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+          <Activity className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600" />
+          {t('title')}
+        </h1>
+        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+          {t('subtitle')}
+        </p>
       </div>
 
       {/* Tabs Navigation */}
@@ -814,6 +817,9 @@ const Monitoring: FC = () => {
             logStats={logStats}
             loading={loading}
             scheduler={scheduler}
+            autoRefresh={autoRefresh}
+            setAutoRefresh={setAutoRefresh}
+            lastUpdated={lastUpdated}
             onRefresh={fetchData}
           />
         )}

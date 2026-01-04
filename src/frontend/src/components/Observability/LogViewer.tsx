@@ -1,6 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Search, Download, RefreshCw, X, Filter } from 'lucide-react';
 import { api } from '../../lib/api';
 import LogExport from '../LogExport';
+
+interface Service {
+  id: string;
+  name: string;
+  type: string;
+}
 
 interface LogEntry {
   id: string;
@@ -48,6 +56,7 @@ const levelColors: Record<string, string> = {
 };
 
 export const LogViewer: React.FC = () => {
+  const { t } = useTranslation('monitoring');
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [stats, setStats] = useState<LogStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -55,6 +64,7 @@ export const LogViewer: React.FC = () => {
   const [filters, setFilters] = useState<LogFilters>({});
   const [sources, setSources] = useState<string[]>([]);
   const [levels, setLevels] = useState<string[]>([]);
+  const [services, setServices] = useState<Service[]>([]);
   const [selectedLog, setSelectedLog] = useState<LogEntry | null>(null);
   const [page, setPage] = useState(0);
   const [autoRefresh, setAutoRefresh] = useState(false);
@@ -86,12 +96,14 @@ export const LogViewer: React.FC = () => {
 
   const fetchMetadata = useCallback(async () => {
     try {
-      const [sourcesRes, levelsRes] = await Promise.all([
+      const [sourcesRes, levelsRes, servicesRes] = await Promise.all([
         api.logs.sources(),
         api.logs.levels(),
+        api.services.list(),
       ]);
       setSources(sourcesRes.sources || []);
       setLevels(levelsRes.levels || []);
+      setServices(servicesRes || []);
     } catch (error) {
       console.error('Failed to fetch metadata:', error);
     }
@@ -130,42 +142,43 @@ export const LogViewer: React.FC = () => {
 
   const totalPages = Math.ceil(total / limit);
 
+  const hasActiveFilters = filters.level || filters.source || filters.service_id || filters.search;
+
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
-            Log Viewer
+            {t('logs.title')}
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            View and search system logs
+            {t('logs.subtitle')}
           </p>
         </div>
-        <div className="flex items-center gap-4">
-          <label className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+        <div className="flex items-center gap-2 self-start sm:self-auto">
+          <label className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg">
             <input
               type="checkbox"
               checked={autoRefresh}
               onChange={e => setAutoRefresh(e.target.checked)}
               className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
             />
-            Auto-refresh
+            <span className="hidden sm:inline">{t('autoRefresh')}</span>
           </label>
           <button
             onClick={() => setShowExportModal(true)}
-            className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-2"
+            className="px-3 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-2"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-            </svg>
-            Export
+            <Download className="w-4 h-4" />
+            <span className="hidden sm:inline">{t('logs.export')}</span>
           </button>
           <button
             onClick={() => { fetchLogs(); fetchStats(); }}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
           >
-            Refresh
+            <RefreshCw className="w-4 h-4" />
+            <span className="hidden sm:inline">{t('actions.refresh')}</span>
           </button>
         </div>
       </div>
@@ -174,25 +187,25 @@ export const LogViewer: React.FC = () => {
       {stats && (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
           <div className="bg-white dark:bg-gray-800 rounded-lg p-2.5 sm:p-4 shadow">
-            <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 truncate">Total Logs (24h)</div>
+            <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 truncate">{t('logs.stats.total')}</div>
             <div className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white">
               {stats.total.toLocaleString()}
             </div>
           </div>
           <div className="bg-white dark:bg-gray-800 rounded-lg p-2.5 sm:p-4 shadow">
-            <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 truncate">Error Rate</div>
+            <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 truncate">{t('logs.stats.errorRate')}</div>
             <div className="text-lg sm:text-2xl font-bold text-red-600 dark:text-red-400">
               {stats.error_rate}%
             </div>
           </div>
           <div className="bg-white dark:bg-gray-800 rounded-lg p-2.5 sm:p-4 shadow">
-            <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 truncate">Errors</div>
+            <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 truncate">{t('logs.stats.errors')}</div>
             <div className="text-lg sm:text-2xl font-bold text-red-600 dark:text-red-400">
               {(stats.by_level?.error || 0) + (stats.by_level?.critical || 0)}
             </div>
           </div>
           <div className="bg-white dark:bg-gray-800 rounded-lg p-2.5 sm:p-4 shadow">
-            <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 truncate">Warnings</div>
+            <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 truncate">{t('logs.stats.warnings')}</div>
             <div className="text-lg sm:text-2xl font-bold text-yellow-600 dark:text-yellow-400">
               {stats.by_level?.warning || 0}
             </div>
@@ -201,60 +214,66 @@ export const LogViewer: React.FC = () => {
       )}
 
       {/* Filters */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow">
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Level
-            </label>
-            <select
-              value={filters.level || ''}
-              onChange={e => handleFilterChange('level', e.target.value)}
-              className="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
-            >
-              <option value="">All levels</option>
-              {levels.map(level => (
-                <option key={level} value={level}>
-                  {level.charAt(0).toUpperCase() + level.slice(1)}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Source
-            </label>
-            <select
-              value={filters.source || ''}
-              onChange={e => handleFilterChange('source', e.target.value)}
-              className="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
-            >
-              <option value="">All sources</option>
-              {sources.map(source => (
-                <option key={source} value={source}>{source}</option>
-              ))}
-            </select>
-          </div>
-          <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Search
-            </label>
+      <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow space-y-3">
+        {/* Search row */}
+        <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex-1 min-w-0 relative">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <input
               type="text"
               value={filters.search || ''}
               onChange={e => handleFilterChange('search', e.target.value)}
-              placeholder="Search in messages..."
-              className="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              placeholder={t('logs.searchPlaceholder')}
+              className="w-full pl-9 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
             />
           </div>
-          <div className="flex items-end">
+          {hasActiveFilters && (
             <button
               onClick={() => { setFilters({}); setPage(0); }}
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              className="px-3 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-2 text-sm"
             >
-              Clear filters
+              <X className="w-4 h-4" />
+              <span className="hidden sm:inline">{t('logs.clearFilters')}</span>
             </button>
-          </div>
+          )}
+        </div>
+        {/* Filter selects row */}
+        <div className="flex flex-wrap items-center gap-2">
+          <Filter className="w-4 h-4 text-gray-400 hidden sm:block" />
+          <select
+            value={filters.level || ''}
+            onChange={e => handleFilterChange('level', e.target.value)}
+            className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+          >
+            <option value="">{t('logs.allLevels')}</option>
+            {levels.map(level => (
+              <option key={level} value={level}>
+                {level.charAt(0).toUpperCase() + level.slice(1)}
+              </option>
+            ))}
+          </select>
+          <select
+            value={filters.source || ''}
+            onChange={e => handleFilterChange('source', e.target.value)}
+            className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+          >
+            <option value="">{t('logs.allSources')}</option>
+            {sources.map(source => (
+              <option key={source} value={source}>{source}</option>
+            ))}
+          </select>
+          <select
+            value={filters.service_id || ''}
+            onChange={e => handleFilterChange('service_id', e.target.value)}
+            className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+          >
+            <option value="">{t('logs.allServices')}</option>
+            {services.map(service => (
+              <option key={service.id} value={service.id}>
+                {service.name}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 

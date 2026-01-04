@@ -197,5 +197,47 @@
     "days": "{{days}}T {{hours}}h",
     "hours": "{{hours}}h {{minutes}}m",
     "minutes": "{{minutes}}m"
+  },
+
+  "logs": {
+    "title": "Log-Betrachter",
+    "subtitle": "Systemprotokolle durchsuchen und analysieren",
+    "export": "Exportieren",
+    "searchPlaceholder": "In Nachrichten suchen...",
+    "clearFilters": "Löschen",
+    "allLevels": "Alle Stufen",
+    "allSources": "Alle Quellen",
+    "allServices": "Alle Dienste",
+    "noLogs": "Keine Protokolle gefunden",
+    "loading": "Protokolle werden geladen...",
+    "stats": {
+      "total": "Gesamt Logs (24h)",
+      "errorRate": "Fehlerrate",
+      "errors": "Fehler",
+      "warnings": "Warnungen"
+    },
+    "table": {
+      "time": "Zeit",
+      "level": "Stufe",
+      "source": "Quelle",
+      "message": "Nachricht",
+      "duration": "Dauer"
+    },
+    "detail": {
+      "title": "Log-Details",
+      "component": "Komponente",
+      "correlationId": "Korrelations-ID",
+      "exception": "Ausnahme",
+      "extraData": "Zusätzliche Daten"
+    },
+    "pagination": {
+      "showing": "Zeige {{start}} bis {{end}} von {{total}} Logs",
+      "previous": "Zurück",
+      "next": "Weiter",
+      "page": "Seite {{current}} von {{total}}"
+    },
+    "exportModal": {
+      "title": "Logs exportieren"
+    }
   }
 }
