@@ -333,6 +333,7 @@
   },
 
   "overview": {
+    "subtitle": "Echtzeit-Statistiken und Monitoring",
     "activeTraining": "Training läuft",
     "noData": "Keine Daten",
     "noWorkersConfigured": "Keine Worker konfiguriert",

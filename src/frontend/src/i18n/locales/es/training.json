@@ -333,6 +333,7 @@
   },
 
   "overview": {
+    "subtitle": "Estadísticas y monitoreo en tiempo real",
     "activeTraining": "Entrenamiento en progreso",
     "noData": "Sin datos",
     "noWorkersConfigured": "Sin workers configurados",

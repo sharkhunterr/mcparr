@@ -333,6 +333,7 @@
   },
 
   "overview": {
+    "subtitle": "Real-time statistics and monitoring",
     "activeTraining": "Training in progress",
     "noData": "No data",
     "noWorkersConfigured": "No workers configured",

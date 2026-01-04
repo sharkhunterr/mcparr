@@ -2676,23 +2676,14 @@ export default function Training() {
   return (
     <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            <Brain className="w-6 h-6 sm:w-8 sm:h-8 text-purple-600" />
-            {t('title')}
-          </h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            {t('subtitle')}
-          </p>
-        </div>
-        <button
-          onClick={fetchData}
-          className="p-2 sm:px-4 sm:py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-2"
-        >
-          <RefreshCw className="w-4 h-4" />
-          <span className="hidden sm:inline">{t('refresh')}</span>
-        </button>
+      <div>
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+          <Brain className="w-6 h-6 sm:w-8 sm:h-8 text-purple-600" />
+          {t('title')}
+        </h1>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+          {t('subtitle')}
+        </p>
       </div>
 
       {/* Tab Navigation - Compact horizontal pills */}
@@ -2739,6 +2730,7 @@ export default function Training() {
               activeSessions={sessions.filter(s => s.status === 'running' || s.status === 'preparing')}
               wsConnected={wsConnected}
               onViewLogs={handleViewSessionLogs}
+              onRefresh={fetchData}
             />
           )}
 
