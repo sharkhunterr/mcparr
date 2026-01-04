@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.2.23](https://github.com/sharkhunterr/mcparr/-/compare/v0.2.22...v0.2.23) (2026-01-04)
+
+
+### Features
+
+* **alerts:** improve alert system with real-time notifications and better UX ([7a5c29e](https://github.com/sharkhunterr/mcparr/-/commit/7a5c29ed590d21116aab8eaddd258880ec794748))
+
+
+### Bug Fixes
+
+* **training:** make new session button consistent with other buttons ([c5da495](https://github.com/sharkhunterr/mcparr/-/commit/c5da495ecc77d88926f6e5913e6729043fd5adc1))
+* **ui:** improve mobile responsiveness for Training page ([01697de](https://github.com/sharkhunterr/mcparr/-/commit/01697de8bd4b1b1b827bcd6a672d9af5bab6d86b))
+
 ### [0.2.22](https://github.com/sharkhunterr/mcparr/-/compare/v0.2.21...v0.2.22) (2026-01-03)
 
 
