@@ -1843,6 +1843,31 @@ async def create_training_prompt(data: TrainingPromptCreate, session: AsyncSessi
     return prompt
 
 
+@router.get("/prompts/export")
+async def export_training_prompts(
+    category: Optional[str] = None,
+    session_id: Optional[str] = None,
+    format: str = Query("json", regex="^(json|jsonl)$"),
+    session: AsyncSession = Depends(get_db_session),
+):
+    """Export training prompts for download."""
+    query = select(TrainingPrompt).where(TrainingPrompt.enabled == True)
+
+    if category:
+        query = query.where(TrainingPrompt.category == category)
+    if session_id:
+        query = query.where(TrainingPrompt.session_id == session_id)
+
+    result = await session.execute(query)
+    prompts = list(result.scalars().all())
+
+    export_data = []
+    for prompt in prompts:
+        export_data.append(prompt.to_training_format())
+
+    return {"format": format, "count": len(export_data), "data": export_data}
+
+
 @router.get("/prompts/{prompt_id}", response_model=TrainingPromptResponse)
 async def get_training_prompt(prompt_id: str, session: AsyncSession = Depends(get_db_session)):
     """Get a specific training prompt."""
@@ -2002,6 +2027,9 @@ async def import_training_prompts(prompts: List[TrainingPromptCreate], session: 
         content = {
             "system_prompt": data.system_prompt,
             "user_input": data.user_input,
+            "tool_call": data.tool_call,
+            "tool_response": data.tool_response,
+            "assistant_response": data.assistant_response,
             "expected_output": data.expected_output,
         }
 
@@ -2016,6 +2044,9 @@ async def import_training_prompts(prompts: List[TrainingPromptCreate], session: 
             content=content,
             system_prompt=data.system_prompt,
             user_input=data.user_input,
+            tool_call=data.tool_call,
+            tool_response=data.tool_response,
+            assistant_response=data.assistant_response,
             expected_output=data.expected_output,
             tags=data.tags,
             session_id=data.session_id,
@@ -2028,31 +2059,6 @@ async def import_training_prompts(prompts: List[TrainingPromptCreate], session: 
     await session.commit()
 
     return {"message": f"Imported {len(created)} prompts", "count": len(created)}
-
-
-@router.get("/prompts/export")
-async def export_training_prompts(
-    category: Optional[str] = None,
-    session_id: Optional[str] = None,
-    format: str = Query("json", regex="^(json|jsonl)$"),
-    session: AsyncSession = Depends(get_db_session),
-):
-    """Export training prompts for download."""
-    query = select(TrainingPrompt).where(TrainingPrompt.enabled == True)
-
-    if category:
-        query = query.where(TrainingPrompt.category == category)
-    if session_id:
-        query = query.where(TrainingPrompt.session_id == session_id)
-
-    result = await session.execute(query)
-    prompts = list(result.scalars().all())
-
-    export_data = []
-    for prompt in prompts:
-        export_data.append(prompt.to_training_format())
-
-    return {"format": format, "count": len(export_data), "data": export_data}
 
 
 class OllamaMetricsResponse(BaseModel):
@@ -2220,8 +2226,11 @@ async def seed_training_prompts(reset: bool = False, session: AsyncSession = Dep
     """
     # Si reset, supprimer tous les prompts existants
     if reset:
+        result = await session.execute(select(func.count(TrainingPrompt.id)))
+        count = result.scalar() or 0
         await session.execute(delete(TrainingPrompt))
-        await session.flush()
+        await session.commit()
+        return {"message": f"Deleted {count} prompts", "deleted_count": count, "created_count": 0}
 
     data_dir = Path(__file__).parent.parent / "data"
 
@@ -2229,7 +2238,7 @@ async def seed_training_prompts(reset: bool = False, session: AsyncSession = Dep
     seed_file = data_dir / "seed_prompts_tools.json"
 
     if not seed_file.exists():
-        raise HTTPException(status_code=404, detail="Seed file not found")
+        return {"message": "No seed file found. Use import to add prompts.", "created_count": 0, "skipped_count": 0}
 
     with open(seed_file, "r", encoding="utf-8") as f:
         seed_prompts = json.load(f)
