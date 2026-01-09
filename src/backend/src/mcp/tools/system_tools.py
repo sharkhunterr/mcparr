@@ -12,6 +12,13 @@ class SystemTools(BaseTool):
     def definitions(self) -> List[ToolDefinition]:
         return [
             ToolDefinition(
+                name="system_list_tools",
+                description="ALWAYS CALL THIS FIRST. Lists all available tools grouped by service/category to help you choose the right tool.",
+                parameters=[],
+                category="system",
+                is_mutation=False,
+            ),
+            ToolDefinition(
                 name="system_get_health",
                 description="Get overall system health status including all services",
                 parameters=[],
@@ -137,7 +144,9 @@ class SystemTools(BaseTool):
     async def execute(self, tool_name: str, arguments: dict) -> dict:
         """Execute a system tool."""
         try:
-            if tool_name == "system_get_health":
+            if tool_name == "system_list_tools":
+                return await self._list_available_tools()
+            elif tool_name == "system_get_health":
                 return await self._get_health()
             elif tool_name == "system_get_metrics":
                 return await self._get_metrics()
@@ -156,6 +165,101 @@ class SystemTools(BaseTool):
 
         except Exception as e:
             return {"success": False, "error": str(e), "error_type": type(e).__name__}
+
+    async def _list_available_tools(self) -> dict:
+        """List all available tools grouped by service/category."""
+        try:
+            from sqlalchemy import select
+
+            from src.database.connection import async_session_maker
+            from src.mcp.tools.audiobookshelf_tools import AudiobookshelfTools
+            from src.mcp.tools.authentik_tools import AuthentikTools
+            from src.mcp.tools.deluge_tools import DelugeTools
+            from src.mcp.tools.jackett_tools import JackettTools
+            from src.mcp.tools.komga_tools import KomgaTools
+            from src.mcp.tools.openwebui_tools import OpenWebUITools
+            from src.mcp.tools.overseerr_tools import OverseerrTools
+            from src.mcp.tools.plex_tools import PlexTools
+            from src.mcp.tools.prowlarr_tools import ProwlarrTools
+            from src.mcp.tools.radarr_tools import RadarrTools
+            from src.mcp.tools.romm_tools import RommTools
+            from src.mcp.tools.sonarr_tools import SonarrTools
+            from src.mcp.tools.tautulli_tools import TautulliTools
+            from src.mcp.tools.wikijs_tools import WikiJSTools
+            from src.mcp.tools.zammad_tools import ZammadTools
+            from src.models.service_config import ServiceConfig
+
+            # Get enabled services
+            async with async_session_maker() as session:
+                result = await session.execute(
+                    select(ServiceConfig).where(ServiceConfig.enabled == True)
+                )
+                services = result.scalars().all()
+                enabled_services = [
+                    (s.service_type.value if hasattr(s.service_type, 'value') else str(s.service_type)).lower()
+                    for s in services
+                ]
+
+            # Map service types to tool classes and categories
+            service_config = {
+                "plex": {"class": PlexTools, "category": "📺 MEDIA (regarder/chercher du contenu)", "desc": "Bibliothèque multimédia"},
+                "tautulli": {"class": TautulliTools, "category": "📺 MEDIA (regarder/chercher du contenu)", "desc": "Stats et activité Plex"},
+                "komga": {"class": KomgaTools, "category": "📚 LECTURE (livres, BD, manga)", "desc": "BD/Manga/Comics"},
+                "audiobookshelf": {"class": AudiobookshelfTools, "category": "📚 LECTURE (livres, BD, manga)", "desc": "Livres audio/Podcasts"},
+                "romm": {"class": RommTools, "category": "🎮 JEUX", "desc": "ROMs/Jeux rétro"},
+                "radarr": {"class": RadarrTools, "category": "⬇️ TÉLÉCHARGEMENT", "desc": "Téléchargement films"},
+                "sonarr": {"class": SonarrTools, "category": "⬇️ TÉLÉCHARGEMENT", "desc": "Téléchargement séries"},
+                "prowlarr": {"class": ProwlarrTools, "category": "⬇️ TÉLÉCHARGEMENT", "desc": "Indexers"},
+                "jackett": {"class": JackettTools, "category": "⬇️ TÉLÉCHARGEMENT", "desc": "Indexers (legacy)"},
+                "deluge": {"class": DelugeTools, "category": "⬇️ TÉLÉCHARGEMENT", "desc": "Client torrent"},
+                "overseerr": {"class": OverseerrTools, "category": "📝 DEMANDES", "desc": "Demandes de contenu"},
+                "zammad": {"class": ZammadTools, "category": "🎫 SUPPORT", "desc": "Tickets support"},
+                "authentik": {"class": AuthentikTools, "category": "🔐 AUTHENTIFICATION", "desc": "SSO/Utilisateurs"},
+                "openwebui": {"class": OpenWebUITools, "category": "🤖 IA", "desc": "Open WebUI"},
+                "wikijs": {"class": WikiJSTools, "category": "📖 DOCUMENTATION", "desc": "Wiki"},
+            }
+
+            # Build categories with actual tools from enabled services
+            categories = {}
+
+            # Always add system tools
+            system_tools = []
+            for tool_def in self.definitions:
+                if tool_def.name != "system_list_tools":  # Exclude self
+                    system_tools.append(f"{tool_def.name} - {tool_def.description}")
+            categories["⚙️ SYSTÈME"] = {"system": system_tools}
+
+            # Add tools for each enabled service
+            for service_name in enabled_services:
+                if service_name in service_config:
+                    config = service_config[service_name]
+                    category = config["category"]
+                    tool_class = config["class"]
+
+                    # Get tools from the class
+                    try:
+                        tool_instance = tool_class({})
+                        tools_list = [
+                            f"{t.name} - {t.description[:80]}{'...' if len(t.description) > 80 else ''}"
+                            for t in tool_instance.definitions
+                        ]
+
+                        if category not in categories:
+                            categories[category] = {}
+                        categories[category][service_name] = tools_list
+                    except Exception:
+                        pass  # Skip if tool class fails to instantiate
+
+            return {
+                "success": True,
+                "result": {
+                    "message": "Voici les outils disponibles par catégorie. Choisis l'outil approprié selon la demande de l'utilisateur.",
+                    "categories": categories,
+                },
+            }
+
+        except Exception as e:
+            return {"success": False, "error": f"Failed to list tools: {str(e)}"}
 
     async def _get_health(self) -> dict:
         """Get system health status."""

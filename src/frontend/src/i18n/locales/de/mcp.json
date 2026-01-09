@@ -222,6 +222,23 @@
   },
 
   "systemPrompt": {
+    "simple": {
+      "intro": "Du bist ein Homelab-Assistent mit Zugriff auf Tools.",
+      "rules": "REGELN:\n1. RUFE DAS PASSENDE TOOL auf je nach Inhaltstyp\n2. PRÄSENTIERE Ergebnisse klar\n3. Erfinde NIEMALS Daten",
+      "toolsHeader": "## Verfügbare Tools",
+      "mappingTitle": "## WELCHES TOOL VERWENDEN?",
+      "mappingIntro": "WÄHLE TOOL NACH INHALTSTYP:",
+      "mapping": {
+        "video": "🎬 FILM oder TV-SERIE (ansehen) → plex_search_media",
+        "audiobook": "🎧 HÖRBUCH oder PODCAST (hören) → audiobookshelf_search",
+        "comic": "📚 MANGA oder COMIC (lesen) → komga_search",
+        "game": "🎮 RETRO-SPIEL oder ROM → romm_search_roms",
+        "download_movie": "⬇️ FILM HERUNTERLADEN → radarr_search_movie",
+        "download_series": "⬇️ SERIE HERUNTERLADEN → sonarr_search_series",
+        "stats": "📊 PLEX STATS (wer schaut, Verlauf) → tautulli_get_activity",
+        "request": "📝 Nicht verfügbaren Inhalt ANFORDERN → overseerr_search_media"
+      }
+    },
     "noTools": "WICHTIG: Derzeit sind keine Tools konfiguriert. Bitte konfigurieren Sie Dienste in der Admin-Oberfläche.",
     "parameters": "Parameter",
     "noExamples": "Keine Beispiele für konfigurierte Dienste verfügbar.",

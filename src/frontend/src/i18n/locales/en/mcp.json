@@ -222,6 +222,23 @@
   },
 
   "systemPrompt": {
+    "simple": {
+      "intro": "You are a homelab assistant with access to tools.",
+      "rules": "RULES:\n1. CALL THE APPROPRIATE TOOL based on content type\n2. PRESENT results clearly\n3. NEVER make up data",
+      "toolsHeader": "## Available tools",
+      "mappingTitle": "## WHICH TOOL TO USE?",
+      "mappingIntro": "CHOOSE TOOL BASED ON CONTENT TYPE:",
+      "mapping": {
+        "video": "🎬 MOVIE or TV SERIES (watch) → plex_search_media",
+        "audiobook": "🎧 AUDIOBOOK or PODCAST (listen) → audiobookshelf_search",
+        "comic": "📚 MANGA or COMIC (read) → komga_search",
+        "game": "🎮 RETRO GAME or ROM → romm_search_roms",
+        "download_movie": "⬇️ DOWNLOAD a MOVIE → radarr_search_movie",
+        "download_series": "⬇️ DOWNLOAD a SERIES → sonarr_search_series",
+        "stats": "📊 PLEX STATS (who's watching, history) → tautulli_get_activity",
+        "request": "📝 REQUEST unavailable content → overseerr_search_media"
+      }
+    },
     "noTools": "IMPORTANT: No tools are configured at the moment. Please configure services in the admin interface.",
     "parameters": "parameters",
     "noExamples": "No examples available for configured services.",

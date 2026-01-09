@@ -1305,24 +1305,10 @@ ${t('systemPrompt.indexerTestsDesc')}
     toolSelectionGuide += `| ${t('systemPrompt.toolSelection.sso.content')} | ${t('systemPrompt.toolSelection.sso.service')} | ${t('systemPrompt.toolSelection.sso.tool')} |\n`;
   }
 
-  return `Tu es un assistant homelab avec accès à des outils externes.
+  // System prompt simplifié - l'IA utilise list_available_tools pour découvrir les outils
+  return `${t('systemPrompt.simple.intro')}
 
-## ${t('systemPrompt.criticalRules')}
-
-1. ${t('systemPrompt.rule1')}
-
-2. ${t('systemPrompt.rule2')}
-
-3. ${t('systemPrompt.rule3')}
-
-4. ${t('systemPrompt.rule4')}
-${toolSelectionGuide}
-## ${t('systemPrompt.availableTools')}
-${toolSections}
-${rules}
-
-## ${t('systemPrompt.usageExamples')}
-${examples || t('systemPrompt.noExamples')}
+${t('systemPrompt.simple.rules')}
 
 ${t('systemPrompt.language')}`;
 };

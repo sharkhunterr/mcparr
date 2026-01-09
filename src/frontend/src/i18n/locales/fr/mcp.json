@@ -222,6 +222,10 @@
   },
 
   "systemPrompt": {
+    "simple": {
+      "intro": "Tu es un assistant homelab avec accès à des outils.",
+      "rules": "RÈGLES:\n1. APPELLE system_list_tools EN PREMIER pour voir les outils par catégorie\n2. APPELLE ensuite l'outil approprié\n3. RÉPONDS avec les données reçues\n4. N'invente JAMAIS de données"
+    },
     "noTools": "IMPORTANT: Aucun outil n'est configuré pour le moment. Veuillez configurer des services dans l'interface d'administration.",
     "parameters": "paramètres",
     "noExamples": "Aucun exemple disponible pour les services configurés.",

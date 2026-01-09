@@ -133,6 +133,23 @@ def generate_openwebui_openapi_spec() -> dict:
             "version": "1.0.0",
         },
         "paths": {
+            "/tools/system_list_tools": {
+                "post": {
+                    "operationId": "system_list_tools",
+                    "summary": "ALWAYS CALL FIRST - List available tools by category",
+                    "description": (
+                        "CALL THIS TOOL FIRST before any other tool. "
+                        "Returns all available tools grouped by category (Media, Books, Games, Downloads, etc.) "
+                        "to help you choose the right tool for the user's request."
+                    ),
+                    "responses": {
+                        "200": {
+                            "description": "Successful response",
+                            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ToolResponse"}}},
+                        }
+                    },
+                }
+            },
             "/tools/system_get_health": {
                 "post": {
                     "operationId": "system_get_health",
@@ -2036,6 +2053,18 @@ async def execute_tool_with_logging(
 # ============================================================================
 # System Tools
 # ============================================================================
+
+
+@router.post(
+    "/system_list_tools",
+    response_model=ToolResponse,
+    summary="ALWAYS CALL FIRST - List available tools by category",
+    description="CALL THIS TOOL FIRST before any other tool. Returns all available tools grouped by category to help you choose the right tool.",
+)
+async def system_list_tools(request: Request, session: AsyncSession = Depends(get_db_session)):
+    """List all available tools grouped by category."""
+    result = await execute_tool_with_logging(session, "system_list_tools", {}, request)
+    return ToolResponse(**result)
 
 
 @router.post(
