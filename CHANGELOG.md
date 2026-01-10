@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.2.24](https://github.com/sharkhunterr/mcparr/-/compare/v0.2.23...v0.2.24) (2026-01-10)
+
+
+### Features
+
+* **mcp:** add Open WebUI auto-configuration button ([2862ff9](https://github.com/sharkhunterr/mcparr/-/commit/2862ff9c0be7915974c7b6f1ddff7cde894a8c9b))
+* **mcp:** add system_list_tools for dynamic tool discovery ([606a1fa](https://github.com/sharkhunterr/mcparr/-/commit/606a1fadef65c5409ee32f9b7ed2d1bc05da66d4))
+* **mcp:** add tool selection guide to improve LLM disambiguation ([d3e4217](https://github.com/sharkhunterr/mcparr/-/commit/d3e42178f678bb5deb552c97502c3b755fb39b73))
+
+
+### Bug Fixes
+
+* **audiobookshelf:** search all libraries when library_name doesn't match ([ad699ec](https://github.com/sharkhunterr/mcparr/-/commit/ad699ecf91469e8a6eed43d2b10e0dd957dd1bd9)), closes [mcparr#4](https://github.com/sharkhunterr/mcparr/-/issues/4)
+* **openapi:** align Audiobookshelf endpoints with MCP tool definitions ([00cdc69](https://github.com/sharkhunterr/mcparr/-/commit/00cdc696a2f639afb2ddbd10e4729df3ad388674)), closes [mcparr#4](https://github.com/sharkhunterr/mcparr/-/issues/4)
+* **plex:** make search more flexible with multi-word queries ([ee6762e](https://github.com/sharkhunterr/mcparr/-/commit/ee6762e6194abbb1f5a627c196ad32b91f662c32)), closes [mcparr#3](https://github.com/sharkhunterr/mcparr/-/issues/3)
+* **sonarr,radarr:** fix indexers test returning empty list ([8c676d9](https://github.com/sharkhunterr/mcparr/-/commit/8c676d90f98675cc8e9abbabcd9eca9660f75e75)), closes [#11](https://github.com/sharkhunterr/mcparr/-/issues/11)
+* **sonarr:** include series title in calendar response ([b6efca7](https://github.com/sharkhunterr/mcparr/-/commit/b6efca751f189c96ccfa8b93301efb433788496e)), closes [#16](https://github.com/sharkhunterr/mcparr/-/issues/16)
+* **system:** add retry mechanism for SQLite locking in test_service ([d98f57a](https://github.com/sharkhunterr/mcparr/-/commit/d98f57afd9d877d8bb88fd6d09fc9b030039c12a))
+* **system:** make service name search case-insensitive ([14a8190](https://github.com/sharkhunterr/mcparr/-/commit/14a8190730ba150dfc1a838196dee45800b9824c)), closes [#10](https://github.com/sharkhunterr/mcparr/-/issues/10)
+* **training:** fix prompts export/import and reset functionality ([4decf08](https://github.com/sharkhunterr/mcparr/-/commit/4decf088dea4144c6c37580fcbdc8f262ef5fe7c))
+* **zammad:** add ticket URL to all Zammad tool responses ([5a9c1ee](https://github.com/sharkhunterr/mcparr/-/commit/5a9c1ee32f36be4df9771d5dbfe91648e0b5333d)), closes [#19](https://github.com/sharkhunterr/mcparr/-/issues/19)
+* **zammad:** resolve ticket number to ID for update/comment operations ([25c3246](https://github.com/sharkhunterr/mcparr/-/commit/25c32467c09758eaeb3d5ef0fea71dc02c3054d0)), closes [#19](https://github.com/sharkhunterr/mcparr/-/issues/19) [#20](https://github.com/sharkhunterr/mcparr/-/issues/20)
+
 ### [0.2.23](https://github.com/sharkhunterr/mcparr/-/compare/v0.2.22...v0.2.23) (2026-01-04)
 
 
