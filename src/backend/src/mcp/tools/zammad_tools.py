@@ -213,6 +213,31 @@ class ZammadTools(BaseTool):
         except Exception as e:
             return {"success": False, "error": str(e), "error_type": type(e).__name__}
 
+    def _build_ticket_url(self, adapter, ticket_id: int) -> str | None:
+        """Build ticket URL using external_url if available."""
+        external_url = adapter.service_config.external_url
+        if external_url and ticket_id:
+            base = external_url.rstrip("/")
+            return f"{base}/#ticket/zoom/{ticket_id}"
+        return None
+
+    async def _resolve_ticket_id(self, adapter, ticket_id_or_number: int) -> tuple[int | None, str | None]:
+        """Resolve ticket ID or number to actual ticket ID and number.
+
+        Returns (ticket_id, ticket_number) tuple, or (None, None) if not found.
+        """
+        # First try to get by ID
+        ticket = await adapter.get_ticket_by_id(ticket_id_or_number)
+
+        # If not found by ID, try to find by ticket number
+        if ticket is None:
+            ticket = await adapter.get_ticket_by_number(str(ticket_id_or_number))
+
+        if ticket is None:
+            return None, None
+
+        return ticket.get("id"), ticket.get("number")
+
     async def _get_tickets(self, adapter, arguments: dict) -> dict:
         """Get list of tickets."""
         limit = arguments.get("limit", 20)
@@ -220,6 +245,12 @@ class ZammadTools(BaseTool):
         # Get tickets from adapter (uses per_page parameter)
         result = await adapter.get_tickets(per_page=limit)
         tickets = result.get("tickets", [])
+
+        # Add URL to each ticket
+        for ticket in tickets:
+            url = self._build_ticket_url(adapter, ticket.get("id"))
+            if url:
+                ticket["url"] = url
 
         return {"success": True, "result": {"count": len(tickets), "tickets": tickets}}
 
@@ -241,21 +272,27 @@ class ZammadTools(BaseTool):
         actual_ticket_id = ticket.get("id")
         articles = await adapter.get_ticket_articles(actual_ticket_id)
 
+        ticket_data = {
+            "id": ticket.get("id"),
+            "number": ticket.get("number"),
+            "title": ticket.get("title"),
+            "state": ticket.get("state"),
+            "priority": ticket.get("priority"),
+            "created_at": ticket.get("created_at"),
+            "updated_at": ticket.get("updated_at"),
+            "customer": ticket.get("customer"),
+            "owner": ticket.get("owner"),
+            "group": ticket.get("group"),
+        }
+        # Add URL if external_url is configured
+        url = self._build_ticket_url(adapter, ticket.get("id"))
+        if url:
+            ticket_data["url"] = url
+
         return {
             "success": True,
             "result": {
-                "ticket": {
-                    "id": ticket.get("id"),
-                    "number": ticket.get("number"),
-                    "title": ticket.get("title"),
-                    "state": ticket.get("state"),
-                    "priority": ticket.get("priority"),
-                    "created_at": ticket.get("created_at"),
-                    "updated_at": ticket.get("updated_at"),
-                    "customer": ticket.get("customer"),
-                    "owner": ticket.get("owner"),
-                    "group": ticket.get("group"),
-                },
+                "ticket": ticket_data,
                 "articles": [
                     {
                         "id": article.get("id"),
@@ -279,21 +316,27 @@ class ZammadTools(BaseTool):
 
         tickets = await adapter.search_tickets(query, limit=limit)
 
+        # Build ticket list with URLs
+        ticket_list = []
+        for ticket in tickets:
+            ticket_data = {
+                "id": ticket.get("id"),
+                "number": ticket.get("number"),
+                "title": ticket.get("title"),
+                "state": ticket.get("state"),
+                "created_at": ticket.get("created_at"),
+            }
+            url = self._build_ticket_url(adapter, ticket.get("id"))
+            if url:
+                ticket_data["url"] = url
+            ticket_list.append(ticket_data)
+
         return {
             "success": True,
             "result": {
                 "query": query,
-                "count": len(tickets),
-                "tickets": [
-                    {
-                        "id": ticket.get("id"),
-                        "number": ticket.get("number"),
-                        "title": ticket.get("title"),
-                        "state": ticket.get("state"),
-                        "created_at": ticket.get("created_at"),
-                    }
-                    for ticket in tickets
-                ],
+                "count": len(ticket_list),
+                "tickets": ticket_list,
             },
         }
 
@@ -338,20 +381,38 @@ class ZammadTools(BaseTool):
         if not ticket:
             return {"success": False, "error": "Failed to create ticket - check Zammad API logs for details"}
 
+        # Build ticket URL using external_url if available
+        ticket_number = ticket.get("number")
+        ticket_url = None
+        external_url = adapter.service_config.external_url
+        if external_url and ticket_number:
+            # Remove trailing slash if present
+            base = external_url.rstrip("/")
+            ticket_url = f"{base}/#ticket/zoom/{ticket.get('id')}"
+
+        result = {
+            "message": f"Ticket #{ticket_number} created successfully",
+            "ticket_id": ticket.get("id"),
+            "ticket_number": ticket_number,
+        }
+        if ticket_url:
+            result["url"] = ticket_url
+
         return {
             "success": True,
-            "result": {
-                "message": f"Ticket #{ticket.get('number')} created successfully",
-                "ticket_id": ticket.get("id"),
-                "ticket_number": ticket.get("number"),
-            },
+            "result": result,
         }
 
     async def _add_comment(self, adapter, arguments: dict) -> dict:
         """Add a comment to a ticket."""
-        ticket_id = arguments.get("ticket_id")
+        ticket_id_or_number = arguments.get("ticket_id")
         comment = arguments.get("comment")
         internal = arguments.get("internal", False)
+
+        # Resolve ticket ID (user may provide ticket number instead of ID)
+        ticket_id, ticket_number = await self._resolve_ticket_id(adapter, ticket_id_or_number)
+        if ticket_id is None:
+            return {"success": False, "error": f"Ticket {ticket_id_or_number} not found (searched by ID and number)"}
 
         article = await adapter.create_article(
             ticket_id=ticket_id,
@@ -360,21 +421,31 @@ class ZammadTools(BaseTool):
         )
 
         if not article:
-            return {"success": False, "error": f"Failed to add comment to ticket #{ticket_id}"}
+            return {"success": False, "error": f"Failed to add comment to ticket #{ticket_number}"}
+
+        result = {
+            "message": f"Comment added to ticket #{ticket_number}",
+            "article_id": article.get("id"),
+            "internal": internal,
+        }
+        url = self._build_ticket_url(adapter, ticket_id)
+        if url:
+            result["url"] = url
 
         return {
             "success": True,
-            "result": {
-                "message": f"Comment added to ticket #{ticket_id}",
-                "article_id": article.get("id"),
-                "internal": internal,
-            },
+            "result": result,
         }
 
     async def _update_ticket_status(self, adapter, arguments: dict) -> dict:
         """Update ticket status."""
-        ticket_id = arguments.get("ticket_id")
+        ticket_id_or_number = arguments.get("ticket_id")
         status = arguments.get("status")
+
+        # Resolve ticket ID (user may provide ticket number instead of ID)
+        ticket_id, ticket_number = await self._resolve_ticket_id(adapter, ticket_id_or_number)
+        if ticket_id is None:
+            return {"success": False, "error": f"Ticket {ticket_id_or_number} not found (searched by ID and number)"}
 
         # Map status to Zammad state_id (1=new, 2=open, 3=pending reminder, 4=closed)
         status_map = {
@@ -388,15 +459,21 @@ class ZammadTools(BaseTool):
         success = await adapter.update_ticket(ticket_id, {"state_id": state_id})
 
         if not success:
-            return {"success": False, "error": f"Failed to update ticket #{ticket_id} status"}
+            return {"success": False, "error": f"Failed to update ticket #{ticket_number} status"}
+
+        result = {
+            "message": f"Ticket #{ticket_number} status updated to {status}",
+            "ticket_id": ticket_id,
+            "ticket_number": ticket_number,
+            "new_status": status,
+        }
+        url = self._build_ticket_url(adapter, ticket_id)
+        if url:
+            result["url"] = url
 
         return {
             "success": True,
-            "result": {
-                "message": f"Ticket #{ticket_id} status updated to {status}",
-                "ticket_id": ticket_id,
-                "new_status": status,
-            },
+            "result": result,
         }
 
     async def _get_ticket_stats(self, adapter) -> dict:

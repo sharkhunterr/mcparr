@@ -429,33 +429,58 @@ class SystemTools(BaseTool):
             return {"success": False, "error": "service_name is required"}
 
         try:
-            from sqlalchemy import select
+            from sqlalchemy import func, select
 
             from src.database.connection import async_session_maker
             from src.models.service_config import ServiceConfig
             from src.services.service_tester import ServiceTester
 
             async with async_session_maker() as session:
-                # Find service by name
-                result = await session.execute(select(ServiceConfig).where(ServiceConfig.name == service_name))
+                # Find service by name (case-insensitive)
+                result = await session.execute(
+                    select(ServiceConfig).where(func.lower(ServiceConfig.name) == service_name.lower())
+                )
                 service = result.scalar_one_or_none()
 
                 if not service:
-                    return {"success": False, "error": f"Service '{service_name}' not found"}
+                    # List available services to help user
+                    all_services = await session.execute(select(ServiceConfig.name))
+                    available = [s[0] for s in all_services.fetchall()]
+                    return {
+                        "success": False,
+                        "error": f"Service '{service_name}' not found. Available services: {', '.join(available)}",
+                    }
 
                 # Test the service using the class method
-                test_result = await ServiceTester.test_service_connection(service, session)
+                # Use a retry mechanism for SQLite locking issues
+                max_retries = 3
+                last_error = None
+                for attempt in range(max_retries):
+                    try:
+                        test_result = await ServiceTester.test_service_connection(service, session)
+                        return {
+                            "success": True,
+                            "result": {
+                                "service": service_name,
+                                "test_success": test_result.success,
+                                "message": test_result.message,
+                                "response_time_ms": test_result.response_time_ms,
+                                "details": test_result.details,
+                            },
+                        }
+                    except Exception as e:
+                        last_error = e
+                        error_str = str(e)
+                        if "database is locked" in error_str or "rolled back" in error_str:
+                            # Rollback and retry
+                            await session.rollback()
+                            import asyncio
+                            await asyncio.sleep(0.5 * (attempt + 1))  # Exponential backoff
+                            continue
+                        raise  # Re-raise if not a locking issue
 
-                return {
-                    "success": True,
-                    "result": {
-                        "service": service_name,
-                        "test_success": test_result.success,
-                        "message": test_result.message,
-                        "response_time_ms": test_result.response_time_ms,
-                        "details": test_result.details,
-                    },
-                }
+                # All retries failed
+                return {"success": False, "error": f"Database busy after {max_retries} retries: {str(last_error)}"}
 
         except Exception as e:
             return {"success": False, "error": f"Failed to test service: {str(e)}"}

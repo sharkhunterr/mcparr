@@ -203,7 +203,9 @@ class SonarrAdapter(TokenAuthAdapter):
             end = start + timedelta(days=days)
 
             response = await self._make_request(
-                "GET", "/api/v3/calendar", params={"start": start.isoformat(), "end": end.isoformat()}
+                "GET",
+                "/api/v3/calendar",
+                params={"start": start.isoformat(), "end": end.isoformat(), "includeSeries": "true"},
             )
             episodes = response.json()
 
@@ -217,6 +219,7 @@ class SonarrAdapter(TokenAuthAdapter):
                     "episode": ep.get("episodeNumber"),
                     "air_date": ep.get("airDateUtc"),
                     "has_file": ep.get("hasFile", False),
+                    "url": self._get_series_url(ep.get("seriesId")),
                 }
                 for ep in episodes
             ]
@@ -268,7 +271,13 @@ class SonarrAdapter(TokenAuthAdapter):
                     "id": indexer.get("id"),
                     "name": indexer.get("name"),
                     "protocol": indexer.get("protocol"),
-                    "enable": indexer.get("enable", False),
+                    # Support both old 'enable' and newer 'enableRss'/'enableAutomaticSearch' fields
+                    "enable": indexer.get("enable", False)
+                    or indexer.get("enableRss", False)
+                    or indexer.get("enableAutomaticSearch", False),
+                    "enableRss": indexer.get("enableRss", False),
+                    "enableAutomaticSearch": indexer.get("enableAutomaticSearch", False),
+                    "enableInteractiveSearch": indexer.get("enableInteractiveSearch", False),
                     "priority": indexer.get("priority", 25),
                     "supports_rss": indexer.get("supportsRss", False),
                     "supports_search": indexer.get("supportsSearch", False),
@@ -316,7 +325,15 @@ class SonarrAdapter(TokenAuthAdapter):
     async def test_all_indexers(self) -> Dict[str, Any]:
         """Test all enabled indexers."""
         indexers = await self.get_indexers()
-        enabled_indexers = [i for i in indexers if i.get("enable")]
+        # Filter enabled indexers - check both 'enable' (v3) and 'enableRss'/'enableAutomaticSearch' fields
+        enabled_indexers = [
+            i for i in indexers
+            if i.get("enable") or i.get("enableRss") or i.get("enableAutomaticSearch")
+        ]
+
+        # If no enabled indexers but we have indexers, test all of them
+        if not enabled_indexers and indexers:
+            enabled_indexers = indexers
 
         results = []
         for indexer in enabled_indexers:
@@ -329,5 +346,6 @@ class SonarrAdapter(TokenAuthAdapter):
             "total_tested": len(results),
             "success_count": success_count,
             "failed_count": len(results) - success_count,
+            "total_indexers": len(indexers),
             "results": results,
         }

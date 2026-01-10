@@ -394,8 +394,32 @@ class PlexAdapter(TokenAuthAdapter):
             self.logger.warning(f"Failed to search content: {e}")
             return []
 
+    async def _search_single_query(
+        self, query: str, media_type: Optional[str], limit: int
+    ) -> List[Dict[str, Any]]:
+        """Execute a single search query against Plex API."""
+        params = {"query": query, "limit": str(limit)}
+        if media_type:
+            # Map our media types to Plex types
+            type_map = {"movie": 1, "show": 2, "episode": 4, "artist": 8, "album": 9, "track": 10}
+            if media_type in type_map:
+                params["type"] = str(type_map[media_type])
+
+        response = await self._make_request("GET", "/search", params=params)
+        data = response.json()
+
+        if "MediaContainer" not in data:
+            return []
+
+        return data["MediaContainer"].get("Metadata", [])
+
     async def search(self, query: str, media_type: Optional[str] = None, limit: int = 20) -> List[Dict[str, Any]]:
         """Search for content in Plex with optional media type filter.
+
+        Uses flexible search strategy:
+        1. Try exact query first
+        2. If no results, try searching each word separately and merge results
+        3. Deduplicates results by ratingKey
 
         Args:
             query: Search query
@@ -404,23 +428,36 @@ class PlexAdapter(TokenAuthAdapter):
         """
         try:
             await self._ensure_machine_identifier()
-            params = {"query": query, "limit": str(limit)}
-            if media_type:
-                # Map our media types to Plex types
-                type_map = {"movie": 1, "show": 2, "episode": 4, "artist": 8, "album": 9, "track": 10}
-                if media_type in type_map:
-                    params["type"] = str(type_map[media_type])
 
-            response = await self._make_request("GET", "/search", params=params)
-            data = response.json()
+            # First try the full query
+            metadata = await self._search_single_query(query, media_type, limit)
 
-            if "MediaContainer" not in data:
-                return []
+            # If no results and query has multiple words, try each word separately
+            words = [w.lower() for w in query.split() if len(w) >= 3]
+            if not metadata and len(words) > 1:
+                seen_keys = set()
+                all_word_results = []
 
-            metadata = data["MediaContainer"].get("Metadata", [])
+                # Search each word and collect all results
+                for word in words:
+                    word_results = await self._search_single_query(word, media_type, limit * 2)
+                    for item in word_results:
+                        key = item.get("ratingKey") or item.get("key")
+                        if key and key not in seen_keys:
+                            seen_keys.add(key)
+                            all_word_results.append(item)
+
+                # Prioritize results that contain ALL search words in the title
+                def count_matching_words(item):
+                    title = (item.get("title") or "").lower()
+                    return sum(1 for w in words if w in title)
+
+                # Sort by number of matching words (descending)
+                all_word_results.sort(key=count_matching_words, reverse=True)
+                metadata = all_word_results
+
             search_results = []
-
-            for item in metadata:
+            for item in metadata[:limit]:  # Respect limit after merging
                 key = item.get("key")
                 search_results.append(
                     {
