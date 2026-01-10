@@ -123,8 +123,84 @@ async def resolve_openwebui_user(request: Request) -> Optional[dict]:
 # ============================================================================
 
 
+def _build_tool_path(tool_def) -> dict:
+    """Build OpenAPI path definition from a ToolDefinition."""
+    path_def = {
+        "post": {
+            "operationId": tool_def.name,
+            "summary": tool_def.description[:100] if len(tool_def.description) > 100 else tool_def.description,
+            "description": tool_def.description,
+            "responses": {
+                "200": {
+                    "description": "Successful response",
+                    "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ToolResponse"}}},
+                }
+            },
+        }
+    }
+
+    # Add request body if tool has parameters
+    if tool_def.parameters:
+        properties = {}
+        required = []
+        for param in tool_def.parameters:
+            prop: dict = {
+                "type": param.type,
+                "description": param.description,
+            }
+            if param.enum:
+                prop["enum"] = param.enum
+            if param.default is not None:
+                prop["default"] = param.default
+            properties[param.name] = prop
+            if param.required:
+                required.append(param.name)
+
+        schema: dict = {"type": "object", "properties": properties}
+        if required:
+            schema["required"] = required
+
+        path_def["post"]["requestBody"] = {
+            "required": bool(required),
+            "content": {"application/json": {"schema": schema}},
+        }
+
+    return path_def
+
+
 def generate_openwebui_openapi_spec() -> dict:
-    """Generate a simplified OpenAPI 3.0.3 spec compatible with Open WebUI."""
+    """Generate OpenAPI 3.0.3 spec dynamically from all tool definitions."""
+    # Collect all tool definitions from all tool classes
+    all_tool_classes = [
+        SystemTools,
+        PlexTools,
+        TautulliTools,
+        OverseerrTools,
+        RadarrTools,
+        SonarrTools,
+        ProwlarrTools,
+        JackettTools,
+        DelugeTools,
+        KomgaTools,
+        RommTools,
+        AudiobookshelfTools,
+        OpenWebUITools,
+        ZammadTools,
+        WikiJSTools,
+        AuthentikTools,
+    ]
+
+    paths = {}
+    for tool_class in all_tool_classes:
+        try:
+            # Instantiate without config to get definitions
+            tool_instance = tool_class(None)
+            for tool_def in tool_instance.definitions:
+                path = f"/tools/{tool_def.name}"
+                paths[path] = _build_tool_path(tool_def)
+        except Exception as e:
+            logger.warning(f"Failed to get definitions from {tool_class.__name__}: {e}")
+
     return {
         "openapi": "3.0.3",
         "info": {
@@ -132,1499 +208,7 @@ def generate_openwebui_openapi_spec() -> dict:
             "description": "AI tools for homelab services management",
             "version": "1.0.0",
         },
-        "paths": {
-            "/tools/system_list_tools": {
-                "post": {
-                    "operationId": "system_list_tools",
-                    "summary": "ALWAYS CALL FIRST - List available tools by category",
-                    "description": (
-                        "CALL THIS TOOL FIRST before any other tool. "
-                        "Returns all available tools grouped by category (Media, Books, Games, Downloads, etc.) "
-                        "to help you choose the right tool for the user's request."
-                    ),
-                    "responses": {
-                        "200": {
-                            "description": "Successful response",
-                            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ToolResponse"}}},
-                        }
-                    },
-                }
-            },
-            "/tools/system_get_health": {
-                "post": {
-                    "operationId": "system_get_health",
-                    "summary": "Get system health status",
-                    "description": (
-                        "Get overall system health status including CPU, memory, " "disk usage and any issues detected."
-                    ),
-                    "responses": {
-                        "200": {
-                            "description": "Successful response",
-                            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ToolResponse"}}},
-                        }
-                    },
-                }
-            },
-            "/tools/system_get_metrics": {
-                "post": {
-                    "operationId": "system_get_metrics",
-                    "summary": "Get system metrics",
-                    "description": (
-                        "Get current system resource metrics including CPU, memory, " "disk, network usage and uptime."
-                    ),
-                    "responses": {
-                        "200": {
-                            "description": "Successful response",
-                            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ToolResponse"}}},
-                        }
-                    },
-                }
-            },
-            "/tools/plex_get_libraries": {
-                "post": {
-                    "operationId": "plex_get_libraries",
-                    "summary": "Get Plex libraries",
-                    "description": "Get list of all Plex media libraries (Movies, TV Shows, Music, etc.)",
-                    "responses": {
-                        "200": {
-                            "description": "Successful response",
-                            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ToolResponse"}}},
-                        }
-                    },
-                }
-            },
-            "/tools/plex_search_media": {
-                "post": {
-                    "operationId": "plex_search_media",
-                    "summary": "Search Plex media",
-                    "description": (
-                        "Search for movies, TV shows, or other media in Plex library " "by title, actor, director, etc."
-                    ),
-                    "requestBody": {
-                        "required": True,
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "required": ["query"],
-                                    "properties": {
-                                        "query": {
-                                            "type": "string",
-                                            "description": "Search query (title, actor, director, etc.)",
-                                        },
-                                        "media_type": {
-                                            "type": "string",
-                                            "description": "Type of media: movie, show, episode, artist, album, track",
-                                        },
-                                        "limit": {
-                                            "type": "integer",
-                                            "default": 10,
-                                            "description": "Maximum number of results to return",
-                                        },
-                                    },
-                                }
-                            }
-                        },
-                    },
-                    "responses": {
-                        "200": {
-                            "description": "Successful response",
-                            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ToolResponse"}}},
-                        }
-                    },
-                }
-            },
-            "/tools/plex_get_recently_added": {
-                "post": {
-                    "operationId": "plex_get_recently_added",
-                    "summary": "Get recently added media",
-                    "description": "Get recently added media to Plex library. Can filter by library name.",
-                    "requestBody": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "library_name": {
-                                            "type": "string",
-                                            "description": "Name of the library (e.g., 'Movies', 'TV Shows')",
-                                        },
-                                        "limit": {
-                                            "type": "integer",
-                                            "default": 10,
-                                            "description": "Maximum number of items to return",
-                                        },
-                                    },
-                                }
-                            }
-                        }
-                    },
-                    "responses": {
-                        "200": {
-                            "description": "Successful response",
-                            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ToolResponse"}}},
-                        }
-                    },
-                }
-            },
-            "/tools/plex_get_on_deck": {
-                "post": {
-                    "operationId": "plex_get_on_deck",
-                    "summary": "Get On Deck items",
-                    "description": "Get 'On Deck' items (continue watching) for the Plex server.",
-                    "requestBody": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "limit": {
-                                            "type": "integer",
-                                            "default": 10,
-                                            "description": "Maximum number of items to return",
-                                        }
-                                    },
-                                }
-                            }
-                        }
-                    },
-                    "responses": {
-                        "200": {
-                            "description": "Successful response",
-                            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ToolResponse"}}},
-                        }
-                    },
-                }
-            },
-            "/tools/plex_get_media_details": {
-                "post": {
-                    "operationId": "plex_get_media_details",
-                    "summary": "Get media details",
-                    "description": (
-                        "Get detailed information about a specific movie or TV show " "including cast, genres, rating."
-                    ),
-                    "requestBody": {
-                        "required": True,
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "required": ["title"],
-                                    "properties": {
-                                        "title": {"type": "string", "description": "Title of the movie or TV show"},
-                                        "year": {
-                                            "type": "integer",
-                                            "description": "Release year (helps with disambiguation)",
-                                        },
-                                    },
-                                }
-                            }
-                        },
-                    },
-                    "responses": {
-                        "200": {
-                            "description": "Successful response",
-                            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ToolResponse"}}},
-                        }
-                    },
-                }
-            },
-            "/tools/plex_get_active_sessions": {
-                "post": {
-                    "operationId": "plex_get_active_sessions",
-                    "summary": "Get active streaming sessions",
-                    "description": "Get list of currently active streaming sessions on Plex (who is watching what).",
-                    "responses": {
-                        "200": {
-                            "description": "Successful response",
-                            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ToolResponse"}}},
-                        }
-                    },
-                }
-            },
-            "/tools/overseerr_search": {
-                "post": {
-                    "operationId": "overseerr_search",
-                    "summary": "Search Overseerr",
-                    "description": "Search for movies or TV shows in Overseerr to check availability or request.",
-                    "requestBody": {
-                        "required": True,
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "required": ["query"],
-                                    "properties": {
-                                        "query": {
-                                            "type": "string",
-                                            "description": "Search query for movies or TV shows",
-                                        },
-                                        "media_type": {"type": "string", "description": "Filter by type: movie or tv"},
-                                    },
-                                }
-                            }
-                        },
-                    },
-                    "responses": {
-                        "200": {
-                            "description": "Successful response",
-                            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ToolResponse"}}},
-                        }
-                    },
-                }
-            },
-            "/tools/overseerr_get_requests": {
-                "post": {
-                    "operationId": "overseerr_get_requests",
-                    "summary": "Get Overseerr requests",
-                    "description": "Get list of pending and recent media requests from Overseerr.",
-                    "responses": {
-                        "200": {
-                            "description": "Successful response",
-                            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ToolResponse"}}},
-                        }
-                    },
-                }
-            },
-            "/tools/overseerr_request_media": {
-                "post": {
-                    "operationId": "overseerr_request_media",
-                    "summary": "Request media on Overseerr",
-                    "description": "Request a movie or TV show to be added to the library via Overseerr.",
-                    "requestBody": {
-                        "required": True,
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "required": ["title", "media_type"],
-                                    "properties": {
-                                        "title": {"type": "string", "description": "Title of the media to request"},
-                                        "media_type": {"type": "string", "description": "Type of media: movie or tv"},
-                                        "year": {"type": "integer", "description": "Release year for disambiguation"},
-                                    },
-                                }
-                            }
-                        },
-                    },
-                    "responses": {
-                        "200": {
-                            "description": "Successful response",
-                            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ToolResponse"}}},
-                        }
-                    },
-                }
-            },
-            "/tools/overseerr_get_trending": {
-                "post": {
-                    "operationId": "overseerr_get_trending",
-                    "summary": "Get trending media",
-                    "description": "Get trending movies and TV shows from Overseerr.",
-                    "responses": {
-                        "200": {
-                            "description": "Successful response",
-                            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ToolResponse"}}},
-                        }
-                    },
-                }
-            },
-            "/tools/tautulli_get_activity": {
-                "post": {
-                    "operationId": "tautulli_get_activity",
-                    "summary": "Get Plex activity",
-                    "description": (
-                        "Get current Plex streaming activity including active sessions, "
-                        "bandwidth usage, and stream counts."
-                    ),
-                    "responses": {
-                        "200": {
-                            "description": "Successful response",
-                            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ToolResponse"}}},
-                        }
-                    },
-                }
-            },
-            "/tools/tautulli_get_history": {
-                "post": {
-                    "operationId": "tautulli_get_history",
-                    "summary": "Get play history",
-                    "description": "Get play history from Tautulli with optional user filtering.",
-                    "requestBody": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "length": {
-                                            "type": "integer",
-                                            "default": 25,
-                                            "description": "Number of history items to return",
-                                        },
-                                        "user": {"type": "string", "description": "Filter history by username"},
-                                    },
-                                }
-                            }
-                        }
-                    },
-                    "responses": {
-                        "200": {
-                            "description": "Successful response",
-                            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ToolResponse"}}},
-                        }
-                    },
-                }
-            },
-            "/tools/tautulli_get_users": {
-                "post": {
-                    "operationId": "tautulli_get_users",
-                    "summary": "Get Plex users",
-                    "description": "Get list of all Plex users known to Tautulli with their details and permissions.",
-                    "responses": {
-                        "200": {
-                            "description": "Successful response",
-                            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ToolResponse"}}},
-                        }
-                    },
-                }
-            },
-            "/tools/tautulli_get_libraries": {
-                "post": {
-                    "operationId": "tautulli_get_libraries",
-                    "summary": "Get library statistics",
-                    "description": "Get library statistics from Tautulli including item counts and types.",
-                    "responses": {
-                        "200": {
-                            "description": "Successful response",
-                            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ToolResponse"}}},
-                        }
-                    },
-                }
-            },
-            "/tools/tautulli_get_statistics": {
-                "post": {
-                    "operationId": "tautulli_get_statistics",
-                    "summary": "Get comprehensive statistics",
-                    "description": (
-                        "Get comprehensive statistics including activity, history, " "users, and libraries overview."
-                    ),
-                    "responses": {
-                        "200": {
-                            "description": "Successful response",
-                            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ToolResponse"}}},
-                        }
-                    },
-                }
-            },
-            "/tools/tautulli_get_recently_added": {
-                "post": {
-                    "operationId": "tautulli_get_recently_added",
-                    "summary": "Get recently added via Tautulli",
-                    "description": "Get recently added items to Plex libraries via Tautulli.",
-                    "requestBody": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "count": {
-                                            "type": "integer",
-                                            "default": 25,
-                                            "description": "Number of recently added items to return",
-                                        }
-                                    },
-                                }
-                            }
-                        }
-                    },
-                    "responses": {
-                        "200": {
-                            "description": "Successful response",
-                            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ToolResponse"}}},
-                        }
-                    },
-                }
-            },
-            "/tools/tautulli_get_server_info": {
-                "post": {
-                    "operationId": "tautulli_get_server_info",
-                    "summary": "Get server info",
-                    "description": "Get Tautulli and Plex server information including versions and status.",
-                    "responses": {
-                        "200": {
-                            "description": "Successful response",
-                            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ToolResponse"}}},
-                        }
-                    },
-                }
-            },
-            "/tools/tautulli_get_my_stats": {
-                "post": {
-                    "operationId": "tautulli_get_my_stats",
-                    "summary": "Get my personal viewing statistics",
-                    "description": (
-                        "Get your personal viewing history and statistics from Tautulli. "
-                        "Shows movies and TV shows you have watched. "
-                        "Requires a user mapping between Open WebUI and Tautulli to be configured."
-                    ),
-                    "requestBody": {
-                        "required": False,
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "length": {
-                                            "type": "integer",
-                                            "description": "Number of history items to return",
-                                            "default": 25,
-                                        }
-                                    },
-                                }
-                            }
-                        },
-                    },
-                    "responses": {
-                        "200": {
-                            "description": "Successful response",
-                            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ToolResponse"}}},
-                        }
-                    },
-                }
-            },
-            "/tools/tautulli_get_top_users": {
-                "post": {
-                    "operationId": "tautulli_get_top_users",
-                    "summary": "Get top Plex users",
-                    "description": "Get top Plex users by play count or watch duration over a specified period.",
-                    "requestBody": {
-                        "required": False,
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "days": {
-                                            "type": "integer",
-                                            "description": "Number of days to analyze",
-                                            "default": 30,
-                                        },
-                                        "stats_type": {
-                                            "type": "string",
-                                            "enum": ["plays", "duration"],
-                                            "description": "Type of stats",
-                                            "default": "plays",
-                                        },
-                                        "limit": {
-                                            "type": "integer",
-                                            "description": "Number of users to return",
-                                            "default": 10,
-                                        },
-                                    },
-                                }
-                            }
-                        },
-                    },
-                    "responses": {
-                        "200": {
-                            "description": "Successful response",
-                            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ToolResponse"}}},
-                        }
-                    },
-                }
-            },
-            "/tools/tautulli_get_top_movies": {
-                "post": {
-                    "operationId": "tautulli_get_top_movies",
-                    "summary": "Get top watched movies",
-                    "description": "Get top watched movies over a specified period, optionally filtered by user.",
-                    "requestBody": {
-                        "required": False,
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "days": {
-                                            "type": "integer",
-                                            "description": "Number of days to analyze",
-                                            "default": 30,
-                                        },
-                                        "stats_type": {
-                                            "type": "string",
-                                            "enum": ["plays", "duration"],
-                                            "description": "Type of stats",
-                                            "default": "plays",
-                                        },
-                                        "limit": {
-                                            "type": "integer",
-                                            "description": "Number of movies to return",
-                                            "default": 10,
-                                        },
-                                        "username": {"type": "string", "description": "Filter by username (optional)"},
-                                    },
-                                }
-                            }
-                        },
-                    },
-                    "responses": {
-                        "200": {
-                            "description": "Successful response",
-                            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ToolResponse"}}},
-                        }
-                    },
-                }
-            },
-            "/tools/tautulli_get_top_tv_shows": {
-                "post": {
-                    "operationId": "tautulli_get_top_tv_shows",
-                    "summary": "Get top watched TV shows",
-                    "description": "Get top watched TV shows over a specified period, optionally filtered by user.",
-                    "requestBody": {
-                        "required": False,
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "days": {
-                                            "type": "integer",
-                                            "description": "Number of days to analyze",
-                                            "default": 30,
-                                        },
-                                        "stats_type": {
-                                            "type": "string",
-                                            "enum": ["plays", "duration"],
-                                            "description": "Type of stats",
-                                            "default": "plays",
-                                        },
-                                        "limit": {
-                                            "type": "integer",
-                                            "description": "Number of TV shows to return",
-                                            "default": 10,
-                                        },
-                                        "username": {"type": "string", "description": "Filter by username (optional)"},
-                                    },
-                                }
-                            }
-                        },
-                    },
-                    "responses": {
-                        "200": {
-                            "description": "Successful response",
-                            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ToolResponse"}}},
-                        }
-                    },
-                }
-            },
-            "/tools/tautulli_get_top_music": {
-                "post": {
-                    "operationId": "tautulli_get_top_music",
-                    "summary": "Get top listened music",
-                    "description": "Get top listened music over a specified period, optionally filtered by user.",
-                    "requestBody": {
-                        "required": False,
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "days": {
-                                            "type": "integer",
-                                            "description": "Number of days to analyze",
-                                            "default": 30,
-                                        },
-                                        "stats_type": {
-                                            "type": "string",
-                                            "enum": ["plays", "duration"],
-                                            "description": "Type of stats",
-                                            "default": "plays",
-                                        },
-                                        "limit": {
-                                            "type": "integer",
-                                            "description": "Number of music items to return",
-                                            "default": 10,
-                                        },
-                                        "username": {"type": "string", "description": "Filter by username (optional)"},
-                                    },
-                                }
-                            }
-                        },
-                    },
-                    "responses": {
-                        "200": {
-                            "description": "Successful response",
-                            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ToolResponse"}}},
-                        }
-                    },
-                }
-            },
-            "/tools/tautulli_get_top_platforms": {
-                "post": {
-                    "operationId": "tautulli_get_top_platforms",
-                    "summary": "Get top streaming platforms",
-                    "description": "Get most used platforms/devices for streaming over a specified period.",
-                    "requestBody": {
-                        "required": False,
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "days": {
-                                            "type": "integer",
-                                            "description": "Number of days to analyze",
-                                            "default": 30,
-                                        },
-                                        "stats_type": {
-                                            "type": "string",
-                                            "enum": ["plays", "duration"],
-                                            "description": "Type of stats",
-                                            "default": "plays",
-                                        },
-                                        "limit": {
-                                            "type": "integer",
-                                            "description": "Number of platforms to return",
-                                            "default": 10,
-                                        },
-                                    },
-                                }
-                            }
-                        },
-                    },
-                    "responses": {
-                        "200": {
-                            "description": "Successful response",
-                            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ToolResponse"}}},
-                        }
-                    },
-                }
-            },
-            "/tools/tautulli_get_user_stats": {
-                "post": {
-                    "operationId": "tautulli_get_user_stats",
-                    "summary": "Get user statistics",
-                    "description": (
-                        "Get detailed watch statistics for a specific user "
-                        "including watch time, top content, and devices."
-                    ),
-                    "requestBody": {
-                        "required": True,
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "required": ["username"],
-                                    "properties": {
-                                        "username": {
-                                            "type": "string",
-                                            "description": "Username or friendly name of the user",
-                                        },
-                                        "days": {
-                                            "type": "integer",
-                                            "description": "Number of days to analyze",
-                                            "default": 30,
-                                        },
-                                    },
-                                }
-                            }
-                        },
-                    },
-                    "responses": {
-                        "200": {
-                            "description": "Successful response",
-                            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ToolResponse"}}},
-                        }
-                    },
-                }
-            },
-            "/tools/tautulli_get_watch_stats_summary": {
-                "post": {
-                    "operationId": "tautulli_get_watch_stats_summary",
-                    "summary": "Get watch statistics summary",
-                    "description": (
-                        "Get a comprehensive summary of watch statistics "
-                        "including top users, movies, TV shows, and platforms."
-                    ),
-                    "requestBody": {
-                        "required": False,
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "days": {
-                                            "type": "integer",
-                                            "description": "Number of days to analyze",
-                                            "default": 30,
-                                        },
-                                        "stats_type": {
-                                            "type": "string",
-                                            "enum": ["plays", "duration"],
-                                            "description": "Type of stats",
-                                            "default": "plays",
-                                        },
-                                        "limit": {
-                                            "type": "integer",
-                                            "description": "Number of items per category",
-                                            "default": 5,
-                                        },
-                                    },
-                                }
-                            }
-                        },
-                    },
-                    "responses": {
-                        "200": {
-                            "description": "Successful response",
-                            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ToolResponse"}}},
-                        }
-                    },
-                }
-            },
-            "/tools/zammad_get_tickets": {
-                "post": {
-                    "operationId": "zammad_get_tickets",
-                    "summary": "Get support tickets",
-                    "description": "Get list of support tickets from Zammad with their status.",
-                    "responses": {
-                        "200": {
-                            "description": "Successful response",
-                            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ToolResponse"}}},
-                        }
-                    },
-                }
-            },
-            "/tools/zammad_search_tickets": {
-                "post": {
-                    "operationId": "zammad_search_tickets",
-                    "summary": "Search tickets",
-                    "description": "Search Zammad tickets by keyword.",
-                    "requestBody": {
-                        "required": True,
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "required": ["query"],
-                                    "properties": {
-                                        "query": {"type": "string", "description": "Search query for tickets"},
-                                        "limit": {
-                                            "type": "integer",
-                                            "default": 10,
-                                            "description": "Maximum number of results",
-                                        },
-                                    },
-                                }
-                            }
-                        },
-                    },
-                    "responses": {
-                        "200": {
-                            "description": "Successful response",
-                            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ToolResponse"}}},
-                        }
-                    },
-                }
-            },
-            "/tools/zammad_create_ticket": {
-                "post": {
-                    "operationId": "zammad_create_ticket",
-                    "summary": "Create support ticket",
-                    "description": "Create a new support ticket in Zammad.",
-                    "requestBody": {
-                        "required": True,
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "required": ["title", "body"],
-                                    "properties": {
-                                        "title": {"type": "string", "description": "Ticket title/subject"},
-                                        "body": {"type": "string", "description": "Ticket body/description"},
-                                        "customer_email": {"type": "string", "description": "Customer email address"},
-                                        "priority": {
-                                            "type": "string",
-                                            "default": "normal",
-                                            "description": "Priority: low, normal, high",
-                                        },
-                                    },
-                                }
-                            }
-                        },
-                    },
-                    "responses": {
-                        "200": {
-                            "description": "Successful response",
-                            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ToolResponse"}}},
-                        }
-                    },
-                }
-            },
-            "/tools/zammad_get_organizations": {
-                "post": {
-                    "operationId": "zammad_get_organizations",
-                    "summary": "Get organizations",
-                    "description": "Get list of organizations from Zammad.",
-                    "responses": {
-                        "200": {
-                            "description": "Successful response",
-                            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ToolResponse"}}},
-                        }
-                    },
-                }
-            },
-            "/tools/zammad_get_users": {
-                "post": {
-                    "operationId": "zammad_get_users",
-                    "summary": "Get Zammad users",
-                    "description": "Get list of users from Zammad.",
-                    "responses": {
-                        "200": {
-                            "description": "Successful response",
-                            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ToolResponse"}}},
-                        }
-                    },
-                }
-            },
-            "/tools/zammad_get_ticket_details": {
-                "post": {
-                    "operationId": "zammad_get_ticket_details",
-                    "summary": "Get ticket details",
-                    "description": "Get detailed information about a specific ticket including all articles/messages.",
-                    "requestBody": {
-                        "required": True,
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "required": ["ticket_id"],
-                                    "properties": {
-                                        "ticket_id": {
-                                            "type": "integer",
-                                            "description": "ID or number of the ticket to retrieve (e.g., 1 or 20001)",
-                                        }
-                                    },
-                                }
-                            }
-                        },
-                    },
-                    "responses": {
-                        "200": {
-                            "description": "Successful response",
-                            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ToolResponse"}}},
-                        }
-                    },
-                }
-            },
-            "/tools/zammad_add_comment": {
-                "post": {
-                    "operationId": "zammad_add_comment",
-                    "summary": "Add comment to ticket",
-                    "description": "Add a comment/reply to an existing ticket.",
-                    "requestBody": {
-                        "required": True,
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "required": ["ticket_id", "comment"],
-                                    "properties": {
-                                        "ticket_id": {"type": "integer", "description": "ID of the ticket"},
-                                        "comment": {"type": "string", "description": "Comment content"},
-                                        "internal": {
-                                            "type": "boolean",
-                                            "default": False,
-                                            "description": "Whether the comment is internal (not visible to customer)",
-                                        },
-                                    },
-                                }
-                            }
-                        },
-                    },
-                    "responses": {
-                        "200": {
-                            "description": "Successful response",
-                            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ToolResponse"}}},
-                        }
-                    },
-                }
-            },
-            "/tools/zammad_update_ticket_status": {
-                "post": {
-                    "operationId": "zammad_update_ticket_status",
-                    "summary": "Update ticket status",
-                    "description": "Update the status of a ticket (open, pending, closed).",
-                    "requestBody": {
-                        "required": True,
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "required": ["ticket_id", "status"],
-                                    "properties": {
-                                        "ticket_id": {"type": "integer", "description": "ID of the ticket"},
-                                        "status": {
-                                            "type": "string",
-                                            "enum": ["open", "pending", "closed"],
-                                            "description": "New status for the ticket",
-                                        },
-                                    },
-                                }
-                            }
-                        },
-                    },
-                    "responses": {
-                        "200": {
-                            "description": "Successful response",
-                            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ToolResponse"}}},
-                        }
-                    },
-                }
-            },
-            "/tools/zammad_get_ticket_stats": {
-                "post": {
-                    "operationId": "zammad_get_ticket_stats",
-                    "summary": "Get ticket statistics",
-                    "description": "Get statistics about tickets (open count, pending, closed, etc.).",
-                    "responses": {
-                        "200": {
-                            "description": "Successful response",
-                            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ToolResponse"}}},
-                        }
-                    },
-                }
-            },
-            "/tools/openwebui_get_status": {
-                "post": {
-                    "operationId": "openwebui_get_status",
-                    "summary": "Get Open WebUI status",
-                    "description": "Get Open WebUI service status including version and current user info.",
-                    "responses": {
-                        "200": {
-                            "description": "Successful response",
-                            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ToolResponse"}}},
-                        }
-                    },
-                }
-            },
-            "/tools/openwebui_get_users": {
-                "post": {
-                    "operationId": "openwebui_get_users",
-                    "summary": "Get Open WebUI users",
-                    "description": "Get list of all users registered in Open WebUI (requires admin privileges).",
-                    "requestBody": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "limit": {
-                                            "type": "integer",
-                                            "default": 50,
-                                            "description": "Maximum number of users to return",
-                                        }
-                                    },
-                                }
-                            }
-                        }
-                    },
-                    "responses": {
-                        "200": {
-                            "description": "Successful response",
-                            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ToolResponse"}}},
-                        }
-                    },
-                }
-            },
-            "/tools/openwebui_get_models": {
-                "post": {
-                    "operationId": "openwebui_get_models",
-                    "summary": "Get available AI models",
-                    "description": "Get list of available AI models in Open WebUI.",
-                    "responses": {
-                        "200": {
-                            "description": "Successful response",
-                            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ToolResponse"}}},
-                        }
-                    },
-                }
-            },
-            "/tools/openwebui_get_chats": {
-                "post": {
-                    "operationId": "openwebui_get_chats",
-                    "summary": "Get chat history",
-                    "description": "Get chat history for the authenticated user.",
-                    "requestBody": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "limit": {
-                                            "type": "integer",
-                                            "default": 20,
-                                            "description": "Maximum number of chats to return",
-                                        }
-                                    },
-                                }
-                            }
-                        }
-                    },
-                    "responses": {
-                        "200": {
-                            "description": "Successful response",
-                            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ToolResponse"}}},
-                        }
-                    },
-                }
-            },
-            "/tools/openwebui_get_statistics": {
-                "post": {
-                    "operationId": "openwebui_get_statistics",
-                    "summary": "Get Open WebUI statistics",
-                    "description": "Get Open WebUI statistics including user count, models, and chat activity.",
-                    "responses": {
-                        "200": {
-                            "description": "Successful response",
-                            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ToolResponse"}}},
-                        }
-                    },
-                }
-            },
-            "/tools/openwebui_search_users": {
-                "post": {
-                    "operationId": "openwebui_search_users",
-                    "summary": "Search Open WebUI users",
-                    "description": "Search for users by email or name in Open WebUI (requires admin privileges).",
-                    "requestBody": {
-                        "required": True,
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "required": ["query"],
-                                    "properties": {
-                                        "query": {"type": "string", "description": "Search query (email or name)"}
-                                    },
-                                }
-                            }
-                        },
-                    },
-                    "responses": {
-                        "200": {
-                            "description": "Successful response",
-                            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ToolResponse"}}},
-                        }
-                    },
-                }
-            },
-            # ============== ROMM ==============
-            "/tools/romm_get_platforms": {
-                "post": {
-                    "operationId": "romm_get_platforms",
-                    "summary": "Get ROM platforms",
-                    "description": "Get list of gaming platforms in RomM.",
-                    "responses": {
-                        "200": {
-                            "description": "Successful response",
-                            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ToolResponse"}}},
-                        }
-                    },
-                }
-            },
-            "/tools/romm_get_roms": {
-                "post": {
-                    "operationId": "romm_get_roms",
-                    "summary": "Get ROMs",
-                    "description": "Get list of ROMs, optionally filtered by platform.",
-                    "requestBody": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "platform_id": {"type": "integer", "description": "Platform ID to filter"},
-                                        "limit": {"type": "integer", "default": 50, "description": "Max results"},
-                                    },
-                                }
-                            }
-                        }
-                    },
-                    "responses": {
-                        "200": {
-                            "description": "Successful response",
-                            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ToolResponse"}}},
-                        }
-                    },
-                }
-            },
-            "/tools/romm_search": {
-                "post": {
-                    "operationId": "romm_search",
-                    "summary": "Search ROMs",
-                    "description": "Search for ROMs by name.",
-                    "requestBody": {
-                        "required": True,
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "required": ["query"],
-                                    "properties": {"query": {"type": "string", "description": "Search query"}},
-                                }
-                            }
-                        },
-                    },
-                    "responses": {
-                        "200": {
-                            "description": "Successful response",
-                            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ToolResponse"}}},
-                        }
-                    },
-                }
-            },
-            "/tools/romm_get_statistics": {
-                "post": {
-                    "operationId": "romm_get_statistics",
-                    "summary": "Get RomM statistics",
-                    "description": "Get RomM library statistics.",
-                    "responses": {
-                        "200": {
-                            "description": "Successful response",
-                            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ToolResponse"}}},
-                        }
-                    },
-                }
-            },
-            # ============== KOMGA ==============
-            "/tools/komga_get_libraries": {
-                "post": {
-                    "operationId": "komga_get_libraries",
-                    "summary": "Get Komga libraries",
-                    "description": "Get list of comic/manga libraries in Komga.",
-                    "responses": {
-                        "200": {
-                            "description": "Successful response",
-                            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ToolResponse"}}},
-                        }
-                    },
-                }
-            },
-            "/tools/komga_search": {
-                "post": {
-                    "operationId": "komga_search",
-                    "summary": "Search Komga",
-                    "description": "Search for series and books in Komga by title. Returns detailed information including genres, publisher, read progress, and URLs. Can optionally filter by library name.",
-                    "requestBody": {
-                        "required": True,
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "required": ["query"],
-                                    "properties": {
-                                        "query": {"type": "string", "description": "Search query (searches in titles)"},
-                                        "library_name": {"type": "string", "description": "Library name to search in (e.g., 'Comics', 'Manga')"},
-                                        "limit": {"type": "integer", "default": 20, "description": "Maximum number of results per category"},
-                                    },
-                                }
-                            }
-                        },
-                    },
-                    "responses": {
-                        "200": {
-                            "description": "Successful response",
-                            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ToolResponse"}}},
-                        }
-                    },
-                }
-            },
-            "/tools/komga_get_users": {
-                "post": {
-                    "operationId": "komga_get_users",
-                    "summary": "Get Komga users",
-                    "description": "Get list of users in Komga.",
-                    "responses": {
-                        "200": {
-                            "description": "Successful response",
-                            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ToolResponse"}}},
-                        }
-                    },
-                }
-            },
-            "/tools/komga_get_statistics": {
-                "post": {
-                    "operationId": "komga_get_statistics",
-                    "summary": "Get Komga statistics",
-                    "description": "Get Komga library statistics.",
-                    "responses": {
-                        "200": {
-                            "description": "Successful response",
-                            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ToolResponse"}}},
-                        }
-                    },
-                }
-            },
-            # ============== SONARR ==============
-            "/tools/sonarr_get_series": {
-                "post": {
-                    "operationId": "sonarr_get_series",
-                    "summary": "Get TV series from Sonarr",
-                    "description": "Get list of TV series in Sonarr library.",
-                    "requestBody": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "limit": {"type": "integer", "default": 50, "description": "Max results"}
-                                    },
-                                }
-                            }
-                        }
-                    },
-                    "responses": {
-                        "200": {
-                            "description": "Successful response",
-                            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ToolResponse"}}},
-                        }
-                    },
-                }
-            },
-            "/tools/sonarr_search_series": {
-                "post": {
-                    "operationId": "sonarr_search_series",
-                    "summary": "Search for TV series",
-                    "description": "Search for a TV series to add to Sonarr.",
-                    "requestBody": {
-                        "required": True,
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "required": ["query"],
-                                    "properties": {"query": {"type": "string", "description": "TV series title"}},
-                                }
-                            }
-                        },
-                    },
-                    "responses": {
-                        "200": {
-                            "description": "Successful response",
-                            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ToolResponse"}}},
-                        }
-                    },
-                }
-            },
-            "/tools/sonarr_get_queue": {
-                "post": {
-                    "operationId": "sonarr_get_queue",
-                    "summary": "Get Sonarr download queue",
-                    "description": "Get current download queue in Sonarr.",
-                    "responses": {
-                        "200": {
-                            "description": "Successful response",
-                            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ToolResponse"}}},
-                        }
-                    },
-                }
-            },
-            "/tools/sonarr_get_calendar": {
-                "post": {
-                    "operationId": "sonarr_get_calendar",
-                    "summary": "Get Sonarr calendar",
-                    "description": "Get upcoming TV episode releases.",
-                    "requestBody": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "days": {"type": "integer", "default": 7, "description": "Days ahead"}
-                                    },
-                                }
-                            }
-                        }
-                    },
-                    "responses": {
-                        "200": {
-                            "description": "Successful response",
-                            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ToolResponse"}}},
-                        }
-                    },
-                }
-            },
-            "/tools/sonarr_get_statistics": {
-                "post": {
-                    "operationId": "sonarr_get_statistics",
-                    "summary": "Get Sonarr statistics",
-                    "description": "Get Sonarr library statistics.",
-                    "responses": {
-                        "200": {
-                            "description": "Successful response",
-                            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ToolResponse"}}},
-                        }
-                    },
-                }
-            },
-            # ============== RADARR ==============
-            "/tools/radarr_get_movies": {
-                "post": {
-                    "operationId": "radarr_get_movies",
-                    "summary": "Get movies from Radarr",
-                    "description": "Get list of movies in Radarr library.",
-                    "requestBody": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "limit": {"type": "integer", "default": 50, "description": "Max results"}
-                                    },
-                                }
-                            }
-                        }
-                    },
-                    "responses": {
-                        "200": {
-                            "description": "Successful response",
-                            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ToolResponse"}}},
-                        }
-                    },
-                }
-            },
-            "/tools/radarr_search_movie": {
-                "post": {
-                    "operationId": "radarr_search_movie",
-                    "summary": "Search for movie",
-                    "description": "Search for a movie to add to Radarr.",
-                    "requestBody": {
-                        "required": True,
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "required": ["query"],
-                                    "properties": {"query": {"type": "string", "description": "Movie title"}},
-                                }
-                            }
-                        },
-                    },
-                    "responses": {
-                        "200": {
-                            "description": "Successful response",
-                            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ToolResponse"}}},
-                        }
-                    },
-                }
-            },
-            "/tools/radarr_get_queue": {
-                "post": {
-                    "operationId": "radarr_get_queue",
-                    "summary": "Get Radarr download queue",
-                    "description": "Get current download queue in Radarr.",
-                    "responses": {
-                        "200": {
-                            "description": "Successful response",
-                            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ToolResponse"}}},
-                        }
-                    },
-                }
-            },
-            "/tools/radarr_get_calendar": {
-                "post": {
-                    "operationId": "radarr_get_calendar",
-                    "summary": "Get Radarr calendar",
-                    "description": "Get upcoming movie releases.",
-                    "requestBody": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "days": {"type": "integer", "default": 7, "description": "Days ahead"}
-                                    },
-                                }
-                            }
-                        }
-                    },
-                    "responses": {
-                        "200": {
-                            "description": "Successful response",
-                            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ToolResponse"}}},
-                        }
-                    },
-                }
-            },
-            "/tools/radarr_get_statistics": {
-                "post": {
-                    "operationId": "radarr_get_statistics",
-                    "summary": "Get Radarr statistics",
-                    "description": "Get Radarr library statistics.",
-                    "responses": {
-                        "200": {
-                            "description": "Successful response",
-                            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ToolResponse"}}},
-                        }
-                    },
-                }
-            },
-            # ============== PROWLARR ==============
-            "/tools/prowlarr_get_indexers": {
-                "post": {
-                    "operationId": "prowlarr_get_indexers",
-                    "summary": "Get Prowlarr indexers",
-                    "description": "Get list of configured indexers.",
-                    "responses": {
-                        "200": {
-                            "description": "Successful response",
-                            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ToolResponse"}}},
-                        }
-                    },
-                }
-            },
-            "/tools/prowlarr_search": {
-                "post": {
-                    "operationId": "prowlarr_search",
-                    "summary": "Search in Prowlarr",
-                    "description": "Search across all indexers.",
-                    "requestBody": {
-                        "required": True,
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "required": ["query"],
-                                    "properties": {
-                                        "query": {"type": "string", "description": "Search query"},
-                                        "limit": {"type": "integer", "default": 50, "description": "Max results"},
-                                    },
-                                }
-                            }
-                        },
-                    },
-                    "responses": {
-                        "200": {
-                            "description": "Successful response",
-                            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ToolResponse"}}},
-                        }
-                    },
-                }
-            },
-            "/tools/prowlarr_get_statistics": {
-                "post": {
-                    "operationId": "prowlarr_get_statistics",
-                    "summary": "Get Prowlarr statistics",
-                    "description": "Get Prowlarr overall statistics.",
-                    "responses": {
-                        "200": {
-                            "description": "Successful response",
-                            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ToolResponse"}}},
-                        }
-                    },
-                }
-            },
-        },
+        "paths": paths,
         "components": {
             "schemas": {
                 "ToolResponse": {
@@ -1878,6 +462,7 @@ async def get_tool_registry(session: AsyncSession) -> ToolRegistry:
             base_url = f"{base_url}:{svc.port}"
         configs_by_type[svc_type] = {
             "base_url": base_url,
+            "external_url": svc.external_url,  # Public URL for user-facing links
             "api_key": svc.api_key,
             "username": svc.username,
             "password": svc.password,
@@ -3771,3 +2356,751 @@ async def authentik_deactivate_user(
     """Deactivate Authentik user."""
     result = await execute_tool_with_logging(session, "authentik_deactivate_user", body.model_dump(), request)
     return ToolResponse(**result)
+
+
+# ============================================================================
+# Indexer Tools (Radarr, Sonarr, Prowlarr, Jackett)
+# ============================================================================
+
+
+@router.post(
+    "/radarr_get_indexers",
+    response_model=ToolResponse,
+    summary="Get Radarr indexers",
+    description="Get list of configured indexers in Radarr.",
+)
+async def radarr_get_indexers(request: Request, session: AsyncSession = Depends(get_db_session)):
+    """Get Radarr indexers."""
+    result = await execute_tool_with_logging(session, "radarr_get_indexers", {}, request)
+    return ToolResponse(**result)
+
+
+@router.post(
+    "/radarr_test_indexer",
+    response_model=ToolResponse,
+    summary="Test Radarr indexer",
+    description="Test connectivity to a specific indexer in Radarr.",
+)
+async def radarr_test_indexer(
+    request: Request,
+    body: dict = {"indexer_id": Field(..., description="ID of the indexer to test")},
+    session: AsyncSession = Depends(get_db_session),
+):
+    """Test Radarr indexer."""
+    result = await execute_tool_with_logging(session, "radarr_test_indexer", body, request)
+    return ToolResponse(**result)
+
+
+@router.post(
+    "/radarr_test_all_indexers",
+    response_model=ToolResponse,
+    summary="Test all Radarr indexers",
+    description="Test connectivity to all configured indexers in Radarr.",
+)
+async def radarr_test_all_indexers(request: Request, session: AsyncSession = Depends(get_db_session)):
+    """Test all Radarr indexers."""
+    result = await execute_tool_with_logging(session, "radarr_test_all_indexers", {}, request)
+    return ToolResponse(**result)
+
+
+@router.post(
+    "/sonarr_get_indexers",
+    response_model=ToolResponse,
+    summary="Get Sonarr indexers",
+    description="Get list of configured indexers in Sonarr.",
+)
+async def sonarr_get_indexers(request: Request, session: AsyncSession = Depends(get_db_session)):
+    """Get Sonarr indexers."""
+    result = await execute_tool_with_logging(session, "sonarr_get_indexers", {}, request)
+    return ToolResponse(**result)
+
+
+@router.post(
+    "/sonarr_test_indexer",
+    response_model=ToolResponse,
+    summary="Test Sonarr indexer",
+    description="Test connectivity to a specific indexer in Sonarr.",
+)
+async def sonarr_test_indexer(
+    request: Request,
+    body: dict = {"indexer_id": Field(..., description="ID of the indexer to test")},
+    session: AsyncSession = Depends(get_db_session),
+):
+    """Test Sonarr indexer."""
+    result = await execute_tool_with_logging(session, "sonarr_test_indexer", body, request)
+    return ToolResponse(**result)
+
+
+@router.post(
+    "/sonarr_test_all_indexers",
+    response_model=ToolResponse,
+    summary="Test all Sonarr indexers",
+    description="Test connectivity to all configured indexers in Sonarr.",
+)
+async def sonarr_test_all_indexers(request: Request, session: AsyncSession = Depends(get_db_session)):
+    """Test all Sonarr indexers."""
+    result = await execute_tool_with_logging(session, "sonarr_test_all_indexers", {}, request)
+    return ToolResponse(**result)
+
+
+@router.post(
+    "/prowlarr_test_indexer",
+    response_model=ToolResponse,
+    summary="Test Prowlarr indexer",
+    description="Test connectivity to a specific indexer in Prowlarr.",
+)
+async def prowlarr_test_indexer(
+    request: Request,
+    body: dict = {"indexer_id": Field(..., description="ID of the indexer to test")},
+    session: AsyncSession = Depends(get_db_session),
+):
+    """Test Prowlarr indexer."""
+    result = await execute_tool_with_logging(session, "prowlarr_test_indexer", body, request)
+    return ToolResponse(**result)
+
+
+@router.post(
+    "/prowlarr_test_all_indexers",
+    response_model=ToolResponse,
+    summary="Test all Prowlarr indexers",
+    description="Test connectivity to all configured indexers in Prowlarr.",
+)
+async def prowlarr_test_all_indexers(request: Request, session: AsyncSession = Depends(get_db_session)):
+    """Test all Prowlarr indexers."""
+    result = await execute_tool_with_logging(session, "prowlarr_test_all_indexers", {}, request)
+    return ToolResponse(**result)
+
+
+@router.post(
+    "/prowlarr_get_applications",
+    response_model=ToolResponse,
+    summary="Get Prowlarr applications",
+    description="Get list of applications connected to Prowlarr (Radarr, Sonarr, etc.).",
+)
+async def prowlarr_get_applications(request: Request, session: AsyncSession = Depends(get_db_session)):
+    """Get Prowlarr applications."""
+    result = await execute_tool_with_logging(session, "prowlarr_get_applications", {}, request)
+    return ToolResponse(**result)
+
+
+@router.post(
+    "/prowlarr_get_indexer_stats",
+    response_model=ToolResponse,
+    summary="Get Prowlarr indexer statistics",
+    description="Get statistics for all indexers in Prowlarr.",
+)
+async def prowlarr_get_indexer_stats(request: Request, session: AsyncSession = Depends(get_db_session)):
+    """Get Prowlarr indexer stats."""
+    result = await execute_tool_with_logging(session, "prowlarr_get_indexer_stats", {}, request)
+    return ToolResponse(**result)
+
+
+@router.post(
+    "/jackett_get_indexers",
+    response_model=ToolResponse,
+    summary="Get Jackett indexers",
+    description="Get list of configured indexers in Jackett.",
+)
+async def jackett_get_indexers(request: Request, session: AsyncSession = Depends(get_db_session)):
+    """Get Jackett indexers."""
+    result = await execute_tool_with_logging(session, "jackett_get_indexers", {}, request)
+    return ToolResponse(**result)
+
+
+class JackettSearchRequest(BaseModel):
+    """Search request for Jackett."""
+
+    query: str = Field(..., description="Search query")
+    indexer_ids: Optional[str] = Field(None, description="Comma-separated indexer IDs (optional)")
+    categories: Optional[str] = Field(None, description="Comma-separated category IDs (optional)")
+
+
+@router.post(
+    "/jackett_search",
+    response_model=ToolResponse,
+    summary="Search Jackett",
+    description="Search across Jackett indexers.",
+)
+async def jackett_search(request: Request, body: JackettSearchRequest, session: AsyncSession = Depends(get_db_session)):
+    """Search in Jackett."""
+    result = await execute_tool_with_logging(session, "jackett_search", body.model_dump(exclude_none=True), request)
+    return ToolResponse(**result)
+
+
+@router.post(
+    "/jackett_test_indexer",
+    response_model=ToolResponse,
+    summary="Test Jackett indexer",
+    description="Test connectivity to a specific indexer in Jackett.",
+)
+async def jackett_test_indexer(
+    request: Request,
+    body: dict = {"indexer_id": Field(..., description="ID of the indexer to test")},
+    session: AsyncSession = Depends(get_db_session),
+):
+    """Test Jackett indexer."""
+    result = await execute_tool_with_logging(session, "jackett_test_indexer", body, request)
+    return ToolResponse(**result)
+
+
+@router.post(
+    "/jackett_test_all_indexers",
+    response_model=ToolResponse,
+    summary="Test all Jackett indexers",
+    description="Test connectivity to all configured indexers in Jackett.",
+)
+async def jackett_test_all_indexers(request: Request, session: AsyncSession = Depends(get_db_session)):
+    """Test all Jackett indexers."""
+    result = await execute_tool_with_logging(session, "jackett_test_all_indexers", {}, request)
+    return ToolResponse(**result)
+
+
+@router.post(
+    "/jackett_get_statistics",
+    response_model=ToolResponse,
+    summary="Get Jackett statistics",
+    description="Get Jackett indexer statistics.",
+)
+async def jackett_get_statistics(request: Request, session: AsyncSession = Depends(get_db_session)):
+    """Get Jackett statistics."""
+    result = await execute_tool_with_logging(session, "jackett_get_statistics", {}, request)
+    return ToolResponse(**result)
+
+
+# ============================================================================
+# Deluge Tools
+# ============================================================================
+
+
+class DelugeAddTorrentRequest(BaseModel):
+    """Add torrent request."""
+
+    magnet_or_url: str = Field(..., description="Magnet link or torrent URL")
+
+
+@router.post(
+    "/deluge_get_torrents",
+    response_model=ToolResponse,
+    summary="Get Deluge torrents",
+    description="Get list of torrents in Deluge.",
+)
+async def deluge_get_torrents(request: Request, session: AsyncSession = Depends(get_db_session)):
+    """Get Deluge torrents."""
+    result = await execute_tool_with_logging(session, "deluge_get_torrents", {}, request)
+    return ToolResponse(**result)
+
+
+@router.post(
+    "/deluge_add_torrent",
+    response_model=ToolResponse,
+    summary="Add torrent to Deluge",
+    description="Add a torrent to Deluge via magnet link or URL.",
+)
+async def deluge_add_torrent(
+    request: Request, body: DelugeAddTorrentRequest, session: AsyncSession = Depends(get_db_session)
+):
+    """Add torrent to Deluge."""
+    result = await execute_tool_with_logging(session, "deluge_add_torrent", body.model_dump(), request)
+    return ToolResponse(**result)
+
+
+class DelugeTorrentRequest(BaseModel):
+    """Torrent operation request."""
+
+    torrent_id: str = Field(..., description="Torrent ID/hash")
+
+
+@router.post(
+    "/deluge_pause_torrent",
+    response_model=ToolResponse,
+    summary="Pause Deluge torrent",
+    description="Pause a torrent in Deluge.",
+)
+async def deluge_pause_torrent(
+    request: Request, body: DelugeTorrentRequest, session: AsyncSession = Depends(get_db_session)
+):
+    """Pause Deluge torrent."""
+    result = await execute_tool_with_logging(session, "deluge_pause_torrent", body.model_dump(), request)
+    return ToolResponse(**result)
+
+
+@router.post(
+    "/deluge_resume_torrent",
+    response_model=ToolResponse,
+    summary="Resume Deluge torrent",
+    description="Resume a paused torrent in Deluge.",
+)
+async def deluge_resume_torrent(
+    request: Request, body: DelugeTorrentRequest, session: AsyncSession = Depends(get_db_session)
+):
+    """Resume Deluge torrent."""
+    result = await execute_tool_with_logging(session, "deluge_resume_torrent", body.model_dump(), request)
+    return ToolResponse(**result)
+
+
+class DelugeRemoveTorrentRequest(BaseModel):
+    """Remove torrent request."""
+
+    torrent_id: str = Field(..., description="Torrent ID/hash")
+    remove_data: bool = Field(False, description="Also remove downloaded data")
+
+
+@router.post(
+    "/deluge_remove_torrent",
+    response_model=ToolResponse,
+    summary="Remove Deluge torrent",
+    description="Remove a torrent from Deluge.",
+)
+async def deluge_remove_torrent(
+    request: Request, body: DelugeRemoveTorrentRequest, session: AsyncSession = Depends(get_db_session)
+):
+    """Remove Deluge torrent."""
+    result = await execute_tool_with_logging(session, "deluge_remove_torrent", body.model_dump(), request)
+    return ToolResponse(**result)
+
+
+@router.post(
+    "/deluge_get_statistics",
+    response_model=ToolResponse,
+    summary="Get Deluge statistics",
+    description="Get Deluge client statistics.",
+)
+async def deluge_get_statistics(request: Request, session: AsyncSession = Depends(get_db_session)):
+    """Get Deluge statistics."""
+    result = await execute_tool_with_logging(session, "deluge_get_statistics", {}, request)
+    return ToolResponse(**result)
+
+
+# ============================================================================
+# RomM additional tools
+# ============================================================================
+
+
+@router.post(
+    "/romm_get_collections",
+    response_model=ToolResponse,
+    summary="Get RomM collections",
+    description="Get list of ROM collections in RomM.",
+)
+async def romm_get_collections(request: Request, session: AsyncSession = Depends(get_db_session)):
+    """Get RomM collections."""
+    result = await execute_tool_with_logging(session, "romm_get_collections", {}, request)
+    return ToolResponse(**result)
+
+
+@router.post(
+    "/romm_get_users",
+    response_model=ToolResponse,
+    summary="Get RomM users",
+    description="Get list of users in RomM.",
+)
+async def romm_get_users(request: Request, session: AsyncSession = Depends(get_db_session)):
+    """Get RomM users."""
+    result = await execute_tool_with_logging(session, "romm_get_users", {}, request)
+    return ToolResponse(**result)
+
+
+@router.post(
+    "/romm_search_roms",
+    response_model=ToolResponse,
+    summary="Search ROMs",
+    description="Search for ROMs by name in RomM.",
+)
+async def romm_search_roms(request: Request, body: RommSearchRequest, session: AsyncSession = Depends(get_db_session)):
+    """Search ROMs in RomM."""
+    result = await execute_tool_with_logging(session, "romm_search_roms", body.model_dump(), request)
+    return ToolResponse(**result)
+
+
+# ============================================================================
+# System additional tools
+# ============================================================================
+
+
+class SystemGetLogsRequest(BaseModel):
+    """Get logs request."""
+
+    level: str = Field("info", description="Log level filter: debug, info, warning, error")
+    limit: int = Field(100, description="Maximum number of log entries")
+
+
+@router.post(
+    "/system_get_logs",
+    response_model=ToolResponse,
+    summary="Get system logs",
+    description="Get recent system logs with optional level filtering.",
+)
+async def system_get_logs(
+    request: Request, body: SystemGetLogsRequest = SystemGetLogsRequest(), session: AsyncSession = Depends(get_db_session)
+):
+    """Get system logs."""
+    result = await execute_tool_with_logging(session, "system_get_logs", body.model_dump(), request)
+    return ToolResponse(**result)
+
+
+class SystemGetAlertsRequest(BaseModel):
+    """Get alerts request."""
+
+    active_only: bool = Field(True, description="Only return active alerts")
+
+
+@router.post(
+    "/system_get_alerts",
+    response_model=ToolResponse,
+    summary="Get system alerts",
+    description="Get current system alerts.",
+)
+async def system_get_alerts(
+    request: Request,
+    body: SystemGetAlertsRequest = SystemGetAlertsRequest(),
+    session: AsyncSession = Depends(get_db_session),
+):
+    """Get system alerts."""
+    result = await execute_tool_with_logging(session, "system_get_alerts", body.model_dump(), request)
+    return ToolResponse(**result)
+
+
+@router.post(
+    "/system_get_services",
+    response_model=ToolResponse,
+    summary="Get configured services",
+    description="Get list of all configured services and their status.",
+)
+async def system_get_services(request: Request, session: AsyncSession = Depends(get_db_session)):
+    """Get configured services."""
+    result = await execute_tool_with_logging(session, "system_get_services", {}, request)
+    return ToolResponse(**result)
+
+
+@router.post(
+    "/system_get_users",
+    response_model=ToolResponse,
+    summary="Get MCParr users",
+    description="Get list of users configured in MCParr.",
+)
+async def system_get_users(request: Request, session: AsyncSession = Depends(get_db_session)):
+    """Get MCParr users."""
+    result = await execute_tool_with_logging(session, "system_get_users", {}, request)
+    return ToolResponse(**result)
+
+
+class SystemTestServiceRequest(BaseModel):
+    """Test service request."""
+
+    service_name: str = Field(..., description="Name of the service to test")
+
+
+@router.post(
+    "/system_test_service",
+    response_model=ToolResponse,
+    summary="Test service connection",
+    description="Test connectivity to a specific service.",
+)
+async def system_test_service(
+    request: Request, body: SystemTestServiceRequest, session: AsyncSession = Depends(get_db_session)
+):
+    """Test service connection."""
+    result = await execute_tool_with_logging(session, "system_test_service", body.model_dump(), request)
+    return ToolResponse(**result)
+
+
+# ============================================================================
+# Overseerr additional tools
+# ============================================================================
+
+
+@router.post(
+    "/overseerr_search_media",
+    response_model=ToolResponse,
+    summary="Search media in Overseerr",
+    description="Search for movies or TV shows in Overseerr.",
+)
+async def overseerr_search_media(
+    request: Request, body: OverseerrSearchRequest, session: AsyncSession = Depends(get_db_session)
+):
+    """Search media in Overseerr."""
+    result = await execute_tool_with_logging(session, "overseerr_search_media", body.model_dump(exclude_none=True), request)
+    return ToolResponse(**result)
+
+
+@router.post(
+    "/overseerr_check_availability",
+    response_model=ToolResponse,
+    summary="Check media availability",
+    description="Check if a movie or TV show is available in the library.",
+)
+async def overseerr_check_availability(
+    request: Request, body: OverseerrSearchRequest, session: AsyncSession = Depends(get_db_session)
+):
+    """Check media availability."""
+    result = await execute_tool_with_logging(session, "overseerr_check_availability", body.model_dump(exclude_none=True), request)
+    return ToolResponse(**result)
+
+
+@router.post(
+    "/overseerr_get_users",
+    response_model=ToolResponse,
+    summary="Get Overseerr users",
+    description="Get list of users in Overseerr.",
+)
+async def overseerr_get_users(request: Request, session: AsyncSession = Depends(get_db_session)):
+    """Get Overseerr users."""
+    result = await execute_tool_with_logging(session, "overseerr_get_users", {}, request)
+    return ToolResponse(**result)
+
+
+@router.post(
+    "/overseerr_get_statistics",
+    response_model=ToolResponse,
+    summary="Get Overseerr statistics",
+    description="Get Overseerr request statistics.",
+)
+async def overseerr_get_statistics(request: Request, session: AsyncSession = Depends(get_db_session)):
+    """Get Overseerr statistics."""
+    result = await execute_tool_with_logging(session, "overseerr_get_statistics", {}, request)
+    return ToolResponse(**result)
+
+
+# ============================================================================
+# Open WebUI Auto-Configuration
+# ============================================================================
+
+# Tool filter groups for Open WebUI configuration
+# Names are in French for display in Open WebUI interface
+OPENWEBUI_TOOL_GROUPS = {
+    "media": {
+        "name": "MCParr - Média (Plex/Tautulli)",
+        "description": "Plex and Tautulli media tools",
+        "tools": "plex_get_active_sessions,plex_get_libraries,plex_get_media_details,plex_get_on_deck,plex_get_recently_added,plex_search_media,tautulli_get_activity,tautulli_get_history,tautulli_get_libraries,tautulli_get_recently_added,tautulli_get_server_info,tautulli_get_statistics,tautulli_get_top_movies,tautulli_get_top_music,tautulli_get_top_platforms,tautulli_get_top_tv_shows,tautulli_get_top_users,tautulli_get_user_stats,tautulli_get_users,tautulli_get_watch_stats_summary",
+    },
+    "books": {
+        "name": "MCParr - Livres & Audio",
+        "description": "Audiobookshelf and Komga tools",
+        "tools": "audiobookshelf_get_libraries,audiobookshelf_get_library_items,audiobookshelf_get_listening_stats,audiobookshelf_get_media_progress,audiobookshelf_get_statistics,audiobookshelf_get_users,audiobookshelf_search,komga_get_libraries,komga_get_statistics,komga_get_users,komga_search",
+    },
+    "download": {
+        "name": "MCParr - Téléchargement",
+        "description": "Radarr, Sonarr, Prowlarr, Overseerr, Jackett, and Deluge tools",
+        "tools": "deluge_add_torrent,deluge_get_statistics,deluge_get_torrents,deluge_pause_torrent,deluge_remove_torrent,deluge_resume_torrent,jackett_get_indexers,jackett_get_statistics,jackett_search,jackett_test_all_indexers,jackett_test_indexer,overseerr_check_availability,overseerr_get_requests,overseerr_get_statistics,overseerr_get_trending,overseerr_get_users,overseerr_request_media,overseerr_search_media,prowlarr_get_applications,prowlarr_get_indexer_stats,prowlarr_get_indexers,prowlarr_get_statistics,prowlarr_search,prowlarr_test_all_indexers,prowlarr_test_indexer,radarr_get_calendar,radarr_get_indexers,radarr_get_movies,radarr_get_queue,radarr_get_statistics,radarr_search_movie,radarr_test_all_indexers,radarr_test_indexer,sonarr_get_calendar,sonarr_get_indexers,sonarr_get_queue,sonarr_get_series,sonarr_get_statistics,sonarr_search_series,sonarr_test_all_indexers,sonarr_test_indexer",
+    },
+    "games": {
+        "name": "MCParr - Jeux (RomM)",
+        "description": "RomM ROM management tools",
+        "tools": "romm_get_collections,romm_get_platforms,romm_get_roms,romm_get_statistics,romm_get_users,romm_search_roms",
+    },
+    "system": {
+        "name": "MCParr - Système & Support",
+        "description": "System monitoring and Zammad support tools",
+        "tools": "system_get_alerts,system_get_health,system_get_logs,system_get_metrics,system_get_services,system_get_users,system_list_tools,system_test_service,zammad_add_comment,zammad_create_ticket,zammad_get_ticket_details,zammad_get_ticket_stats,zammad_get_tickets,zammad_search_tickets,zammad_update_ticket_status",
+    },
+    "knowledge": {
+        "name": "MCParr - Connaissances & IA",
+        "description": "WikiJS and Open WebUI tools",
+        "tools": "openwebui_get_chats,openwebui_get_models,openwebui_get_statistics,openwebui_get_status,openwebui_get_users,openwebui_search_users,wikijs_create_page,wikijs_get_page,wikijs_get_page_tree,wikijs_get_pages,wikijs_get_statistics,wikijs_get_tags,wikijs_get_users,wikijs_search",
+    },
+    "auth": {
+        "name": "MCParr - Authentification (SSO)",
+        "description": "Authentik SSO tools",
+        "tools": "authentik_deactivate_user,authentik_get_applications,authentik_get_events,authentik_get_groups,authentik_get_server_info,authentik_get_statistics,authentik_get_user,authentik_get_users,authentik_search_users",
+    },
+}
+
+
+class OpenWebUIAutoConfigRequest(BaseModel):
+    """Request for auto-configuring Open WebUI."""
+
+    mcparr_external_url: str = Field(..., description="External URL of MCParr (e.g., https://mcparr.example.com)")
+    groups: Optional[list[str]] = Field(
+        None, description="Specific groups to configure (default: all). Options: media, books, download, games, system, knowledge, auth"
+    )
+    replace_existing: bool = Field(
+        False, description="Replace existing MCParr tool connections (default: append)"
+    )
+
+
+class OpenWebUIAutoConfigResponse(BaseModel):
+    """Response for auto-configuration."""
+
+    success: bool
+    message: str
+    configured_groups: list[str] = []
+    total_tools: int = 0
+    errors: list[str] = []
+
+
+@router.post(
+    "/configure_openwebui",
+    response_model=OpenWebUIAutoConfigResponse,
+    summary="Auto-configure Open WebUI tools",
+    description="Automatically configure Open WebUI external tool connections for MCParr. Requires Open WebUI service to be configured with admin API key.",
+    include_in_schema=False,
+)
+async def configure_openwebui(
+    request: Request, body: OpenWebUIAutoConfigRequest, session: AsyncSession = Depends(get_db_session)
+) -> OpenWebUIAutoConfigResponse:
+    """
+    Automatically configure Open WebUI with MCParr tool connections.
+
+    This endpoint:
+    1. Verifies Open WebUI service is configured and accessible
+    2. Gets existing tool server connections
+    3. Creates/updates MCParr tool connections by category
+    4. Returns status of configuration
+    """
+    errors = []
+    configured_groups = []
+    total_tools = 0
+
+    # Get Open WebUI service configuration
+    result = await session.execute(
+        select(ServiceConfig).where(
+            ServiceConfig.service_type == "openwebui",
+            ServiceConfig.enabled == True,
+        )
+    )
+    openwebui_config = result.scalar_one_or_none()
+
+    if not openwebui_config:
+        return OpenWebUIAutoConfigResponse(
+            success=False,
+            message="Open WebUI service not configured or not enabled in MCParr",
+            errors=["Please configure Open WebUI service first in the Services tab"],
+        )
+
+    # Build Open WebUI API URL
+    openwebui_url = openwebui_config.base_url.rstrip("/")
+    if openwebui_config.port:
+        openwebui_url = f"{openwebui_url}:{openwebui_config.port}"
+
+    # Get admin API key
+    api_key = openwebui_config.api_key
+    if not api_key:
+        return OpenWebUIAutoConfigResponse(
+            success=False,
+            message="Open WebUI API key not configured",
+            errors=["Please add an admin API key for Open WebUI in the Services tab"],
+        )
+
+    # Determine which groups to configure
+    groups_to_configure = body.groups if body.groups else list(OPENWEBUI_TOOL_GROUPS.keys())
+
+    # Validate group names
+    invalid_groups = [g for g in groups_to_configure if g not in OPENWEBUI_TOOL_GROUPS]
+    if invalid_groups:
+        return OpenWebUIAutoConfigResponse(
+            success=False,
+            message=f"Invalid group names: {', '.join(invalid_groups)}",
+            errors=[f"Valid groups are: {', '.join(OPENWEBUI_TOOL_GROUPS.keys())}"],
+        )
+
+    try:
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            # Step 1: Test Open WebUI connectivity
+            try:
+                test_response = await client.get(
+                    f"{openwebui_url}/api/v1/auths/",
+                    headers={"Authorization": f"Bearer {api_key}"},
+                )
+                if test_response.status_code != 200:
+                    return OpenWebUIAutoConfigResponse(
+                        success=False,
+                        message="Cannot connect to Open WebUI API",
+                        errors=[f"API returned status {test_response.status_code}. Check API key permissions."],
+                    )
+            except Exception as e:
+                return OpenWebUIAutoConfigResponse(
+                    success=False,
+                    message="Cannot connect to Open WebUI",
+                    errors=[str(e)],
+                )
+
+            # Step 2: Get existing tool server connections
+            existing_connections = []
+            try:
+                existing_response = await client.get(
+                    f"{openwebui_url}/api/v1/configs/tool_servers",
+                    headers={"Authorization": f"Bearer {api_key}"},
+                )
+                if existing_response.status_code == 200:
+                    data = existing_response.json()
+                    existing_connections = data.get("TOOL_SERVER_CONNECTIONS", [])
+            except Exception as e:
+                logger.warning(f"Could not get existing connections: {e}")
+
+            # Step 3: Build new connections
+            mcparr_url = body.mcparr_external_url.rstrip("/")
+            new_connections = []
+
+            # Always filter out existing MCParr connections to avoid duplicates
+            # Keep all non-MCParr connections intact
+            non_mcparr_connections = [
+                c for c in existing_connections
+                if not c.get("url", "").startswith(mcparr_url)
+                and not c.get("name", "").startswith("MCParr")
+            ]
+
+            logger.info(
+                f"[OpenWebUI Config] Keeping {len(non_mcparr_connections)} non-MCParr connections, "
+                f"replacing {len(existing_connections) - len(non_mcparr_connections)} MCParr connections"
+            )
+
+            for group_id in groups_to_configure:
+                group_config = OPENWEBUI_TOOL_GROUPS[group_id]
+                tools_list = group_config["tools"]
+                tool_count = len(tools_list.split(","))
+
+                connection = {
+                    "url": mcparr_url,
+                    "path": "/tools/openapi.json",
+                    "type": "openapi",
+                    "auth_type": "session",
+                    "key": "",
+                    "config": {
+                        "function_name_filter_list": tools_list,
+                    },
+                    # Display info in Open WebUI interface ("Nom d'utilisateur" field)
+                    "info": {
+                        "name": group_config["name"],
+                        "description": group_config["description"],
+                    },
+                }
+
+                new_connections.append(connection)
+                configured_groups.append(group_id)
+                total_tools += tool_count
+                logger.info(f"[OpenWebUI Config] Added group '{group_config['name']}' with {tool_count} tools")
+
+            # Step 4: Combine non-MCParr connections with new MCParr connections
+            all_connections = non_mcparr_connections + new_connections
+
+            # Step 5: Update Open WebUI configuration
+            update_response = await client.post(
+                f"{openwebui_url}/api/v1/configs/tool_servers",
+                headers={
+                    "Authorization": f"Bearer {api_key}",
+                    "Content-Type": "application/json",
+                },
+                json={"TOOL_SERVER_CONNECTIONS": all_connections},
+            )
+
+            if update_response.status_code != 200:
+                return OpenWebUIAutoConfigResponse(
+                    success=False,
+                    message="Failed to update Open WebUI configuration",
+                    errors=[f"API returned status {update_response.status_code}: {update_response.text}"],
+                )
+
+            return OpenWebUIAutoConfigResponse(
+                success=True,
+                message=f"Successfully configured {len(configured_groups)} tool groups with {total_tools} tools",
+                configured_groups=configured_groups,
+                total_tools=total_tools,
+            )
+
+    except Exception as e:
+        logger.error(f"[OpenWebUI Config] Error: {e}")
+        return OpenWebUIAutoConfigResponse(
+            success=False,
+            message="Error configuring Open WebUI",
+            errors=[str(e)],
+        )

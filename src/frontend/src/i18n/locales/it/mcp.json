@@ -187,6 +187,61 @@
       "filter": "Filter =",
       "comma": "(virgola)"
     },
+    "autoConfig": {
+      "title": "Configurazione automatica",
+      "description": "Configura automaticamente Open WebUI con gli strumenti MCParr con un clic. Richiede che il servizio Open WebUI sia configurato con una chiave API amministratore.",
+      "urlPlaceholder": "https://mcparr.example.com (URL esterna MCParr)",
+      "button": "Configura Open WebUI",
+      "configuring": "Configurazione...",
+      "errorNoUrl": "URL richiesta",
+      "errorNoUrlDetail": "Inserisci l'URL esterna di MCParr",
+      "errorNetwork": "Errore di connessione",
+      "successDetail": "{{groups}} gruppi configurati con {{tools}} strumenti",
+      "requirement": "Prerequisito: Open WebUI deve essere configurato nella scheda Servizi con una chiave API amministratore",
+      "manual": "manuale"
+    },
+    "openWebUISetup": {
+      "title": "Configurazione Open WebUI - Filtri funzioni",
+      "description": "Per evitare che il modello sia sopraffatto da troppi strumenti, crea più connessioni con filtri. Ecco i gruppi consigliati:",
+      "howTo": "Come configurare",
+      "step1": "Pannello Admin → Impostazioni → Strumenti → Strumenti esterni",
+      "step2": "Crea una connessione per categoria con l'URL MCParr",
+      "step3": "In 'Function Name Filter List', incolla gli strumenti qui sotto",
+      "step4": "Abilita tutte le connessioni nelle impostazioni del modello",
+      "copyFilter": "Copia filtro",
+      "copied": "✓ Copiato!",
+      "toolCount": "{{count}} strumenti",
+      "groups": {
+        "media": {
+          "name": "📺 Media (Plex/Tautulli)",
+          "description": "Librerie, ricerca, sessioni attive, statistiche di visualizzazione"
+        },
+        "books": {
+          "name": "📚 Libri e Audio",
+          "description": "Audiolibri (Audiobookshelf), fumetti/manga (Komga)"
+        },
+        "download": {
+          "name": "⬇️ Download",
+          "description": "Film (Radarr), serie (Sonarr), indexer (Prowlarr), richieste (Overseerr)"
+        },
+        "games": {
+          "name": "🎮 Giochi",
+          "description": "ROM e giochi retro (RomM)"
+        },
+        "system": {
+          "name": "⚙️ Sistema e Supporto",
+          "description": "Salute del sistema, metriche, ticket (Zammad)"
+        },
+        "knowledge": {
+          "name": "📖 Conoscenza e IA",
+          "description": "Wiki.js, Open WebUI"
+        },
+        "auth": {
+          "name": "🔐 Autenticazione",
+          "description": "Utenti e gruppi SSO (Authentik)"
+        }
+      }
+    },
     "troubleshooting": {
       "title": "Gli strumenti non vengono chiamati?",
       "description": "Se il modello dice \"Chiamo lo strumento...\" ma inventa dati, la chiamata nativa delle funzioni non e abilitata.",

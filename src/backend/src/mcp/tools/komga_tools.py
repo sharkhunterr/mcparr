@@ -6,14 +6,14 @@ from .base import BaseTool, ToolDefinition, ToolParameter
 
 
 class KomgaTools(BaseTool):
-    """MCP tools for interacting with Komga comic/manga server."""
+    """MCP tools for interacting with Komga comic/manga/BD server (NOT for audiobooks - use Audiobookshelf instead)."""
 
     @property
     def definitions(self) -> List[ToolDefinition]:
         return [
             ToolDefinition(
                 name="komga_get_libraries",
-                description="Get list of libraries in Komga",
+                description="Get list of comic/manga/BD libraries in Komga (NOT for audiobooks - use Audiobookshelf)",
                 parameters=[],
                 category="media",
                 is_mutation=False,
@@ -22,7 +22,7 @@ class KomgaTools(BaseTool):
             ToolDefinition(
                 name="komga_search",
                 description=(
-                    "Search for series and books in Komga by title. "
+                    "Search for comics, manga, or BD in Komga by title (NOT for audiobooks - use audiobookshelf_search). "
                     "Returns detailed information including genres, publisher, read progress, and URLs. "
                     "Can optionally filter by library name."
                 ),
@@ -64,7 +64,7 @@ class KomgaTools(BaseTool):
             ),
             ToolDefinition(
                 name="komga_get_statistics",
-                description="Get Komga library statistics",
+                description="Get Komga comic/manga/BD library statistics (NOT for audiobooks)",
                 parameters=[],
                 category="media",
                 is_mutation=False,

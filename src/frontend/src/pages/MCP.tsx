@@ -1320,6 +1320,17 @@ const ConfigurationTab = ({ tools }: { tools: McpToolsResponse | null }) => {
   const [_statusLoading, setStatusLoading] = useState(true);
   const [_statusError, setStatusError] = useState<string | null>(null);
 
+  // Auto-configuration state
+  const [autoConfigLoading, setAutoConfigLoading] = useState(false);
+  const [autoConfigResult, setAutoConfigResult] = useState<{
+    success: boolean;
+    message: string;
+    configured_groups?: string[];
+    total_tools?: number;
+    errors?: string[];
+  } | null>(null);
+  const [mcparrExternalUrl, setMcparrExternalUrl] = useState('');
+
   useEffect(() => {
     const fetchStatus = async () => {
       setStatusLoading(true);
@@ -1368,6 +1379,46 @@ const ConfigurationTab = ({ tools }: { tools: McpToolsResponse | null }) => {
   };
 
   const backendUrl = getApiBaseUrl();
+
+  // Auto-configure Open WebUI handler
+  const handleAutoConfigureOpenWebUI = async () => {
+    if (!mcparrExternalUrl.trim()) {
+      setAutoConfigResult({
+        success: false,
+        message: t('config.autoConfig.errorNoUrl'),
+        errors: [t('config.autoConfig.errorNoUrlDetail')],
+      });
+      return;
+    }
+
+    setAutoConfigLoading(true);
+    setAutoConfigResult(null);
+
+    try {
+      const response = await fetch(`${backendUrl}/tools/configure_openwebui`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          mcparr_external_url: mcparrExternalUrl.trim(),
+          // Backend automatically keeps non-MCParr connections
+          // and replaces only existing MCParr connections
+        }),
+      });
+
+      const data = await response.json();
+      setAutoConfigResult(data);
+    } catch (error) {
+      setAutoConfigResult({
+        success: false,
+        message: t('config.autoConfig.errorNetwork'),
+        errors: [String(error)],
+      });
+    } finally {
+      setAutoConfigLoading(false);
+    }
+  };
 
   // OpenAPI endpoints configuration
   const openApiEndpoints = [
@@ -1562,6 +1613,202 @@ const ConfigurationTab = ({ tools }: { tools: McpToolsResponse | null }) => {
             </ul>
           </div>
         </details>
+      </div>
+
+      {/* Open WebUI Function Filters Setup */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg p-4 sm:p-6 shadow">
+        <div className="flex items-center gap-2 mb-4">
+          <svg className="w-5 h-5 sm:w-6 sm:h-6 text-teal-600 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/>
+          </svg>
+          <h3 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white">
+            {t('config.openWebUISetup.title')}
+          </h3>
+        </div>
+
+        <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-4">
+          {t('config.openWebUISetup.description')}
+        </p>
+
+        {/* Auto-configuration */}
+        <div className="mb-4 p-4 bg-gradient-to-r from-teal-50 to-cyan-50 dark:from-teal-900/20 dark:to-cyan-900/20 border border-teal-200 dark:border-teal-800 rounded-lg">
+          <div className="flex items-center gap-2 mb-3">
+            <svg className="w-5 h-5 text-teal-600" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/>
+            </svg>
+            <h4 className="font-medium text-teal-900 dark:text-teal-100">
+              {t('config.autoConfig.title')}
+            </h4>
+          </div>
+          <p className="text-xs sm:text-sm text-teal-700 dark:text-teal-300 mb-3">
+            {t('config.autoConfig.description')}
+          </p>
+
+          <div className="flex flex-col sm:flex-row gap-2 mb-3">
+            <input
+              type="url"
+              placeholder={t('config.autoConfig.urlPlaceholder')}
+              value={mcparrExternalUrl}
+              onChange={(e) => setMcparrExternalUrl(e.target.value)}
+              className="flex-1 px-3 py-2 text-sm border border-teal-300 dark:border-teal-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+            />
+            <button
+              onClick={handleAutoConfigureOpenWebUI}
+              disabled={autoConfigLoading}
+              className="px-4 py-2 text-sm font-medium text-white bg-teal-600 hover:bg-teal-700 disabled:bg-teal-400 rounded-lg transition-colors flex items-center gap-2 whitespace-nowrap"
+            >
+              {autoConfigLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  {t('config.autoConfig.configuring')}
+                </>
+              ) : (
+                <>
+                  <Play className="w-4 h-4" />
+                  {t('config.autoConfig.button')}
+                </>
+              )}
+            </button>
+          </div>
+
+          {/* Result message */}
+          {autoConfigResult && (
+            <div className={`p-3 rounded-lg ${
+              autoConfigResult.success
+                ? 'bg-green-100 dark:bg-green-900/30 border border-green-300 dark:border-green-700'
+                : 'bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700'
+            }`}>
+              <p className={`text-sm font-medium ${
+                autoConfigResult.success ? 'text-green-800 dark:text-green-200' : 'text-red-800 dark:text-red-200'
+              }`}>
+                {autoConfigResult.message}
+              </p>
+              {autoConfigResult.success && autoConfigResult.configured_groups && (
+                <p className="text-xs text-green-600 dark:text-green-400 mt-1">
+                  {t('config.autoConfig.successDetail', {
+                    groups: autoConfigResult.configured_groups.length,
+                    tools: autoConfigResult.total_tools,
+                  })}
+                </p>
+              )}
+              {autoConfigResult.errors && autoConfigResult.errors.length > 0 && (
+                <ul className="text-xs text-red-600 dark:text-red-400 mt-1 list-disc list-inside">
+                  {autoConfigResult.errors.map((error, i) => (
+                    <li key={i}>{error}</li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
+
+          <p className="text-xs text-teal-600 dark:text-teal-400 mt-2">
+            {t('config.autoConfig.requirement')}
+          </p>
+        </div>
+
+        {/* How to configure steps (manual) */}
+        <details className="mb-4 group">
+          <summary className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg cursor-pointer list-none flex items-center justify-between hover:bg-gray-100 dark:hover:bg-gray-600">
+            <p className="font-medium text-sm text-gray-900 dark:text-white">{t('config.openWebUISetup.howTo')} ({t('config.autoConfig.manual')})</p>
+            <svg className="w-4 h-4 text-gray-400 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </summary>
+          <div className="mt-2 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+            <ol className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 list-decimal list-inside space-y-1">
+              <li>{t('config.openWebUISetup.step1')}</li>
+              <li>{t('config.openWebUISetup.step2')}</li>
+              <li>{t('config.openWebUISetup.step3')}</li>
+              <li>{t('config.openWebUISetup.step4')}</li>
+            </ol>
+          </div>
+        </details>
+
+        {/* Filter groups */}
+        <div className="space-y-3">
+          {[
+            {
+              id: 'media',
+              tools: 'plex_get_active_sessions, plex_get_libraries, plex_get_media_details, plex_get_on_deck, plex_get_recently_added, plex_search_media, tautulli_get_activity, tautulli_get_history, tautulli_get_libraries, tautulli_get_recently_added, tautulli_get_server_info, tautulli_get_statistics, tautulli_get_top_movies, tautulli_get_top_music, tautulli_get_top_platforms, tautulli_get_top_tv_shows, tautulli_get_top_users, tautulli_get_user_stats, tautulli_get_users, tautulli_get_watch_stats_summary',
+              color: 'purple',
+            },
+            {
+              id: 'books',
+              tools: 'audiobookshelf_get_libraries, audiobookshelf_get_library_items, audiobookshelf_get_listening_stats, audiobookshelf_get_media_progress, audiobookshelf_get_statistics, audiobookshelf_get_users, audiobookshelf_search, komga_get_libraries, komga_get_statistics, komga_get_users, komga_search',
+              color: 'amber',
+            },
+            {
+              id: 'download',
+              tools: 'deluge_add_torrent, deluge_get_statistics, deluge_get_torrents, deluge_pause_torrent, deluge_remove_torrent, deluge_resume_torrent, jackett_get_indexers, jackett_get_statistics, jackett_search, jackett_test_all_indexers, jackett_test_indexer, overseerr_check_availability, overseerr_get_requests, overseerr_get_statistics, overseerr_get_trending, overseerr_get_users, overseerr_request_media, overseerr_search_media, prowlarr_get_applications, prowlarr_get_indexer_stats, prowlarr_get_indexers, prowlarr_get_statistics, prowlarr_search, prowlarr_test_all_indexers, prowlarr_test_indexer, radarr_get_calendar, radarr_get_indexers, radarr_get_movies, radarr_get_queue, radarr_get_statistics, radarr_search_movie, radarr_test_all_indexers, radarr_test_indexer, sonarr_get_calendar, sonarr_get_indexers, sonarr_get_queue, sonarr_get_series, sonarr_get_statistics, sonarr_search_series, sonarr_test_all_indexers, sonarr_test_indexer',
+              color: 'orange',
+            },
+            {
+              id: 'games',
+              tools: 'romm_get_collections, romm_get_platforms, romm_get_roms, romm_get_statistics, romm_get_users, romm_search_roms',
+              color: 'green',
+            },
+            {
+              id: 'system',
+              tools: 'system_get_alerts, system_get_health, system_get_logs, system_get_metrics, system_get_services, system_get_users, system_list_tools, system_test_service, zammad_add_comment, zammad_create_ticket, zammad_get_ticket_details, zammad_get_ticket_stats, zammad_get_tickets, zammad_search_tickets, zammad_update_ticket_status',
+              color: 'blue',
+            },
+            {
+              id: 'knowledge',
+              tools: 'openwebui_get_chats, openwebui_get_models, openwebui_get_statistics, openwebui_get_status, openwebui_get_users, openwebui_search_users, wikijs_create_page, wikijs_get_page, wikijs_get_page_tree, wikijs_get_pages, wikijs_get_statistics, wikijs_get_tags, wikijs_get_users, wikijs_search',
+              color: 'emerald',
+            },
+            {
+              id: 'auth',
+              tools: 'authentik_deactivate_user, authentik_get_applications, authentik_get_events, authentik_get_groups, authentik_get_server_info, authentik_get_statistics, authentik_get_user, authentik_get_users, authentik_search_users',
+              color: 'indigo',
+            },
+          ].map((group) => {
+            const toolCount = group.tools.split(',').length;
+            const colorClasses: Record<string, { bg: string; border: string; text: string }> = {
+              purple: { bg: 'bg-purple-50 dark:bg-purple-900/20', border: 'border-purple-200 dark:border-purple-800', text: 'text-purple-900 dark:text-purple-100' },
+              amber: { bg: 'bg-amber-50 dark:bg-amber-900/20', border: 'border-amber-200 dark:border-amber-800', text: 'text-amber-900 dark:text-amber-100' },
+              orange: { bg: 'bg-orange-50 dark:bg-orange-900/20', border: 'border-orange-200 dark:border-orange-800', text: 'text-orange-900 dark:text-orange-100' },
+              green: { bg: 'bg-green-50 dark:bg-green-900/20', border: 'border-green-200 dark:border-green-800', text: 'text-green-900 dark:text-green-100' },
+              blue: { bg: 'bg-blue-50 dark:bg-blue-900/20', border: 'border-blue-200 dark:border-blue-800', text: 'text-blue-900 dark:text-blue-100' },
+              emerald: { bg: 'bg-emerald-50 dark:bg-emerald-900/20', border: 'border-emerald-200 dark:border-emerald-800', text: 'text-emerald-900 dark:text-emerald-100' },
+              indigo: { bg: 'bg-indigo-50 dark:bg-indigo-900/20', border: 'border-indigo-200 dark:border-indigo-800', text: 'text-indigo-900 dark:text-indigo-100' },
+            };
+            const colors = colorClasses[group.color];
+
+            return (
+              <div key={group.id} className={`${colors.bg} ${colors.border} border rounded-lg p-3`}>
+                <div className="flex items-start justify-between gap-2 mb-2">
+                  <div>
+                    <h4 className={`font-medium ${colors.text}`}>
+                      {t(`config.openWebUISetup.groups.${group.id}.name`)}
+                    </h4>
+                    <p className="text-xs text-gray-600 dark:text-gray-400">
+                      {t(`config.openWebUISetup.groups.${group.id}.description`)}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
+                      {t('config.openWebUISetup.toolCount', { count: toolCount })}
+                    </span>
+                    <button
+                      onClick={() => copyToClipboard(group.tools, `filter-${group.id}`)}
+                      className={`px-2 py-1 text-xs font-medium rounded transition-colors whitespace-nowrap ${
+                        copied === `filter-${group.id}`
+                          ? 'bg-green-600 text-white'
+                          : 'bg-gray-600 hover:bg-gray-700 text-white'
+                      }`}
+                    >
+                      {copied === `filter-${group.id}` ? t('config.openWebUISetup.copied') : t('config.openWebUISetup.copyFilter')}
+                    </button>
+                  </div>
+                </div>
+                <code className="block text-xs bg-gray-100 dark:bg-gray-800 p-2 rounded font-mono overflow-x-auto whitespace-pre-wrap break-all">
+                  {group.tools}
+                </code>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       {/* System Prompt - Collapsible */}
