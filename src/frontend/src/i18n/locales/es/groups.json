@@ -53,9 +53,11 @@
       "title": "Herramientas MCP",
       "search": "Buscar...",
       "all": "Todas",
+      "none": "Ninguna",
       "addAll": "Todas",
       "removeAll": "Ninguna",
       "noTools": "Sin herramientas disponibles",
+      "noToolsFound": "No se encontraron herramientas",
       "noMatch": "Ninguna herramienta coincide con la búsqueda",
       "count": "{{enabled}}/{{total}}"
     }

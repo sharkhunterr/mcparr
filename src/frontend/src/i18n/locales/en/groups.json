@@ -53,9 +53,11 @@
       "title": "MCP Tools",
       "search": "Search...",
       "all": "All",
+      "none": "None",
       "addAll": "All",
       "removeAll": "None",
       "noTools": "No tools available",
+      "noToolsFound": "No tools found",
       "noMatch": "No tools match the search",
       "count": "{{enabled}}/{{total}}"
     }
