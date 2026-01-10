@@ -203,20 +203,56 @@ class AudiobookshelfTools(BaseTool):
 
         Returns (library_id, library_name) tuple.
         If library_name not specified, returns the first library.
+        Supports partial matching and common aliases (e.g., "Audiobooks" matches "Livres Audio").
         """
         libraries = await adapter.get_libraries()
         if not libraries:
             raise ValueError("No libraries found in Audiobookshelf")
 
         if library_name:
-            # Case-insensitive match
+            search_name = library_name.lower()
+
+            # Common aliases for library types
+            audiobook_aliases = ["audiobook", "audiobooks", "audio book", "audio books", "livres audio", "livre audio"]
+            podcast_aliases = ["podcast", "podcasts"]
+
+            # First try exact case-insensitive match
             library = next(
-                (lib for lib in libraries if lib.get("name", "").lower() == library_name.lower()),
+                (lib for lib in libraries if lib.get("name", "").lower() == search_name),
                 None
             )
+
+            # If not found, try partial match (search term in library name or vice versa)
             if not library:
-                available = ", ".join(lib.get("name", "") for lib in libraries)
-                raise ValueError(f"Library '{library_name}' not found. Available libraries: {available}")
+                library = next(
+                    (lib for lib in libraries
+                     if search_name in lib.get("name", "").lower()
+                     or lib.get("name", "").lower() in search_name),
+                    None
+                )
+
+            # If still not found, try alias matching for common library types
+            if not library:
+                # Check if search term matches audiobook aliases
+                if any(alias in search_name or search_name in alias for alias in audiobook_aliases):
+                    library = next(
+                        (lib for lib in libraries
+                         if any(alias in lib.get("name", "").lower() for alias in audiobook_aliases)
+                         or lib.get("mediaType") == "book"),
+                        None
+                    )
+                # Check if search term matches podcast aliases
+                elif any(alias in search_name or search_name in alias for alias in podcast_aliases):
+                    library = next(
+                        (lib for lib in libraries
+                         if any(alias in lib.get("name", "").lower() for alias in podcast_aliases)
+                         or lib.get("mediaType") == "podcast"),
+                        None
+                    )
+
+            # If no match found, fallback to first library (don't fail)
+            if not library:
+                library = libraries[0]
             return library["id"], library["name"]
         else:
             # Use first library
@@ -238,22 +274,34 @@ class AudiobookshelfTools(BaseTool):
         """Find an item by title, searching in specified library or all libraries.
 
         Returns (item, library_name) tuple.
+        If library_name doesn't match, searches all libraries.
         """
         libraries = await adapter.get_libraries()
         if not libraries:
             raise ValueError("No libraries found in Audiobookshelf")
 
-        # If library specified, search only in that library
+        # Try to find matching library
+        libraries_to_search = []
         if library_name:
+            search_name = library_name.lower()
+            # Try exact match first
             library = next(
-                (lib for lib in libraries if lib.get("name", "").lower() == library_name.lower()),
+                (lib for lib in libraries if lib.get("name", "").lower() == search_name),
                 None
             )
+            # Try partial match
             if not library:
-                available = ", ".join(lib.get("name", "") for lib in libraries)
-                raise ValueError(f"Library '{library_name}' not found. Available libraries: {available}")
-            libraries_to_search = [library]
-        else:
+                library = next(
+                    (lib for lib in libraries
+                     if search_name in lib.get("name", "").lower()
+                     or lib.get("name", "").lower() in search_name),
+                    None
+                )
+            if library:
+                libraries_to_search = [library]
+
+        # If no match or no library_name specified, search all libraries
+        if not libraries_to_search:
             libraries_to_search = libraries
 
         # Search in each library
@@ -281,24 +329,63 @@ class AudiobookshelfTools(BaseTool):
         raise ValueError(f"No item found with title '{title}'")
 
     async def _search(self, adapter, arguments: dict) -> dict:
-        """Search in Audiobookshelf."""
+        """Search in Audiobookshelf.
+
+        If library_name matches a library, search only in that library.
+        Otherwise, search in ALL libraries and merge results.
+        """
         query = arguments.get("query")
         library_name = arguments.get("library_name")
         limit = arguments.get("limit", 25)
 
-        library_id, resolved_name = await self._resolve_library_id(adapter, library_name)
-        results = await adapter.search(library_id, query, limit=limit)
+        libraries = await adapter.get_libraries()
+        if not libraries:
+            raise ValueError("No libraries found in Audiobookshelf")
+
+        # Try to find matching library
+        libraries_to_search = []
+        if library_name:
+            search_name = library_name.lower()
+            # Try exact match first
+            library = next(
+                (lib for lib in libraries if lib.get("name", "").lower() == search_name),
+                None
+            )
+            # Try partial match
+            if not library:
+                library = next(
+                    (lib for lib in libraries
+                     if search_name in lib.get("name", "").lower()
+                     or lib.get("name", "").lower() in search_name),
+                    None
+                )
+            if library:
+                libraries_to_search = [library]
+
+        # If no match or no library_name specified, search all libraries
+        if not libraries_to_search:
+            libraries_to_search = libraries
+
+        # Search in all selected libraries and merge results
+        merged_results = {"book": [], "podcast": [], "authors": [], "series": []}
+        searched_libraries = []
+
+        for lib in libraries_to_search:
+            results = await adapter.search(lib["id"], query, limit=limit)
+            searched_libraries.append(lib.get("name"))
+            for key in merged_results:
+                merged_results[key].extend(results.get(key, []))
 
         return {
             "success": True,
             "result": {
                 "query": query,
-                "library_name": resolved_name,
-                "books_count": len(results.get("book", [])),
-                "podcasts_count": len(results.get("podcast", [])),
-                "authors_count": len(results.get("authors", [])),
-                "series_count": len(results.get("series", [])),
-                "results": results,
+                "libraries_searched": searched_libraries,
+                "books_count": len(merged_results.get("book", [])),
+                "podcasts_count": len(merged_results.get("podcast", [])),
+                "authors_count": len(merged_results.get("authors", [])),
+                "series_count": len(merged_results.get("series", [])),
+                "results": merged_results,
             },
         }
 
