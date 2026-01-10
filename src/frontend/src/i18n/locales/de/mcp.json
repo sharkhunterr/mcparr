@@ -187,6 +187,61 @@
       "filter": "Filter =",
       "comma": "(Komma)"
     },
+    "autoConfig": {
+      "title": "Automatische Konfiguration",
+      "description": "Konfigurieren Sie Open WebUI automatisch mit MCParr-Tools mit einem Klick. Erfordert, dass der Open WebUI-Dienst mit einem Admin-API-Schlüssel konfiguriert ist.",
+      "urlPlaceholder": "https://mcparr.example.com (MCParr externe URL)",
+      "button": "Open WebUI konfigurieren",
+      "configuring": "Konfiguriere...",
+      "errorNoUrl": "URL erforderlich",
+      "errorNoUrlDetail": "Bitte geben Sie die externe MCParr-URL ein",
+      "errorNetwork": "Verbindungsfehler",
+      "successDetail": "{{groups}} Gruppen mit {{tools}} Tools konfiguriert",
+      "requirement": "Voraussetzung: Open WebUI muss im Reiter Dienste mit einem Admin-API-Schlüssel konfiguriert sein",
+      "manual": "manuell"
+    },
+    "openWebUISetup": {
+      "title": "Open WebUI Setup - Funktionsfilter",
+      "description": "Um zu verhindern, dass das Modell von zu vielen Tools überwältigt wird, erstellen Sie mehrere Verbindungen mit Filtern. Hier sind die empfohlenen Gruppen:",
+      "howTo": "Anleitung",
+      "step1": "Admin Panel → Einstellungen → Tools → Externe Tools",
+      "step2": "Erstellen Sie eine Verbindung pro Kategorie mit MCParr URL",
+      "step3": "In 'Function Name Filter List' die Tools unten einfügen",
+      "step4": "Alle Verbindungen in den Modelleinstellungen aktivieren",
+      "copyFilter": "Filter kopieren",
+      "copied": "✓ Kopiert!",
+      "toolCount": "{{count}} Tools",
+      "groups": {
+        "media": {
+          "name": "📺 Medien (Plex/Tautulli)",
+          "description": "Bibliotheken, Suche, aktive Sitzungen, Wiedergabestatistiken"
+        },
+        "books": {
+          "name": "📚 Bücher & Audio",
+          "description": "Hörbücher (Audiobookshelf), Comics/Manga (Komga)"
+        },
+        "download": {
+          "name": "⬇️ Download",
+          "description": "Filme (Radarr), Serien (Sonarr), Indexer (Prowlarr), Anfragen (Overseerr)"
+        },
+        "games": {
+          "name": "🎮 Spiele",
+          "description": "ROMs und Retro-Spiele (RomM)"
+        },
+        "system": {
+          "name": "⚙️ System & Support",
+          "description": "Systemzustand, Metriken, Tickets (Zammad)"
+        },
+        "knowledge": {
+          "name": "📖 Wissen & KI",
+          "description": "Wiki.js, Open WebUI"
+        },
+        "auth": {
+          "name": "🔐 Authentifizierung",
+          "description": "SSO-Benutzer und -Gruppen (Authentik)"
+        }
+      }
+    },
     "troubleshooting": {
       "title": "Tools werden nicht aufgerufen?",
       "description": "Wenn das Modell sagt \"Ich werde das Tool aufrufen...\" aber Daten erfindet, ist der native Funktionsaufruf nicht aktiviert.",
@@ -222,6 +277,23 @@
   },
 
   "systemPrompt": {
+    "simple": {
+      "intro": "Du bist ein Homelab-Assistent mit Zugriff auf Tools.",
+      "rules": "REGELN:\n1. RUFE DAS PASSENDE TOOL auf je nach Inhaltstyp\n2. PRÄSENTIERE Ergebnisse klar\n3. Erfinde NIEMALS Daten",
+      "toolsHeader": "## Verfügbare Tools",
+      "mappingTitle": "## WELCHES TOOL VERWENDEN?",
+      "mappingIntro": "WÄHLE TOOL NACH INHALTSTYP:",
+      "mapping": {
+        "video": "🎬 FILM oder TV-SERIE (ansehen) → plex_search_media",
+        "audiobook": "🎧 HÖRBUCH oder PODCAST (hören) → audiobookshelf_search",
+        "comic": "📚 MANGA oder COMIC (lesen) → komga_search",
+        "game": "🎮 RETRO-SPIEL oder ROM → romm_search_roms",
+        "download_movie": "⬇️ FILM HERUNTERLADEN → radarr_search_movie",
+        "download_series": "⬇️ SERIE HERUNTERLADEN → sonarr_search_series",
+        "stats": "📊 PLEX STATS (wer schaut, Verlauf) → tautulli_get_activity",
+        "request": "📝 Nicht verfügbaren Inhalt ANFORDERN → overseerr_search_media"
+      }
+    },
     "noTools": "WICHTIG: Derzeit sind keine Tools konfiguriert. Bitte konfigurieren Sie Dienste in der Admin-Oberfläche.",
     "parameters": "Parameter",
     "noExamples": "Keine Beispiele für konfigurierte Dienste verfügbar.",

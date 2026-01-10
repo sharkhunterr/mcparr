@@ -187,6 +187,61 @@
       "filter": "Filter =",
       "comma": "(virgule)"
     },
+    "autoConfig": {
+      "title": "Configuration automatique",
+      "description": "Configurez automatiquement Open WebUI avec les outils MCParr en un clic. Nécessite que le service Open WebUI soit configuré avec une clé API admin.",
+      "urlPlaceholder": "https://mcparr.example.com (URL externe MCParr)",
+      "button": "Configurer Open WebUI",
+      "configuring": "Configuration...",
+      "errorNoUrl": "URL requise",
+      "errorNoUrlDetail": "Veuillez entrer l'URL externe de MCParr",
+      "errorNetwork": "Erreur de connexion",
+      "successDetail": "{{groups}} groupes configurés avec {{tools}} outils",
+      "requirement": "Prérequis : Open WebUI doit être configuré dans l'onglet Services avec une clé API admin",
+      "manual": "manuel"
+    },
+    "openWebUISetup": {
+      "title": "Configuration Open WebUI - Function Filters",
+      "description": "Pour éviter que le modèle soit submergé par trop d'outils, créez plusieurs connexions avec des filtres. Voici les groupes recommandés :",
+      "howTo": "Comment configurer",
+      "step1": "Admin Panel → Settings → Tools → Outils externes",
+      "step2": "Créez une connexion par catégorie avec l'URL MCParr",
+      "step3": "Dans 'Function Name Filter List', collez les outils ci-dessous",
+      "step4": "Activez toutes les connexions dans les paramètres du modèle",
+      "copyFilter": "Copier le filtre",
+      "copied": "✓ Copié!",
+      "toolCount": "{{count}} outils",
+      "groups": {
+        "media": {
+          "name": "📺 Média (Plex/Tautulli)",
+          "description": "Bibliothèques, recherche, sessions actives, statistiques de visionnage"
+        },
+        "books": {
+          "name": "📚 Livres & Audio",
+          "description": "Livres audio (Audiobookshelf), comics/manga/BD (Komga)"
+        },
+        "download": {
+          "name": "⬇️ Téléchargement",
+          "description": "Films (Radarr), séries (Sonarr), indexeurs (Prowlarr), demandes (Overseerr)"
+        },
+        "games": {
+          "name": "🎮 Jeux",
+          "description": "ROMs et jeux rétro (RomM)"
+        },
+        "system": {
+          "name": "⚙️ Système & Support",
+          "description": "Santé système, métriques, tickets (Zammad)"
+        },
+        "knowledge": {
+          "name": "📖 Connaissances & IA",
+          "description": "Wiki.js, Open WebUI"
+        },
+        "auth": {
+          "name": "🔐 Authentification",
+          "description": "Utilisateurs et groupes SSO (Authentik)"
+        }
+      }
+    },
     "troubleshooting": {
       "title": "Les outils ne sont pas appelés ?",
       "description": "Si le modèle dit \"Je vais appeler l'outil...\" mais invente des données, le function calling natif n'est pas activé.",
@@ -222,6 +277,10 @@
   },
 
   "systemPrompt": {
+    "simple": {
+      "intro": "Tu es un assistant homelab avec accès à des outils.",
+      "rules": "RÈGLES:\n1. APPELLE system_list_tools EN PREMIER pour voir les outils par catégorie\n2. APPELLE ensuite l'outil approprié\n3. RÉPONDS avec les données reçues\n4. N'invente JAMAIS de données"
+    },
     "noTools": "IMPORTANT: Aucun outil n'est configuré pour le moment. Veuillez configurer des services dans l'interface d'administration.",
     "parameters": "paramètres",
     "noExamples": "Aucun exemple disponible pour les services configurés.",

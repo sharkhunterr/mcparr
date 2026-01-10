@@ -187,6 +187,61 @@
       "filter": "Filter =",
       "comma": "(comma)"
     },
+    "autoConfig": {
+      "title": "Automatic configuration",
+      "description": "Automatically configure Open WebUI with MCParr tools in one click. Requires Open WebUI service to be configured with an admin API key.",
+      "urlPlaceholder": "https://mcparr.example.com (MCParr external URL)",
+      "button": "Configure Open WebUI",
+      "configuring": "Configuring...",
+      "errorNoUrl": "URL required",
+      "errorNoUrlDetail": "Please enter the MCParr external URL",
+      "errorNetwork": "Connection error",
+      "successDetail": "{{groups}} groups configured with {{tools}} tools",
+      "requirement": "Prerequisite: Open WebUI must be configured in the Services tab with an admin API key",
+      "manual": "manual"
+    },
+    "openWebUISetup": {
+      "title": "Open WebUI Setup - Function Filters",
+      "description": "To prevent the model from being overwhelmed by too many tools, create multiple connections with filters. Here are the recommended groups:",
+      "howTo": "How to configure",
+      "step1": "Admin Panel → Settings → Tools → External tools",
+      "step2": "Create one connection per category with MCParr URL",
+      "step3": "In 'Function Name Filter List', paste the tools below",
+      "step4": "Enable all connections in model settings",
+      "copyFilter": "Copy filter",
+      "copied": "✓ Copied!",
+      "toolCount": "{{count}} tools",
+      "groups": {
+        "media": {
+          "name": "📺 Media (Plex/Tautulli)",
+          "description": "Libraries, search, active sessions, watch statistics"
+        },
+        "books": {
+          "name": "📚 Books & Audio",
+          "description": "Audiobooks (Audiobookshelf), comics/manga (Komga)"
+        },
+        "download": {
+          "name": "⬇️ Download",
+          "description": "Movies (Radarr), series (Sonarr), indexers (Prowlarr), requests (Overseerr)"
+        },
+        "games": {
+          "name": "🎮 Games",
+          "description": "ROMs and retro games (RomM)"
+        },
+        "system": {
+          "name": "⚙️ System & Support",
+          "description": "System health, metrics, tickets (Zammad)"
+        },
+        "knowledge": {
+          "name": "📖 Knowledge & AI",
+          "description": "Wiki.js, Open WebUI"
+        },
+        "auth": {
+          "name": "🔐 Authentication",
+          "description": "SSO users and groups (Authentik)"
+        }
+      }
+    },
     "troubleshooting": {
       "title": "Tools not being called?",
       "description": "If the model says \"I will call the tool...\" but invents data, native function calling is not enabled.",
@@ -222,6 +277,23 @@
   },
 
   "systemPrompt": {
+    "simple": {
+      "intro": "You are a homelab assistant with access to tools.",
+      "rules": "RULES:\n1. CALL THE APPROPRIATE TOOL based on content type\n2. PRESENT results clearly\n3. NEVER make up data",
+      "toolsHeader": "## Available tools",
+      "mappingTitle": "## WHICH TOOL TO USE?",
+      "mappingIntro": "CHOOSE TOOL BASED ON CONTENT TYPE:",
+      "mapping": {
+        "video": "🎬 MOVIE or TV SERIES (watch) → plex_search_media",
+        "audiobook": "🎧 AUDIOBOOK or PODCAST (listen) → audiobookshelf_search",
+        "comic": "📚 MANGA or COMIC (read) → komga_search",
+        "game": "🎮 RETRO GAME or ROM → romm_search_roms",
+        "download_movie": "⬇️ DOWNLOAD a MOVIE → radarr_search_movie",
+        "download_series": "⬇️ DOWNLOAD a SERIES → sonarr_search_series",
+        "stats": "📊 PLEX STATS (who's watching, history) → tautulli_get_activity",
+        "request": "📝 REQUEST unavailable content → overseerr_search_media"
+      }
+    },
     "noTools": "IMPORTANT: No tools are configured at the moment. Please configure services in the admin interface.",
     "parameters": "parameters",
     "noExamples": "No examples available for configured services.",
