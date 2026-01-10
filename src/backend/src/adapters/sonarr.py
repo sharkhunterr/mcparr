@@ -203,7 +203,9 @@ class SonarrAdapter(TokenAuthAdapter):
             end = start + timedelta(days=days)
 
             response = await self._make_request(
-                "GET", "/api/v3/calendar", params={"start": start.isoformat(), "end": end.isoformat()}
+                "GET",
+                "/api/v3/calendar",
+                params={"start": start.isoformat(), "end": end.isoformat(), "includeSeries": "true"},
             )
             episodes = response.json()
 
@@ -217,6 +219,7 @@ class SonarrAdapter(TokenAuthAdapter):
                     "episode": ep.get("episodeNumber"),
                     "air_date": ep.get("airDateUtc"),
                     "has_file": ep.get("hasFile", False),
+                    "url": self._get_series_url(ep.get("seriesId")),
                 }
                 for ep in episodes
             ]
