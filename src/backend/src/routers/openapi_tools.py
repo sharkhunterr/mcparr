@@ -1910,7 +1910,10 @@ async def audiobookshelf_get_libraries(request: Request, session: AsyncSession =
 class AudiobookshelfLibraryItemsRequest(BaseModel):
     """Request for library items."""
 
-    library_id: str = Field(..., description="Library ID to get items from")
+    library_name: Optional[str] = Field(
+        None,
+        description="Library name to get items from (e.g., 'Audiobooks', 'Podcasts'). Optional - if not specified, uses the first library.",
+    )
     limit: int = Field(50, description="Maximum number of items to return")
     page: int = Field(0, description="Page number (0-indexed)")
 
@@ -1919,21 +1922,26 @@ class AudiobookshelfLibraryItemsRequest(BaseModel):
     "/audiobookshelf_get_library_items",
     response_model=ToolResponse,
     summary="Get Audiobookshelf library items",
-    description="Get items (audiobooks/podcasts) from a library.",
+    description="Get items (audiobooks/podcasts) from a library. If no library specified, uses the first available library.",
 )
 async def audiobookshelf_get_library_items(
     request: Request, body: AudiobookshelfLibraryItemsRequest, session: AsyncSession = Depends(get_db_session)
 ):
     """Get Audiobookshelf library items."""
-    result = await execute_tool_with_logging(session, "audiobookshelf_get_library_items", body.model_dump(), request)
+    result = await execute_tool_with_logging(
+        session, "audiobookshelf_get_library_items", body.model_dump(exclude_none=True), request
+    )
     return ToolResponse(**result)
 
 
 class AudiobookshelfSearchRequest(BaseModel):
     """Search request for Audiobookshelf."""
 
-    library_id: str = Field(..., description="Library ID to search in")
     query: str = Field(..., description="Search query")
+    library_name: Optional[str] = Field(
+        None,
+        description="Library name to search in (e.g., 'Audiobooks', 'Podcasts'). Optional - if not specified, uses the first library.",
+    )
     limit: int = Field(25, description="Maximum number of results per category")
 
 
@@ -1941,13 +1949,15 @@ class AudiobookshelfSearchRequest(BaseModel):
     "/audiobookshelf_search",
     response_model=ToolResponse,
     summary="Search Audiobookshelf",
-    description="Search for audiobooks, podcasts, authors, or series in a library.",
+    description="Search for audiobooks, podcasts, authors, or series. If no library specified, uses the first available library.",
 )
 async def audiobookshelf_search(
     request: Request, body: AudiobookshelfSearchRequest, session: AsyncSession = Depends(get_db_session)
 ):
     """Search in Audiobookshelf."""
-    result = await execute_tool_with_logging(session, "audiobookshelf_search", body.model_dump(), request)
+    result = await execute_tool_with_logging(
+        session, "audiobookshelf_search", body.model_dump(exclude_none=True), request
+    )
     return ToolResponse(**result)
 
 
@@ -1990,8 +2000,11 @@ async def audiobookshelf_get_listening_stats(
 class AudiobookshelfMediaProgressRequest(BaseModel):
     """Request for media progress."""
 
-    library_item_id: str = Field(..., description="ID of the library item")
-    episode_id: Optional[str] = Field(None, description="Episode ID for podcasts (optional)")
+    title: str = Field(..., description="Title of the audiobook/podcast")
+    library_name: Optional[str] = Field(
+        None,
+        description="Library name to search in (e.g., 'Audiobooks', 'Podcasts'). Optional - if not specified, searches all libraries.",
+    )
 
 
 @router.post(
