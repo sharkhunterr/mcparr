@@ -2705,6 +2705,31 @@ async def deluge_get_statistics(request: Request, session: AsyncSession = Depend
     return ToolResponse(**result)
 
 
+class DelugeSearchTorrentsRequest(BaseModel):
+    """Request for searching torrents."""
+
+    query: str = Field(..., description="Search term for torrent name")
+    status_filter: Optional[str] = Field(None, description="Filter by status (Downloading, Seeding, Paused)")
+    limit: int = Field(default=20, description="Maximum results to return")
+
+
+@router.post(
+    "/deluge_search_torrents",
+    response_model=ToolResponse,
+    summary="Search torrents by name",
+    description="Search torrents by name with fuzzy matching.",
+)
+async def deluge_search_torrents(
+    body: DelugeSearchTorrentsRequest, request: Request, session: AsyncSession = Depends(get_db_session)
+):
+    """Search torrents by name."""
+    args = {"query": body.query, "limit": body.limit}
+    if body.status_filter:
+        args["status_filter"] = body.status_filter
+    result = await execute_tool_with_logging(session, "deluge_search_torrents", args, request)
+    return ToolResponse(**result)
+
+
 # ============================================================================
 # RomM additional tools
 # ============================================================================
@@ -2927,7 +2952,7 @@ OPENWEBUI_TOOL_GROUPS = {
     "download": {
         "name": "MCParr - Téléchargement",
         "description": "Radarr, Sonarr, Prowlarr, Overseerr, Jackett, and Deluge tools",
-        "tools": "deluge_add_torrent,deluge_get_statistics,deluge_get_torrents,deluge_pause_torrent,deluge_remove_torrent,deluge_resume_torrent,jackett_get_indexers,jackett_get_statistics,jackett_search,jackett_test_all_indexers,jackett_test_indexer,overseerr_check_availability,overseerr_get_requests,overseerr_get_statistics,overseerr_get_trending,overseerr_get_users,overseerr_request_media,overseerr_search_media,prowlarr_get_applications,prowlarr_get_indexer_stats,prowlarr_get_indexers,prowlarr_get_statistics,prowlarr_search,prowlarr_test_all_indexers,prowlarr_test_indexer,radarr_get_calendar,radarr_get_indexers,radarr_get_movies,radarr_get_queue,radarr_get_statistics,radarr_search_movie,radarr_test_all_indexers,radarr_test_indexer,sonarr_get_calendar,sonarr_get_indexers,sonarr_get_queue,sonarr_get_series,sonarr_get_statistics,sonarr_search_series,sonarr_test_all_indexers,sonarr_test_indexer",
+        "tools": "deluge_add_torrent,deluge_get_statistics,deluge_get_torrents,deluge_pause_torrent,deluge_remove_torrent,deluge_resume_torrent,deluge_search_torrents,jackett_get_indexers,jackett_get_statistics,jackett_search,jackett_test_all_indexers,jackett_test_indexer,overseerr_check_availability,overseerr_get_requests,overseerr_get_statistics,overseerr_get_trending,overseerr_get_users,overseerr_request_media,overseerr_search_media,prowlarr_get_applications,prowlarr_get_indexer_stats,prowlarr_get_indexers,prowlarr_get_statistics,prowlarr_search,prowlarr_test_all_indexers,prowlarr_test_indexer,radarr_get_calendar,radarr_get_indexers,radarr_get_movies,radarr_get_queue,radarr_get_statistics,radarr_search_movie,radarr_test_all_indexers,radarr_test_indexer,sonarr_get_calendar,sonarr_get_indexers,sonarr_get_queue,sonarr_get_series,sonarr_get_statistics,sonarr_search_series,sonarr_test_all_indexers,sonarr_test_indexer",
     },
     "games": {
         "name": "MCParr - Jeux (RomM)",

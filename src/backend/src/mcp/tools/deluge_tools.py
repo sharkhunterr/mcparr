@@ -94,6 +94,34 @@ class DelugeTools(BaseTool):
                 is_mutation=False,
                 requires_service="deluge",
             ),
+            ToolDefinition(
+                name="deluge_search_torrents",
+                description="Search torrents by name with fuzzy matching",
+                parameters=[
+                    ToolParameter(
+                        name="query",
+                        description="Search term for torrent name",
+                        type="string",
+                        required=True,
+                    ),
+                    ToolParameter(
+                        name="status_filter",
+                        description="Filter by status (Downloading, Seeding, Paused)",
+                        type="string",
+                        required=False,
+                    ),
+                    ToolParameter(
+                        name="limit",
+                        description="Maximum results to return (default: 20)",
+                        type="number",
+                        required=False,
+                        default=20,
+                    ),
+                ],
+                category="downloads",
+                is_mutation=False,
+                requires_service="deluge",
+            ),
         ]
 
     async def execute(self, tool_name: str, arguments: dict) -> dict:
@@ -132,6 +160,8 @@ class DelugeTools(BaseTool):
                 return await self._remove_torrent(adapter, arguments)
             elif tool_name == "deluge_get_statistics":
                 return await self._get_statistics(adapter)
+            elif tool_name == "deluge_search_torrents":
+                return await self._search_torrents(adapter, arguments)
             else:
                 return {"success": False, "error": f"Unknown tool: {tool_name}"}
 
@@ -185,3 +215,17 @@ class DelugeTools(BaseTool):
         stats = await adapter.get_statistics()
 
         return {"success": True, "result": stats}
+
+    async def _search_torrents(self, adapter, arguments: dict) -> dict:
+        """Search torrents by name."""
+        query = arguments.get("query")
+        status_filter = arguments.get("status_filter")
+        limit = arguments.get("limit", 20)
+
+        results = await adapter.search_torrents(query, status_filter=status_filter, limit=limit)
+
+        result = {"query": query, "count": len(results), "results": results}
+        if status_filter:
+            result["status_filter"] = status_filter
+
+        return {"success": True, "result": result}

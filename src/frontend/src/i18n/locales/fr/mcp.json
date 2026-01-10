@@ -351,6 +351,11 @@
         "service": "Deluge",
         "tool": "deluge_get_torrents"
       },
+      "torrentSearch": {
+        "content": "Chercher un torrent par nom",
+        "service": "Deluge",
+        "tool": "deluge_search_torrents"
+      },
       "movieDownload": {
         "content": "Télécharger/ajouter un FILM",
         "service": "Radarr",

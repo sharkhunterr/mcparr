@@ -235,6 +235,84 @@ class DelugeAdapter(BaseServiceAdapter):
             self.logger.error(f"Failed to remove torrent: {e}")
             return False
 
+    async def search_torrents(
+        self, query: str, status_filter: Optional[str] = None, limit: int = 20
+    ) -> List[Dict[str, Any]]:
+        """Search torrents by name with fuzzy matching.
+
+        Args:
+            query: Search term for torrent name (supports partial/fuzzy matching)
+            status_filter: Optional filter by state (Downloading, Seeding, Paused, etc.)
+            limit: Maximum results to return
+
+        Returns:
+            List of matching torrents sorted by relevance
+        """
+        try:
+            # Get all torrents first
+            all_torrents = await self.get_torrents()
+
+            if not all_torrents:
+                return []
+
+            # Normalize query for matching
+            query_lower = query.lower()
+            query_words = query_lower.split()
+
+            results = []
+            for torrent in all_torrents:
+                name = torrent.get("name", "")
+                name_lower = name.lower()
+
+                # Check status filter first
+                if status_filter:
+                    torrent_state = torrent.get("state", "").lower()
+                    if status_filter.lower() != torrent_state:
+                        continue
+
+                # Calculate match score
+                score = 0
+
+                # Exact match (highest priority)
+                if query_lower in name_lower:
+                    score = 100
+
+                    # Bonus for exact match at start
+                    if name_lower.startswith(query_lower):
+                        score += 50
+
+                    # Bonus for exact word match
+                    if query_lower == name_lower:
+                        score += 100
+                else:
+                    # Check individual words for partial matching
+                    matched_words = 0
+                    for word in query_words:
+                        if len(word) >= 2 and word in name_lower:
+                            matched_words += 1
+                            score += 20
+
+                    # Require at least one word to match
+                    if matched_words == 0:
+                        continue
+
+                    # Bonus if all words match
+                    if matched_words == len(query_words) and len(query_words) > 1:
+                        score += 30
+
+                if score > 0:
+                    results.append({**torrent, "_score": score})
+
+            # Sort by score (highest first), then by name
+            results.sort(key=lambda x: (-x.get("_score", 0), x.get("name", "").lower()))
+
+            # Remove score from results and apply limit
+            return [{k: v for k, v in t.items() if k != "_score"} for t in results[:limit]]
+
+        except Exception as e:
+            self.logger.error(f"Failed to search torrents: {e}")
+            return []
+
     async def get_statistics(self) -> Dict[str, Any]:
         """Get Deluge statistics."""
         try:
