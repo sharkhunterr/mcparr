@@ -73,6 +73,7 @@
       "user": "Usuario",
       "timeRange": "Rango de tiempo",
       "allCategories": "Todas las categorías",
+      "allServices": "Todos los servicios",
       "allStatuses": "Todos los estados"
     },
     "columns": {
@@ -141,8 +142,10 @@
   },
 
   "categories": {
+    "downloads": "Descargas",
+    "gaming": "Juegos",
+    "indexers": "Indexadores",
     "media": "Medios",
-    "requests": "Solicitudes",
     "support": "Soporte",
     "system": "Sistema",
     "users": "Usuarios"

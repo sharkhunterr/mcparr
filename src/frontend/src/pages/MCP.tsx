@@ -1968,7 +1968,7 @@ export default function MCP() {
   const [selectedRequest, setSelectedRequest] = useState<McpRequest | null>(null);
   const [selectedToolToTest, setSelectedToolToTest] = useState<McpTool | null>(null);
   const [timeRange, setTimeRange] = useState(24);
-  const [categoryFilter, setCategoryFilter] = useState<string>('');
+  const [serviceFilter, setServiceFilter] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [expandedServices, setExpandedServices] = useState<Set<string>>(new Set());
 
@@ -1983,8 +1983,9 @@ export default function MCP() {
         api.mcp.userServiceStats(timeRange).catch(() => []),
         api.mcp.hourlyUsageByUser(timeRange).catch(() => []),
         api.mcp.requests.list({
-          limit: 50,
-          ...(categoryFilter && { category: categoryFilter }),
+          limit: timeRange > 24 ? 200 : 100,
+          start_time: new Date(Date.now() - timeRange * 60 * 60 * 1000).toISOString(),
+          ...(serviceFilter && { service: serviceFilter }),
           ...(statusFilter && { status: statusFilter }),
         }).catch(() => ({ items: [], total: 0 })),
         api.mcp.tools().catch(() => null),
@@ -2006,7 +2007,7 @@ export default function MCP() {
     } finally {
       setLoading(false);
     }
-  }, [timeRange, categoryFilter, statusFilter]);
+  }, [timeRange, serviceFilter, statusFilter]);
 
   useEffect(() => {
     fetchData();
@@ -2527,16 +2528,16 @@ export default function MCP() {
               {/* Filters */}
               <div className="flex flex-wrap gap-2 sm:gap-4 bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
                 <select
-                  value={categoryFilter}
-                  onChange={(e) => setCategoryFilter(e.target.value)}
+                  value={serviceFilter}
+                  onChange={(e) => setServiceFilter(e.target.value)}
                   className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 >
-                  <option value="">{t('history.filters.allCategories')}</option>
-                  <option value="media">{t('categories.media')}</option>
-                  <option value="requests">{t('categories.requests')}</option>
-                  <option value="support">{t('categories.support')}</option>
-                  <option value="system">{t('categories.system')}</option>
-                  <option value="users">{t('categories.users')}</option>
+                  <option value="">{t('history.filters.allServices')}</option>
+                  {Object.keys(toolsByService).map((service) => (
+                    <option key={service} value={service}>
+                      {service.charAt(0).toUpperCase() + service.slice(1)}
+                    </option>
+                  ))}
                 </select>
                 <select
                   value={statusFilter}
@@ -2548,6 +2549,7 @@ export default function MCP() {
                   <option value="processing">{t('status.processing')}</option>
                   <option value="completed">{t('status.completed')}</option>
                   <option value="failed">{t('status.failed')}</option>
+                  <option value="cancelled">{t('status.cancelled')}</option>
                 </select>
               </div>
 

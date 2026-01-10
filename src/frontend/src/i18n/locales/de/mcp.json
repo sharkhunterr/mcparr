@@ -73,6 +73,7 @@
       "user": "Benutzer",
       "timeRange": "Zeitraum",
       "allCategories": "Alle Kategorien",
+      "allServices": "Alle Dienste",
       "allStatuses": "Alle Status"
     },
     "totalRequests": "{{count}} Anfragen insgesamt",
@@ -141,8 +142,10 @@
   },
 
   "categories": {
+    "downloads": "Downloads",
+    "gaming": "Spiele",
+    "indexers": "Indexer",
     "media": "Medien",
-    "requests": "Anfragen",
     "support": "Support",
     "system": "System",
     "users": "Benutzer"

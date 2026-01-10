@@ -285,6 +285,7 @@ class McpHourlyUserUsageResponse(BaseModel):
 async def get_mcp_requests(
     tool_name: Optional[str] = Query(None, description="Filter by tool name"),
     category: Optional[str] = Query(None, description="Filter by tool category"),
+    service: Optional[str] = Query(None, description="Filter by service (tool name prefix)"),
     status: Optional[str] = Query(None, description="Filter by status"),
     start_time: Optional[datetime] = Query(None, description="Filter by start time"),
     end_time: Optional[datetime] = Query(None, description="Filter by end time"),
@@ -298,6 +299,7 @@ async def get_mcp_requests(
         session=session,
         tool_name=tool_name,
         category=category,
+        service=service,
         status=status,
         start_time=start_time,
         end_time=end_time,

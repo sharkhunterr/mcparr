@@ -17,6 +17,7 @@ class McpAuditService:
         session: AsyncSession,
         tool_name: Optional[str] = None,
         category: Optional[str] = None,
+        service: Optional[str] = None,
         status: Optional[str] = None,
         start_time: Optional[datetime] = None,
         end_time: Optional[datetime] = None,
@@ -34,6 +35,9 @@ class McpAuditService:
             conditions.append(McpRequest.tool_name == tool_name)
         if category:
             conditions.append(McpRequest.tool_category == category)
+        if service:
+            # Filter by tool name prefix (e.g., "plex" matches "plex_search_media")
+            conditions.append(McpRequest.tool_name.like(f"{service}_%"))
         if status:
             conditions.append(McpRequest.status == status)
         if start_time:
