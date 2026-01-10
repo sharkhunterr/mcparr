@@ -452,18 +452,35 @@ class SystemTools(BaseTool):
                     }
 
                 # Test the service using the class method
-                test_result = await ServiceTester.test_service_connection(service, session)
+                # Use a retry mechanism for SQLite locking issues
+                max_retries = 3
+                last_error = None
+                for attempt in range(max_retries):
+                    try:
+                        test_result = await ServiceTester.test_service_connection(service, session)
+                        return {
+                            "success": True,
+                            "result": {
+                                "service": service_name,
+                                "test_success": test_result.success,
+                                "message": test_result.message,
+                                "response_time_ms": test_result.response_time_ms,
+                                "details": test_result.details,
+                            },
+                        }
+                    except Exception as e:
+                        last_error = e
+                        error_str = str(e)
+                        if "database is locked" in error_str or "rolled back" in error_str:
+                            # Rollback and retry
+                            await session.rollback()
+                            import asyncio
+                            await asyncio.sleep(0.5 * (attempt + 1))  # Exponential backoff
+                            continue
+                        raise  # Re-raise if not a locking issue
 
-                return {
-                    "success": True,
-                    "result": {
-                        "service": service_name,
-                        "test_success": test_result.success,
-                        "message": test_result.message,
-                        "response_time_ms": test_result.response_time_ms,
-                        "details": test_result.details,
-                    },
-                }
+                # All retries failed
+                return {"success": False, "error": f"Database busy after {max_retries} retries: {str(last_error)}"}
 
         except Exception as e:
             return {"success": False, "error": f"Failed to test service: {str(e)}"}
