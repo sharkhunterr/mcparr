@@ -493,10 +493,12 @@
       "a3": "Utilise l'outil system_get_services",
       "q4": "Teste la connexion à Plex",
       "a4": "Utilise l'outil system_test_service avec service_name=\"Plex\"",
-      "q5": "Montre les derniers logs d'erreur",
-      "a5": "Utilise l'outil system_get_logs avec level=\"error\"",
-      "q6": "Quelles alertes sont actives?",
-      "a6": "Utilise l'outil system_get_alerts avec active_only=true"
+      "q5": "Teste tous les services",
+      "a5": "Utilise l'outil system_test_all_services",
+      "q6": "Montre les derniers logs d'erreur",
+      "a6": "Utilise l'outil system_get_logs avec level=\"error\"",
+      "q7": "Quelles alertes sont actives?",
+      "a7": "Utilise l'outil system_get_alerts avec active_only=true"
     }
   }
 }

@@ -506,10 +506,12 @@
       "a3": "Use la herramienta system_get_services",
       "q4": "Probar la conexión de Plex",
       "a4": "Use la herramienta system_test_service con service_name=\"Plex\"",
-      "q5": "Mostrar los últimos registros de error",
-      "a5": "Use la herramienta system_get_logs con level=\"error\"",
-      "q6": "¿Qué alertas están activas?",
-      "a6": "Use la herramienta system_get_alerts con active_only=true"
+      "q5": "Probar todos los servicios",
+      "a5": "Use la herramienta system_test_all_services",
+      "q6": "Mostrar los últimos registros de error",
+      "a6": "Use la herramienta system_get_logs con level=\"error\"",
+      "q7": "¿Qué alertas están activas?",
+      "a7": "Use la herramienta system_get_alerts con active_only=true"
     }
   }
 }

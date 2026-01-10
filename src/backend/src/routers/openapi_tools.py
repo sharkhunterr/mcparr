@@ -2817,6 +2817,18 @@ async def system_test_service(
     return ToolResponse(**result)
 
 
+@router.post(
+    "/system_test_all_services",
+    response_model=ToolResponse,
+    summary="Test all services",
+    description="Test connectivity to all enabled services and return their status summary.",
+)
+async def system_test_all_services(request: Request, session: AsyncSession = Depends(get_db_session)):
+    """Test all enabled services."""
+    result = await execute_tool_with_logging(session, "system_test_all_services", {}, request)
+    return ToolResponse(**result)
+
+
 # ============================================================================
 # Overseerr additional tools
 # ============================================================================
@@ -2904,7 +2916,7 @@ OPENWEBUI_TOOL_GROUPS = {
     "system": {
         "name": "MCParr - Système & Support",
         "description": "System monitoring and Zammad support tools",
-        "tools": "system_get_alerts,system_get_health,system_get_logs,system_get_metrics,system_get_services,system_get_users,system_list_tools,system_test_service,zammad_add_comment,zammad_create_ticket,zammad_get_ticket_details,zammad_get_ticket_stats,zammad_get_tickets,zammad_search_tickets,zammad_update_ticket_status",
+        "tools": "system_get_alerts,system_get_health,system_get_logs,system_get_metrics,system_get_services,system_get_users,system_list_tools,system_test_all_services,system_test_service,zammad_add_comment,zammad_create_ticket,zammad_get_ticket_details,zammad_get_ticket_stats,zammad_get_tickets,zammad_search_tickets,zammad_update_ticket_status",
     },
     "knowledge": {
         "name": "MCParr - Connaissances & IA",

@@ -63,6 +63,13 @@ class SystemTools(BaseTool):
                 is_mutation=False,
             ),
             ToolDefinition(
+                name="system_test_all_services",
+                description="Test connection to all enabled services and return their status",
+                parameters=[],
+                category="system",
+                is_mutation=False,
+            ),
+            ToolDefinition(
                 name="system_get_logs",
                 description="Get recent system logs with optional filtering",
                 parameters=[
@@ -154,6 +161,8 @@ class SystemTools(BaseTool):
                 return await self._get_services(arguments)
             elif tool_name == "system_test_service":
                 return await self._test_service(arguments)
+            elif tool_name == "system_test_all_services":
+                return await self._test_all_services()
             elif tool_name == "system_get_logs":
                 return await self._get_logs(arguments)
             elif tool_name == "system_get_alerts":
@@ -484,6 +493,99 @@ class SystemTools(BaseTool):
 
         except Exception as e:
             return {"success": False, "error": f"Failed to test service: {str(e)}"}
+
+    async def _test_all_services(self) -> dict:
+        """Test all enabled services and return their status."""
+        try:
+            from sqlalchemy import select
+
+            from src.database.connection import async_session_maker
+            from src.models.service_config import ServiceConfig
+            from src.services.service_tester import ServiceTester
+
+            # First, get all enabled services
+            async with async_session_maker() as session:
+                result = await session.execute(
+                    select(ServiceConfig).where(ServiceConfig.enabled == True).order_by(ServiceConfig.name)
+                )
+                services = result.scalars().all()
+
+                if not services:
+                    return {
+                        "success": True,
+                        "result": {
+                            "message": "No enabled services found",
+                            "count": 0,
+                            "services": [],
+                            "summary": {"total": 0, "success": 0, "failed": 0},
+                        },
+                    }
+
+                # Copy service data to avoid detached instance issues
+                services_data = [
+                    {
+                        "config": service,
+                        "name": service.name,
+                        "type": service.service_type.value
+                        if hasattr(service.service_type, "value")
+                        else str(service.service_type),
+                    }
+                    for service in services
+                ]
+
+            # Test each service (outside the session context to avoid greenlet issues)
+            results = []
+            success_count = 0
+            failed_count = 0
+
+            for service_data in services_data:
+                try:
+                    # Test without passing session to avoid commit issues
+                    test_result = await ServiceTester.test_service_connection(
+                        service_data["config"], db_session=None
+                    )
+
+                    service_result = {
+                        "name": service_data["name"],
+                        "type": service_data["type"],
+                        "success": test_result.success,
+                        "message": test_result.message,
+                        "response_time_ms": test_result.response_time_ms,
+                    }
+                    if test_result.success:
+                        success_count += 1
+                    else:
+                        failed_count += 1
+
+                    results.append(service_result)
+
+                except Exception as e:
+                    results.append(
+                        {
+                            "name": service_data["name"],
+                            "type": service_data["type"],
+                            "success": False,
+                            "message": str(e),
+                            "response_time_ms": None,
+                        }
+                    )
+                    failed_count += 1
+
+            return {
+                "success": True,
+                "result": {
+                    "count": len(results),
+                    "services": results,
+                    "summary": {
+                        "total": len(results),
+                        "success": success_count,
+                        "failed": failed_count,
+                    },
+                },
+            }
+
+        except Exception as e:
+            return {"success": False, "error": f"Failed to test all services: {str(e)}"}
 
     async def _get_logs(self, arguments: dict) -> dict:
         """Get recent logs."""

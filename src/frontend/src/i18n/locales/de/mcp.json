@@ -506,10 +506,12 @@
       "a3": "Verwenden Sie das Tool system_get_services",
       "q4": "Die Plex-Verbindung testen",
       "a4": "Verwenden Sie das Tool system_test_service mit service_name=\"Plex\"",
-      "q5": "Die neuesten Fehlerprotokolle anzeigen",
-      "a5": "Verwenden Sie das Tool system_get_logs mit level=\"error\"",
-      "q6": "Welche Warnungen sind aktiv?",
-      "a6": "Verwenden Sie das Tool system_get_alerts mit active_only=true"
+      "q5": "Alle Dienste testen",
+      "a5": "Verwenden Sie das Tool system_test_all_services",
+      "q6": "Die neuesten Fehlerprotokolle anzeigen",
+      "a6": "Verwenden Sie das Tool system_get_logs mit level=\"error\"",
+      "q7": "Welche Warnungen sind aktiv?",
+      "a7": "Verwenden Sie das Tool system_get_alerts mit active_only=true"
     }
   }
 }
