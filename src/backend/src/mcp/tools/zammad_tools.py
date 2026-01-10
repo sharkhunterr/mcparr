@@ -221,6 +221,23 @@ class ZammadTools(BaseTool):
             return f"{base}/#ticket/zoom/{ticket_id}"
         return None
 
+    async def _resolve_ticket_id(self, adapter, ticket_id_or_number: int) -> tuple[int | None, str | None]:
+        """Resolve ticket ID or number to actual ticket ID and number.
+
+        Returns (ticket_id, ticket_number) tuple, or (None, None) if not found.
+        """
+        # First try to get by ID
+        ticket = await adapter.get_ticket_by_id(ticket_id_or_number)
+
+        # If not found by ID, try to find by ticket number
+        if ticket is None:
+            ticket = await adapter.get_ticket_by_number(str(ticket_id_or_number))
+
+        if ticket is None:
+            return None, None
+
+        return ticket.get("id"), ticket.get("number")
+
     async def _get_tickets(self, adapter, arguments: dict) -> dict:
         """Get list of tickets."""
         limit = arguments.get("limit", 20)
@@ -388,9 +405,14 @@ class ZammadTools(BaseTool):
 
     async def _add_comment(self, adapter, arguments: dict) -> dict:
         """Add a comment to a ticket."""
-        ticket_id = arguments.get("ticket_id")
+        ticket_id_or_number = arguments.get("ticket_id")
         comment = arguments.get("comment")
         internal = arguments.get("internal", False)
+
+        # Resolve ticket ID (user may provide ticket number instead of ID)
+        ticket_id, ticket_number = await self._resolve_ticket_id(adapter, ticket_id_or_number)
+        if ticket_id is None:
+            return {"success": False, "error": f"Ticket {ticket_id_or_number} not found (searched by ID and number)"}
 
         article = await adapter.create_article(
             ticket_id=ticket_id,
@@ -399,21 +421,31 @@ class ZammadTools(BaseTool):
         )
 
         if not article:
-            return {"success": False, "error": f"Failed to add comment to ticket #{ticket_id}"}
+            return {"success": False, "error": f"Failed to add comment to ticket #{ticket_number}"}
+
+        result = {
+            "message": f"Comment added to ticket #{ticket_number}",
+            "article_id": article.get("id"),
+            "internal": internal,
+        }
+        url = self._build_ticket_url(adapter, ticket_id)
+        if url:
+            result["url"] = url
 
         return {
             "success": True,
-            "result": {
-                "message": f"Comment added to ticket #{ticket_id}",
-                "article_id": article.get("id"),
-                "internal": internal,
-            },
+            "result": result,
         }
 
     async def _update_ticket_status(self, adapter, arguments: dict) -> dict:
         """Update ticket status."""
-        ticket_id = arguments.get("ticket_id")
+        ticket_id_or_number = arguments.get("ticket_id")
         status = arguments.get("status")
+
+        # Resolve ticket ID (user may provide ticket number instead of ID)
+        ticket_id, ticket_number = await self._resolve_ticket_id(adapter, ticket_id_or_number)
+        if ticket_id is None:
+            return {"success": False, "error": f"Ticket {ticket_id_or_number} not found (searched by ID and number)"}
 
         # Map status to Zammad state_id (1=new, 2=open, 3=pending reminder, 4=closed)
         status_map = {
@@ -427,15 +459,21 @@ class ZammadTools(BaseTool):
         success = await adapter.update_ticket(ticket_id, {"state_id": state_id})
 
         if not success:
-            return {"success": False, "error": f"Failed to update ticket #{ticket_id} status"}
+            return {"success": False, "error": f"Failed to update ticket #{ticket_number} status"}
+
+        result = {
+            "message": f"Ticket #{ticket_number} status updated to {status}",
+            "ticket_id": ticket_id,
+            "ticket_number": ticket_number,
+            "new_status": status,
+        }
+        url = self._build_ticket_url(adapter, ticket_id)
+        if url:
+            result["url"] = url
 
         return {
             "success": True,
-            "result": {
-                "message": f"Ticket #{ticket_id} status updated to {status}",
-                "ticket_id": ticket_id,
-                "new_status": status,
-            },
+            "result": result,
         }
 
     async def _get_ticket_stats(self, adapter) -> dict:
