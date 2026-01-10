@@ -452,10 +452,12 @@
     "romm": {
       "q1": "What gaming platforms are available?",
       "a1": "Use the romm_get_platforms tool",
-      "q2": "What are the latest games added to RomM?",
-      "a2": "Use the romm_get_roms tool with limit=10",
+      "q2": "What are the latest games added?",
+      "a2": "Use the romm_get_recently_added tool",
       "q3": "Search for the game Mario",
-      "a3": "Use the romm_search_roms tool with query=\"Mario\""
+      "a3": "Use the romm_search_roms tool with query=\"Mario\"",
+      "q4": "Show ROMs added this week",
+      "a4": "Use the romm_get_recently_added tool with days=7"
     },
     "zammad": {
       "q1": "Create a support ticket for a login issue",

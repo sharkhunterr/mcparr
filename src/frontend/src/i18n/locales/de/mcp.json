@@ -452,10 +452,12 @@
     "romm": {
       "q1": "Welche Gaming-Plattformen sind verfügbar?",
       "a1": "Verwenden Sie das Tool romm_get_platforms",
-      "q2": "Was sind die neuesten Spiele, die zu RomM hinzugefügt wurden?",
-      "a2": "Verwenden Sie das Tool romm_get_roms mit limit=10",
+      "q2": "Was sind die neuesten hinzugefügten Spiele?",
+      "a2": "Verwenden Sie das Tool romm_get_recently_added",
       "q3": "Nach dem Spiel Mario suchen",
-      "a3": "Verwenden Sie das Tool romm_search_roms mit query=\"Mario\""
+      "a3": "Verwenden Sie das Tool romm_search_roms mit query=\"Mario\"",
+      "q4": "Zeige diese Woche hinzugefügte ROMs",
+      "a4": "Verwenden Sie das Tool romm_get_recently_added mit days=7"
     },
     "zammad": {
       "q1": "Ein Support-Ticket für ein Anmeldeproblem erstellen",

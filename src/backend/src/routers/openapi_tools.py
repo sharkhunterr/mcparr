@@ -1597,6 +1597,27 @@ async def romm_get_statistics(request: Request, session: AsyncSession = Depends(
     return ToolResponse(**result)
 
 
+class RommRecentlyAddedRequest(BaseModel):
+    """Get recently added ROMs request."""
+
+    limit: int = Field(20, description="Maximum number of ROMs to return")
+    days: int = Field(30, description="Number of days to look back (0 for no limit)")
+
+
+@router.post(
+    "/romm_get_recently_added",
+    response_model=ToolResponse,
+    summary="Get recently added ROMs",
+    description="Get recently added ROMs sorted by date (newest first).",
+)
+async def romm_get_recently_added(
+    request: Request, body: RommRecentlyAddedRequest, session: AsyncSession = Depends(get_db_session)
+):
+    """Get recently added ROMs."""
+    result = await execute_tool_with_logging(session, "romm_get_recently_added", body.model_dump(), request)
+    return ToolResponse(**result)
+
+
 # ============================================================================
 # Komga Tools
 # ============================================================================
@@ -2911,7 +2932,7 @@ OPENWEBUI_TOOL_GROUPS = {
     "games": {
         "name": "MCParr - Jeux (RomM)",
         "description": "RomM ROM management tools",
-        "tools": "romm_get_collections,romm_get_platforms,romm_get_roms,romm_get_statistics,romm_get_users,romm_search_roms",
+        "tools": "romm_get_collections,romm_get_platforms,romm_get_recently_added,romm_get_roms,romm_get_statistics,romm_get_users,romm_search_roms",
     },
     "system": {
         "name": "MCParr - Système & Support",

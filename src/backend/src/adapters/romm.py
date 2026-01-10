@@ -317,3 +317,72 @@ class RommAdapter(TokenAuthAdapter):
         except Exception as e:
             self.logger.error(f"Failed to get statistics: {e}")
             return {"total_platforms": 0, "total_roms": 0, "platforms": []}
+
+    async def get_recently_added(self, limit: int = 20, days: int = 30) -> List[Dict[str, Any]]:
+        """Get recently added ROMs.
+
+        Args:
+            limit: Maximum number of ROMs to return (default: 20)
+            days: Number of days to look back (default: 30)
+
+        Returns:
+            List of recently added ROMs sorted by creation date (newest first)
+        """
+        try:
+            from datetime import timedelta
+
+            # RomM API supports ordering by created_at
+            params = {"limit": min(limit * 2, 200), "order_by": "created_at", "order_dir": "desc"}
+
+            response = await self._make_request("GET", "/api/roms", params=params)
+            roms = response.json()
+
+            # Handle paginated response
+            rom_list = roms.get("items", []) if isinstance(roms, dict) else roms
+
+            # Filter by date if days is specified
+            cutoff_date = None
+            if days > 0:
+                cutoff_date = datetime.utcnow() - timedelta(days=days)
+
+            results = []
+            for rom in rom_list:
+                # Parse created_at date
+                created_at_str = rom.get("created_at")
+                if created_at_str:
+                    try:
+                        # Handle various date formats
+                        if "T" in created_at_str:
+                            created_at = datetime.fromisoformat(created_at_str.replace("Z", "+00:00").split("+")[0])
+                        else:
+                            created_at = datetime.strptime(created_at_str, "%Y-%m-%d %H:%M:%S")
+
+                        # Skip if older than cutoff
+                        if cutoff_date and created_at < cutoff_date:
+                            continue
+                    except (ValueError, TypeError):
+                        created_at = None
+                else:
+                    created_at = None
+
+                results.append(
+                    {
+                        "id": rom.get("id"),
+                        "name": rom.get("name"),
+                        "file_name": rom.get("file_name"),
+                        "file_size": rom.get("file_size", 0),
+                        "platform_id": rom.get("platform_id"),
+                        "platform_slug": rom.get("platform_slug"),
+                        "created_at": created_at_str,
+                        "url": self._get_rom_url(rom.get("id")),
+                    }
+                )
+
+                if len(results) >= limit:
+                    break
+
+            return results
+
+        except Exception as e:
+            self.logger.error(f"Failed to get recently added ROMs: {e}")
+            return []
