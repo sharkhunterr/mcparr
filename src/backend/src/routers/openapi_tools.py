@@ -414,6 +414,13 @@ class OverseerrRequestMediaRequest(BaseModel):
     year: Optional[int] = Field(None, description="Release year for disambiguation")
 
 
+class OverseerrCheckAvailabilityRequest(BaseModel):
+    """Check if media is available in Overseerr."""
+
+    title: str = Field(..., description="Title of the movie or TV show")
+    year: Optional[int] = Field(None, description="Release year (helps with disambiguation)")
+
+
 # --- Tautulli Tools ---
 
 
@@ -2972,7 +2979,7 @@ async def overseerr_search_media(
     description="Check if a movie or TV show is available in the library.",
 )
 async def overseerr_check_availability(
-    request: Request, body: OverseerrSearchRequest, session: AsyncSession = Depends(get_db_session)
+    request: Request, body: OverseerrCheckAvailabilityRequest, session: AsyncSession = Depends(get_db_session)
 ):
     """Check media availability."""
     result = await execute_tool_with_logging(session, "overseerr_check_availability", body.model_dump(exclude_none=True), request)
