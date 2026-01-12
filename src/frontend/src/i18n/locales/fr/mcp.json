@@ -88,7 +88,14 @@
     "noRequests": "Aucune requête trouvée",
     "loadMore": "Charger plus",
     "totalRequests": "{{count}} requêtes au total",
-    "by": "par"
+    "by": "par",
+    "chainTriggered": "Chaîne d'outils déclenchée",
+    "suggestedArgs": "Arguments suggérés",
+    "chainStart": "Début de chaîne",
+    "chainMiddle": "Étape",
+    "chainEnd": "Fin de chaîne",
+    "nextTools": "Outils suivants",
+    "viewChain": "Voir la configuration de la chaîne"
   },
 
   "tools": {

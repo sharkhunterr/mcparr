@@ -88,7 +88,14 @@
     "noRequests": "Nessuna richiesta trovata",
     "loadMore": "Carica altro",
     "totalRequests": "{{count}} richieste totali",
-    "by": "da"
+    "by": "da",
+    "chainTriggered": "Catena di strumenti attivata",
+    "suggestedArgs": "Argomenti suggeriti",
+    "chainStart": "Inizio catena",
+    "chainMiddle": "Passo catena",
+    "chainEnd": "Fine catena",
+    "nextTools": "Strumenti successivi",
+    "viewChain": "Visualizza configurazione catena"
   },
 
   "tools": {

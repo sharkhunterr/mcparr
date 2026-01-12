@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Bot, RefreshCw, BarChart3, History, Wrench, Settings, ChevronDown, ChevronRight, Play, X, Loader2, TrendingUp, TrendingDown, Minus, Link2 } from 'lucide-react';
+import { Bot, RefreshCw, BarChart3, History, Wrench, Settings, ChevronDown, ChevronRight, Play, X, Loader2, TrendingUp, TrendingDown, Minus, Link2, Workflow, ArrowRight, Square, CircleDot } from 'lucide-react';
 import { ToolChainManagement } from '../components/ToolChains';
 import { api, getApiBaseUrl } from '../lib/api';
 import { getServiceColor, getServiceFromToolName } from '../lib/serviceColors';
@@ -438,6 +438,63 @@ const StatusDonutChart = ({ data, total }: { data: Record<string, number>; total
         })}
       </div>
     </div>
+  );
+};
+
+// Chain Badge - Shows chain info for requests that triggered next tools
+const ChainBadge = ({
+  request,
+  onChainClick,
+}: {
+  request: McpRequest;
+  onChainClick?: () => void;
+}) => {
+  const { t } = useTranslation('mcp');
+  const chainContext = request.output_result?.chain_context;
+  const nextTools = request.output_result?.next_tools_to_call;
+
+  if (!chainContext && (!nextTools || nextTools.length === 0)) return null;
+
+  const position = chainContext?.position || 'start';
+  const chains = chainContext?.chains || [];
+  const chainName = chains[0]?.name;
+  const chainColor = chains[0]?.color || '#8b5cf6';
+
+  // Position-specific styling
+  const positionIcons = {
+    start: <Play className="w-3 h-3" />,
+    middle: <CircleDot className="w-3 h-3" />,
+    end: <Square className="w-3 h-3" />,
+  };
+
+  const positionLabels = {
+    start: t('history.chainStart'),
+    middle: t('history.chainMiddle'),
+    end: t('history.chainEnd'),
+  };
+
+  return (
+    <button
+      onClick={(e) => {
+        e.stopPropagation();
+        onChainClick?.();
+      }}
+      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium transition-colors hover:opacity-80"
+      style={{
+        backgroundColor: `${chainColor}20`,
+        color: chainColor,
+      }}
+      title={`${positionLabels[position as keyof typeof positionLabels] || position} - ${chainName || t('history.chainTriggered')}`}
+    >
+      {positionIcons[position as keyof typeof positionIcons]}
+      <Workflow className="w-3 h-3" />
+      {nextTools && nextTools.length > 0 && (
+        <>
+          <ArrowRight className="w-3 h-3" />
+          <span>{nextTools.length}</span>
+        </>
+      )}
+    </button>
   );
 };
 
@@ -2684,6 +2741,7 @@ export default function MCP() {
                       <div className="flex items-center gap-2 flex-wrap">
                         <ServiceBadge toolName={request.tool_name} />
                         {request.tool_category && <CategoryBadge category={request.tool_category} />}
+                        <ChainBadge request={request} onChainClick={() => setSelectedRequest(request)} />
                         {request.user_display_name && (
                           <span className="text-xs text-gray-500">{t('history.by')} {request.user_display_name}</span>
                         )}
@@ -2711,6 +2769,9 @@ export default function MCP() {
                         </th>
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                           Service
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                          {t('tabs.interactionsShort')}
                         </th>
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                           User
@@ -2742,6 +2803,9 @@ export default function MCP() {
                               <ServiceBadge toolName={request.tool_name} />
                             </td>
                             <td className="px-4 py-3 whitespace-nowrap">
+                              <ChainBadge request={request} onChainClick={() => setSelectedRequest(request)} />
+                            </td>
+                            <td className="px-4 py-3 whitespace-nowrap">
                               {request.user_id ? (
                                 <span className="text-sm text-gray-900 dark:text-white" title={request.user_id}>
                                   {request.user_display_name || (request.user_id.includes('@') ? request.user_id.split('@')[0] : request.user_id.substring(0, 8))}
@@ -2771,7 +2835,7 @@ export default function MCP() {
                         ))
                       ) : (
                         <tr>
-                          <td colSpan={7} className="px-4 py-12 text-center text-gray-500 dark:text-gray-400">
+                          <td colSpan={8} className="px-4 py-12 text-center text-gray-500 dark:text-gray-400">
                             {t('history.noRequests')}
                           </td>
                         </tr>
@@ -3013,6 +3077,132 @@ export default function MCP() {
                     <pre className="bg-gray-50 dark:bg-gray-900 p-3 rounded-lg text-xs overflow-x-auto max-h-48">
                       {JSON.stringify(selectedRequest.output_result, null, 2)}
                     </pre>
+                  </div>
+                )}
+
+                {/* Tool Chain Info */}
+                {(selectedRequest.output_result?.chain_context ||
+                  (selectedRequest.output_result?.next_tools_to_call &&
+                   selectedRequest.output_result.next_tools_to_call.length > 0)) && (
+                  <div className="border-t dark:border-gray-700 pt-4">
+                    {/* Chain Header with badges */}
+                    {selectedRequest.output_result?.chain_context && (() => {
+                      const position = selectedRequest.output_result.chain_context.position || 'start';
+                      const sourceTool = selectedRequest.output_result.chain_context.source_tool;
+
+                      const positionConfig = {
+                        start: {
+                          icon: <Play className="w-3 h-3" />,
+                          label: t('history.chainStart'),
+                          bgClass: 'bg-green-100 dark:bg-green-900/30',
+                          textClass: 'text-green-700 dark:text-green-300',
+                        },
+                        middle: {
+                          icon: <CircleDot className="w-3 h-3" />,
+                          label: t('history.chainMiddle'),
+                          bgClass: 'bg-blue-100 dark:bg-blue-900/30',
+                          textClass: 'text-blue-700 dark:text-blue-300',
+                        },
+                        end: {
+                          icon: <Square className="w-3 h-3" />,
+                          label: t('history.chainEnd'),
+                          bgClass: 'bg-orange-100 dark:bg-orange-900/30',
+                          textClass: 'text-orange-700 dark:text-orange-300',
+                        },
+                      };
+
+                      const config = positionConfig[position as keyof typeof positionConfig] || positionConfig.start;
+
+                      return (
+                        <div className="flex items-center gap-2 mb-3 flex-wrap">
+                          {/* Position Badge */}
+                          <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${config.bgClass} ${config.textClass}`}>
+                            {config.icon}
+                            {config.label}
+                          </span>
+
+                          {/* Source Tool Badge (for middle/end positions) */}
+                          {(position === 'middle' || position === 'end') && sourceTool && (
+                            <span className="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-full text-xs">
+                              <ArrowRight className="w-3 h-3 rotate-180" />
+                              {sourceTool}
+                            </span>
+                          )}
+
+                          {/* Chain Links */}
+                          {selectedRequest.output_result.chain_context.chains?.map((chain: any) => (
+                            <a
+                              key={chain.id}
+                              href={`#chains`}
+                              onClick={(e) => {
+                                e.preventDefault();
+                                setSelectedRequest(null);
+                                setActiveTab('interactions');
+                              }}
+                              className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium transition-colors hover:opacity-80"
+                              style={{
+                                backgroundColor: `${chain.color || '#8b5cf6'}20`,
+                                color: chain.color || '#8b5cf6',
+                              }}
+                              title={t('history.viewChain')}
+                            >
+                              <Workflow className="w-3 h-3" />
+                              {chain.name}
+                              <Link2 className="w-3 h-3" />
+                            </a>
+                          ))}
+                        </div>
+                      );
+                    })()}
+
+                    {/* Next Tools */}
+                    {selectedRequest.output_result?.next_tools_to_call &&
+                     selectedRequest.output_result.next_tools_to_call.length > 0 && (() => {
+                      // Get color from chain_context (at root level)
+                      const chainColor = selectedRequest.output_result.chain_context?.chains?.[0]?.color || '#8b5cf6';
+
+                      return (
+                        <div className="space-y-2">
+                          <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                            {t('history.nextTools')}
+                          </p>
+                          <div className="space-y-2">
+                            {selectedRequest.output_result.next_tools_to_call.map((nextTool: any, index: number) => (
+                              <div
+                                key={index}
+                                className="flex items-center gap-2 p-2 rounded-lg"
+                                style={{ backgroundColor: `${chainColor}10` }}
+                              >
+                                <ArrowRight className="w-4 h-4 flex-shrink-0" style={{ color: chainColor }} />
+
+                                {/* Tool Badge */}
+                                <span
+                                  className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium"
+                                  style={{
+                                    backgroundColor: `${chainColor}20`,
+                                    color: chainColor,
+                                  }}
+                                >
+                                  {nextTool.tool}
+                                </span>
+
+                                {/* Service Badge */}
+                                <span className="text-xs px-2 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded">
+                                  {nextTool.service_name}
+                                </span>
+
+                                {/* Reason */}
+                                {nextTool.reason && (
+                                  <span className="text-xs text-gray-500 dark:text-gray-400 truncate flex-1" title={nextTool.reason}>
+                                    {nextTool.reason}
+                                  </span>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })()}
                   </div>
                 )}
 

@@ -88,7 +88,14 @@
     "noRequests": "No requests found",
     "loadMore": "Load more",
     "totalRequests": "{{count}} total requests",
-    "by": "by"
+    "by": "by",
+    "chainTriggered": "Tool Chain Triggered",
+    "suggestedArgs": "Suggested arguments",
+    "chainStart": "Chain Start",
+    "chainMiddle": "Chain Step",
+    "chainEnd": "Chain End",
+    "nextTools": "Next Tools",
+    "viewChain": "View chain configuration"
   },
 
   "tools": {

@@ -358,8 +358,11 @@ class ToolResponse(BaseModel):
     success: bool
     result: Optional[Dict[str, Any]] = None
     error: Optional[str] = None
+    chain_context: Optional[Dict[str, Any]] = None
     next_tools_to_call: Optional[List[Dict[str, Any]]] = None
     ai_instruction: Optional[str] = None
+
+    model_config = {"exclude_none": True}
 
 
 # --- Plex Tools ---
@@ -680,8 +683,13 @@ async def execute_tool_with_logging(
         result = await registry.execute(tool_name, arguments)
 
         # Enrich result with tool chain suggestions BEFORE storing
+        # Pass session_id and user_id for multi-user chain flow tracking
         from src.services.tool_chain_service import enrich_tool_result_with_chains
-        result = await enrich_tool_result_with_chains(session, tool_name, result, arguments)
+        result = await enrich_tool_result_with_chains(
+            session, tool_name, result, arguments,
+            session_id=mcp_request.session_id,
+            user_id=mcp_request.user_id,
+        )
 
         # Mark as completed (now includes next_tools_to_call if any)
         if result.get("success"):

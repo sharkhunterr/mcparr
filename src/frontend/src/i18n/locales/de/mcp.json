@@ -88,7 +88,14 @@
       "user": "Benutzer"
     },
     "noRequests": "Keine Anfragen gefunden",
-    "loadMore": "Mehr laden"
+    "loadMore": "Mehr laden",
+    "chainTriggered": "Tool-Kette ausgelöst",
+    "suggestedArgs": "Vorgeschlagene Argumente",
+    "chainStart": "Kettenstart",
+    "chainMiddle": "Kettenschritt",
+    "chainEnd": "Kettenende",
+    "nextTools": "Nächste Tools",
+    "viewChain": "Kettenkonfiguration anzeigen"
   },
 
   "tools": {

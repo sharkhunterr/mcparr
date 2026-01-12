@@ -587,8 +587,11 @@ class ToolTestResponse(BaseModel):
     result: Optional[dict] = None
     error: Optional[str] = None
     duration_ms: int
+    chain_context: Optional[dict[str, Any]] = None
     next_tools_to_call: Optional[list[dict[str, Any]]] = None
     ai_instruction: Optional[str] = None
+
+    model_config = {"exclude_none": True}
 
 
 @router.post("/tools/test", response_model=ToolTestResponse)
@@ -720,6 +723,7 @@ async def test_tool(
             result=full_result.get("result"),
             error=full_result.get("error"),
             duration_ms=duration_ms,
+            chain_context=enriched.get("chain_context"),
             next_tools_to_call=enriched.get("next_tools_to_call"),
             ai_instruction=enriched.get("ai_instruction"),
         )
