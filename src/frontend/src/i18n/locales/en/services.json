@@ -1,7 +1,19 @@
 {
   "title": "Services",
+  "description": "Manage your homelab services and organize them into groups",
   "subtitle": "{{count}} configured service",
   "subtitle_plural": "{{count}} configured services",
+
+  "tabs": {
+    "services": {
+      "label": "Services",
+      "labelFull": "Configured Services"
+    },
+    "groups": {
+      "label": "Groups",
+      "labelFull": "Service Groups"
+    }
+  },
 
   "actions": {
     "testAll": "Test All",
@@ -106,5 +118,65 @@
     "updateFailed": "Failed to update service",
     "deleteFailed": "Failed to delete service",
     "toggleFailed": "Failed to toggle service"
+  },
+
+  "serviceGroups": {
+    "title": "Service Groups",
+    "description": "Create custom groups to organize your services",
+    "management": {
+      "title": "Select a group",
+      "description": "Choose a service group from the list to view and manage its services."
+    },
+    "list": {
+      "title": "Service Groups",
+      "refresh": "Refresh",
+      "new": "New",
+      "search": "Search groups...",
+      "count": "{{count}} groups",
+      "services": "services",
+      "system": "System",
+      "disabled": "Disabled",
+      "showDisabled": "Show disabled",
+      "noGroups": "No service groups",
+      "noGroupsFound": "No groups found",
+      "createFirst": "Create your first group",
+      "enable": "Enable",
+      "disable": "Disable",
+      "delete": "Delete",
+      "cannotDeleteSystem": "System groups cannot be deleted",
+      "deleteConfirm": "Are you sure you want to delete \"{{name}}\"?"
+    },
+    "detail": {
+      "close": "Close",
+      "tabs": {
+        "info": "Info",
+        "services": "Services"
+      },
+      "name": "Name",
+      "description": "Description",
+      "color": "Color",
+      "priority": "Priority",
+      "priorityHelp": "Higher priority groups appear first",
+      "save": "Save",
+      "servicesHelp": "Select the services to include in this group",
+      "notConfigured": "Not configured"
+    },
+    "create": {
+      "title": "Create Service Group",
+      "name": "Name",
+      "namePlaceholder": "e.g., Media Services",
+      "description": "Description",
+      "descriptionPlaceholder": "Describe the purpose of this group...",
+      "color": "Color",
+      "priority": "Priority",
+      "cancel": "Cancel",
+      "submit": "Create Group"
+    },
+    "errors": {
+      "fetchFailed": "Failed to load service groups",
+      "createFailed": "Failed to create service group",
+      "updateFailed": "Failed to update service group",
+      "deleteFailed": "Failed to delete service group"
+    }
   }
 }

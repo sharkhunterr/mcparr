@@ -1,7 +1,19 @@
 {
   "title": "Services",
+  "description": "Gérez vos services homelab et organisez-les en groupes",
   "subtitle": "{{count}} service configuré",
   "subtitle_plural": "{{count}} services configurés",
+
+  "tabs": {
+    "services": {
+      "label": "Services",
+      "labelFull": "Services configurés"
+    },
+    "groups": {
+      "label": "Groupes",
+      "labelFull": "Groupes de services"
+    }
+  },
 
   "actions": {
     "testAll": "Tester tout",
@@ -101,10 +113,70 @@
   },
 
   "errors": {
-    "fetchFailed": "Failed to fetch services",
-    "createFailed": "Failed to create service",
-    "updateFailed": "Failed to update service",
-    "deleteFailed": "Failed to delete service",
-    "toggleFailed": "Failed to toggle service"
+    "fetchFailed": "Échec du chargement des services",
+    "createFailed": "Échec de la création du service",
+    "updateFailed": "Échec de la mise à jour du service",
+    "deleteFailed": "Échec de la suppression du service",
+    "toggleFailed": "Échec du changement d'état du service"
+  },
+
+  "serviceGroups": {
+    "title": "Groupes de services",
+    "description": "Créez des groupes personnalisés pour organiser vos services",
+    "management": {
+      "title": "Sélectionnez un groupe",
+      "description": "Choisissez un groupe de services dans la liste pour voir et gérer ses services."
+    },
+    "list": {
+      "title": "Groupes de services",
+      "refresh": "Actualiser",
+      "new": "Nouveau",
+      "search": "Rechercher des groupes...",
+      "count": "{{count}} groupes",
+      "services": "services",
+      "system": "Système",
+      "disabled": "Désactivé",
+      "showDisabled": "Afficher désactivés",
+      "noGroups": "Aucun groupe de services",
+      "noGroupsFound": "Aucun groupe trouvé",
+      "createFirst": "Créez votre premier groupe",
+      "enable": "Activer",
+      "disable": "Désactiver",
+      "delete": "Supprimer",
+      "cannotDeleteSystem": "Les groupes système ne peuvent pas être supprimés",
+      "deleteConfirm": "Êtes-vous sûr de vouloir supprimer \"{{name}}\" ?"
+    },
+    "detail": {
+      "close": "Fermer",
+      "tabs": {
+        "info": "Info",
+        "services": "Services"
+      },
+      "name": "Nom",
+      "description": "Description",
+      "color": "Couleur",
+      "priority": "Priorité",
+      "priorityHelp": "Les groupes de priorité élevée apparaissent en premier",
+      "save": "Enregistrer",
+      "servicesHelp": "Sélectionnez les services à inclure dans ce groupe",
+      "notConfigured": "Non configuré"
+    },
+    "create": {
+      "title": "Créer un groupe de services",
+      "name": "Nom",
+      "namePlaceholder": "ex: Services Médias",
+      "description": "Description",
+      "descriptionPlaceholder": "Décrivez l'objectif de ce groupe...",
+      "color": "Couleur",
+      "priority": "Priorité",
+      "cancel": "Annuler",
+      "submit": "Créer le groupe"
+    },
+    "errors": {
+      "fetchFailed": "Échec du chargement des groupes de services",
+      "createFailed": "Échec de la création du groupe de services",
+      "updateFailed": "Échec de la mise à jour du groupe de services",
+      "deleteFailed": "Échec de la suppression du groupe de services"
+    }
   }
 }

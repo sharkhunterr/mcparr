@@ -328,3 +328,53 @@ export interface AvailableToolsResponse {
   }>>;
   total_tools: number;
 }
+
+// Service Groups
+export interface ServiceGroup {
+  id: string;
+  name: string;
+  description?: string;
+  color?: string;
+  icon?: string;
+  priority: number;
+  is_system: boolean;
+  enabled: boolean;
+  created_at: string;
+  updated_at: string;
+  member_count: number;
+  service_types: string[];
+}
+
+export interface ServiceGroupMembership {
+  id: string;
+  group_id: string;
+  service_type: string;
+  enabled: boolean;
+  created_at: string;
+  updated_at: string;
+  service_name?: string;
+  service_configured: boolean;
+}
+
+export interface ServiceGroupDetail extends ServiceGroup {
+  memberships: ServiceGroupMembership[];
+}
+
+export interface ServiceGroupListResponse {
+  groups: ServiceGroup[];
+  total: number;
+  skip: number;
+  limit: number;
+}
+
+export interface AvailableService {
+  service_type: string;
+  display_name: string;
+  configured: boolean;
+  tool_count: number;
+}
+
+export interface AvailableServicesResponse {
+  services: AvailableService[];
+  total: number;
+}

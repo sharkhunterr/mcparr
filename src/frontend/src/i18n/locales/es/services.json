@@ -1,7 +1,19 @@
 {
   "title": "Servicios",
+  "description": "Gestiona tus servicios homelab y organízalos en grupos",
   "subtitle": "{{count}} servicio configurado",
   "subtitle_plural": "{{count}} servicios configurados",
+
+  "tabs": {
+    "services": {
+      "label": "Servicios",
+      "labelFull": "Servicios configurados"
+    },
+    "groups": {
+      "label": "Grupos",
+      "labelFull": "Grupos de servicios"
+    }
+  },
 
   "actions": {
     "testAll": "Probar todos",
@@ -106,5 +118,65 @@
     "updateFailed": "Error al actualizar servicio",
     "deleteFailed": "Error al eliminar servicio",
     "toggleFailed": "Error al cambiar estado del servicio"
+  },
+
+  "serviceGroups": {
+    "title": "Grupos de servicios",
+    "description": "Crea grupos personalizados para organizar tus servicios",
+    "management": {
+      "title": "Selecciona un grupo",
+      "description": "Elige un grupo de servicios de la lista para ver y gestionar sus servicios."
+    },
+    "list": {
+      "title": "Grupos de servicios",
+      "refresh": "Actualizar",
+      "new": "Nuevo",
+      "search": "Buscar grupos...",
+      "count": "{{count}} grupos",
+      "services": "servicios",
+      "system": "Sistema",
+      "disabled": "Desactivado",
+      "showDisabled": "Mostrar desactivados",
+      "noGroups": "Sin grupos de servicios",
+      "noGroupsFound": "No se encontraron grupos",
+      "createFirst": "Crea tu primer grupo",
+      "enable": "Activar",
+      "disable": "Desactivar",
+      "delete": "Eliminar",
+      "cannotDeleteSystem": "Los grupos del sistema no pueden ser eliminados",
+      "deleteConfirm": "¿Está seguro de que desea eliminar \"{{name}}\"?"
+    },
+    "detail": {
+      "close": "Cerrar",
+      "tabs": {
+        "info": "Info",
+        "services": "Servicios"
+      },
+      "name": "Nombre",
+      "description": "Descripción",
+      "color": "Color",
+      "priority": "Prioridad",
+      "priorityHelp": "Los grupos de mayor prioridad aparecen primero",
+      "save": "Guardar",
+      "servicesHelp": "Selecciona los servicios a incluir en este grupo",
+      "notConfigured": "No configurado"
+    },
+    "create": {
+      "title": "Crear grupo de servicios",
+      "name": "Nombre",
+      "namePlaceholder": "ej: Servicios multimedia",
+      "description": "Descripción",
+      "descriptionPlaceholder": "Describe el propósito de este grupo...",
+      "color": "Color",
+      "priority": "Prioridad",
+      "cancel": "Cancelar",
+      "submit": "Crear grupo"
+    },
+    "errors": {
+      "fetchFailed": "Error al cargar los grupos de servicios",
+      "createFailed": "Error al crear el grupo de servicios",
+      "updateFailed": "Error al actualizar el grupo de servicios",
+      "deleteFailed": "Error al eliminar el grupo de servicios"
+    }
   }
 }

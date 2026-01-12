@@ -4,6 +4,7 @@ from .alert_config import AlertConfiguration, AlertHistory
 from .base import AlertSeverity, Base, LogLevel, TimestampMixin, UUIDMixin
 from .configuration import ConfigurationSetting
 from .group import Group, GroupMembership, GroupToolPermission
+from .service_group import ServiceGroup, ServiceGroupMembership
 from .log_entry import LogEntry
 from .mcp_request import McpRequest, McpRequestStatus, McpToolCategory
 from .service_config import ServiceConfig, ServiceHealthHistory, ServiceStatus, ServiceType
@@ -46,6 +47,8 @@ __all__ = [
     "Group",
     "GroupMembership",
     "GroupToolPermission",
+    "ServiceGroup",
+    "ServiceGroupMembership",
     "TrainingSession",
     "TrainingStatus",
     "TrainingType",

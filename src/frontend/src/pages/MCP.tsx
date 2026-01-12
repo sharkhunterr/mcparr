@@ -1330,8 +1330,8 @@ const ConfigurationTab = ({ tools }: { tools: McpToolsResponse | null }) => {
     errors?: string[];
   } | null>(null);
   const [mcparrExternalUrl, setMcparrExternalUrl] = useState('');
-  // Endpoint mode: 'all' = single endpoint, 'group' = per category, 'service' = per service
-  const [endpointMode, setEndpointMode] = useState<'all' | 'group' | 'service'>('group');
+  // Endpoint mode: 'all' = single endpoint, 'group' = per category, 'service' = per service, 'serviceGroup' = custom service groups
+  const [endpointMode, setEndpointMode] = useState<'all' | 'group' | 'service' | 'serviceGroup'>('group');
   // Groups match backend OPENWEBUI_TOOL_GROUPS keys (for 'group' mode)
   const [selectedGroups, setSelectedGroups] = useState<Record<string, boolean>>({
     media: true,
@@ -1361,6 +1361,10 @@ const ConfigurationTab = ({ tools }: { tools: McpToolsResponse | null }) => {
     wikijs: false,
     authentik: true,
   });
+  // Custom service groups for 'serviceGroup' mode
+  const [customServiceGroups, setCustomServiceGroups] = useState<Array<{ id: string; name: string; service_types: string[] }>>([]);
+  const [selectedServiceGroups, setSelectedServiceGroups] = useState<Record<string, boolean>>({});
+  const [serviceGroupsLoading, setServiceGroupsLoading] = useState(false);
   const [useFunctionFilters, setUseFunctionFilters] = useState(true);
 
   useEffect(() => {
@@ -1382,6 +1386,32 @@ const ConfigurationTab = ({ tools }: { tools: McpToolsResponse | null }) => {
     const interval = setInterval(fetchStatus, 30000);
     return () => clearInterval(interval);
   }, []);
+
+  // Fetch custom service groups when mode changes to 'serviceGroup'
+  useEffect(() => {
+    if (endpointMode === 'serviceGroup') {
+      const fetchServiceGroups = async () => {
+        setServiceGroupsLoading(true);
+        try {
+          const response = await api.serviceGroups.list(true); // Only enabled groups
+          const groups = response.groups || [];
+          setCustomServiceGroups(groups);
+          // Initialize selection - all groups selected by default
+          const initialSelection: Record<string, boolean> = {};
+          groups.forEach((group: { id: string }) => {
+            initialSelection[group.id] = true;
+          });
+          setSelectedServiceGroups(initialSelection);
+        } catch (error) {
+          console.error('Failed to fetch service groups:', error);
+          setCustomServiceGroups([]);
+        } finally {
+          setServiceGroupsLoading(false);
+        }
+      };
+      fetchServiceGroups();
+    }
+  }, [endpointMode]);
 
   // Générer le prompt dynamiquement
   const systemPrompt = generateSystemPrompt(tools, serverStatus?.enabled_services || [], t);
@@ -1430,6 +1460,7 @@ const ConfigurationTab = ({ tools }: { tools: McpToolsResponse | null }) => {
       use_function_filters: boolean;
       groups?: string[];
       services?: string[];
+      service_group_ids?: string[];
     } = {
       mcparr_external_url: mcparrExternalUrl.trim(),
       endpoint_mode: endpointMode,
@@ -1464,6 +1495,20 @@ const ConfigurationTab = ({ tools }: { tools: McpToolsResponse | null }) => {
         return;
       }
       requestBody.services = servicesToConfig;
+    } else if (endpointMode === 'serviceGroup') {
+      const serviceGroupIds = Object.entries(selectedServiceGroups)
+        .filter(([, enabled]) => enabled)
+        .map(([groupId]) => groupId);
+
+      if (serviceGroupIds.length === 0) {
+        setAutoConfigResult({
+          success: false,
+          message: t('config.autoConfig.errorNoServiceGroup'),
+          errors: [t('config.autoConfig.errorNoServiceGroupDetail')],
+        });
+        return;
+      }
+      requestBody.service_group_ids = serviceGroupIds;
     }
     // For 'all' mode, no groups/services needed
 
@@ -1534,10 +1579,11 @@ const ConfigurationTab = ({ tools }: { tools: McpToolsResponse | null }) => {
               </label>
               <select
                 value={endpointMode}
-                onChange={(e) => setEndpointMode(e.target.value as 'all' | 'group' | 'service')}
+                onChange={(e) => setEndpointMode(e.target.value as 'all' | 'group' | 'service' | 'serviceGroup')}
                 className="w-full sm:w-auto px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-teal-500 focus:border-transparent"
               >
                 <option value="group">{t('config.autoConfig.endpointMode.group')}</option>
+                <option value="serviceGroup">{t('config.autoConfig.endpointMode.serviceGroup')}</option>
                 <option value="service">{t('config.autoConfig.endpointMode.service')}</option>
                 <option value="all">{t('config.autoConfig.endpointMode.all')}</option>
               </select>
@@ -1642,6 +1688,62 @@ const ConfigurationTab = ({ tools }: { tools: McpToolsResponse | null }) => {
               </div>
             )}
 
+            {endpointMode === 'serviceGroup' && (
+              <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600">
+                <p className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  {t('config.autoConfig.selectServiceGroups')}
+                </p>
+                {serviceGroupsLoading ? (
+                  <div className="flex items-center justify-center py-4">
+                    <Loader2 className="w-5 h-5 animate-spin text-teal-600" />
+                    <span className="ml-2 text-sm text-gray-500">{t('common:loading')}</span>
+                  </div>
+                ) : customServiceGroups.length === 0 ? (
+                  <div className="text-center py-4">
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      {t('config.autoConfig.noServiceGroups')}
+                    </p>
+                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                      {t('config.autoConfig.noServiceGroupsHint')}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {customServiceGroups.map((group) => (
+                      <label
+                        key={group.id}
+                        className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-colors ${
+                          selectedServiceGroups[group.id]
+                            ? 'bg-teal-100 dark:bg-teal-900/30 border border-teal-300 dark:border-teal-700'
+                            : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectedServiceGroups[group.id] || false}
+                          onChange={(e) => setSelectedServiceGroups(prev => ({
+                            ...prev,
+                            [group.id]: e.target.checked
+                          }))}
+                          className="w-4 h-4 text-teal-600 bg-gray-100 border-gray-300 rounded focus:ring-teal-500"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <span className={`text-xs font-medium block truncate ${
+                            selectedServiceGroups[group.id] ? 'text-teal-800 dark:text-teal-200' : 'text-gray-600 dark:text-gray-400'
+                          }`}>
+                            {group.name}
+                          </span>
+                          <span className="text-[10px] text-gray-400 dark:text-gray-500">
+                            {group.service_types.length} {t('config.autoConfig.servicesInGroup')}
+                          </span>
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* 3. Function filters checkbox */}
             <label className="flex items-start gap-2 cursor-pointer">
               <input
@@ -1671,7 +1773,7 @@ const ConfigurationTab = ({ tools }: { tools: McpToolsResponse | null }) => {
               />
               <button
                 onClick={handleAutoConfigureOpenWebUI}
-                disabled={autoConfigLoading || (endpointMode === 'group' && Object.values(selectedGroups).every(v => !v)) || (endpointMode === 'service' && Object.values(selectedServices).every(v => !v))}
+                disabled={autoConfigLoading || (endpointMode === 'group' && Object.values(selectedGroups).every(v => !v)) || (endpointMode === 'service' && Object.values(selectedServices).every(v => !v)) || (endpointMode === 'serviceGroup' && Object.values(selectedServiceGroups).every(v => !v))}
                 className="px-4 py-2 text-sm font-medium text-white bg-teal-600 hover:bg-teal-700 disabled:bg-teal-400 disabled:cursor-not-allowed rounded-lg transition-colors flex items-center justify-center gap-2 whitespace-nowrap"
               >
                 {autoConfigLoading ? (

@@ -148,6 +148,11 @@ def create_app() -> FastAPI:
 
     app.include_router(groups.router, tags=["Groups"])
 
+    # Service Groups router
+    from src.routers import service_groups
+
+    app.include_router(service_groups.router, tags=["Service Groups"])
+
     # Observability routers
     from src.routers import alerts, logs
 

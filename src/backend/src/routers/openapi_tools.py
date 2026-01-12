@@ -36,6 +36,7 @@ from src.mcp.tools.wikijs_tools import WikiJSTools
 from src.mcp.tools.zammad_tools import ZammadTools
 from src.models import ServiceConfig
 from src.models.mcp_request import McpRequest, McpToolCategory
+from src.models.service_group import ServiceGroup, ServiceGroupMembership
 
 logger = logging.getLogger(__name__)
 
@@ -3077,8 +3078,11 @@ class OpenWebUIAutoConfigRequest(BaseModel):
     services: Optional[list[str]] = Field(
         None, description="Specific services to configure (for 'service' mode). Options: plex, tautulli, overseerr, radarr, sonarr, prowlarr, jackett, deluge, komga, audiobookshelf, romm, system, zammad, openwebui, wikijs, authentik"
     )
+    service_group_ids: Optional[list[str]] = Field(
+        None, description="Custom service group IDs to configure (for 'serviceGroup' mode)"
+    )
     endpoint_mode: str = Field(
-        "group", description="Endpoint mode: 'all' = single endpoint, 'group' = per category, 'service' = per service"
+        "group", description="Endpoint mode: 'all' = single endpoint, 'group' = per category, 'service' = per service, 'serviceGroup' = per custom service group"
     )
     use_function_filters: bool = Field(
         True, description="Add function name filter lists to restrict visible tools per group"
@@ -3152,11 +3156,12 @@ async def configure_openwebui(
         )
 
     # Determine endpoint mode
-    endpoint_mode = body.endpoint_mode if body.endpoint_mode in ("all", "group", "service") else "group"
+    endpoint_mode = body.endpoint_mode if body.endpoint_mode in ("all", "group", "service", "serviceGroup") else "group"
 
     # Validate based on mode
     groups_to_configure: list[str] = []
     services_to_configure: list[str] = []
+    service_groups_to_configure: list[dict] = []  # For serviceGroup mode
 
     if endpoint_mode == "group":
         groups_to_configure = body.groups if body.groups else list(OPENWEBUI_TOOL_GROUPS.keys())
@@ -3175,6 +3180,47 @@ async def configure_openwebui(
                 success=False,
                 message=f"Invalid service names: {', '.join(invalid_services)}",
                 errors=[f"Valid services are: {', '.join(SERVICE_ENDPOINTS.keys())}"],
+            )
+    elif endpoint_mode == "serviceGroup":
+        # Custom service groups mode - fetch from database
+        if not body.service_group_ids:
+            return OpenWebUIAutoConfigResponse(
+                success=False,
+                message="No service groups specified",
+                errors=["Please select at least one custom service group to configure"],
+            )
+
+        # Fetch service groups with their memberships
+        for group_id in body.service_group_ids:
+            result = await session.execute(
+                select(ServiceGroup).where(
+                    ServiceGroup.id == group_id,
+                    ServiceGroup.enabled == True,
+                )
+            )
+            service_group = result.scalar_one_or_none()
+            if service_group:
+                # Get service types for this group
+                memberships_result = await session.execute(
+                    select(ServiceGroupMembership).where(
+                        ServiceGroupMembership.group_id == group_id,
+                        ServiceGroupMembership.enabled == True,
+                    )
+                )
+                memberships = memberships_result.scalars().all()
+                service_types = [m.service_type for m in memberships]
+
+                service_groups_to_configure.append({
+                    "id": str(service_group.id),
+                    "name": service_group.name,
+                    "service_types": service_types,
+                })
+
+        if not service_groups_to_configure:
+            return OpenWebUIAutoConfigResponse(
+                success=False,
+                message="No valid service groups found",
+                errors=["The specified service groups don't exist or are disabled"],
             )
     else:
         # 'all' mode - use all groups
@@ -3309,7 +3355,42 @@ async def configure_openwebui(
                     total_tools += tool_count
                     logger.info(f"[OpenWebUI Config] Added group endpoint '{endpoint}' with {tool_count} tools for: {group_ids}")
 
-            else:
+            elif endpoint_mode == "serviceGroup":
+                # Custom service groups mode: one connection per custom service group
+                for sg in service_groups_to_configure:
+                    group_name = sg["name"]
+                    service_types = sg["service_types"]
+
+                    # Build tool filter list based on service types
+                    tool_filters = []
+                    for service_type in service_types:
+                        if service_type in SERVICE_ENDPOINTS:
+                            # Add wildcard pattern for this service's tools
+                            tool_filters.append(f"{service_type}_*")
+
+                    connection = {
+                        "url": mcparr_url,
+                        "path": "/tools/openapi.json",  # Use the main endpoint
+                        "type": "openapi",
+                        "auth_type": "session",
+                        "key": "",
+                        "config": {},
+                        "info": {
+                            "name": f"MCParr - {group_name}",
+                            "description": f"Custom service group: {', '.join(service_types)}",
+                        },
+                    }
+
+                    if body.use_function_filters and tool_filters:
+                        # Use comma-separated wildcard patterns
+                        connection["config"]["function_name_filter_list"] = ",".join(tool_filters)
+
+                    new_connections.append(connection)
+                    configured_groups.append(group_name)
+                    total_tools += len(service_types) * 8  # Approximate ~8 tools per service
+                    logger.info(f"[OpenWebUI Config] Added custom group '{group_name}' with services: {service_types}")
+
+            elif endpoint_mode == "all":
                 # 'all' mode: single endpoint /tools/openapi.json with all tools
                 all_tools = []
                 all_group_names = []

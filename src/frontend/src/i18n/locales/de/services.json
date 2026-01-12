@@ -1,7 +1,19 @@
 {
   "title": "Dienste",
+  "description": "Verwalten Sie Ihre Homelab-Dienste und organisieren Sie sie in Gruppen",
   "subtitle": "{{count}} konfigurierter Dienst",
   "subtitle_plural": "{{count}} konfigurierte Dienste",
+
+  "tabs": {
+    "services": {
+      "label": "Dienste",
+      "labelFull": "Konfigurierte Dienste"
+    },
+    "groups": {
+      "label": "Gruppen",
+      "labelFull": "Dienstgruppen"
+    }
+  },
 
   "actions": {
     "testAll": "Alle testen",
@@ -106,5 +118,65 @@
     "updateFailed": "Fehler beim Aktualisieren des Dienstes",
     "deleteFailed": "Fehler beim Löschen des Dienstes",
     "toggleFailed": "Fehler beim Umschalten des Dienstes"
+  },
+
+  "serviceGroups": {
+    "title": "Dienstgruppen",
+    "description": "Erstellen Sie benutzerdefinierte Gruppen zur Organisation Ihrer Dienste",
+    "management": {
+      "title": "Gruppe auswählen",
+      "description": "Wählen Sie eine Dienstgruppe aus der Liste, um ihre Dienste anzuzeigen und zu verwalten."
+    },
+    "list": {
+      "title": "Dienstgruppen",
+      "refresh": "Aktualisieren",
+      "new": "Neu",
+      "search": "Gruppen suchen...",
+      "count": "{{count}} Gruppen",
+      "services": "Dienste",
+      "system": "System",
+      "disabled": "Deaktiviert",
+      "showDisabled": "Deaktivierte anzeigen",
+      "noGroups": "Keine Dienstgruppen",
+      "noGroupsFound": "Keine Gruppen gefunden",
+      "createFirst": "Erstellen Sie Ihre erste Gruppe",
+      "enable": "Aktivieren",
+      "disable": "Deaktivieren",
+      "delete": "Löschen",
+      "cannotDeleteSystem": "Systemgruppen können nicht gelöscht werden",
+      "deleteConfirm": "Möchten Sie \"{{name}}\" wirklich löschen?"
+    },
+    "detail": {
+      "close": "Schließen",
+      "tabs": {
+        "info": "Info",
+        "services": "Dienste"
+      },
+      "name": "Name",
+      "description": "Beschreibung",
+      "color": "Farbe",
+      "priority": "Priorität",
+      "priorityHelp": "Gruppen mit höherer Priorität werden zuerst angezeigt",
+      "save": "Speichern",
+      "servicesHelp": "Wählen Sie die Dienste aus, die in diese Gruppe aufgenommen werden sollen",
+      "notConfigured": "Nicht konfiguriert"
+    },
+    "create": {
+      "title": "Dienstgruppe erstellen",
+      "name": "Name",
+      "namePlaceholder": "z.B. Mediendienste",
+      "description": "Beschreibung",
+      "descriptionPlaceholder": "Beschreiben Sie den Zweck dieser Gruppe...",
+      "color": "Farbe",
+      "priority": "Priorität",
+      "cancel": "Abbrechen",
+      "submit": "Gruppe erstellen"
+    },
+    "errors": {
+      "fetchFailed": "Fehler beim Laden der Dienstgruppen",
+      "createFailed": "Fehler beim Erstellen der Dienstgruppe",
+      "updateFailed": "Fehler beim Aktualisieren der Dienstgruppe",
+      "deleteFailed": "Fehler beim Löschen der Dienstgruppe"
+    }
   }
 }
