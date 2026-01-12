@@ -378,3 +378,124 @@ export interface AvailableServicesResponse {
   services: AvailableService[];
   total: number;
 }
+
+// Tool Chains
+export const ConditionOperator = {
+  EQUALS: 'eq',
+  NOT_EQUALS: 'ne',
+  GREATER_THAN: 'gt',
+  LESS_THAN: 'lt',
+  GREATER_OR_EQUAL: 'gte',
+  LESS_OR_EQUAL: 'lte',
+  CONTAINS: 'contains',
+  NOT_CONTAINS: 'not_contains',
+  IS_EMPTY: 'is_empty',
+  IS_NOT_EMPTY: 'is_not_empty',
+  SUCCESS: 'success',
+  FAILED: 'failed',
+  REGEX_MATCH: 'regex',
+} as const;
+export type ConditionOperator = typeof ConditionOperator[keyof typeof ConditionOperator];
+
+export const ExecutionMode = {
+  SEQUENTIAL: 'sequential',
+  PARALLEL: 'parallel',
+} as const;
+export type ExecutionMode = typeof ExecutionMode[keyof typeof ExecutionMode];
+
+// Tool Chain - container for steps (no condition at this level)
+export interface ToolChain {
+  id: string;
+  name: string;
+  description?: string;
+  color: string;
+  priority: number;
+  enabled: boolean;
+  created_at: string;
+  updated_at: string;
+  step_count: number;
+}
+
+// Step Target - tool to execute when step condition matches
+export interface StepTarget {
+  id: string;
+  step_id: string;
+  target_service: string;
+  target_tool: string;
+  order: number;
+  execution_mode: string;
+  argument_mappings?: Record<string, any>;
+  target_ai_comment?: string;
+  enabled: boolean;
+  created_at: string;
+  updated_at: string;
+  target_service_name?: string;
+  target_tool_display_name?: string;
+}
+
+// Tool Chain Step - defines trigger (source tool) and condition
+export interface ToolChainStep {
+  id: string;
+  chain_id: string;
+  order: number;
+  // Source tool (trigger)
+  source_service: string;
+  source_tool: string;
+  // Condition
+  condition_operator: string;
+  condition_field?: string;
+  condition_value?: string;
+  // AI guidance
+  ai_comment?: string;
+  enabled: boolean;
+  created_at: string;
+  updated_at: string;
+  // Computed
+  target_count: number;
+  // Enriched info
+  source_service_name?: string;
+  source_tool_display_name?: string;
+}
+
+// Step with targets
+export interface ToolChainStepDetail extends ToolChainStep {
+  targets: StepTarget[];
+}
+
+// Chain with steps and targets
+export interface ToolChainDetail extends ToolChain {
+  steps: ToolChainStepDetail[];
+}
+
+export interface ToolChainListResponse {
+  chains: ToolChain[];
+  total: number;
+  skip: number;
+  limit: number;
+}
+
+export interface ConditionOperatorInfo {
+  value: string;
+  label: string;
+  description: string;
+  requires_value: boolean;
+  requires_field: boolean;
+}
+
+export interface ConditionOperatorsResponse {
+  operators: ConditionOperatorInfo[];
+}
+
+export interface AvailableTool {
+  service_type: string;
+  service_name: string;
+  tool_name: string;
+  tool_display_name: string;
+  description?: string;
+  parameters?: Record<string, any>;
+}
+
+export interface AvailableToolsForChainResponse {
+  tools: AvailableTool[];
+  total: number;
+}

@@ -6,7 +6,7 @@ can discover via /openapi.json and invoke as external tools.
 
 import logging
 import os
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 import httpx
 import jwt
@@ -358,6 +358,8 @@ class ToolResponse(BaseModel):
     success: bool
     result: Optional[Dict[str, Any]] = None
     error: Optional[str] = None
+    next_tools_to_call: Optional[List[Dict[str, Any]]] = None
+    ai_instruction: Optional[str] = None
 
 
 # --- Plex Tools ---
@@ -677,7 +679,11 @@ async def execute_tool_with_logging(
         registry = await get_tool_registry(session)
         result = await registry.execute(tool_name, arguments)
 
-        # Mark as completed
+        # Enrich result with tool chain suggestions BEFORE storing
+        from src.services.tool_chain_service import enrich_tool_result_with_chains
+        result = await enrich_tool_result_with_chains(session, tool_name, result, arguments)
+
+        # Mark as completed (now includes next_tools_to_call if any)
         if result.get("success"):
             mcp_request.mark_completed(result)
         else:

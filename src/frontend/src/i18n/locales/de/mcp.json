@@ -16,6 +16,8 @@
     "config": "Konfiguration",
     "configShort": "Konfig.",
     "configFull": "Konfiguration",
+    "interactionsShort": "Ketten",
+    "interactionsFull": "Werkzeugketten",
     "toolGroups": "Tool-Gruppen",
     "settings": "Einstellungen"
   },
@@ -112,7 +114,9 @@
     "noTools": "Keine Tools verfügbar",
     "toolsAvailable": "{{count}} Tools verfügbar • {{services}} Dienste",
     "expandAll": "Alle aufklappen",
-    "collapseAll": "Alle zuklappen"
+    "collapseAll": "Alle zuklappen",
+    "nextTools": "Nächste Tools (Ketten)",
+    "chainCondition": "Bedingung"
   },
 
   "errors": {
@@ -568,6 +572,82 @@
       "a6": "Verwenden Sie das Tool system_get_logs mit level=\"error\"",
       "q7": "Welche Warnungen sind aktiv?",
       "a7": "Verwenden Sie das Tool system_get_alerts mit active_only=true"
+    }
+  },
+
+  "toolChains": {
+    "list": {
+      "title": "Werkzeugketten",
+      "new": "Neu",
+      "refresh": "Aktualisieren",
+      "search": "Ketten suchen...",
+      "count": "{{count}} Kette(n)",
+      "stepCount": "{{count}} Schritt(e)",
+      "showDisabled": "Deaktivierte anzeigen",
+      "priority": "Priorität",
+      "disabled": "Deaktiviert",
+      "enable": "Aktivieren",
+      "disable": "Deaktivieren",
+      "delete": "Löschen",
+      "deleteConfirm": "Kette \"{{name}}\" löschen?",
+      "noChains": "Keine Werkzeugketten konfiguriert",
+      "noChainsFound": "Keine Ketten entsprechen Ihrer Suche",
+      "createFirst": "Erstellen Sie Ihre erste Kette"
+    },
+    "create": {
+      "title": "Werkzeugkette erstellen",
+      "name": "Name",
+      "namePlaceholder": "z.B. Suchen dann anfordern",
+      "description": "Beschreibung",
+      "descriptionPlaceholder": "Was diese Kette tut...",
+      "color": "Farbe",
+      "customColor": "Benutzerdefinierte Farbe",
+      "priority": "Priorität",
+      "priorityHelp": "Ketten mit höherer Priorität werden zuerst ausgewertet",
+      "stepsInfo": "Nach dem Erstellen der Kette können Sie Schritte mit Auslösebedingungen und Zieltools hinzufügen.",
+      "cancel": "Abbrechen",
+      "submit": "Erstellen"
+    },
+    "detail": {
+      "tabs": {
+        "info": "Info",
+        "steps": "Schritte"
+      },
+      "name": "Name",
+      "description": "Beschreibung",
+      "color": "Farbe",
+      "customColor": "Benutzerdefinierte Farbe",
+      "priority": "Priorität",
+      "priorityHelp": "Ketten mit höherer Priorität werden zuerst ausgewertet",
+      "save": "Speichern",
+      "stepsHelp": "Jeder Schritt definiert einen Auslöser (Quelltool + Bedingung) und auszuführende Zieltools",
+      "noSteps": "Keine Schritte konfiguriert",
+      "addStep": "Schritt hinzufügen",
+      "editStep": "Schritt bearbeiten",
+      "sourceTool": "Quelltool",
+      "trigger": "Auslöser",
+      "when": "Wenn",
+      "condition": "Bedingung",
+      "conditionFieldPlaceholder": "z.B. count, data.items.length",
+      "conditionValuePlaceholder": "Zu vergleichender Wert",
+      "targets": "Ziel(e)",
+      "targetTools": "Zieltools",
+      "addTarget": "Ziel hinzufügen",
+      "targetCommentPlaceholder": "Warum dieses Tool aufrufen...",
+      "selectService": "Dienst auswählen",
+      "selectTool": "Tool auswählen",
+      "sequential": "Sequentiell",
+      "parallel": "Parallel",
+      "aiComment": "KI-Anleitung",
+      "stepCommentPlaceholder": "Wann/warum diesen Schritt auslösen...",
+      "cancel": "Abbrechen",
+      "add": "Hinzufügen",
+      "enable": "Aktivieren",
+      "disable": "Deaktivieren",
+      "deleteStepConfirm": "Diesen Schritt löschen?",
+      "deleteTargetConfirm": "Dieses Ziel löschen?",
+      "backToList": "Zurück zur Liste",
+      "selectChain": "Wählen Sie eine Kette, um Details anzuzeigen"
     }
   }
 }

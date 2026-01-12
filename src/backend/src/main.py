@@ -153,6 +153,11 @@ def create_app() -> FastAPI:
 
     app.include_router(service_groups.router, tags=["Service Groups"])
 
+    # Tool Chains router
+    from src.routers import tool_chains
+
+    app.include_router(tool_chains.router, tags=["Tool Chains"])
+
     # Observability routers
     from src.routers import alerts, logs
 

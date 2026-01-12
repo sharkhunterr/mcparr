@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Bot, RefreshCw, BarChart3, History, Wrench, Settings, ChevronDown, ChevronRight, Play, X, Loader2, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { Bot, RefreshCw, BarChart3, History, Wrench, Settings, ChevronDown, ChevronRight, Play, X, Loader2, TrendingUp, TrendingDown, Minus, Link2 } from 'lucide-react';
+import { ToolChainManagement } from '../components/ToolChains';
 import { api, getApiBaseUrl } from '../lib/api';
 import { getServiceColor, getServiceFromToolName } from '../lib/serviceColors';
 
@@ -2058,7 +2059,7 @@ const ConfigurationTab = ({ tools }: { tools: McpToolsResponse | null }) => {
 
 export default function MCP() {
   const { t } = useTranslation('mcp');
-  const [activeTab, setActiveTab] = useState<'overview' | 'history' | 'tools' | 'config'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'history' | 'tools' | 'interactions' | 'config'>('overview');
   const [stats, setStats] = useState<McpStats | null>(null);
   const [toolUsage, setToolUsage] = useState<McpToolUsage[]>([]);
   const [hourlyUsage, setHourlyUsage] = useState<McpHourlyUsage[]>([]);
@@ -2226,6 +2227,7 @@ export default function MCP() {
             { id: 'overview' as const, labelKey: 'statsShort', labelFullKey: 'statsFull', icon: BarChart3 },
             { id: 'history' as const, labelKey: 'historyShort', labelFullKey: 'historyFull', icon: History },
             { id: 'tools' as const, labelKey: 'toolsShort', labelFullKey: 'toolsFull', icon: Wrench },
+            { id: 'interactions' as const, labelKey: 'interactionsShort', labelFullKey: 'interactionsFull', icon: Link2 },
             { id: 'config' as const, labelKey: 'configShort', labelFullKey: 'configFull', icon: Settings },
           ].map((tab) => {
             const Icon = tab.icon;
@@ -2927,6 +2929,13 @@ export default function MCP() {
               ) : (
                 <div className="text-center py-12 text-gray-500">{t('tools.noTools')}</div>
               )}
+            </div>
+          )}
+
+          {/* Interactions Tab (Tool Chains) */}
+          {activeTab === 'interactions' && (
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 h-[calc(100vh-280px)] min-h-[500px]">
+              <ToolChainManagement />
             </div>
           )}
 

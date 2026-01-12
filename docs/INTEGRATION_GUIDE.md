@@ -21,7 +21,8 @@ This technical guide details the steps required to integrate a new service into 
 13. [Step 11: Testing and Validation](#13-step-11-testing-and-validation)
 14. [Complete Checklist](#14-complete-checklist)
 15. [File Reference](#15-file-reference)
-16. [Troubleshooting](#16-troubleshooting)
+16. [Tool Chains](#16-tool-chains)
+17. [Troubleshooting](#17-troubleshooting)
 
 ---
 
@@ -1100,7 +1101,159 @@ curl -X POST http://localhost:8000/tools/newservice_get_status/call \
 
 ---
 
-## 16. Troubleshooting
+## 16. Tool Chains
+
+Tool chains allow you to define conditional sequences of tool executions. When a tool returns a result that matches certain conditions, MCParr can suggest additional tools to call in sequence.
+
+### 16.1 Architecture
+
+Tool chains are composed of:
+- **ToolChain**: Defines a trigger tool, condition, and links to steps
+- **ToolChainStep**: Defines each tool to call in the chain with argument mappings
+
+### 16.2 Backend Models
+
+**File:** `src/backend/src/models/tool_chain.py`
+
+```python
+class ToolChain(Base, UUIDMixin, TimestampMixin):
+    """A chain definition that links tool executions based on conditions."""
+
+    name: Mapped[str]  # Chain name
+    source_service: Mapped[str]  # Service that triggers (e.g., 'plex')
+    source_tool: Mapped[str]  # Tool that triggers (e.g., 'plex_search')
+    condition_field: Mapped[Optional[str]]  # Field to check in result (e.g., 'count')
+    condition_operator: Mapped[str]  # Operator (eq, ne, gt, lt, contains, success, failed, etc.)
+    condition_value: Mapped[Optional[str]]  # Value to compare
+    ai_comment: Mapped[Optional[str]]  # Instructions for the AI
+    enabled: Mapped[bool]
+
+class ToolChainStep(Base, UUIDMixin, TimestampMixin):
+    """A step in a tool chain."""
+
+    chain_id: Mapped[str]  # Parent chain
+    target_service: Mapped[str]  # Service to call
+    target_tool: Mapped[str]  # Tool to call
+    order: Mapped[int]  # Execution order
+    execution_mode: Mapped[str]  # 'sequential' or 'parallel'
+    argument_mappings: Mapped[Optional[dict]]  # How to map source result to target args
+    step_ai_comment: Mapped[Optional[str]]  # AI instructions for this step
+```
+
+### 16.3 Condition Operators
+
+| Operator | Description | Requires Field | Requires Value |
+|----------|-------------|----------------|----------------|
+| `eq` | Equals | Yes | Yes |
+| `ne` | Not equals | Yes | Yes |
+| `gt` | Greater than | Yes | Yes |
+| `lt` | Less than | Yes | Yes |
+| `gte` | Greater or equal | Yes | Yes |
+| `lte` | Less or equal | Yes | Yes |
+| `contains` | Contains value | Yes | Yes |
+| `not_contains` | Doesn't contain | Yes | Yes |
+| `is_empty` | Is empty/null | Yes | No |
+| `is_not_empty` | Is not empty | Yes | No |
+| `success` | Tool succeeded | No | No |
+| `failed` | Tool failed | No | No |
+| `regex` | Regex match | Yes | Yes |
+
+### 16.4 Argument Mappings
+
+Argument mappings define how to pass data from the source tool result to the target tool parameters:
+
+```json
+{
+  "movie_id": { "source": "result.items.0.id" },
+  "title": { "source": "result.items.0.title" },
+  "quality": { "value": "1080p" },
+  "original_query": { "input": "query" }
+}
+```
+
+Mapping types:
+- **source**: Extract from the tool result using dot notation (e.g., `result.count`, `result.items.0.id`)
+- **value**: Static value
+- **input**: From the original tool input parameters
+
+### 16.5 How It Works
+
+1. User or AI calls a tool (e.g., `plex_search`)
+2. Tool executes and returns result
+3. `tool_chain_service` checks for matching chains:
+   - Matches `source_service` and `source_tool`
+   - Evaluates condition against the result
+4. If conditions match, chain suggestions are added to the response
+5. AI receives the response with `_tool_chain_context` containing suggested next tools
+6. AI can decide to follow the chain based on the suggestions and AI comments
+
+### 16.6 Response Format
+
+When chains match, the tool response includes:
+
+```json
+{
+  "success": true,
+  "result": { ... },
+  "_tool_chain_context": {
+    "source_service": "plex",
+    "source_tool": "plex_search",
+    "has_suggestions": true,
+    "suggested_next_tools": [
+      {
+        "chain_id": "abc-123",
+        "chain_name": "Search then request",
+        "target_service": "overseerr",
+        "target_tool": "overseerr_request_movie",
+        "suggested_arguments": {
+          "movie_id": 12345
+        },
+        "ai_comment": "If the user wants this movie, request it via Overseerr",
+        "execution_mode": "sequential",
+        "priority": 0
+      }
+    ],
+    "_ai_guidance": "Based on the result..."
+  }
+}
+```
+
+### 16.7 API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/tool-chains/` | List all chains |
+| GET | `/api/tool-chains/{id}` | Get chain details |
+| POST | `/api/tool-chains/` | Create chain |
+| PUT | `/api/tool-chains/{id}` | Update chain |
+| DELETE | `/api/tool-chains/{id}` | Delete chain |
+| GET | `/api/tool-chains/{id}/steps` | List chain steps |
+| POST | `/api/tool-chains/{id}/steps` | Add step |
+| PUT | `/api/tool-chains/{id}/steps/{step_id}` | Update step |
+| DELETE | `/api/tool-chains/{id}/steps/{step_id}` | Delete step |
+| POST | `/api/tool-chains/{id}/steps/reorder` | Reorder steps |
+| GET | `/api/tool-chains/operators` | List condition operators |
+| GET | `/api/tool-chains/available-tools` | List tools for configuration |
+| GET | `/api/tool-chains/lookup/{service}/{tool}` | Find chains for a tool |
+
+### 16.8 Frontend
+
+Tool chains are managed in the MCP page under the "Chains" tab. The interface allows:
+- Creating chains with source tool and condition
+- Adding steps with target tools and argument mappings
+- Configuring AI comments to guide the model
+- Enabling/disabling chains and steps
+
+### 16.9 Example Use Cases
+
+1. **Search → Request**: When searching for media, suggest requesting it if not available
+2. **Check status → Get details**: After checking service status, get detailed metrics
+3. **List items → Get first item**: When listing returns results, automatically get details of the first item
+4. **Create ticket → Assign**: After creating a ticket, suggest assigning it
+
+---
+
+## 17. Troubleshooting
 
 ### Common Errors
 

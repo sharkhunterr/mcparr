@@ -16,6 +16,8 @@
     "config": "Configurazione",
     "configShort": "Config",
     "configFull": "Configurazione",
+    "interactionsShort": "Catene",
+    "interactionsFull": "Catene di strumenti",
     "toolGroups": "Gruppi strumenti",
     "settings": "Impostazioni"
   },
@@ -112,7 +114,9 @@
     "noTools": "Nessuno strumento disponibile",
     "toolsAvailable": "{{count}} strumenti disponibili - {{services}} servizi",
     "expandAll": "Espandi tutto",
-    "collapseAll": "Comprimi tutto"
+    "collapseAll": "Comprimi tutto",
+    "nextTools": "Strumenti successivi (Catene)",
+    "chainCondition": "Condizione"
   },
 
   "errors": {
@@ -568,6 +572,82 @@
       "a6": "Usa lo strumento system_get_logs con level=\"error\"",
       "q7": "Quali avvisi sono attivi?",
       "a7": "Usa lo strumento system_get_alerts con active_only=true"
+    }
+  },
+
+  "toolChains": {
+    "list": {
+      "title": "Catene di strumenti",
+      "new": "Nuovo",
+      "refresh": "Aggiorna",
+      "search": "Cerca catene...",
+      "count": "{{count}} catena(e)",
+      "stepCount": "{{count}} passo(i)",
+      "showDisabled": "Mostra disattivate",
+      "priority": "Priorità",
+      "disabled": "Disattivata",
+      "enable": "Attiva",
+      "disable": "Disattiva",
+      "delete": "Elimina",
+      "deleteConfirm": "Eliminare catena \"{{name}}\"?",
+      "noChains": "Nessuna catena di strumenti configurata",
+      "noChainsFound": "Nessuna catena corrisponde alla tua ricerca",
+      "createFirst": "Crea la tua prima catena"
+    },
+    "create": {
+      "title": "Crea catena di strumenti",
+      "name": "Nome",
+      "namePlaceholder": "es: Cerca poi richiedi",
+      "description": "Descrizione",
+      "descriptionPlaceholder": "Cosa fa questa catena...",
+      "color": "Colore",
+      "customColor": "Colore personalizzato",
+      "priority": "Priorità",
+      "priorityHelp": "Le catene con priorità più alta vengono valutate per prime",
+      "stepsInfo": "Dopo aver creato la catena, puoi aggiungere passi con condizioni di attivazione e strumenti obiettivo.",
+      "cancel": "Annulla",
+      "submit": "Crea"
+    },
+    "detail": {
+      "tabs": {
+        "info": "Info",
+        "steps": "Passi"
+      },
+      "name": "Nome",
+      "description": "Descrizione",
+      "color": "Colore",
+      "customColor": "Colore personalizzato",
+      "priority": "Priorità",
+      "priorityHelp": "Le catene con priorità più alta vengono valutate per prime",
+      "save": "Salva",
+      "stepsHelp": "Ogni passo definisce un attivatore (strumento sorgente + condizione) e strumenti obiettivo da eseguire",
+      "noSteps": "Nessun passo configurato",
+      "addStep": "Aggiungi passo",
+      "editStep": "Modifica passo",
+      "sourceTool": "Strumento sorgente",
+      "trigger": "attivatore",
+      "when": "Quando",
+      "condition": "Condizione",
+      "conditionFieldPlaceholder": "es: count, data.items.length",
+      "conditionValuePlaceholder": "Valore da confrontare",
+      "targets": "obiettivo(i)",
+      "targetTools": "Strumenti obiettivo",
+      "addTarget": "Aggiungi obiettivo",
+      "targetCommentPlaceholder": "Perché chiamare questo strumento...",
+      "selectService": "Seleziona servizio",
+      "selectTool": "Seleziona strumento",
+      "sequential": "Sequenziale",
+      "parallel": "Parallelo",
+      "aiComment": "Guida per l'IA",
+      "stepCommentPlaceholder": "Quando/perché attivare questo passo...",
+      "cancel": "Annulla",
+      "add": "Aggiungi",
+      "enable": "Attiva",
+      "disable": "Disattiva",
+      "deleteStepConfirm": "Eliminare questo passo?",
+      "deleteTargetConfirm": "Eliminare questo obiettivo?",
+      "backToList": "Torna alla lista",
+      "selectChain": "Seleziona una catena per vedere i dettagli"
     }
   }
 }

@@ -16,6 +16,8 @@
     "config": "Configuration",
     "configShort": "Config",
     "configFull": "Configuration",
+    "interactionsShort": "Chains",
+    "interactionsFull": "Tool Chains",
     "toolGroups": "Tool Groups",
     "settings": "Settings"
   },
@@ -112,7 +114,9 @@
     "noTools": "No tools available",
     "toolsAvailable": "{{count}} tools available • {{services}} services",
     "expandAll": "Expand all",
-    "collapseAll": "Collapse all"
+    "collapseAll": "Collapse all",
+    "nextTools": "Next Tools (from Chains)",
+    "chainCondition": "Condition"
   },
 
   "errors": {
@@ -568,6 +572,82 @@
       "a6": "Use the system_get_logs tool with level=\"error\"",
       "q7": "What alerts are active?",
       "a7": "Use the system_get_alerts tool with active_only=true"
+    }
+  },
+
+  "toolChains": {
+    "list": {
+      "title": "Tool Chains",
+      "new": "New",
+      "refresh": "Refresh",
+      "search": "Search chains...",
+      "count": "{{count}} chain(s)",
+      "stepCount": "{{count}} step(s)",
+      "showDisabled": "Show disabled",
+      "priority": "Priority",
+      "disabled": "Disabled",
+      "enable": "Enable",
+      "disable": "Disable",
+      "delete": "Delete",
+      "deleteConfirm": "Delete chain \"{{name}}\"?",
+      "noChains": "No tool chains configured",
+      "noChainsFound": "No chains match your search",
+      "createFirst": "Create your first chain"
+    },
+    "create": {
+      "title": "Create Tool Chain",
+      "name": "Name",
+      "namePlaceholder": "e.g., Search then request",
+      "description": "Description",
+      "descriptionPlaceholder": "What this chain does...",
+      "color": "Color",
+      "customColor": "Custom color",
+      "priority": "Priority",
+      "priorityHelp": "Higher priority chains are evaluated first",
+      "stepsInfo": "After creating the chain, you can add steps with trigger conditions and target tools.",
+      "cancel": "Cancel",
+      "submit": "Create"
+    },
+    "detail": {
+      "tabs": {
+        "info": "Info",
+        "steps": "Steps"
+      },
+      "name": "Name",
+      "description": "Description",
+      "color": "Color",
+      "customColor": "Custom color",
+      "priority": "Priority",
+      "priorityHelp": "Higher priority chains are evaluated first",
+      "save": "Save",
+      "stepsHelp": "Each step defines a trigger (source tool + condition) and target tools to execute",
+      "noSteps": "No steps configured",
+      "addStep": "Add Step",
+      "editStep": "Edit Step",
+      "sourceTool": "Source Tool",
+      "trigger": "trigger",
+      "when": "When",
+      "condition": "Condition",
+      "conditionFieldPlaceholder": "e.g., count, data.items.length",
+      "conditionValuePlaceholder": "Value to compare",
+      "targets": "target(s)",
+      "targetTools": "Target Tools",
+      "addTarget": "Add Target",
+      "targetCommentPlaceholder": "Why call this tool...",
+      "selectService": "Select service",
+      "selectTool": "Select tool",
+      "sequential": "Sequential",
+      "parallel": "Parallel",
+      "aiComment": "AI Guidance",
+      "stepCommentPlaceholder": "When/why to trigger this step...",
+      "cancel": "Cancel",
+      "add": "Add",
+      "enable": "Enable",
+      "disable": "Disable",
+      "deleteStepConfirm": "Delete this step?",
+      "deleteTargetConfirm": "Delete this target?",
+      "backToList": "Back to list",
+      "selectChain": "Select a chain to view details"
     }
   }
 }

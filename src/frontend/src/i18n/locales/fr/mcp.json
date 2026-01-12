@@ -16,6 +16,8 @@
     "config": "Configuration",
     "configShort": "Config",
     "configFull": "Configuration",
+    "interactionsShort": "Chaînes",
+    "interactionsFull": "Chaînes d'outils",
     "toolGroups": "Groupes d'Outils",
     "settings": "Paramètres"
   },
@@ -112,7 +114,9 @@
     "noTools": "Aucun outil disponible",
     "toolsAvailable": "{{count}} outils disponibles • {{services}} services",
     "expandAll": "Tout déplier",
-    "collapseAll": "Tout replier"
+    "collapseAll": "Tout replier",
+    "nextTools": "Outils suivants (Chaînes)",
+    "chainCondition": "Condition"
   },
 
   "errors": {
@@ -555,6 +559,82 @@
       "a6": "Utilise l'outil system_get_logs avec level=\"error\"",
       "q7": "Quelles alertes sont actives?",
       "a7": "Utilise l'outil system_get_alerts avec active_only=true"
+    }
+  },
+
+  "toolChains": {
+    "list": {
+      "title": "Chaînes d'outils",
+      "new": "Nouveau",
+      "refresh": "Actualiser",
+      "search": "Rechercher des chaînes...",
+      "count": "{{count}} chaîne(s)",
+      "stepCount": "{{count}} étape(s)",
+      "showDisabled": "Afficher désactivées",
+      "priority": "Priorité",
+      "disabled": "Désactivée",
+      "enable": "Activer",
+      "disable": "Désactiver",
+      "delete": "Supprimer",
+      "deleteConfirm": "Supprimer la chaîne \"{{name}}\" ?",
+      "noChains": "Aucune chaîne d'outils configurée",
+      "noChainsFound": "Aucune chaîne ne correspond à votre recherche",
+      "createFirst": "Créer votre première chaîne"
+    },
+    "create": {
+      "title": "Créer une chaîne d'outils",
+      "name": "Nom",
+      "namePlaceholder": "ex: Rechercher puis demander",
+      "description": "Description",
+      "descriptionPlaceholder": "Ce que fait cette chaîne...",
+      "color": "Couleur",
+      "customColor": "Couleur personnalisée",
+      "priority": "Priorité",
+      "priorityHelp": "Les chaînes avec une priorité plus élevée sont évaluées en premier",
+      "stepsInfo": "Après avoir créé la chaîne, vous pourrez ajouter des étapes avec des conditions de déclenchement et des outils cibles.",
+      "cancel": "Annuler",
+      "submit": "Créer"
+    },
+    "detail": {
+      "tabs": {
+        "info": "Info",
+        "steps": "Étapes"
+      },
+      "name": "Nom",
+      "description": "Description",
+      "color": "Couleur",
+      "customColor": "Couleur personnalisée",
+      "priority": "Priorité",
+      "priorityHelp": "Les chaînes avec une priorité plus élevée sont évaluées en premier",
+      "save": "Enregistrer",
+      "stepsHelp": "Chaque étape définit un déclencheur (outil source + condition) et des outils cibles à exécuter",
+      "noSteps": "Aucune étape configurée",
+      "addStep": "Ajouter une étape",
+      "editStep": "Modifier l'étape",
+      "sourceTool": "Outil source",
+      "trigger": "déclencheur",
+      "when": "Quand",
+      "condition": "Condition",
+      "conditionFieldPlaceholder": "ex: count, data.items.length",
+      "conditionValuePlaceholder": "Valeur à comparer",
+      "targets": "cible(s)",
+      "targetTools": "Outils cibles",
+      "addTarget": "Ajouter une cible",
+      "targetCommentPlaceholder": "Pourquoi appeler cet outil...",
+      "selectService": "Sélectionner service",
+      "selectTool": "Sélectionner outil",
+      "sequential": "Séquentiel",
+      "parallel": "Parallèle",
+      "aiComment": "Instructions pour l'IA",
+      "stepCommentPlaceholder": "Quand/pourquoi déclencher cette étape...",
+      "cancel": "Annuler",
+      "add": "Ajouter",
+      "enable": "Activer",
+      "disable": "Désactiver",
+      "deleteStepConfirm": "Supprimer cette étape ?",
+      "deleteTargetConfirm": "Supprimer cette cible ?",
+      "backToList": "Retour à la liste",
+      "selectChain": "Sélectionnez une chaîne pour voir les détails"
     }
   }
 }
