@@ -250,14 +250,14 @@ async def get_openwebui_openapi():
 
 @router.get("/media/openapi.json", include_in_schema=False, response_class=JSONResponse)
 async def get_media_openapi():
-    """Get OpenAPI spec for media tools (Plex, Tautulli, Overseerr, Komga, RomM)."""
+    """Get OpenAPI spec for media tools (Plex, Tautulli, Overseerr, Komga, RomM, Audiobookshelf)."""
     full_spec = generate_openwebui_openapi_spec()
     return JSONResponse(
         content=filter_spec_by_services(
             full_spec,
-            ["plex", "tautulli", "overseerr", "komga", "romm"],
+            ["plex", "tautulli", "overseerr", "komga", "romm", "audiobookshelf"],
             "MCParr Media Tools",
-            "AI tools for media playback and libraries (Plex, Tautulli, Overseerr, Komga, RomM)",
+            "AI tools for media playback and libraries (Plex, Tautulli, Overseerr, Komga, RomM, Audiobookshelf)",
         )
     )
 
@@ -278,14 +278,70 @@ async def get_processing_openapi():
 
 @router.get("/system/openapi.json", include_in_schema=False, response_class=JSONResponse)
 async def get_system_openapi():
-    """Get OpenAPI spec for system tools (System, OpenWebUI, Zammad)."""
+    """Get OpenAPI spec for system tools (System, Zammad, Authentik)."""
     full_spec = generate_openwebui_openapi_spec()
     return JSONResponse(
         content=filter_spec_by_services(
             full_spec,
-            ["system", "openwebui", "zammad"],
+            ["system", "zammad", "authentik"],
             "MCParr System Tools",
-            "AI tools for system management (health, support)",
+            "AI tools for system management (health, support, authentication)",
+        )
+    )
+
+
+@router.get("/knowledge/openapi.json", include_in_schema=False, response_class=JSONResponse)
+async def get_knowledge_openapi():
+    """Get OpenAPI spec for knowledge tools (Wiki.js, Open WebUI, Ollama)."""
+    full_spec = generate_openwebui_openapi_spec()
+    return JSONResponse(
+        content=filter_spec_by_services(
+            full_spec,
+            ["wikijs", "openwebui", "ollama"],
+            "MCParr Knowledge Tools",
+            "AI tools for knowledge management (Wiki.js, Open WebUI, Ollama)",
+        )
+    )
+
+
+# Dynamic endpoint for individual services (e.g., /tools/plex/openapi.json)
+@router.get("/{service_name}/openapi.json", include_in_schema=False, response_class=JSONResponse)
+async def get_service_openapi(service_name: str):
+    """Get OpenAPI spec for a specific service."""
+    # Map service names to their display names
+    service_display_names = {
+        "plex": "Plex",
+        "tautulli": "Tautulli",
+        "overseerr": "Overseerr",
+        "radarr": "Radarr",
+        "sonarr": "Sonarr",
+        "prowlarr": "Prowlarr",
+        "jackett": "Jackett",
+        "deluge": "Deluge",
+        "komga": "Komga",
+        "romm": "RomM",
+        "audiobookshelf": "Audiobookshelf",
+        "openwebui": "Open WebUI",
+        "wikijs": "Wiki.js",
+        "zammad": "Zammad",
+        "system": "System",
+        "authentik": "Authentik",
+    }
+
+    if service_name not in service_display_names:
+        return JSONResponse(
+            status_code=404,
+            content={"error": f"Unknown service: {service_name}"}
+        )
+
+    display_name = service_display_names[service_name]
+    full_spec = generate_openwebui_openapi_spec()
+    return JSONResponse(
+        content=filter_spec_by_services(
+            full_spec,
+            [service_name],
+            f"MCParr {display_name} Tools",
+            f"AI tools for {display_name}",
         )
     )
 
@@ -2938,41 +2994,75 @@ async def overseerr_get_statistics(request: Request, session: AsyncSession = Dep
 
 # Tool filter groups for Open WebUI configuration
 # Names are in French for display in Open WebUI interface
+# Mapping of service names to their individual endpoints (for 'service' mode)
+SERVICE_ENDPOINTS = {
+    "plex": {"name": "MCParr - Plex", "endpoint": "/tools/plex/openapi.json"},
+    "tautulli": {"name": "MCParr - Tautulli", "endpoint": "/tools/tautulli/openapi.json"},
+    "overseerr": {"name": "MCParr - Overseerr", "endpoint": "/tools/overseerr/openapi.json"},
+    "radarr": {"name": "MCParr - Radarr", "endpoint": "/tools/radarr/openapi.json"},
+    "sonarr": {"name": "MCParr - Sonarr", "endpoint": "/tools/sonarr/openapi.json"},
+    "prowlarr": {"name": "MCParr - Prowlarr", "endpoint": "/tools/prowlarr/openapi.json"},
+    "jackett": {"name": "MCParr - Jackett", "endpoint": "/tools/jackett/openapi.json"},
+    "deluge": {"name": "MCParr - Deluge", "endpoint": "/tools/deluge/openapi.json"},
+    "komga": {"name": "MCParr - Komga", "endpoint": "/tools/komga/openapi.json"},
+    "romm": {"name": "MCParr - RomM", "endpoint": "/tools/romm/openapi.json"},
+    "audiobookshelf": {"name": "MCParr - Audiobookshelf", "endpoint": "/tools/audiobookshelf/openapi.json"},
+    "openwebui": {"name": "MCParr - Open WebUI", "endpoint": "/tools/openwebui/openapi.json"},
+    "wikijs": {"name": "MCParr - Wiki.js", "endpoint": "/tools/wikijs/openapi.json"},
+    "zammad": {"name": "MCParr - Zammad", "endpoint": "/tools/zammad/openapi.json"},
+    "system": {"name": "MCParr - System", "endpoint": "/tools/system/openapi.json"},
+    "authentik": {"name": "MCParr - Authentik", "endpoint": "/tools/authentik/openapi.json"},
+}
+
 OPENWEBUI_TOOL_GROUPS = {
     "media": {
         "name": "MCParr - Média (Plex/Tautulli)",
         "description": "Plex and Tautulli media tools",
         "tools": "plex_get_active_sessions,plex_get_libraries,plex_get_media_details,plex_get_on_deck,plex_get_recently_added,plex_search_media,tautulli_get_activity,tautulli_get_history,tautulli_get_libraries,tautulli_get_recently_added,tautulli_get_server_info,tautulli_get_statistics,tautulli_get_top_movies,tautulli_get_top_music,tautulli_get_top_platforms,tautulli_get_top_tv_shows,tautulli_get_top_users,tautulli_get_user_stats,tautulli_get_users,tautulli_get_watch_stats_summary",
+        "endpoint": "/tools/media/openapi.json",
+        "services": ["plex", "tautulli"],
     },
     "books": {
         "name": "MCParr - Livres & Audio",
         "description": "Audiobookshelf and Komga tools",
         "tools": "audiobookshelf_get_libraries,audiobookshelf_get_library_items,audiobookshelf_get_listening_stats,audiobookshelf_get_media_progress,audiobookshelf_get_statistics,audiobookshelf_get_users,audiobookshelf_search,komga_get_libraries,komga_get_statistics,komga_get_users,komga_search",
+        "endpoint": "/tools/media/openapi.json",  # Books are part of media endpoint
+        "services": ["audiobookshelf", "komga"],
     },
     "download": {
         "name": "MCParr - Téléchargement",
         "description": "Radarr, Sonarr, Prowlarr, Overseerr, Jackett, and Deluge tools",
         "tools": "deluge_add_torrent,deluge_get_statistics,deluge_get_torrents,deluge_pause_torrent,deluge_remove_torrent,deluge_resume_torrent,deluge_search_torrents,jackett_get_indexers,jackett_get_statistics,jackett_search,jackett_test_all_indexers,jackett_test_indexer,overseerr_check_availability,overseerr_get_requests,overseerr_get_statistics,overseerr_get_trending,overseerr_get_users,overseerr_request_media,overseerr_search_media,prowlarr_get_applications,prowlarr_get_indexer_stats,prowlarr_get_indexers,prowlarr_get_statistics,prowlarr_search,prowlarr_test_all_indexers,prowlarr_test_indexer,radarr_get_calendar,radarr_get_indexers,radarr_get_movies,radarr_get_queue,radarr_get_statistics,radarr_search_movie,radarr_test_all_indexers,radarr_test_indexer,sonarr_get_calendar,sonarr_get_indexers,sonarr_get_queue,sonarr_get_series,sonarr_get_statistics,sonarr_search_series,sonarr_test_all_indexers,sonarr_test_indexer",
+        "endpoint": "/tools/processing/openapi.json",
+        "services": ["radarr", "sonarr", "prowlarr", "overseerr", "jackett", "deluge"],
     },
     "games": {
         "name": "MCParr - Jeux (RomM)",
         "description": "RomM ROM management tools",
         "tools": "romm_get_collections,romm_get_platforms,romm_get_recently_added,romm_get_roms,romm_get_statistics,romm_get_users,romm_search_roms",
+        "endpoint": "/tools/media/openapi.json",  # Games are part of media endpoint
+        "services": ["romm"],
     },
     "system": {
         "name": "MCParr - Système & Support",
         "description": "System monitoring and Zammad support tools",
         "tools": "system_get_alerts,system_get_health,system_get_logs,system_get_metrics,system_get_services,system_get_users,system_list_tools,system_test_all_services,system_test_service,zammad_add_comment,zammad_create_ticket,zammad_get_ticket_details,zammad_get_ticket_stats,zammad_get_tickets,zammad_search_tickets,zammad_update_ticket_status",
+        "endpoint": "/tools/system/openapi.json",
+        "services": ["system", "zammad"],
     },
     "knowledge": {
         "name": "MCParr - Connaissances & IA",
         "description": "WikiJS and Open WebUI tools",
         "tools": "openwebui_get_chats,openwebui_get_models,openwebui_get_statistics,openwebui_get_status,openwebui_get_users,openwebui_search_users,wikijs_create_page,wikijs_get_page,wikijs_get_page_tree,wikijs_get_pages,wikijs_get_statistics,wikijs_get_tags,wikijs_get_users,wikijs_search",
+        "endpoint": "/tools/knowledge/openapi.json",
+        "services": ["openwebui", "wikijs"],
     },
     "auth": {
         "name": "MCParr - Authentification (SSO)",
         "description": "Authentik SSO tools",
         "tools": "authentik_deactivate_user,authentik_get_applications,authentik_get_events,authentik_get_groups,authentik_get_server_info,authentik_get_statistics,authentik_get_user,authentik_get_users,authentik_search_users",
+        "endpoint": "/tools/system/openapi.json",  # Auth is part of system endpoint
+        "services": ["authentik"],
     },
 }
 
@@ -2982,7 +3072,16 @@ class OpenWebUIAutoConfigRequest(BaseModel):
 
     mcparr_external_url: str = Field(..., description="External URL of MCParr (e.g., https://mcparr.example.com)")
     groups: Optional[list[str]] = Field(
-        None, description="Specific groups to configure (default: all). Options: media, books, download, games, system, knowledge, auth"
+        None, description="Specific groups to configure (for 'group' mode). Options: media, books, download, games, system, knowledge, auth"
+    )
+    services: Optional[list[str]] = Field(
+        None, description="Specific services to configure (for 'service' mode). Options: plex, tautulli, overseerr, radarr, sonarr, prowlarr, jackett, deluge, komga, audiobookshelf, romm, system, zammad, openwebui, wikijs, authentik"
+    )
+    endpoint_mode: str = Field(
+        "group", description="Endpoint mode: 'all' = single endpoint, 'group' = per category, 'service' = per service"
+    )
+    use_function_filters: bool = Field(
+        True, description="Add function name filter lists to restrict visible tools per group"
     )
     replace_existing: bool = Field(
         False, description="Replace existing MCParr tool connections (default: append)"
@@ -3052,17 +3151,34 @@ async def configure_openwebui(
             errors=["Please add an admin API key for Open WebUI in the Services tab"],
         )
 
-    # Determine which groups to configure
-    groups_to_configure = body.groups if body.groups else list(OPENWEBUI_TOOL_GROUPS.keys())
+    # Determine endpoint mode
+    endpoint_mode = body.endpoint_mode if body.endpoint_mode in ("all", "group", "service") else "group"
 
-    # Validate group names
-    invalid_groups = [g for g in groups_to_configure if g not in OPENWEBUI_TOOL_GROUPS]
-    if invalid_groups:
-        return OpenWebUIAutoConfigResponse(
-            success=False,
-            message=f"Invalid group names: {', '.join(invalid_groups)}",
-            errors=[f"Valid groups are: {', '.join(OPENWEBUI_TOOL_GROUPS.keys())}"],
-        )
+    # Validate based on mode
+    groups_to_configure: list[str] = []
+    services_to_configure: list[str] = []
+
+    if endpoint_mode == "group":
+        groups_to_configure = body.groups if body.groups else list(OPENWEBUI_TOOL_GROUPS.keys())
+        invalid_groups = [g for g in groups_to_configure if g not in OPENWEBUI_TOOL_GROUPS]
+        if invalid_groups:
+            return OpenWebUIAutoConfigResponse(
+                success=False,
+                message=f"Invalid group names: {', '.join(invalid_groups)}",
+                errors=[f"Valid groups are: {', '.join(OPENWEBUI_TOOL_GROUPS.keys())}"],
+            )
+    elif endpoint_mode == "service":
+        services_to_configure = body.services if body.services else list(SERVICE_ENDPOINTS.keys())
+        invalid_services = [s for s in services_to_configure if s not in SERVICE_ENDPOINTS]
+        if invalid_services:
+            return OpenWebUIAutoConfigResponse(
+                success=False,
+                message=f"Invalid service names: {', '.join(invalid_services)}",
+                errors=[f"Valid services are: {', '.join(SERVICE_ENDPOINTS.keys())}"],
+            )
+    else:
+        # 'all' mode - use all groups
+        groups_to_configure = list(OPENWEBUI_TOOL_GROUPS.keys())
 
     try:
         async with httpx.AsyncClient(timeout=30.0) as client:
@@ -3115,10 +3231,95 @@ async def configure_openwebui(
                 f"replacing {len(existing_connections) - len(non_mcparr_connections)} MCParr connections"
             )
 
-            for group_id in groups_to_configure:
-                group_config = OPENWEBUI_TOOL_GROUPS[group_id]
-                tools_list = group_config["tools"]
-                tool_count = len(tools_list.split(","))
+            # Handle the 3 endpoint modes: 'all', 'group', 'service'
+            if endpoint_mode == "service":
+                # Service mode: one connection per service (e.g., /tools/plex/openapi.json)
+                for service in services_to_configure:
+                    service_config = SERVICE_ENDPOINTS.get(service, {})
+                    endpoint = service_config.get("endpoint", f"/tools/{service}/openapi.json")
+                    service_name = service_config.get("name", f"MCParr - {service.capitalize()}")
+
+                    connection = {
+                        "url": mcparr_url,
+                        "path": endpoint,
+                        "type": "openapi",
+                        "auth_type": "session",
+                        "key": "",
+                        "config": {},
+                        "info": {
+                            "name": service_name,
+                            "description": f"Tools for {service}",
+                        },
+                    }
+
+                    # For service mode, we don't need function filters because each endpoint
+                    # only contains tools for that specific service
+                    # But if user wants it, we can still add it
+                    if body.use_function_filters:
+                        # Filter pattern: all tools starting with service_
+                        connection["config"]["function_name_filter_list"] = f"{service}_*"
+
+                    new_connections.append(connection)
+                    configured_groups.append(service)  # Use service names as "groups" for reporting
+                    logger.info(f"[OpenWebUI Config] Added service endpoint '{endpoint}'")
+
+                # Count total tools (approximate based on services)
+                total_tools = len(services_to_configure) * 8  # Average ~8 tools per service
+
+            elif endpoint_mode == "group":
+                # Group mode: one connection per category endpoint, deduplicated
+                endpoint_groups: dict[str, list[str]] = {}
+                for group_id in groups_to_configure:
+                    group_config = OPENWEBUI_TOOL_GROUPS[group_id]
+                    endpoint = group_config.get("endpoint", "/tools/openapi.json")
+                    if endpoint not in endpoint_groups:
+                        endpoint_groups[endpoint] = []
+                    endpoint_groups[endpoint].append(group_id)
+
+                for endpoint, group_ids in endpoint_groups.items():
+                    # Combine tools from all groups that share this endpoint
+                    all_tools = []
+                    group_names = []
+                    for gid in group_ids:
+                        gc = OPENWEBUI_TOOL_GROUPS[gid]
+                        all_tools.extend(gc["tools"].split(","))
+                        group_names.append(gc["name"].replace("MCParr - ", ""))
+
+                    tools_list = ",".join(all_tools)
+                    tool_count = len(all_tools)
+
+                    connection = {
+                        "url": mcparr_url,
+                        "path": endpoint,
+                        "type": "openapi",
+                        "auth_type": "session",
+                        "key": "",
+                        "config": {},
+                        "info": {
+                            "name": f"MCParr - {' & '.join(group_names)}",
+                            "description": f"Tools for {', '.join(group_names)}",
+                        },
+                    }
+
+                    if body.use_function_filters:
+                        connection["config"]["function_name_filter_list"] = tools_list
+
+                    new_connections.append(connection)
+                    configured_groups.extend(group_ids)
+                    total_tools += tool_count
+                    logger.info(f"[OpenWebUI Config] Added group endpoint '{endpoint}' with {tool_count} tools for: {group_ids}")
+
+            else:
+                # 'all' mode: single endpoint /tools/openapi.json with all tools
+                all_tools = []
+                all_group_names = []
+                for group_id in groups_to_configure:
+                    group_config = OPENWEBUI_TOOL_GROUPS[group_id]
+                    all_tools.extend(group_config["tools"].split(","))
+                    all_group_names.append(group_config["name"].replace("MCParr - ", ""))
+
+                tools_list = ",".join(all_tools)
+                tool_count = len(all_tools)
 
                 connection = {
                     "url": mcparr_url,
@@ -3126,20 +3327,20 @@ async def configure_openwebui(
                     "type": "openapi",
                     "auth_type": "session",
                     "key": "",
-                    "config": {
-                        "function_name_filter_list": tools_list,
-                    },
-                    # Display info in Open WebUI interface ("Nom d'utilisateur" field)
+                    "config": {},
                     "info": {
-                        "name": group_config["name"],
-                        "description": group_config["description"],
+                        "name": "MCParr - Tous les outils",
+                        "description": f"All tools: {', '.join(all_group_names)}",
                     },
                 }
 
+                if body.use_function_filters:
+                    connection["config"]["function_name_filter_list"] = tools_list
+
                 new_connections.append(connection)
-                configured_groups.append(group_id)
-                total_tools += tool_count
-                logger.info(f"[OpenWebUI Config] Added group '{group_config['name']}' with {tool_count} tools")
+                configured_groups.extend(groups_to_configure)
+                total_tools = tool_count
+                logger.info(f"[OpenWebUI Config] Added single endpoint with {tool_count} tools")
 
             # Step 4: Combine non-MCParr connections with new MCParr connections
             all_connections = non_mcparr_connections + new_connections

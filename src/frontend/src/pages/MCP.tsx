@@ -1330,6 +1330,38 @@ const ConfigurationTab = ({ tools }: { tools: McpToolsResponse | null }) => {
     errors?: string[];
   } | null>(null);
   const [mcparrExternalUrl, setMcparrExternalUrl] = useState('');
+  // Endpoint mode: 'all' = single endpoint, 'group' = per category, 'service' = per service
+  const [endpointMode, setEndpointMode] = useState<'all' | 'group' | 'service'>('group');
+  // Groups match backend OPENWEBUI_TOOL_GROUPS keys (for 'group' mode)
+  const [selectedGroups, setSelectedGroups] = useState<Record<string, boolean>>({
+    media: true,
+    books: true,
+    download: true,
+    games: true,
+    system: true,
+    knowledge: false,
+    auth: true,
+  });
+  // Services for 'service' mode
+  const [selectedServices, setSelectedServices] = useState<Record<string, boolean>>({
+    plex: true,
+    tautulli: true,
+    overseerr: true,
+    radarr: true,
+    sonarr: true,
+    prowlarr: true,
+    jackett: false,
+    deluge: true,
+    komga: true,
+    audiobookshelf: true,
+    romm: true,
+    system: true,
+    zammad: true,
+    openwebui: false,
+    wikijs: false,
+    authentik: true,
+  });
+  const [useFunctionFilters, setUseFunctionFilters] = useState(true);
 
   useEffect(() => {
     const fetchStatus = async () => {
@@ -1391,6 +1423,50 @@ const ConfigurationTab = ({ tools }: { tools: McpToolsResponse | null }) => {
       return;
     }
 
+    // Build request body based on endpoint mode
+    let requestBody: {
+      mcparr_external_url: string;
+      endpoint_mode: string;
+      use_function_filters: boolean;
+      groups?: string[];
+      services?: string[];
+    } = {
+      mcparr_external_url: mcparrExternalUrl.trim(),
+      endpoint_mode: endpointMode,
+      use_function_filters: useFunctionFilters,
+    };
+
+    if (endpointMode === 'group') {
+      const groupsToConfig = Object.entries(selectedGroups)
+        .filter(([, enabled]) => enabled)
+        .map(([group]) => group);
+
+      if (groupsToConfig.length === 0) {
+        setAutoConfigResult({
+          success: false,
+          message: t('config.autoConfig.errorNoCategory'),
+          errors: [t('config.autoConfig.errorNoCategoryDetail')],
+        });
+        return;
+      }
+      requestBody.groups = groupsToConfig;
+    } else if (endpointMode === 'service') {
+      const servicesToConfig = Object.entries(selectedServices)
+        .filter(([, enabled]) => enabled)
+        .map(([service]) => service);
+
+      if (servicesToConfig.length === 0) {
+        setAutoConfigResult({
+          success: false,
+          message: t('config.autoConfig.errorNoService'),
+          errors: [t('config.autoConfig.errorNoServiceDetail')],
+        });
+        return;
+      }
+      requestBody.services = servicesToConfig;
+    }
+    // For 'all' mode, no groups/services needed
+
     setAutoConfigLoading(true);
     setAutoConfigResult(null);
 
@@ -1400,11 +1476,7 @@ const ConfigurationTab = ({ tools }: { tools: McpToolsResponse | null }) => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          mcparr_external_url: mcparrExternalUrl.trim(),
-          // Backend automatically keeps non-MCParr connections
-          // and replaces only existing MCParr connections
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       const data = await response.json();
@@ -1420,396 +1492,327 @@ const ConfigurationTab = ({ tools }: { tools: McpToolsResponse | null }) => {
     }
   };
 
-  // OpenAPI endpoints configuration
-  const openApiEndpoints = [
-    {
-      id: 'all',
-      name: t('config.endpoints.all.name'),
-      path: '/tools/openapi.json',
-      description: t('config.endpoints.all.description'),
-      color: 'gray',
-      services: ['Tous'],
-      recommended: false,
-    },
-    {
-      id: 'system',
-      name: t('config.endpoints.system.name'),
-      path: '/tools/system/openapi.json',
-      description: t('config.endpoints.system.description'),
-      color: 'blue',
-      services: ['System', 'Zammad', 'Authentik'],
-      recommended: true,
-    },
-    {
-      id: 'media',
-      name: t('config.endpoints.media.name'),
-      path: '/tools/media/openapi.json',
-      description: t('config.endpoints.media.description'),
-      color: 'purple',
-      services: ['Plex', 'Tautulli', 'Overseerr', 'Komga', 'RomM', 'Audiobookshelf'],
-      recommended: true,
-    },
-    {
-      id: 'processing',
-      name: t('config.endpoints.processing.name'),
-      path: '/tools/processing/openapi.json',
-      description: t('config.endpoints.processing.description'),
-      color: 'orange',
-      services: ['Radarr', 'Sonarr', 'Prowlarr', 'Deluge'],
-      recommended: true,
-    },
-    {
-      id: 'knowledge',
-      name: t('config.endpoints.knowledge.name'),
-      path: '/tools/knowledge/openapi.json',
-      description: t('config.endpoints.knowledge.description'),
-      color: 'green',
-      services: ['Wiki.js', 'Open WebUI', 'Ollama'],
-      recommended: false,
-    },
-  ];
-
-  const colorClasses: Record<string, { bg: string; border: string; text: string; badge: string }> = {
-    blue: {
-      bg: 'bg-blue-50 dark:bg-blue-900/20',
-      border: 'border-blue-200 dark:border-blue-800',
-      text: 'text-blue-900 dark:text-blue-100',
-      badge: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
-    },
-    purple: {
-      bg: 'bg-purple-50 dark:bg-purple-900/20',
-      border: 'border-purple-200 dark:border-purple-800',
-      text: 'text-purple-900 dark:text-purple-100',
-      badge: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
-    },
-    orange: {
-      bg: 'bg-orange-50 dark:bg-orange-900/20',
-      border: 'border-orange-200 dark:border-orange-800',
-      text: 'text-orange-900 dark:text-orange-100',
-      badge: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200',
-    },
-    green: {
-      bg: 'bg-green-50 dark:bg-green-900/20',
-      border: 'border-green-200 dark:border-green-800',
-      text: 'text-green-900 dark:text-green-100',
-      badge: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
-    },
-    gray: {
-      bg: 'bg-gray-50 dark:bg-gray-800',
-      border: 'border-gray-200 dark:border-gray-700',
-      text: 'text-gray-900 dark:text-gray-100',
-      badge: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200',
-    },
-  };
+  // Check if Open WebUI service is configured
+  const isOpenWebUIConfigured = serverStatus?.enabled_services?.some(
+    (s) => s.toLowerCase() === 'openwebui' || s.toLowerCase() === 'open_webui'
+  ) ?? false;
 
   return (
     <div className="space-y-6">
-      {/* Open WebUI Tool Endpoints */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg p-4 sm:p-6 shadow">
-        <div className="flex items-center gap-2 mb-4">
-          <svg className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
-          </svg>
-          <h3 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white">
-            {t('config.openWebUI.title')}
-          </h3>
-        </div>
-
-        <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-4">
-          <span className="hidden sm:inline">{t('config.openWebUI.description')}</span>
-          <span className="sm:hidden">{t('config.openWebUI.descriptionMobile')}</span>
-          <br className="hidden sm:block" />
-          <span className="text-blue-600 dark:text-blue-400 block sm:inline mt-1 sm:mt-0">{t('config.openWebUI.performanceTip')}</span>
-        </p>
-
-        <div className="grid gap-3">
-          {openApiEndpoints.map((endpoint) => {
-            const colors = colorClasses[endpoint.color];
-            const fullUrl = `${backendUrl}${endpoint.path}`;
-
-            return (
-              <div
-                key={endpoint.id}
-                className={`${colors.bg} ${colors.border} border rounded-lg p-3 sm:p-4`}
-              >
-                {/* Mobile: Stack layout, Desktop: Side by side */}
-                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center flex-wrap gap-2 mb-1">
-                      <h4 className={`font-medium ${colors.text}`}>
-                        {endpoint.name}
-                      </h4>
-                      {endpoint.recommended && (
-                        <span className="px-1.5 py-0.5 text-xs bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 rounded">
-                          {t('config.openWebUI.recommended')}
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                      {endpoint.description}
-                    </p>
-                    <div className="flex flex-wrap gap-1">
-                      {endpoint.services.map(service => (
-                        <span
-                          key={service}
-                          className={`px-2 py-0.5 text-xs ${colors.badge} rounded-full`}
-                        >
-                          {service}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                  {/* Mobile: Full width row, Desktop: Column on right */}
-                  <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-2 pt-2 sm:pt-0 border-t sm:border-t-0 border-gray-200 dark:border-gray-600">
-                    <code className="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded font-mono truncate max-w-[200px] sm:max-w-none">
-                      {endpoint.path}
-                    </code>
-                    <button
-                      onClick={() => copyToClipboard(fullUrl, `endpoint-${endpoint.id}`)}
-                      className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors whitespace-nowrap ${
-                        copied === `endpoint-${endpoint.id}`
-                          ? 'bg-green-600 text-white'
-                          : 'bg-blue-600 hover:bg-blue-700 text-white'
-                      }`}
-                    >
-                      {copied === `endpoint-${endpoint.id}` ? t('config.openWebUI.copied') : t('config.openWebUI.copyUrl')}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Quick setup reminder */}
-        <div className="mt-4 p-2 sm:p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
-          <p className="text-xs sm:text-sm text-amber-800 dark:text-amber-200">
-            <strong>{t('config.quickSetup.title')}</strong> {t('config.quickSetup.auth')}
-            <span className="hidden sm:inline"> •</span><span className="sm:hidden">,</span>
-            {t('config.quickSetup.filter')} <code className="bg-amber-100 dark:bg-amber-900 px-1 rounded text-xs">,</code> <span className="text-amber-600 dark:text-amber-400">{t('config.quickSetup.comma')}</span>
-          </p>
-        </div>
-
-        {/* Important troubleshooting note */}
-        <details className="mt-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg group">
-          <summary className="p-3 sm:p-4 cursor-pointer list-none flex items-center gap-2 hover:bg-blue-100/50 dark:hover:bg-blue-900/30 rounded-lg">
-            <svg className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 dark:text-blue-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-            </svg>
-            <span className="font-medium text-sm sm:text-base text-blue-900 dark:text-blue-100">{t('config.troubleshooting.title')}</span>
-            <svg className="w-4 h-4 text-blue-400 transition-transform group-open:rotate-180 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-          </summary>
-          <div className="px-3 sm:px-4 pb-3 sm:pb-4 text-xs sm:text-sm text-blue-800 dark:text-blue-200 space-y-2">
-            <p>
-              {t('config.troubleshooting.description')}
-            </p>
-            <p><strong>{t('config.troubleshooting.solutionsTitle')}</strong></p>
-            <ul className="list-disc list-inside ml-1 sm:ml-2 space-y-1">
-              <li>{t('config.troubleshooting.solution1')}</li>
-              <li className="break-words">{t('config.troubleshooting.solution2')}</li>
-              <li>{t('config.troubleshooting.solution3')}</li>
-            </ul>
-          </div>
-        </details>
-      </div>
-
-      {/* Open WebUI Function Filters Setup */}
+      {/* Section 1: Auto-configuration for Open WebUI */}
       <div className="bg-white dark:bg-gray-800 rounded-lg p-4 sm:p-6 shadow">
         <div className="flex items-center gap-2 mb-4">
           <svg className="w-5 h-5 sm:w-6 sm:h-6 text-teal-600 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/>
+            <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/>
           </svg>
           <h3 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white">
-            {t('config.openWebUISetup.title')}
+            {t('config.autoConfig.title')}
           </h3>
         </div>
 
-        <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-4">
-          {t('config.openWebUISetup.description')}
-        </p>
-
-        {/* Auto-configuration */}
-        <div className="mb-4 p-4 bg-gradient-to-r from-teal-50 to-cyan-50 dark:from-teal-900/20 dark:to-cyan-900/20 border border-teal-200 dark:border-teal-800 rounded-lg">
-          <div className="flex items-center gap-2 mb-3">
-            <svg className="w-5 h-5 text-teal-600" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/>
-            </svg>
-            <h4 className="font-medium text-teal-900 dark:text-teal-100">
-              {t('config.autoConfig.title')}
-            </h4>
+        {!isOpenWebUIConfigured ? (
+          /* Not available message */
+          <div className="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+            <p className="font-medium text-amber-800 dark:text-amber-200 mb-1">
+              {t('config.autoConfig.notAvailable')}
+            </p>
+            <p className="text-sm text-amber-600 dark:text-amber-400">
+              {t('config.autoConfig.notAvailableDetail')}
+            </p>
           </div>
-          <p className="text-xs sm:text-sm text-teal-700 dark:text-teal-300 mb-3">
-            {t('config.autoConfig.description')}
-          </p>
+        ) : (
+          /* Auto-configuration form */
+          <div className="space-y-4">
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+              {t('config.autoConfig.description')}
+            </p>
 
-          <div className="flex flex-col sm:flex-row gap-2 mb-3">
-            <input
-              type="url"
-              placeholder={t('config.autoConfig.urlPlaceholder')}
-              value={mcparrExternalUrl}
-              onChange={(e) => setMcparrExternalUrl(e.target.value)}
-              className="flex-1 px-3 py-2 text-sm border border-teal-300 dark:border-teal-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-            />
+            {/* 1. Endpoint mode select - FIRST */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                {t('config.autoConfig.endpointMode.label')}
+              </label>
+              <select
+                value={endpointMode}
+                onChange={(e) => setEndpointMode(e.target.value as 'all' | 'group' | 'service')}
+                className="w-full sm:w-auto px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+              >
+                <option value="group">{t('config.autoConfig.endpointMode.group')}</option>
+                <option value="service">{t('config.autoConfig.endpointMode.service')}</option>
+                <option value="all">{t('config.autoConfig.endpointMode.all')}</option>
+              </select>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                {t(`config.autoConfig.endpointMode.${endpointMode}Help`)}
+              </p>
+            </div>
+
+            {/* 2. Conditional selection based on mode */}
+            {endpointMode === 'group' && (
+              <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600">
+                <p className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  {t('config.autoConfig.selectCategories')}
+                </p>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {[
+                    { id: 'media', label: t('config.autoConfig.groups.media') },
+                    { id: 'books', label: t('config.autoConfig.groups.books') },
+                    { id: 'download', label: t('config.autoConfig.groups.download') },
+                    { id: 'games', label: t('config.autoConfig.groups.games') },
+                    { id: 'system', label: t('config.autoConfig.groups.system') },
+                    { id: 'knowledge', label: t('config.autoConfig.groups.knowledge') },
+                    { id: 'auth', label: t('config.autoConfig.groups.auth') },
+                  ].map((group) => (
+                    <label
+                      key={group.id}
+                      className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-colors ${
+                        selectedGroups[group.id]
+                          ? 'bg-teal-100 dark:bg-teal-900/30 border border-teal-300 dark:border-teal-700'
+                          : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700'
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedGroups[group.id]}
+                        onChange={(e) => setSelectedGroups(prev => ({
+                          ...prev,
+                          [group.id]: e.target.checked
+                        }))}
+                        className="w-4 h-4 text-teal-600 bg-gray-100 border-gray-300 rounded focus:ring-teal-500"
+                      />
+                      <span className={`text-xs font-medium ${
+                        selectedGroups[group.id] ? 'text-teal-800 dark:text-teal-200' : 'text-gray-600 dark:text-gray-400'
+                      }`}>
+                        {group.label}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {endpointMode === 'service' && (
+              <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600">
+                <p className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  {t('config.autoConfig.selectServices')}
+                </p>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {[
+                    { id: 'plex', label: 'Plex' },
+                    { id: 'tautulli', label: 'Tautulli' },
+                    { id: 'overseerr', label: 'Overseerr' },
+                    { id: 'radarr', label: 'Radarr' },
+                    { id: 'sonarr', label: 'Sonarr' },
+                    { id: 'prowlarr', label: 'Prowlarr' },
+                    { id: 'jackett', label: 'Jackett' },
+                    { id: 'deluge', label: 'Deluge' },
+                    { id: 'komga', label: 'Komga' },
+                    { id: 'audiobookshelf', label: 'Audiobookshelf' },
+                    { id: 'romm', label: 'RomM' },
+                    { id: 'system', label: 'System' },
+                    { id: 'zammad', label: 'Zammad' },
+                    { id: 'openwebui', label: 'Open WebUI' },
+                    { id: 'wikijs', label: 'Wiki.js' },
+                    { id: 'authentik', label: 'Authentik' },
+                  ].map((service) => (
+                    <label
+                      key={service.id}
+                      className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-colors ${
+                        selectedServices[service.id]
+                          ? 'bg-teal-100 dark:bg-teal-900/30 border border-teal-300 dark:border-teal-700'
+                          : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700'
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedServices[service.id]}
+                        onChange={(e) => setSelectedServices(prev => ({
+                          ...prev,
+                          [service.id]: e.target.checked
+                        }))}
+                        className="w-4 h-4 text-teal-600 bg-gray-100 border-gray-300 rounded focus:ring-teal-500"
+                      />
+                      <span className={`text-xs font-medium ${
+                        selectedServices[service.id] ? 'text-teal-800 dark:text-teal-200' : 'text-gray-600 dark:text-gray-400'
+                      }`}>
+                        {service.label}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 3. Function filters checkbox */}
+            <label className="flex items-start gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={useFunctionFilters}
+                onChange={(e) => setUseFunctionFilters(e.target.checked)}
+                className="w-4 h-4 mt-0.5 text-teal-600 bg-gray-100 border-gray-300 rounded focus:ring-teal-500"
+              />
+              <div>
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  {t('config.autoConfig.useFunctionFilters')}
+                </span>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  {t('config.autoConfig.useFunctionFiltersHelp')}
+                </p>
+              </div>
+            </label>
+
+            {/* 4. URL input + button */}
+            <div className="flex flex-col sm:flex-row gap-2">
+              <input
+                type="url"
+                placeholder={t('config.autoConfig.urlPlaceholder')}
+                value={mcparrExternalUrl}
+                onChange={(e) => setMcparrExternalUrl(e.target.value)}
+                className="flex-1 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+              />
+              <button
+                onClick={handleAutoConfigureOpenWebUI}
+                disabled={autoConfigLoading || (endpointMode === 'group' && Object.values(selectedGroups).every(v => !v)) || (endpointMode === 'service' && Object.values(selectedServices).every(v => !v))}
+                className="px-4 py-2 text-sm font-medium text-white bg-teal-600 hover:bg-teal-700 disabled:bg-teal-400 disabled:cursor-not-allowed rounded-lg transition-colors flex items-center justify-center gap-2 whitespace-nowrap"
+              >
+                {autoConfigLoading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    {t('config.autoConfig.configuring')}
+                  </>
+                ) : (
+                  <>
+                    <Play className="w-4 h-4" />
+                    {t('config.autoConfig.button')}
+                  </>
+                )}
+              </button>
+            </div>
+
+            {/* Result message */}
+            {autoConfigResult && (
+              <div className={`p-3 rounded-lg ${
+                autoConfigResult.success
+                  ? 'bg-green-100 dark:bg-green-900/30 border border-green-300 dark:border-green-700'
+                  : 'bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700'
+              }`}>
+                <p className={`text-sm font-medium ${
+                  autoConfigResult.success ? 'text-green-800 dark:text-green-200' : 'text-red-800 dark:text-red-200'
+                }`}>
+                  {autoConfigResult.message}
+                </p>
+                {autoConfigResult.success && autoConfigResult.configured_groups && (
+                  <p className="text-xs text-green-600 dark:text-green-400 mt-1">
+                    {t('config.autoConfig.successDetail', {
+                      groups: autoConfigResult.configured_groups.length,
+                      tools: autoConfigResult.total_tools,
+                    })}
+                  </p>
+                )}
+                {autoConfigResult.errors && autoConfigResult.errors.length > 0 && (
+                  <ul className="text-xs text-red-600 dark:text-red-400 mt-1 list-disc list-inside">
+                    {autoConfigResult.errors.map((error, i) => (
+                      <li key={i}>{error}</li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
+
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              {t('config.autoConfig.requirement')}
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* Section 2: Compact Endpoints Reference */}
+      <details className="bg-white dark:bg-gray-800 rounded-lg shadow group">
+        <summary className="p-3 sm:p-4 cursor-pointer list-none flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+            <svg className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+            </svg>
+            <div className="min-w-0">
+              <h3 className="font-medium text-sm sm:text-base text-gray-900 dark:text-white">
+                {t('config.endpointsRef.title')}
+              </h3>
+              <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                {t('config.endpointsRef.description')}
+              </p>
+            </div>
+          </div>
+          <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 transition-transform group-open:rotate-180 flex-shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </summary>
+        <div className="p-3 sm:p-4 pt-0 border-t border-gray-100 dark:border-gray-700 space-y-3">
+          {/* All tools endpoint */}
+          <div className="flex items-center justify-between gap-2 p-2 bg-gray-50 dark:bg-gray-700 rounded-lg">
+            <div className="min-w-0">
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{t('config.endpointsRef.allTools')}</span>
+              <code className="ml-2 text-xs text-gray-500 dark:text-gray-400">/tools/openapi.json</code>
+            </div>
             <button
-              onClick={handleAutoConfigureOpenWebUI}
-              disabled={autoConfigLoading}
-              className="px-4 py-2 text-sm font-medium text-white bg-teal-600 hover:bg-teal-700 disabled:bg-teal-400 rounded-lg transition-colors flex items-center gap-2 whitespace-nowrap"
+              onClick={() => copyToClipboard(`${backendUrl}/tools/openapi.json`, 'endpoint-all')}
+              className={`px-2 py-1 text-xs font-medium rounded transition-colors ${
+                copied === 'endpoint-all' ? 'bg-green-600 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white'
+              }`}
             >
-              {autoConfigLoading ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  {t('config.autoConfig.configuring')}
-                </>
-              ) : (
-                <>
-                  <Play className="w-4 h-4" />
-                  {t('config.autoConfig.button')}
-                </>
-              )}
+              {copied === 'endpoint-all' ? t('config.openWebUI.copied') : t('config.openWebUI.copyUrl')}
             </button>
           </div>
 
-          {/* Result message */}
-          {autoConfigResult && (
-            <div className={`p-3 rounded-lg ${
-              autoConfigResult.success
-                ? 'bg-green-100 dark:bg-green-900/30 border border-green-300 dark:border-green-700'
-                : 'bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700'
-            }`}>
-              <p className={`text-sm font-medium ${
-                autoConfigResult.success ? 'text-green-800 dark:text-green-200' : 'text-red-800 dark:text-red-200'
-              }`}>
-                {autoConfigResult.message}
-              </p>
-              {autoConfigResult.success && autoConfigResult.configured_groups && (
-                <p className="text-xs text-green-600 dark:text-green-400 mt-1">
-                  {t('config.autoConfig.successDetail', {
-                    groups: autoConfigResult.configured_groups.length,
-                    tools: autoConfigResult.total_tools,
-                  })}
-                </p>
-              )}
-              {autoConfigResult.errors && autoConfigResult.errors.length > 0 && (
-                <ul className="text-xs text-red-600 dark:text-red-400 mt-1 list-disc list-inside">
-                  {autoConfigResult.errors.map((error, i) => (
-                    <li key={i}>{error}</li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          )}
-
-          <p className="text-xs text-teal-600 dark:text-teal-400 mt-2">
-            {t('config.autoConfig.requirement')}
-          </p>
-        </div>
-
-        {/* How to configure steps (manual) */}
-        <details className="mb-4 group">
-          <summary className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg cursor-pointer list-none flex items-center justify-between hover:bg-gray-100 dark:hover:bg-gray-600">
-            <p className="font-medium text-sm text-gray-900 dark:text-white">{t('config.openWebUISetup.howTo')} ({t('config.autoConfig.manual')})</p>
-            <svg className="w-4 h-4 text-gray-400 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-          </summary>
-          <div className="mt-2 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-            <ol className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 list-decimal list-inside space-y-1">
-              <li>{t('config.openWebUISetup.step1')}</li>
-              <li>{t('config.openWebUISetup.step2')}</li>
-              <li>{t('config.openWebUISetup.step3')}</li>
-              <li>{t('config.openWebUISetup.step4')}</li>
-            </ol>
-          </div>
-        </details>
-
-        {/* Filter groups */}
-        <div className="space-y-3">
-          {[
-            {
-              id: 'media',
-              tools: 'plex_get_active_sessions, plex_get_libraries, plex_get_media_details, plex_get_on_deck, plex_get_recently_added, plex_search_media, tautulli_get_activity, tautulli_get_history, tautulli_get_libraries, tautulli_get_recently_added, tautulli_get_server_info, tautulli_get_statistics, tautulli_get_top_movies, tautulli_get_top_music, tautulli_get_top_platforms, tautulli_get_top_tv_shows, tautulli_get_top_users, tautulli_get_user_stats, tautulli_get_users, tautulli_get_watch_stats_summary',
-              color: 'purple',
-            },
-            {
-              id: 'books',
-              tools: 'audiobookshelf_get_libraries, audiobookshelf_get_library_items, audiobookshelf_get_listening_stats, audiobookshelf_get_media_progress, audiobookshelf_get_statistics, audiobookshelf_get_users, audiobookshelf_search, komga_get_libraries, komga_get_statistics, komga_get_users, komga_search',
-              color: 'amber',
-            },
-            {
-              id: 'download',
-              tools: 'deluge_add_torrent, deluge_get_statistics, deluge_get_torrents, deluge_pause_torrent, deluge_remove_torrent, deluge_resume_torrent, jackett_get_indexers, jackett_get_statistics, jackett_search, jackett_test_all_indexers, jackett_test_indexer, overseerr_check_availability, overseerr_get_requests, overseerr_get_statistics, overseerr_get_trending, overseerr_get_users, overseerr_request_media, overseerr_search_media, prowlarr_get_applications, prowlarr_get_indexer_stats, prowlarr_get_indexers, prowlarr_get_statistics, prowlarr_search, prowlarr_test_all_indexers, prowlarr_test_indexer, radarr_get_calendar, radarr_get_indexers, radarr_get_movies, radarr_get_queue, radarr_get_statistics, radarr_search_movie, radarr_test_all_indexers, radarr_test_indexer, sonarr_get_calendar, sonarr_get_indexers, sonarr_get_queue, sonarr_get_series, sonarr_get_statistics, sonarr_search_series, sonarr_test_all_indexers, sonarr_test_indexer',
-              color: 'orange',
-            },
-            {
-              id: 'games',
-              tools: 'romm_get_collections, romm_get_platforms, romm_get_roms, romm_get_statistics, romm_get_users, romm_search_roms',
-              color: 'green',
-            },
-            {
-              id: 'system',
-              tools: 'system_get_alerts, system_get_health, system_get_logs, system_get_metrics, system_get_services, system_get_users, system_list_tools, system_test_service, zammad_add_comment, zammad_create_ticket, zammad_get_ticket_details, zammad_get_ticket_stats, zammad_get_tickets, zammad_search_tickets, zammad_update_ticket_status',
-              color: 'blue',
-            },
-            {
-              id: 'knowledge',
-              tools: 'openwebui_get_chats, openwebui_get_models, openwebui_get_statistics, openwebui_get_status, openwebui_get_users, openwebui_search_users, wikijs_create_page, wikijs_get_page, wikijs_get_page_tree, wikijs_get_pages, wikijs_get_statistics, wikijs_get_tags, wikijs_get_users, wikijs_search',
-              color: 'emerald',
-            },
-            {
-              id: 'auth',
-              tools: 'authentik_deactivate_user, authentik_get_applications, authentik_get_events, authentik_get_groups, authentik_get_server_info, authentik_get_statistics, authentik_get_user, authentik_get_users, authentik_search_users',
-              color: 'indigo',
-            },
-          ].map((group) => {
-            const toolCount = group.tools.split(',').length;
-            const colorClasses: Record<string, { bg: string; border: string; text: string }> = {
-              purple: { bg: 'bg-purple-50 dark:bg-purple-900/20', border: 'border-purple-200 dark:border-purple-800', text: 'text-purple-900 dark:text-purple-100' },
-              amber: { bg: 'bg-amber-50 dark:bg-amber-900/20', border: 'border-amber-200 dark:border-amber-800', text: 'text-amber-900 dark:text-amber-100' },
-              orange: { bg: 'bg-orange-50 dark:bg-orange-900/20', border: 'border-orange-200 dark:border-orange-800', text: 'text-orange-900 dark:text-orange-100' },
-              green: { bg: 'bg-green-50 dark:bg-green-900/20', border: 'border-green-200 dark:border-green-800', text: 'text-green-900 dark:text-green-100' },
-              blue: { bg: 'bg-blue-50 dark:bg-blue-900/20', border: 'border-blue-200 dark:border-blue-800', text: 'text-blue-900 dark:text-blue-100' },
-              emerald: { bg: 'bg-emerald-50 dark:bg-emerald-900/20', border: 'border-emerald-200 dark:border-emerald-800', text: 'text-emerald-900 dark:text-emerald-100' },
-              indigo: { bg: 'bg-indigo-50 dark:bg-indigo-900/20', border: 'border-indigo-200 dark:border-indigo-800', text: 'text-indigo-900 dark:text-indigo-100' },
-            };
-            const colors = colorClasses[group.color];
-
-            return (
-              <div key={group.id} className={`${colors.bg} ${colors.border} border rounded-lg p-3`}>
-                <div className="flex items-start justify-between gap-2 mb-2">
-                  <div>
-                    <h4 className={`font-medium ${colors.text}`}>
-                      {t(`config.openWebUISetup.groups.${group.id}.name`)}
-                    </h4>
-                    <p className="text-xs text-gray-600 dark:text-gray-400">
-                      {t(`config.openWebUISetup.groups.${group.id}.description`)}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
-                      {t('config.openWebUISetup.toolCount', { count: toolCount })}
-                    </span>
-                    <button
-                      onClick={() => copyToClipboard(group.tools, `filter-${group.id}`)}
-                      className={`px-2 py-1 text-xs font-medium rounded transition-colors whitespace-nowrap ${
-                        copied === `filter-${group.id}`
-                          ? 'bg-green-600 text-white'
-                          : 'bg-gray-600 hover:bg-gray-700 text-white'
-                      }`}
-                    >
-                      {copied === `filter-${group.id}` ? t('config.openWebUISetup.copied') : t('config.openWebUISetup.copyFilter')}
-                    </button>
-                  </div>
+          {/* Category endpoints */}
+          <div className="space-y-1">
+            <p className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">{t('config.endpointsRef.byCategory')}</p>
+            {[
+              { id: 'system', path: '/tools/system/openapi.json', color: 'blue' },
+              { id: 'media', path: '/tools/media/openapi.json', color: 'purple' },
+              { id: 'processing', path: '/tools/processing/openapi.json', color: 'orange' },
+              { id: 'knowledge', path: '/tools/knowledge/openapi.json', color: 'green' },
+            ].map((ep) => (
+              <div key={ep.id} className="flex items-center justify-between gap-2 p-2 bg-gray-50 dark:bg-gray-700 rounded">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className={`w-2 h-2 rounded-full bg-${ep.color}-500 flex-shrink-0`}></span>
+                  <span className="text-xs font-medium text-gray-700 dark:text-gray-300">{t(`config.endpoints.${ep.id}.name`)}</span>
+                  <code className="text-xs text-gray-500 dark:text-gray-400 truncate">{ep.path}</code>
                 </div>
-                <code className="block text-xs bg-gray-100 dark:bg-gray-800 p-2 rounded font-mono overflow-x-auto whitespace-pre-wrap break-all">
-                  {group.tools}
-                </code>
+                <button
+                  onClick={() => copyToClipboard(`${backendUrl}${ep.path}`, `endpoint-${ep.id}`)}
+                  className={`px-2 py-1 text-xs font-medium rounded transition-colors flex-shrink-0 ${
+                    copied === `endpoint-${ep.id}` ? 'bg-green-600 text-white' : 'bg-gray-600 hover:bg-gray-700 text-white'
+                  }`}
+                >
+                  {copied === `endpoint-${ep.id}` ? t('config.openWebUI.copied') : t('config.openWebUI.copyUrl')}
+                </button>
               </div>
-            );
-          })}
+            ))}
+          </div>
+
+          {/* Quick tip */}
+          <p className="text-xs text-blue-600 dark:text-blue-400">
+            {t('config.endpointsRef.tip')}
+          </p>
+
+          {/* Troubleshooting */}
+          <details className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+            <summary className="p-2 cursor-pointer list-none flex items-center gap-2 hover:bg-blue-100/50 dark:hover:bg-blue-900/30 rounded-lg text-sm">
+              <svg className="w-4 h-4 text-blue-600 dark:text-blue-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+              </svg>
+              <span className="font-medium text-blue-900 dark:text-blue-100">{t('config.troubleshooting.title')}</span>
+            </summary>
+            <div className="px-3 pb-3 text-xs text-blue-800 dark:text-blue-200 space-y-1">
+              <p>{t('config.troubleshooting.description')}</p>
+              <ul className="list-disc list-inside ml-1 space-y-0.5">
+                <li>{t('config.troubleshooting.solution1')}</li>
+                <li>{t('config.troubleshooting.solution2')}</li>
+                <li>{t('config.troubleshooting.solution3')}</li>
+              </ul>
+            </div>
+          </details>
         </div>
-      </div>
+      </details>
 
       {/* System Prompt - Collapsible */}
       <details className="bg-white dark:bg-gray-800 rounded-lg shadow group">

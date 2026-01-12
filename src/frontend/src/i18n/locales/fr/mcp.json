@@ -160,7 +160,17 @@
       "performanceTip": "Utilisez les endpoints séparés pour de meilleures performances.",
       "recommended": "Recommandé",
       "copyUrl": "Copier URL",
+      "copyFilter": "Copier Filter List",
+      "copyFilterTitle": "Copier la liste des fonctions pour le Function Name Filter List dans Open WebUI",
+      "tools": "outils",
       "copied": "✓ Copié!"
+    },
+    "endpointsRef": {
+      "title": "Référence des endpoints",
+      "description": "URLs à utiliser pour la configuration manuelle dans Open WebUI → Admin → Settings → Tools.",
+      "allTools": "Tous les outils",
+      "byCategory": "Par catégorie",
+      "tip": "Conseil : utilisez les endpoints par catégorie pour de meilleures performances avec les LLMs."
     },
     "endpoints": {
       "all": {
@@ -191,17 +201,45 @@
       "comma": "(virgule)"
     },
     "autoConfig": {
-      "title": "Configuration automatique",
-      "description": "Configurez automatiquement Open WebUI avec les outils MCParr en un clic. Nécessite que le service Open WebUI soit configuré avec une clé API admin.",
+      "title": "Configuration automatique Open WebUI",
+      "description": "Configurez automatiquement Open WebUI avec les outils MCParr en un clic.",
+      "notAvailable": "Open WebUI n'est pas configuré",
+      "notAvailableDetail": "Pour utiliser la configuration automatique, configurez le service Open WebUI avec une clé API admin dans l'onglet Services.",
+      "selectCategories": "Groupes d'outils à configurer :",
+      "selectServices": "Services à configurer :",
+      "errorNoService": "Aucun service sélectionné",
+      "errorNoServiceDetail": "Veuillez sélectionner au moins un service à configurer",
+      "endpointMode": {
+        "label": "Mode d'endpoint",
+        "group": "Par catégorie (recommandé)",
+        "groupHelp": "Un tool server par catégorie (media, system, etc.) - Équilibre entre performance et flexibilité",
+        "service": "Par service",
+        "serviceHelp": "Un tool server par service (Plex, Sonarr, etc.) - Maximum de flexibilité, plus de connexions",
+        "all": "Tout ensemble",
+        "allHelp": "Un seul tool server avec tous les outils - Simple mais peut surcharger le modèle"
+      },
+      "useFunctionFilters": "Ajouter les Function Name Filter Lists",
+      "useFunctionFiltersHelp": "Restreint les outils visibles pour chaque groupe",
       "urlPlaceholder": "https://mcparr.example.com (URL externe MCParr)",
       "button": "Configurer Open WebUI",
       "configuring": "Configuration...",
       "errorNoUrl": "URL requise",
       "errorNoUrlDetail": "Veuillez entrer l'URL externe de MCParr",
+      "errorNoCategory": "Aucun groupe sélectionné",
+      "errorNoCategoryDetail": "Veuillez sélectionner au moins un groupe à configurer",
       "errorNetwork": "Erreur de connexion",
       "successDetail": "{{groups}} groupes configurés avec {{tools}} outils",
-      "requirement": "Prérequis : Open WebUI doit être configuré dans l'onglet Services avec une clé API admin",
-      "manual": "manuel"
+      "requirement": "Prérequis : URL externe de MCParr accessible depuis Open WebUI",
+      "manual": "manuel",
+      "groups": {
+        "media": "Média (Plex/Tautulli)",
+        "books": "Livres & Audio",
+        "download": "Téléchargement",
+        "games": "Jeux (RomM)",
+        "system": "Système & Support",
+        "knowledge": "Connaissances & IA",
+        "auth": "Authentification (SSO)"
+      }
     },
     "openWebUISetup": {
       "title": "Configuration Open WebUI - Function Filters",
