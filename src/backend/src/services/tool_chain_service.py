@@ -317,6 +317,7 @@ async def get_matching_steps(
                 "_chain_id": str(chain.id),
                 "_chain_name": chain.name,
                 "_chain_color": chain.color,
+                "_step_order": step.order,  # Current step order (0-indexed)
             }
 
             # Build suggested arguments if mappings exist
@@ -412,6 +413,7 @@ async def get_matching_steps_any_order(
                 "_chain_id": str(chain.id),
                 "_chain_name": chain.name,
                 "_chain_color": chain.color,
+                "_step_order": step.order,  # Current step order (0-indexed)
             }
 
             # Build suggested arguments if mappings exist
@@ -445,8 +447,9 @@ def format_next_tools_for_response(
     if not suggestions:
         return None
 
-    # Extract unique chains from suggestions (using internal fields)
+    # Extract unique chains and step order from suggestions (using internal fields)
     chains_seen = {}
+    step_order = None
     for s in suggestions:
         chain_id = s.get("_chain_id")
         if chain_id and chain_id not in chains_seen:
@@ -455,6 +458,9 @@ def format_next_tools_for_response(
                 "name": s.get("_chain_name"),
                 "color": s.get("_chain_color"),
             }
+        # Get step_order from first suggestion (they should all be from same step)
+        if step_order is None and "_step_order" in s:
+            step_order = s["_step_order"]
 
     # Clean suggestions - remove internal chain fields (prefixed with _)
     clean_suggestions = []
@@ -467,6 +473,7 @@ def format_next_tools_for_response(
             "position": "start",
             "source_tool": source_tool,
             "chains": list(chains_seen.values()),
+            "step_number": (step_order + 1) if step_order is not None else 1,  # 1-indexed for display
         },
         "next_tools_to_call": clean_suggestions,
         "ai_instruction": (
@@ -552,10 +559,14 @@ async def get_tool_chain_position(
     # Use the first chain's position (most relevant)
     primary_position = chains_info[0]["position"]
     primary_source = chains_info[0]["source_tool"]
+    # Step number is previous_step_order + 2 (because we're at the target of that step)
+    # previous_step_order is 0-indexed, and we're now at the next step
+    step_number = chains_info[0]["previous_step_order"] + 2
 
     return {
         "position": primary_position,
         "source_tool": primary_source,
+        "step_number": step_number,  # 1-indexed for display
         "chains": [{"id": c["id"], "name": c["name"], "color": c["color"]} for c in chains_info],
     }
 

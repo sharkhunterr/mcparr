@@ -94,6 +94,7 @@
     "chainStart": "Kettenstart",
     "chainMiddle": "Kettenschritt",
     "chainEnd": "Kettenende",
+    "step": "Schritt",
     "nextTools": "Nächste Tools",
     "viewChain": "Kettenkonfiguration anzeigen"
   },

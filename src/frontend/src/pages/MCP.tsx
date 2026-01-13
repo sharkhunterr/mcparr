@@ -459,6 +459,7 @@ const ChainBadge = ({
   const chains = chainContext?.chains || [];
   const chainName = chains[0]?.name;
   const chainColor = chains[0]?.color || '#8b5cf6';
+  const stepNumber = chainContext?.step_number;
 
   // Position-specific styling
   const positionIcons = {
@@ -484,14 +485,14 @@ const ChainBadge = ({
         backgroundColor: `${chainColor}20`,
         color: chainColor,
       }}
-      title={`${positionLabels[position as keyof typeof positionLabels] || position} - ${chainName || t('history.chainTriggered')}`}
+      title={`${positionLabels[position as keyof typeof positionLabels] || position}${stepNumber ? ` (${t('history.step')} ${stepNumber})` : ''} - ${chainName || t('history.chainTriggered')}`}
     >
       {positionIcons[position as keyof typeof positionIcons]}
       <Workflow className="w-3 h-3" />
-      {nextTools && nextTools.length > 0 && (
+      {stepNumber && (
         <>
           <ArrowRight className="w-3 h-3" />
-          <span>{nextTools.length}</span>
+          <span>{stepNumber}</span>
         </>
       )}
     </button>

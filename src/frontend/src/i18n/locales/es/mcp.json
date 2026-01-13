@@ -94,6 +94,7 @@
     "chainStart": "Inicio de cadena",
     "chainMiddle": "Paso de cadena",
     "chainEnd": "Fin de cadena",
+    "step": "Paso",
     "nextTools": "Herramientas siguientes",
     "viewChain": "Ver configuración de la cadena"
   },
