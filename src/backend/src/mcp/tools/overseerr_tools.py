@@ -227,7 +227,7 @@ class OverseerrTools(BaseTool):
                         if item.get("overview") and len(item.get("overview", "")) > 200
                         else item.get("overview"),
                         "tmdb_id": item.get("id"),
-                        "status": item.get("mediaInfo", {}).get("status") if item.get("mediaInfo") else "not_requested",
+                        "status": item.get("media_info", {}).get("status") if item.get("media_info") else "not_requested",
                         "url": adapter._get_media_url(
                             "movie" if item.get("mediaType") == "movie" else "tv",
                             item.get("id")
@@ -289,7 +289,7 @@ class OverseerrTools(BaseTool):
         tmdb_id = media.get("id")
 
         # Check if already available or requested
-        media_info = media.get("mediaInfo")
+        media_info = media.get("media_info")
         if media_info:
             status = media_info.get("status")
             if status == 5:  # Available
@@ -334,7 +334,7 @@ class OverseerrTools(BaseTool):
                         if item.get("overview") and len(item.get("overview", "")) > 150
                         else item.get("overview"),
                         "tmdb_id": item.get("id"),
-                        "available": item.get("mediaInfo", {}).get("status") == 5 if item.get("mediaInfo") else False,
+                        "available": item.get("media_info", {}).get("status") == 5 if item.get("media_info") else False,
                         "url": adapter._get_media_url(
                             "movie" if item.get("mediaType") == "movie" else "tv",
                             item.get("id")
@@ -395,7 +395,7 @@ class OverseerrTools(BaseTool):
         sorted_results = sorted(results, key=score_result, reverse=True)
         media = sorted_results[0]
 
-        media_info = media.get("mediaInfo")
+        media_info = media.get("media_info")
 
         status_map = {
             1: "unknown",
