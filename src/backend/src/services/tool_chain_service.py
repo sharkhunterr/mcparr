@@ -189,13 +189,10 @@ def build_argument_mappings(
         if isinstance(mapping, dict):
             if "source" in mapping:
                 # Get value from result
+                # The result dict has structure: {"success": bool, "result": {...}, "error": ...}
+                # Paths like "result.title" should navigate into result.result.title
                 source_path = mapping["source"]
-                if source_path == "result":
-                    args[target_param] = result
-                elif source_path.startswith("result."):
-                    args[target_param] = get_nested_value(result, source_path[7:])
-                else:
-                    args[target_param] = get_nested_value(result, source_path)
+                args[target_param] = get_nested_value(result, source_path)
             elif "value" in mapping:
                 # Static value
                 args[target_param] = mapping["value"]

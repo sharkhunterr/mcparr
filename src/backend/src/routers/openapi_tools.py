@@ -3478,3 +3478,91 @@ async def configure_openwebui(
             message="Error configuring Open WebUI",
             errors=[str(e)],
         )
+
+
+# ============================================================================
+# Dynamic Tool Endpoint - Auto-routes to any registered tool
+# IMPORTANT: This must be the LAST endpoint defined to avoid capturing
+# other routes. FastAPI matches routes in order of definition.
+# ============================================================================
+
+
+# Cache for tool definitions to avoid repeated instantiation
+_tool_definitions_cache: Dict[str, Any] = {}
+
+
+def get_all_tool_definitions() -> Dict[str, Any]:
+    """Get all tool definitions from all tool classes, cached."""
+    if _tool_definitions_cache:
+        return _tool_definitions_cache
+
+    all_tool_classes = [
+        SystemTools,
+        PlexTools,
+        TautulliTools,
+        OverseerrTools,
+        RadarrTools,
+        SonarrTools,
+        ProwlarrTools,
+        JackettTools,
+        DelugeTools,
+        KomgaTools,
+        RommTools,
+        AudiobookshelfTools,
+        OpenWebUITools,
+        ZammadTools,
+        WikiJSTools,
+        AuthentikTools,
+    ]
+
+    for tool_class in all_tool_classes:
+        try:
+            tool_instance = tool_class(None)
+            for tool_def in tool_instance.definitions:
+                _tool_definitions_cache[tool_def.name] = tool_def
+        except Exception as e:
+            logger.warning(f"Failed to get definitions from {tool_class.__name__}: {e}")
+
+    return _tool_definitions_cache
+
+
+@router.post(
+    "/{tool_name}",
+    response_model=ToolResponse,
+    summary="Execute any registered tool dynamically",
+    description="Dynamic endpoint that can execute any tool registered in the system. "
+                "The tool_name path parameter determines which tool to execute.",
+    include_in_schema=False,  # Don't show in main schema, individual tools are in openapi.json
+)
+async def execute_dynamic_tool(
+    tool_name: str,
+    request: Request,
+    session: AsyncSession = Depends(get_db_session),
+):
+    """
+    Dynamic tool execution endpoint.
+
+    This endpoint automatically routes to any registered tool based on the tool_name.
+    It reads the request body as JSON and passes it to the tool.
+
+    This eliminates the need to manually define separate endpoints for each tool.
+    New tools added to *_tools.py files are automatically available without
+    adding manual endpoint definitions.
+    """
+    # Check if tool exists
+    tool_definitions = get_all_tool_definitions()
+    if tool_name not in tool_definitions:
+        return ToolResponse(
+            success=False,
+            error=f"Unknown tool: {tool_name}. Use system_list_tools to see available tools.",
+        )
+
+    # Parse request body
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+
+    # Execute the tool
+    result = await execute_tool_with_logging(session, tool_name, body, request)
+    return ToolResponse(**result)
