@@ -488,7 +488,6 @@ const ChainBadge = ({
       title={`${positionLabels[position as keyof typeof positionLabels] || position}${stepNumber ? ` (${t('history.step')} ${stepNumber})` : ''} - ${chainName || t('history.chainTriggered')}`}
     >
       {positionIcons[position as keyof typeof positionIcons]}
-      <Workflow className="w-3 h-3" />
       {stepNumber && (
         <>
           <ArrowRight className="w-3 h-3" />
