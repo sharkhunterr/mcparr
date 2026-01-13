@@ -1,57 +1,147 @@
-"""Tool Chain schemas for API validation and serialization."""
+"""Tool Chain schemas for API validation and serialization.
+
+Supports IF/THEN/ELSE logic with compound conditions (AND/OR).
+"""
 
 from datetime import datetime
+from enum import Enum
 from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field
 
-from src.models.tool_chain import ConditionOperator, ExecutionMode
+from src.models.tool_chain import (
+    ActionType,
+    ConditionGroupOperator,
+    ConditionOperator,
+    ExecutionMode,
+    StepPositionType,
+)
 
 
-# === Step Target Schemas (tools to execute) ===
+# === Condition Schemas ===
 
 
-class StepTargetCreate(BaseModel):
-    """Schema for creating a target tool in a step."""
+class ConditionCreate(BaseModel):
+    """Schema for creating a single condition."""
 
-    target_service: str = Field(..., description="Target service type (e.g., 'overseerr')")
-    target_tool: str = Field(..., description="Target tool name to execute")
-    order: int = Field(0, description="Execution order")
-    execution_mode: ExecutionMode = Field(
-        ExecutionMode.SEQUENTIAL, description="How to execute relative to other targets"
-    )
-    argument_mappings: Optional[Dict[str, Any]] = Field(
-        None, description="Input argument mappings from source result"
-    )
-    target_ai_comment: Optional[str] = Field(
-        None, description="AI guidance for this specific target"
-    )
-    enabled: bool = Field(True, description="Whether this target is active")
+    operator: ConditionOperator = Field(..., description="Condition operator")
+    field: Optional[str] = Field(None, description="Field path in result to check (e.g., 'result.count')")
+    value: Optional[str] = Field(None, description="Value to compare against")
+    order: int = Field(0, description="Order within the group")
 
 
-class StepTargetUpdate(BaseModel):
-    """Schema for updating a step target."""
+class ConditionUpdate(BaseModel):
+    """Schema for updating a condition."""
 
-    target_service: Optional[str] = None
-    target_tool: Optional[str] = None
+    operator: Optional[ConditionOperator] = None
+    field: Optional[str] = None
+    value: Optional[str] = None
     order: Optional[int] = None
-    execution_mode: Optional[ExecutionMode] = None
-    argument_mappings: Optional[Dict[str, Any]] = None
-    target_ai_comment: Optional[str] = None
-    enabled: Optional[bool] = None
 
 
-class StepTargetResponse(BaseModel):
-    """Schema for step target API responses."""
+class ConditionResponse(BaseModel):
+    """Schema for condition API responses."""
+
+    id: str
+    group_id: str
+    operator: str
+    field: Optional[str]
+    value: Optional[str]
+    order: int
+    created_at: datetime
+    updated_at: datetime
+
+
+# === Condition Group Schemas ===
+
+
+class ConditionGroupCreate(BaseModel):
+    """Schema for creating a condition group with AND/OR logic."""
+
+    operator: ConditionGroupOperator = Field(
+        ConditionGroupOperator.AND, description="How conditions are combined (and/or)"
+    )
+    order: int = Field(0, description="Order within parent group or step")
+    conditions: List[ConditionCreate] = Field(default_factory=list, description="Conditions in this group")
+    child_groups: Optional[List["ConditionGroupCreate"]] = Field(
+        None, description="Nested condition groups for complex expressions"
+    )
+
+
+class ConditionGroupUpdate(BaseModel):
+    """Schema for updating a condition group."""
+
+    operator: Optional[ConditionGroupOperator] = None
+    order: Optional[int] = None
+
+
+class ConditionGroupResponse(BaseModel):
+    """Schema for condition group API responses."""
 
     id: str
     step_id: str
-    target_service: str
-    target_tool: str
+    parent_group_id: Optional[str]
+    operator: str
+    order: int
+    created_at: datetime
+    updated_at: datetime
+    conditions: List[ConditionResponse] = []
+    child_groups: List["ConditionGroupResponse"] = []
+
+
+# === Action Schemas (for THEN/ELSE branches) ===
+
+
+class ActionCreate(BaseModel):
+    """Schema for creating an action in THEN or ELSE branch."""
+
+    branch: str = Field(..., description="Branch type: 'then' or 'else'")
+    action_type: ActionType = Field(ActionType.TOOL_CALL, description="Action type")
+    # For tool_call action
+    target_service: Optional[str] = Field(None, description="Target service type")
+    target_tool: Optional[str] = Field(None, description="Target tool name")
+    argument_mappings: Optional[Dict[str, Any]] = Field(
+        None, description="Input argument mappings from source result"
+    )
+    # For message action
+    message_template: Optional[str] = Field(
+        None, description="Message template with placeholders like {result.title}"
+    )
+    # Common
+    order: int = Field(0, description="Execution order")
+    execution_mode: ExecutionMode = Field(ExecutionMode.SEQUENTIAL, description="Execution mode")
+    ai_comment: Optional[str] = Field(None, description="AI guidance for this action")
+    enabled: bool = Field(True, description="Whether this action is active")
+
+
+class ActionUpdate(BaseModel):
+    """Schema for updating an action."""
+
+    action_type: Optional[ActionType] = None
+    target_service: Optional[str] = None
+    target_tool: Optional[str] = None
+    argument_mappings: Optional[Dict[str, Any]] = None
+    message_template: Optional[str] = None
+    order: Optional[int] = None
+    execution_mode: Optional[ExecutionMode] = None
+    ai_comment: Optional[str] = None
+    enabled: Optional[bool] = None
+
+
+class ActionResponse(BaseModel):
+    """Schema for action API responses."""
+
+    id: str
+    step_id: str
+    branch: str
+    action_type: str
+    target_service: Optional[str]
+    target_tool: Optional[str]
+    argument_mappings: Optional[Dict[str, Any]]
+    message_template: Optional[str]
     order: int
     execution_mode: str
-    argument_mappings: Optional[Dict[str, Any]]
-    target_ai_comment: Optional[str]
+    ai_comment: Optional[str]
     enabled: bool
     created_at: datetime
     updated_at: datetime
@@ -67,39 +157,32 @@ class ToolChainStepCreate(BaseModel):
     """Schema for creating a step in a tool chain."""
 
     order: int = Field(0, description="Step order within the chain")
+    position_type: StepPositionType = Field(
+        StepPositionType.MIDDLE, description="Step position type (middle or end)"
+    )
     # Source tool (trigger)
     source_service: str = Field(..., description="Source service type that triggers this step")
     source_tool: str = Field(..., description="Source tool name that triggers this step")
-    # Condition
-    condition_operator: ConditionOperator = Field(
-        ConditionOperator.SUCCESS, description="Condition operator"
-    )
-    condition_field: Optional[str] = Field(
-        None, description="Field path in result to check"
-    )
-    condition_value: Optional[str] = Field(
-        None, description="Value to compare against"
-    )
     # AI guidance
-    ai_comment: Optional[str] = Field(
-        None, description="AI guidance explaining when/why to use this step"
-    )
+    ai_comment: Optional[str] = Field(None, description="AI guidance explaining when/why to use this step")
     enabled: bool = Field(True, description="Whether this step is active")
-    # Optional: create targets on step creation
-    targets: Optional[List[StepTargetCreate]] = Field(
-        None, description="Target tools to create with the step"
+    # Conditions (at least one group required)
+    condition_groups: List[ConditionGroupCreate] = Field(
+        default_factory=list, description="Condition groups for this step"
     )
+    # THEN actions (executed when condition is TRUE)
+    then_actions: List[ActionCreate] = Field(default_factory=list, description="Actions when condition is true")
+    # ELSE actions (executed when condition is FALSE)
+    else_actions: List[ActionCreate] = Field(default_factory=list, description="Actions when condition is false")
 
 
 class ToolChainStepUpdate(BaseModel):
     """Schema for updating a tool chain step."""
 
     order: Optional[int] = None
+    position_type: Optional[StepPositionType] = None
     source_service: Optional[str] = None
     source_tool: Optional[str] = None
-    condition_operator: Optional[ConditionOperator] = None
-    condition_field: Optional[str] = None
-    condition_value: Optional[str] = None
     ai_comment: Optional[str] = None
     enabled: Optional[bool] = None
 
@@ -110,26 +193,28 @@ class ToolChainStepResponse(BaseModel):
     id: str
     chain_id: str
     order: int
+    position_type: str
     source_service: str
     source_tool: str
-    condition_operator: str
-    condition_field: Optional[str]
-    condition_value: Optional[str]
     ai_comment: Optional[str]
     enabled: bool
     created_at: datetime
     updated_at: datetime
-    # Computed
-    target_count: int = 0
+    # Computed counts
+    condition_count: int = 0
+    then_action_count: int = 0
+    else_action_count: int = 0
     # Enriched info
     source_service_name: Optional[str] = None
     source_tool_display_name: Optional[str] = None
 
 
 class ToolChainStepDetailResponse(ToolChainStepResponse):
-    """Detailed step response with targets."""
+    """Detailed step response with conditions and actions."""
 
-    targets: List[StepTargetResponse] = []
+    condition_groups: List[ConditionGroupResponse] = []
+    then_actions: List[ActionResponse] = []
+    else_actions: List[ActionResponse] = []
 
 
 # === Tool Chain Schemas ===
@@ -144,9 +229,7 @@ class ToolChainCreate(BaseModel):
     priority: int = Field(0, description="Priority for chain matching")
     enabled: bool = Field(True, description="Whether chain is active")
     # Optional: create steps on chain creation
-    steps: Optional[List[ToolChainStepCreate]] = Field(
-        None, description="Steps to create with the chain"
-    )
+    steps: Optional[List[ToolChainStepCreate]] = Field(None, description="Steps to create with the chain")
 
 
 class ToolChainUpdate(BaseModel):
@@ -223,11 +306,11 @@ class ConditionOperatorsResponse(BaseModel):
             requires_value=True, requires_field=True
         ),
         ConditionOperatorInfo(
-            value="gte", label="Greater or Equal", description="Result is greater than or equal to value",
+            value="gte", label="Greater or Equal", description="Result >= value",
             requires_value=True, requires_field=True
         ),
         ConditionOperatorInfo(
-            value="lte", label="Less or Equal", description="Result is less than or equal to value",
+            value="lte", label="Less or Equal", description="Result <= value",
             requires_value=True, requires_field=True
         ),
         ConditionOperatorInfo(
@@ -261,50 +344,108 @@ class ConditionOperatorsResponse(BaseModel):
     ]
 
 
-# === Tool Chain Execution Context (for AI responses) ===
+# === Condition Group Operators Reference ===
 
 
-class TargetSuggestion(BaseModel):
-    """A suggested target tool to execute."""
+class ConditionGroupOperatorInfo(BaseModel):
+    """Information about a condition group operator."""
 
-    target_service: str
-    target_tool: str
-    suggested_arguments: Optional[Dict[str, Any]] = None
-    ai_comment: Optional[str] = None
-    execution_mode: str = "sequential"
+    value: str
+    label: str
+    description: str
 
 
-class StepSuggestion(BaseModel):
-    """A suggested step based on matching condition."""
+class ConditionGroupOperatorsResponse(BaseModel):
+    """List of available group operators."""
+
+    operators: List[ConditionGroupOperatorInfo] = [
+        ConditionGroupOperatorInfo(
+            value="and", label="AND", description="All conditions must be true"
+        ),
+        ConditionGroupOperatorInfo(
+            value="or", label="OR", description="At least one condition must be true"
+        ),
+    ]
+
+
+# === Action Types Reference ===
+
+
+class ActionTypeInfo(BaseModel):
+    """Information about an action type."""
+
+    value: str
+    label: str
+    description: str
+
+
+class ActionTypesResponse(BaseModel):
+    """List of available action types."""
+
+    action_types: List[ActionTypeInfo] = [
+        ActionTypeInfo(
+            value="tool_call", label="Call Tool", description="Execute a tool"
+        ),
+        ActionTypeInfo(
+            value="message", label="Display Message", description="Display a message to AI (no tool call)"
+        ),
+    ]
+
+
+# === Step Position Types Reference ===
+
+
+class StepPositionInfo(BaseModel):
+    """Information about step position type."""
+
+    value: str
+    label: str
+    description: str
+
+
+class StepPositionTypesResponse(BaseModel):
+    """List of available step positions."""
+
+    positions: List[StepPositionInfo] = [
+        StepPositionInfo(
+            value="middle", label="Middle", description="Continue to next steps"
+        ),
+        StepPositionInfo(
+            value="end", label="End", description="Terminal step (chain ends here)"
+        ),
+    ]
+
+
+# === Flowchart Data for Visualization ===
+
+
+class FlowchartNode(BaseModel):
+    """A node in the flowchart visualization."""
+
+    id: str
+    type: str  # 'step', 'condition', 'action', 'message'
+    label: str
+    data: Dict[str, Any] = {}
+    position: Dict[str, float] = {"x": 0, "y": 0}
+
+
+class FlowchartEdge(BaseModel):
+    """An edge connecting nodes in the flowchart."""
+
+    id: str
+    source: str
+    target: str
+    label: Optional[str] = None  # 'TRUE', 'FALSE'
+    type: str = "default"  # 'then', 'else', 'default'
+
+
+class FlowchartResponse(BaseModel):
+    """Flowchart data for visualization."""
 
     chain_id: str
     chain_name: str
-    step_id: str
-    ai_comment: Optional[str] = None
-    targets: List[TargetSuggestion] = []
-
-
-class ChainExecutionContext(BaseModel):
-    """Context information about chains that may apply to a tool result.
-
-    This is included in tool responses to guide the AI about potential
-    next steps based on configured tool chains.
-    """
-
-    source_service: str
-    source_tool: str
-    matching_steps: List[StepSuggestion] = []
-    has_suggestions: bool = False
-
-    @classmethod
-    def empty(cls, source_service: str, source_tool: str) -> "ChainExecutionContext":
-        """Create empty context (no matching steps)."""
-        return cls(
-            source_service=source_service,
-            source_tool=source_tool,
-            matching_steps=[],
-            has_suggestions=False,
-        )
+    nodes: List[FlowchartNode] = []
+    edges: List[FlowchartEdge] = []
 
 
 # === Available Tools for Chain Configuration ===
@@ -326,3 +467,37 @@ class AvailableToolsResponse(BaseModel):
 
     tools: List[AvailableTool]
     total: int
+
+
+# === Tool Chain Execution Context (for AI responses) ===
+
+
+class ActionSuggestion(BaseModel):
+    """A suggested action to execute."""
+
+    action_type: str
+    # For tool_call
+    target_service: Optional[str] = None
+    target_tool: Optional[str] = None
+    service_name: Optional[str] = None
+    suggested_arguments: Optional[Dict[str, Any]] = None
+    # For message
+    message: Optional[str] = None
+    # Common
+    ai_comment: Optional[str] = None
+    reason: Optional[str] = None
+
+
+class ChainContext(BaseModel):
+    """Context about chain execution for AI."""
+
+    position: str  # 'start', 'middle', 'end'
+    source_tool: str
+    branch: Optional[str] = None  # 'then' or 'else'
+    chains: List[Dict[str, Any]] = []
+    step_number: int = 1
+
+
+# Update forward references
+ConditionGroupCreate.model_rebuild()
+ConditionGroupResponse.model_rebuild()

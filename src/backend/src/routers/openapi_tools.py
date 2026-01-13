@@ -360,6 +360,8 @@ class ToolResponse(BaseModel):
     error: Optional[str] = None
     chain_context: Optional[Dict[str, Any]] = None
     next_tools_to_call: Optional[List[Dict[str, Any]]] = None
+    chain_messages: Optional[List[Dict[str, Any]]] = None
+    message_to_display: Optional[str] = None
     ai_instruction: Optional[str] = None
 
     model_config = {"exclude_none": True}

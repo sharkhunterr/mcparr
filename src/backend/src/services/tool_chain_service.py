@@ -1,4 +1,4 @@
-"""Service for evaluating and applying tool chains."""
+"""Service for evaluating and applying tool chains with IF/THEN/ELSE logic."""
 
 import json
 import re
@@ -10,10 +10,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from src.models.tool_chain import (
+    ActionType,
+    ConditionGroupOperator,
     ConditionOperator,
+    StepPositionType,
     ToolChain,
+    ToolChainAction,
+    ToolChainConditionGroup,
     ToolChainStep,
-    ToolChainStepTarget,
 )
 
 
@@ -58,14 +62,14 @@ def get_nested_value(data: Any, path: str) -> Any:
     return current
 
 
-def evaluate_condition(
+def evaluate_single_condition(
     result: Dict[str, Any],
     success: bool,
     operator: str,
     field: Optional[str] = None,
     value: Optional[str] = None,
 ) -> bool:
-    """Evaluate a tool chain condition against a result.
+    """Evaluate a single condition against a result.
 
     Args:
         result: The tool execution result
@@ -167,6 +171,150 @@ def evaluate_condition(
     return False
 
 
+def evaluate_condition_group(
+    group: ToolChainConditionGroup,
+    result: Dict[str, Any],
+    success: bool,
+) -> bool:
+    """Evaluate a condition group recursively with AND/OR logic.
+
+    Supports nested groups for complex expressions like:
+    (A AND B) OR (C AND D)
+
+    Args:
+        group: The condition group to evaluate
+        result: The tool execution result
+        success: Whether the tool execution was successful
+
+    Returns:
+        True if the group conditions evaluate to true
+    """
+    group_operator = group.operator
+
+    # Evaluate all conditions in this group
+    condition_results = []
+    if group.conditions:
+        for condition in group.conditions:
+            cond_result = evaluate_single_condition(
+                result,
+                success,
+                condition.operator,
+                condition.field,
+                condition.value,
+            )
+            condition_results.append(cond_result)
+
+    # Evaluate child groups recursively
+    child_results = []
+    if group.child_groups:
+        for child_group in group.child_groups:
+            child_result = evaluate_condition_group(child_group, result, success)
+            child_results.append(child_result)
+
+    # Combine all results
+    all_results = condition_results + child_results
+
+    if not all_results:
+        # Empty group - default to True (no conditions = always match)
+        return True
+
+    # Apply AND/OR logic
+    if group_operator == ConditionGroupOperator.AND.value:
+        return all(all_results)
+    else:  # OR
+        return any(all_results)
+
+
+def evaluate_step_conditions(
+    step: ToolChainStep,
+    result: Dict[str, Any],
+    success: bool,
+) -> bool:
+    """Evaluate all conditions for a step.
+
+    A step can have multiple condition groups at the root level.
+    By default, root-level groups are combined with AND logic.
+
+    Args:
+        step: The step to evaluate
+        result: The tool execution result (full dict with success, result, error)
+        success: Whether the tool execution was successful
+
+    Returns:
+        True if all root condition groups evaluate to true
+    """
+    if not step.condition_groups:
+        # No conditions = always True (THEN branch executes)
+        return True
+
+    # Only evaluate root groups (those without parent)
+    root_groups = [g for g in step.condition_groups if g.parent_group_id is None]
+
+    if not root_groups:
+        return True
+
+    # Extract the actual result data for condition evaluation
+    # This allows conditions to use "available" instead of "result.available"
+    eval_data = result.get("result", {}) if isinstance(result.get("result"), dict) else result
+
+    # Root groups are combined with AND logic
+    for group in root_groups:
+        if not evaluate_condition_group(group, eval_data, success):
+            return False
+
+    return True
+
+
+def interpolate_message_template(
+    template: str,
+    result: Dict[str, Any],
+    input_params: Optional[Dict[str, Any]] = None,
+) -> str:
+    """Interpolate placeholders in a message template.
+
+    Supports placeholders like:
+    - {result.title} - Access result fields
+    - {result.data.0.name} - Access nested/array fields
+    - {input.query} - Access original input parameters
+
+    Args:
+        template: The message template with placeholders
+        result: The tool execution result (full dict with success, result, error)
+        input_params: Original input parameters
+
+    Returns:
+        The interpolated message string
+    """
+    if not template:
+        return ""
+
+    # Extract the actual result data for interpolation
+    result_data = result.get("result", {}) if isinstance(result.get("result"), dict) else result
+
+    # Find all placeholders like {result.field} or {input.param}
+    placeholder_pattern = r'\{((?:result|input)\.[\w.]+)\}'
+
+    def replace_placeholder(match):
+        path = match.group(1)
+        if path.startswith("result."):
+            field_path = path[7:]  # Remove "result." prefix
+            value = get_nested_value(result_data, field_path)
+        elif path.startswith("input."):
+            field_path = path[6:]  # Remove "input." prefix
+            value = input_params.get(field_path) if input_params else None
+        else:
+            value = None
+
+        # Convert to string representation
+        if value is None:
+            return ""
+        if isinstance(value, (dict, list)):
+            return json.dumps(value)
+        return str(value)
+
+    return re.sub(placeholder_pattern, replace_placeholder, template)
+
+
 def build_argument_mappings(
     mappings: Optional[Dict[str, Any]],
     result: Dict[str, Any],
@@ -189,8 +337,6 @@ def build_argument_mappings(
         if isinstance(mapping, dict):
             if "source" in mapping:
                 # Get value from result
-                # The result dict has structure: {"success": bool, "result": {...}, "error": ...}
-                # Paths like "result.title" should navigate into result.result.title
                 source_path = mapping["source"]
                 args[target_param] = get_nested_value(result, source_path)
             elif "value" in mapping:
@@ -229,6 +375,83 @@ SERVICE_DISPLAY_NAMES = {
 }
 
 
+def build_action_suggestions(
+    actions: List[ToolChainAction],
+    result: Dict[str, Any],
+    input_params: Optional[Dict[str, Any]],
+    chain: ToolChain,
+    step: ToolChainStep,
+    branch: str,
+) -> List[Dict[str, Any]]:
+    """Build suggestion list from actions.
+
+    Args:
+        actions: List of actions to convert to suggestions
+        result: The tool execution result
+        input_params: Original input parameters
+        chain: The parent chain
+        step: The parent step
+        branch: "then" or "else"
+
+    Returns:
+        List of action suggestions
+    """
+    suggestions = []
+
+    for action in sorted(actions, key=lambda a: a.order):
+        if not action.enabled:
+            continue
+
+        if action.action_type == ActionType.MESSAGE.value:
+            # Message action - interpolate template
+            message = interpolate_message_template(
+                action.message_template or "",
+                result,
+                input_params,
+            )
+            suggestion = {
+                "action_type": "message",
+                "message": message,
+                "_chain_id": str(chain.id),
+                "_chain_name": chain.name,
+                "_chain_color": chain.color,
+                "_step_order": step.order,
+                "_branch": branch,
+            }
+            if action.ai_comment:
+                suggestion["reason"] = action.ai_comment
+            suggestions.append(suggestion)
+
+        else:  # TOOL_CALL
+            target_service_name = SERVICE_DISPLAY_NAMES.get(
+                action.target_service, action.target_service
+            )
+            suggestion = {
+                "action_type": "tool_call",
+                "tool": action.target_tool,
+                "service": action.target_service,
+                "service_name": target_service_name,
+                "_chain_id": str(chain.id),
+                "_chain_name": chain.name,
+                "_chain_color": chain.color,
+                "_step_order": step.order,
+                "_branch": branch,
+            }
+
+            # Build suggested arguments if mappings exist
+            if action.argument_mappings:
+                suggestion["suggested_arguments"] = build_argument_mappings(
+                    action.argument_mappings, result, input_params
+                )
+
+            if action.ai_comment:
+                suggestion["reason"] = action.ai_comment
+
+            suggestions.append(suggestion)
+
+    return suggestions
+
+
 async def get_matching_steps(
     session: AsyncSession,
     service_type: str,
@@ -236,217 +459,100 @@ async def get_matching_steps(
     result: Dict[str, Any],
     success: bool,
     input_params: Optional[Dict[str, Any]] = None,
+    only_first_step: bool = True,
 ) -> List[Dict[str, Any]]:
-    """Find all steps that match a tool result.
+    """Find all steps that match a tool result and evaluate their conditions.
 
-    The new architecture has steps with their own source tool and condition.
-    When a step's condition matches, we return its targets as next tools to call.
+    For each matching step:
+    - Evaluate conditions
+    - If TRUE: return THEN actions
+    - If FALSE: return ELSE actions
 
-    IMPORTANT: Only steps at order=1 are evaluated by default.
-    Steps at order > 1 are only triggered if called from a target of a previous step
-    in the same chain. This prevents steps from being triggered out of context.
+    Args:
+        session: Database session
+        service_type: Service type of the executed tool
+        tool_name: Name of the executed tool
+        result: The tool execution result
+        success: Whether the tool execution was successful
+        input_params: Original input parameters
+        only_first_step: If True, only evaluate steps at order=0
 
-    Returns a list of next tool suggestions with:
-    - target tool info
-    - AI guidance/comments
-    - suggested arguments
+    Returns:
+        List of action suggestions
     """
-    # Fetch enabled steps for this source tool from enabled chains
-    # ONLY fetch steps at order=1 (first steps of chains)
-    # Steps at order > 1 should only be triggered as part of chain flow
+    # Build query conditions
+    conditions = [
+        ToolChainStep.source_service == service_type,
+        ToolChainStep.source_tool == tool_name,
+        ToolChainStep.enabled == True,
+        ToolChain.enabled == True,
+    ]
+
+    if only_first_step:
+        conditions.append(ToolChainStep.order == 0)
+
     query = (
         select(ToolChainStep)
         .options(
-            selectinload(ToolChainStep.target_tools),
+            selectinload(ToolChainStep.condition_groups)
+            .selectinload(ToolChainConditionGroup.conditions),
+            selectinload(ToolChainStep.condition_groups)
+            .selectinload(ToolChainConditionGroup.child_groups),
+            selectinload(ToolChainStep.then_actions),
+            selectinload(ToolChainStep.else_actions),
             selectinload(ToolChainStep.chain),
         )
         .join(ToolChain)
-        .where(
-            and_(
-                ToolChainStep.source_service == service_type,
-                ToolChainStep.source_tool == tool_name,
-                ToolChainStep.enabled == True,
-                ToolChain.enabled == True,
-                ToolChainStep.order == 0,  # Only first steps of chains (0-indexed)
-            )
-        )
+        .where(and_(*conditions))
         .order_by(ToolChain.priority.desc(), ToolChainStep.order)
     )
 
     db_result = await session.execute(query)
     steps = db_result.scalars().all()
 
-    matching_suggestions = []
+    all_suggestions = []
 
     for step in steps:
-        # Evaluate the step's condition
-        if not evaluate_condition(
-            result,
-            success,
-            step.condition_operator,
-            step.condition_field,
-            step.condition_value,
-        ):
-            continue
-
-        # Step condition matches! Get enabled targets
-        enabled_targets = [t for t in step.target_tools if t.enabled]
-        if not enabled_targets:
-            continue
-
-        # Sort by order
-        enabled_targets.sort(key=lambda t: t.order)
-
-        # Get chain info
         chain = step.chain
 
-        # Build suggestions for each target
-        for target in enabled_targets:
-            target_service_name = SERVICE_DISPLAY_NAMES.get(
-                target.target_service, target.target_service
-            )
+        # Evaluate conditions
+        condition_result = evaluate_step_conditions(step, result, success)
 
-            suggestion = {
-                "tool": target.target_tool,
-                "service": target.target_service,
-                "service_name": target_service_name,
-                # Minimal chain reference (full context is at root level)
-                "_chain_id": str(chain.id),
-                "_chain_name": chain.name,
-                "_chain_color": chain.color,
-                "_step_order": step.order,  # Current step order (0-indexed)
-            }
-
-            # Build suggested arguments if mappings exist
-            if target.argument_mappings:
-                suggestion["suggested_arguments"] = build_argument_mappings(
-                    target.argument_mappings, result, input_params
+        if condition_result:
+            # Conditions TRUE - get THEN actions
+            if step.then_actions:
+                suggestions = build_action_suggestions(
+                    step.then_actions, result, input_params, chain, step, "then"
                 )
-
-            # Add AI guidance - combine step comment and target comment
-            comments = []
-            if step.ai_comment:
-                comments.append(step.ai_comment)
-            if target.target_ai_comment:
-                comments.append(target.target_ai_comment)
-            if comments:
-                suggestion["reason"] = " ".join(comments)
-
-            matching_suggestions.append(suggestion)
-
-    return matching_suggestions
-
-
-async def get_matching_steps_any_order(
-    session: AsyncSession,
-    service_type: str,
-    tool_name: str,
-    result: Dict[str, Any],
-    success: bool,
-    input_params: Optional[Dict[str, Any]] = None,
-) -> List[Dict[str, Any]]:
-    """Find matching steps for a tool that is in the middle of a chain (any order).
-
-    Unlike get_matching_steps, this doesn't filter by order == 0.
-    Used when we know the tool is already part of a chain flow.
-    """
-    # Fetch enabled steps for this source tool from enabled chains (any order)
-    query = (
-        select(ToolChainStep)
-        .options(
-            selectinload(ToolChainStep.target_tools),
-            selectinload(ToolChainStep.chain),
-        )
-        .join(ToolChain)
-        .where(
-            and_(
-                ToolChainStep.source_service == service_type,
-                ToolChainStep.source_tool == tool_name,
-                ToolChainStep.enabled == True,
-                ToolChain.enabled == True,
-            )
-        )
-        .order_by(ToolChain.priority.desc(), ToolChainStep.order)
-    )
-
-    db_result = await session.execute(query)
-    steps = db_result.scalars().all()
-
-    matching_suggestions = []
-
-    for step in steps:
-        # Evaluate the step's condition
-        if not evaluate_condition(
-            result,
-            success,
-            step.condition_operator,
-            step.condition_field,
-            step.condition_value,
-        ):
-            continue
-
-        # Step condition matches! Get enabled targets
-        enabled_targets = [t for t in step.target_tools if t.enabled]
-        if not enabled_targets:
-            continue
-
-        # Sort by order
-        enabled_targets.sort(key=lambda t: t.order)
-
-        # Get chain info
-        chain = step.chain
-
-        # Build suggestions for each target
-        for target in enabled_targets:
-            target_service_name = SERVICE_DISPLAY_NAMES.get(
-                target.target_service, target.target_service
-            )
-
-            suggestion = {
-                "tool": target.target_tool,
-                "service": target.target_service,
-                "service_name": target_service_name,
-                # Minimal chain reference (full context is at root level)
-                "_chain_id": str(chain.id),
-                "_chain_name": chain.name,
-                "_chain_color": chain.color,
-                "_step_order": step.order,  # Current step order (0-indexed)
-            }
-
-            # Build suggested arguments if mappings exist
-            if target.argument_mappings:
-                suggestion["suggested_arguments"] = build_argument_mappings(
-                    target.argument_mappings, result, input_params
+                all_suggestions.extend(suggestions)
+        else:
+            # Conditions FALSE - get ELSE actions
+            if step.else_actions:
+                suggestions = build_action_suggestions(
+                    step.else_actions, result, input_params, chain, step, "else"
                 )
+                all_suggestions.extend(suggestions)
 
-            # Add AI guidance
-            comments = []
-            if step.ai_comment:
-                comments.append(step.ai_comment)
-            if target.target_ai_comment:
-                comments.append(target.target_ai_comment)
-            if comments:
-                suggestion["reason"] = " ".join(comments)
-
-            matching_suggestions.append(suggestion)
-
-    return matching_suggestions
+    return all_suggestions
 
 
-def format_next_tools_for_response(
+def format_next_actions_for_response(
     suggestions: List[Dict[str, Any]],
     source_tool: str,
 ) -> Optional[Dict[str, Any]]:
-    """Format next tool suggestions into a response block.
+    """Format action suggestions into a response block.
 
-    This will be added to tool responses to guide the AI on what to call next.
+    This will be added to tool responses to guide the AI on what to do next.
+    Separates tool_call and message actions.
     """
     if not suggestions:
         return None
 
-    # Extract unique chains and step order from suggestions (using internal fields)
+    # Extract unique chains from suggestions
     chains_seen = {}
     step_order = None
+    branch = None
+
     for s in suggestions:
         chain_id = s.get("_chain_id")
         if chain_id and chain_id not in chains_seen:
@@ -455,30 +561,54 @@ def format_next_tools_for_response(
                 "name": s.get("_chain_name"),
                 "color": s.get("_chain_color"),
             }
-        # Get step_order from first suggestion (they should all be from same step)
         if step_order is None and "_step_order" in s:
             step_order = s["_step_order"]
+        if branch is None and "_branch" in s:
+            branch = s["_branch"]
 
-    # Clean suggestions - remove internal chain fields (prefixed with _)
-    clean_suggestions = []
+    # Separate tool calls and messages
+    next_tools = []
+    messages = []
+
     for s in suggestions:
+        # Clean suggestion - remove internal fields
         clean_s = {k: v for k, v in s.items() if not k.startswith("_")}
-        clean_suggestions.append(clean_s)
 
-    return {
+        if s.get("action_type") == "message":
+            messages.append(clean_s)
+        else:
+            next_tools.append(clean_s)
+
+    response = {
         "chain_context": {
             "position": "start",
             "source_tool": source_tool,
+            "branch": branch,
             "chains": list(chains_seen.values()),
-            "step_number": (step_order + 1) if step_order is not None else 1,  # 1-indexed for display
+            "step_number": (step_order + 1) if step_order is not None else 1,
         },
-        "next_tools_to_call": clean_suggestions,
-        "ai_instruction": (
+    }
+
+    if next_tools:
+        response["next_tools_to_call"] = next_tools
+        response["ai_instruction"] = (
             "Based on the result above and configured tool chains, "
             "you should consider calling these tools next. "
             "Each suggestion includes a reason explaining when/why to use it."
-        ),
-    }
+        )
+
+    if messages:
+        response["chain_messages"] = messages
+        # Add a simple top-level field for the first message
+        if messages[0].get("message"):
+            response["message_to_display"] = messages[0]["message"]
+        if not next_tools:
+            response["ai_instruction"] = (
+                "Based on the result above and configured tool chains, "
+                "please relay the message_to_display to the user."
+            )
+
+    return response
 
 
 async def get_tool_chain_position(
@@ -486,45 +616,44 @@ async def get_tool_chain_position(
     service_type: str,
     tool_name: str,
 ) -> Optional[Dict[str, Any]]:
-    """Check if this tool is a target in any chain step (meaning it's part of a chain flow).
+    """Check if this tool is an action target in any chain step.
 
     Returns chain context info if the tool is a target, None otherwise.
     """
-    # Check if this tool is a target in any enabled chain step
-    target_query = (
-        select(ToolChainStepTarget)
+    # Check if this tool is a target action in any enabled chain step
+    action_query = (
+        select(ToolChainAction)
         .options(
-            selectinload(ToolChainStepTarget.step).selectinload(ToolChainStep.chain),
+            selectinload(ToolChainAction.step).selectinload(ToolChainStep.chain),
         )
         .join(ToolChainStep)
         .join(ToolChain)
         .where(
             and_(
-                ToolChainStepTarget.target_service == service_type,
-                ToolChainStepTarget.target_tool == tool_name,
-                ToolChainStepTarget.enabled == True,
+                ToolChainAction.target_service == service_type,
+                ToolChainAction.target_tool == tool_name,
+                ToolChainAction.enabled == True,
                 ToolChainStep.enabled == True,
                 ToolChain.enabled == True,
             )
         )
     )
 
-    target_result = await session.execute(target_query)
-    targets = target_result.scalars().all()
+    action_result = await session.execute(action_query)
+    actions = action_result.scalars().all()
 
-    if not targets:
+    if not actions:
         return None
 
-    # This tool is a target - check if there are next steps that use it as source
-    # If no next steps exist, this is the end of the chain
+    # This tool is an action target - determine position
     chains_info = []
 
-    for target in targets:
-        step = target.step
+    for action in actions:
+        step = action.step
         chain = step.chain
 
-        # Check if there's a next step in this chain that uses this tool as source
-        next_step_query = (
+        # Find the step that uses this tool as SOURCE (the step we're about to execute)
+        source_step_query = (
             select(ToolChainStep)
             .where(
                 and_(
@@ -535,35 +664,40 @@ async def get_tool_chain_position(
                 )
             )
         )
-        next_step_result = await session.execute(next_step_query)
-        has_next_step = next_step_result.scalar() is not None
+        source_step_result = await session.execute(source_step_query)
+        source_step = source_step_result.scalar()
 
-        # Determine position
-        position = "middle" if has_next_step else "end"
+        if source_step:
+            # Use the source step's position type
+            pos = "end" if source_step.position_type == StepPositionType.END.value else "middle"
+            step_order = source_step.order
+        else:
+            # No source step found - this tool is just a target, use action's step info
+            pos = "end" if step.position_type == StepPositionType.END.value else "middle"
+            step_order = step.order
 
         chains_info.append({
             "id": str(chain.id),
             "name": chain.name,
             "color": chain.color,
-            "position": position,
-            "previous_step_order": step.order,
-            "source_tool": step.source_tool,  # The tool that triggered this one
+            "position": pos,
+            "previous_step_order": step_order,
+            "source_tool": step.source_tool,
+            "branch": action.branch,
         })
 
     if not chains_info:
         return None
 
-    # Use the first chain's position (most relevant)
-    primary_position = chains_info[0]["position"]
-    primary_source = chains_info[0]["source_tool"]
-    # Step number is previous_step_order + 2 (because we're at the target of that step)
-    # previous_step_order is 0-indexed, and we're now at the next step
-    step_number = chains_info[0]["previous_step_order"] + 2
+    # Use the first chain's position
+    primary = chains_info[0]
+    step_number = primary["previous_step_order"] + 2  # Next step number
 
     return {
-        "position": primary_position,
-        "source_tool": primary_source,
-        "step_number": step_number,  # 1-indexed for display
+        "position": primary["position"],
+        "source_tool": primary["source_tool"],
+        "branch": primary["branch"],
+        "step_number": step_number,
         "chains": [{"id": c["id"], "name": c["name"], "color": c["color"]} for c in chains_info],
     }
 
@@ -574,12 +708,12 @@ async def check_recent_chain_flow(
     tool_name: str,
     session_id: Optional[str] = None,
     user_id: Optional[str] = None,
-    time_window_seconds: int = 60,
+    time_window_seconds: int = 300,
 ) -> Optional[Dict[str, Any]]:
     """Check if this tool was called as part of a chain flow by looking at recent history.
 
     Looks at the most recent MCP request FROM THE SAME USER/SESSION to see if it
-    was a tool that has this tool as a target in a chain step.
+    was a tool that has this tool as an action target in a chain step.
 
     Args:
         session: Database session
@@ -587,7 +721,7 @@ async def check_recent_chain_flow(
         tool_name: Name of the current tool
         session_id: Session ID to filter by (for multi-user support)
         user_id: User ID to filter by (fallback if no session_id)
-        time_window_seconds: How far back to look for previous calls (default 60s)
+        time_window_seconds: How far back to look for previous calls
 
     Returns:
         Chain context if this tool follows a chain flow, None otherwise
@@ -596,53 +730,49 @@ async def check_recent_chain_flow(
 
     from src.models.mcp_request import McpRequest, McpRequestStatus
 
-    # Get the most recent completed request (excluding current one)
     time_threshold = datetime.utcnow() - timedelta(seconds=time_window_seconds)
 
-    # Build query conditions
     conditions = [
         McpRequest.status == McpRequestStatus.COMPLETED,
         McpRequest.created_at >= time_threshold,
     ]
 
-    # Filter by session_id or user_id to support multiple concurrent users
     if session_id:
         conditions.append(McpRequest.session_id == session_id)
     elif user_id:
         conditions.append(McpRequest.user_id == user_id)
-    # If neither is provided, we can't reliably determine chain flow for this user
-    # Fall back to global (but this could cause issues with concurrent users)
 
+    # Get recent requests (not just the last one, as it might be the current tool)
     recent_query = (
         select(McpRequest)
         .where(and_(*conditions))
         .order_by(McpRequest.created_at.desc())
-        .limit(1)
+        .limit(10)  # Check last 10 requests
     )
 
     recent_result = await session.execute(recent_query)
-    recent_request = recent_result.scalar()
+    recent_requests = recent_result.scalars().all()
 
-    if not recent_request:
+    if not recent_requests:
         return None
 
-    previous_tool = recent_request.tool_name
+    # Look through recent requests for one that suggests this tool
+    for recent_request in recent_requests:
+        # Skip if this is the same tool (could be the current request already saved)
+        if recent_request.tool_name == tool_name:
+            continue
 
-    # Check if the previous tool has a chain step that targets the current tool
-    # AND if the previous result had next_tools_to_call suggesting this tool
-    previous_result = recent_request.output_result or {}
-    next_tools = previous_result.get("next_tools_to_call", [])
+        previous_result = recent_request.output_result or {}
+        next_tools = previous_result.get("next_tools_to_call", [])
 
-    # Check if current tool was suggested by the previous tool
-    for next_tool in next_tools:
-        if next_tool.get("tool") == tool_name:
-            # This tool was suggested by the previous call - it's part of a chain!
-            chain_context = previous_result.get("chain_context", {})
-            return {
-                "is_chain_flow": True,
-                "previous_tool": previous_tool,
-                "chain_context": chain_context,
-            }
+        for next_tool in next_tools:
+            if next_tool.get("tool") == tool_name:
+                chain_context = previous_result.get("chain_context", {})
+                return {
+                    "is_chain_flow": True,
+                    "previous_tool": recent_request.tool_name,
+                    "chain_context": chain_context,
+                }
 
     return None
 
@@ -655,7 +785,7 @@ async def enrich_tool_result_with_chains(
     session_id: Optional[str] = None,
     user_id: Optional[str] = None,
 ) -> Dict[str, Any]:
-    """Add next tool suggestions to a tool result if matching chains exist.
+    """Add next action suggestions to a tool result if matching chains exist.
 
     This function should be called after tool execution to add
     chain suggestions to the response.
@@ -666,14 +796,7 @@ async def enrich_tool_result_with_chains(
     - If not, only first steps (order=0) are evaluated
 
     Multi-user support:
-    - Uses session_id or user_id to filter history and only look at requests
-      from the same user/session, preventing cross-user chain interference
-
-    This design ensures that:
-    - Chain suggestions only appear when the FIRST tool of a chain is called
-    - OR when the previous tool in history suggested this tool (automatic chain flow)
-    - Calling a "middle" tool directly does NOT trigger chain logic
-    - Multiple users can use chains simultaneously without interference
+    - Uses session_id or user_id to filter history
 
     Args:
         session: Database session
@@ -700,68 +823,76 @@ async def enrich_tool_result_with_chains(
     if not service_type:
         return result
 
-    # Check if the tool was successful
     success = result.get("success", False)
 
     try:
-        # First, check if this tool is part of a chain flow by looking at recent history
-        # Filter by session_id/user_id to support multiple concurrent users
+        # Check if this tool is part of a chain flow
         chain_flow = await check_recent_chain_flow(
             session, service_type, tool_name, session_id=session_id, user_id=user_id
         )
 
         if chain_flow and chain_flow.get("is_chain_flow"):
-            # This tool was called as part of a chain flow (previous tool suggested it)
+            # This tool was called as part of a chain flow
             logger.info(
                 f"Tool '{tool_name}' is part of chain flow (preceded by '{chain_flow['previous_tool']}')"
             )
 
-            # Check if there are next steps configured for this tool
             existing_position = await get_tool_chain_position(session, service_type, tool_name)
 
             if existing_position:
                 result["chain_context"] = existing_position
 
-                # If this is a "middle" position, evaluate next step conditions
                 if existing_position["position"] == "middle":
-                    middle_suggestions = await get_matching_steps_any_order(
-                        session, service_type, tool_name, result, success, input_params
+                    # Evaluate next step conditions
+                    middle_suggestions = await get_matching_steps(
+                        session, service_type, tool_name, result, success, input_params,
+                        only_first_step=False
                     )
                     if middle_suggestions:
-                        next_block = format_next_tools_for_response(middle_suggestions, tool_name)
+                        next_block = format_next_actions_for_response(middle_suggestions, tool_name)
                         if next_block:
-                            # Override chain_context with proper position
                             next_block["chain_context"]["position"] = "middle"
                             result.update(next_block)
                             logger.info(
-                                f"Added {len(middle_suggestions)} next tool suggestions to '{tool_name}' (middle step)"
+                                f"Added {len(middle_suggestions)} action suggestions to '{tool_name}' (middle step)"
                             )
                 else:
-                    # End of chain - no next tools
-                    logger.info(
-                        f"Tool '{tool_name}' is end of chain(s): "
-                        f"{[c['name'] for c in existing_position['chains']]}"
+                    # End of chain - still need to evaluate conditions and return messages
+                    end_suggestions = await get_matching_steps(
+                        session, service_type, tool_name, result, success, input_params,
+                        only_first_step=False
                     )
+                    if end_suggestions:
+                        next_block = format_next_actions_for_response(end_suggestions, tool_name)
+                        if next_block:
+                            next_block["chain_context"]["position"] = "end"
+                            result.update(next_block)
+                            logger.info(
+                                f"Added {len(end_suggestions)} action suggestions to '{tool_name}' (end step)"
+                            )
+                    else:
+                        # No suggestions but still mark as end of chain
+                        result["chain_context"] = existing_position
+                        logger.info(
+                            f"Tool '{tool_name}' is end of chain(s): "
+                            f"{[c['name'] for c in existing_position['chains']]}"
+                        )
         else:
-            # Not part of a chain flow - only evaluate first steps (order=0)
+            # Not part of a chain flow - only evaluate first steps
             suggestions = await get_matching_steps(
-                session, service_type, tool_name, result, success, input_params
+                session, service_type, tool_name, result, success, input_params,
+                only_first_step=True
             )
 
             if suggestions:
-                # This tool is the START of a chain - add next tools to result
-                next_tools_block = format_next_tools_for_response(suggestions, tool_name)
-                if next_tools_block:
-                    result.update(next_tools_block)
+                next_block = format_next_actions_for_response(suggestions, tool_name)
+                if next_block:
+                    result.update(next_block)
                     logger.info(
-                        f"Added {len(suggestions)} next tool suggestions to '{tool_name}' result"
+                        f"Added {len(suggestions)} action suggestions to '{tool_name}' result"
                     )
-            # If no suggestions, this tool is either:
-            # - Not part of any chain as a first step
-            # - A middle/end tool called directly (we ignore chains in this case)
 
     except Exception as e:
-        # Don't fail the tool call if chain evaluation fails
         logger.error(f"Error evaluating tool chains for '{tool_name}': {e}")
 
     return result

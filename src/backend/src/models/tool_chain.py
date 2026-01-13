@@ -1,4 +1,4 @@
-"""Tool Chain models for defining conditional tool execution sequences."""
+"""Tool Chain models for defining conditional IF/THEN/ELSE tool execution sequences."""
 
 from enum import Enum
 from typing import List, Optional
@@ -27,19 +27,39 @@ class ConditionOperator(str, Enum):
     REGEX_MATCH = "regex"   # result matches regex pattern
 
 
-class ExecutionMode(str, Enum):
-    """How to execute multiple target tools in a step."""
+class ConditionGroupOperator(str, Enum):
+    """Logical operators for combining conditions in a group."""
 
-    SEQUENTIAL = "sequential"  # Execute tools one after another
-    PARALLEL = "parallel"      # Execute all tools at once
+    AND = "and"  # All conditions must be true
+    OR = "or"    # At least one condition must be true
+
+
+class ActionType(str, Enum):
+    """Type of action for THEN/ELSE branches."""
+
+    TOOL_CALL = "tool_call"  # Execute a tool
+    MESSAGE = "message"       # Display a message to AI (no tool call)
+
+
+class ExecutionMode(str, Enum):
+    """How to execute multiple actions in a branch."""
+
+    SEQUENTIAL = "sequential"  # Execute actions one after another
+    PARALLEL = "parallel"      # Execute all actions at once
+
+
+class StepPositionType(str, Enum):
+    """Position type of a step in the chain flow."""
+
+    MIDDLE = "middle"  # Continue to next steps after this one
+    END = "end"        # Terminal step (no continuation expected)
 
 
 class ToolChain(Base, UUIDMixin, TimestampMixin):
-    """A chain definition - a container for conditional tool execution steps.
+    """A chain definition - a container for conditional IF/THEN/ELSE steps.
 
     Tool chains allow users to define automatic workflows where the
-    result of one tool triggers the execution of other tools.
-    Each step in the chain has its own trigger condition.
+    result of one tool triggers different actions based on conditions.
     """
 
     __tablename__ = "tool_chains"
@@ -49,7 +69,7 @@ class ToolChain(Base, UUIDMixin, TimestampMixin):
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
     # Visual customization
-    color: Mapped[str] = mapped_column(String(20), default="#8b5cf6", nullable=False)  # Purple default
+    color: Mapped[str] = mapped_column(String(20), default="#8b5cf6", nullable=False)
 
     # Priority for ordering when multiple chains could apply
     priority: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
@@ -68,13 +88,13 @@ class ToolChain(Base, UUIDMixin, TimestampMixin):
 
 
 class ToolChainStep(Base, UUIDMixin, TimestampMixin):
-    """A step in a tool chain - defines a trigger condition and target tools.
+    """A step in a tool chain with IF/THEN/ELSE logic.
 
     Each step specifies:
-    - Source tool that triggers this step (when its result matches the condition)
-    - Condition to evaluate on the source tool's result
-    - One or more target tools to execute when condition matches
-    - AI guidance for when to follow this step
+    - Source tool that triggers this step
+    - Conditions to evaluate (simple or compound with AND/OR)
+    - THEN actions to execute when condition is TRUE
+    - ELSE actions to execute when condition is FALSE
     """
 
     __tablename__ = "tool_chain_steps"
@@ -85,50 +105,55 @@ class ToolChainStep(Base, UUIDMixin, TimestampMixin):
         nullable=False, index=True
     )
 
-    # Step order within the chain (for display)
+    # Step order within the chain (0 = start)
     order: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
 
-    # Source tool (the trigger) - when this tool is called and condition matches
+    # Step position type (middle or end)
+    position_type: Mapped[str] = mapped_column(
+        String(20), default=StepPositionType.MIDDLE.value, nullable=False
+    )
+
+    # Source tool (the trigger)
     source_service: Mapped[str] = mapped_column(String(50), nullable=False, index=True)
     source_tool: Mapped[str] = mapped_column(String(100), nullable=False, index=True)
 
-    # Condition for triggering this step
-    condition_operator: Mapped[str] = mapped_column(
-        String(20), default=ConditionOperator.SUCCESS.value, nullable=False
-    )
-    condition_field: Mapped[Optional[str]] = mapped_column(
-        String(100), nullable=True
-    )  # Field path in result to check (e.g., "count", "data.status")
-    condition_value: Mapped[Optional[str]] = mapped_column(
-        Text, nullable=True
-    )  # Value to compare against
-
     # AI guidance - explains when/why to use this step
-    ai_comment: Mapped[Optional[str]] = mapped_column(
-        Text, nullable=True
-    )  # e.g., "If a movie is found, offer to request it via Overseerr"
+    ai_comment: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
     # Step status
     enabled: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
     # Relationships
     chain: Mapped["ToolChain"] = relationship("ToolChain", back_populates="steps")
-    target_tools: Mapped[List["ToolChainStepTarget"]] = relationship(
-        "ToolChainStepTarget", back_populates="step", cascade="all, delete-orphan",
-        order_by="ToolChainStepTarget.order"
+    condition_groups: Mapped[List["ToolChainConditionGroup"]] = relationship(
+        "ToolChainConditionGroup", back_populates="step", cascade="all, delete-orphan",
+        order_by="ToolChainConditionGroup.order",
+        foreign_keys="ToolChainConditionGroup.step_id"
+    )
+    then_actions: Mapped[List["ToolChainAction"]] = relationship(
+        "ToolChainAction", back_populates="step", cascade="all, delete-orphan",
+        order_by="ToolChainAction.order",
+        primaryjoin="and_(ToolChainStep.id==ToolChainAction.step_id, ToolChainAction.branch=='then')"
+    )
+    else_actions: Mapped[List["ToolChainAction"]] = relationship(
+        "ToolChainAction", back_populates="step", cascade="all, delete-orphan",
+        order_by="ToolChainAction.order",
+        primaryjoin="and_(ToolChainStep.id==ToolChainAction.step_id, ToolChainAction.branch=='else')",
+        viewonly=True
     )
 
     def __repr__(self) -> str:
         return f"<ToolChainStep(chain_id={self.chain_id}, source={self.source_service}.{self.source_tool})>"
 
 
-class ToolChainStepTarget(Base, UUIDMixin, TimestampMixin):
-    """A target tool to execute when a step's condition is met.
+class ToolChainConditionGroup(Base, UUIDMixin, TimestampMixin):
+    """A group of conditions combined with AND/OR logic.
 
-    Multiple targets can be defined per step, executed sequentially or in parallel.
+    Supports nested groups for complex expressions like:
+    (A AND B) OR (C AND D)
     """
 
-    __tablename__ = "tool_chain_step_targets"
+    __tablename__ = "tool_chain_condition_groups"
 
     # Parent step
     step_id: Mapped[str] = mapped_column(
@@ -136,38 +161,121 @@ class ToolChainStepTarget(Base, UUIDMixin, TimestampMixin):
         nullable=False, index=True
     )
 
-    # Target tool to execute
-    target_service: Mapped[str] = mapped_column(String(50), nullable=False)
-    target_tool: Mapped[str] = mapped_column(String(100), nullable=False)
+    # Parent group (for nested conditions, NULL if root)
+    parent_group_id: Mapped[Optional[str]] = mapped_column(
+        String(36), ForeignKey("tool_chain_condition_groups.id", ondelete="CASCADE"),
+        nullable=True, index=True
+    )
 
-    # Execution order (for sequential mode)
+    # How conditions in this group are combined
+    operator: Mapped[str] = mapped_column(
+        String(10), default=ConditionGroupOperator.AND.value, nullable=False
+    )
+
+    # Order within parent group (for display)
     order: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
 
-    # Execution mode
+    # Relationships
+    step: Mapped["ToolChainStep"] = relationship(
+        "ToolChainStep", back_populates="condition_groups",
+        foreign_keys=[step_id]
+    )
+    parent_group: Mapped[Optional["ToolChainConditionGroup"]] = relationship(
+        "ToolChainConditionGroup", remote_side="ToolChainConditionGroup.id",
+        back_populates="child_groups", foreign_keys=[parent_group_id]
+    )
+    child_groups: Mapped[List["ToolChainConditionGroup"]] = relationship(
+        "ToolChainConditionGroup", back_populates="parent_group",
+        cascade="all, delete-orphan", foreign_keys="ToolChainConditionGroup.parent_group_id"
+    )
+    conditions: Mapped[List["ToolChainCondition"]] = relationship(
+        "ToolChainCondition", back_populates="group", cascade="all, delete-orphan",
+        order_by="ToolChainCondition.order"
+    )
+
+    def __repr__(self) -> str:
+        return f"<ToolChainConditionGroup(step_id={self.step_id}, operator={self.operator})>"
+
+
+class ToolChainCondition(Base, UUIDMixin, TimestampMixin):
+    """Individual condition within a condition group."""
+
+    __tablename__ = "tool_chain_conditions"
+
+    # Parent group
+    group_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("tool_chain_condition_groups.id", ondelete="CASCADE"),
+        nullable=False, index=True
+    )
+
+    # Condition definition
+    operator: Mapped[str] = mapped_column(String(20), nullable=False)
+    field: Mapped[Optional[str]] = mapped_column(
+        String(100), nullable=True
+    )  # Field path in result (e.g., "result.count", "result.data.status")
+    value: Mapped[Optional[str]] = mapped_column(
+        Text, nullable=True
+    )  # Value to compare against
+
+    # Order within group
+    order: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+
+    # Relationships
+    group: Mapped["ToolChainConditionGroup"] = relationship(
+        "ToolChainConditionGroup", back_populates="conditions"
+    )
+
+    def __repr__(self) -> str:
+        return f"<ToolChainCondition(group_id={self.group_id}, {self.field} {self.operator} {self.value})>"
+
+
+class ToolChainAction(Base, UUIDMixin, TimestampMixin):
+    """An action to execute in THEN or ELSE branch.
+
+    Can be either a tool call or a message to display.
+    """
+
+    __tablename__ = "tool_chain_actions"
+
+    # Parent step
+    step_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("tool_chain_steps.id", ondelete="CASCADE"),
+        nullable=False, index=True
+    )
+
+    # Branch (then or else)
+    branch: Mapped[str] = mapped_column(String(10), nullable=False, index=True)  # "then" or "else"
+
+    # Action type
+    action_type: Mapped[str] = mapped_column(
+        String(20), default=ActionType.TOOL_CALL.value, nullable=False
+    )
+
+    # For TOOL_CALL action
+    target_service: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+    target_tool: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    argument_mappings: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
+
+    # For MESSAGE action - template with placeholders like {result.title}, {input.query}
+    message_template: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+
+    # Execution order and mode
+    order: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     execution_mode: Mapped[str] = mapped_column(
         String(20), default=ExecutionMode.SEQUENTIAL.value, nullable=False
     )
 
-    # Input argument mappings - JSON object mapping target param names to source values
-    # Format: {"target_param": {"source": "result.field.path"}} or {"target_param": {"value": "static_value"}}
-    # Special sources:
-    #   - "result" - entire result from source tool
-    #   - "result.field" - specific field from result
-    #   - "input.param" - original input parameter from source tool
-    argument_mappings: Mapped[Optional[dict]] = mapped_column(
-        JSON, nullable=True
-    )
+    # AI comment specific to this action
+    ai_comment: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
-    # AI comment specific to this target
-    target_ai_comment: Mapped[Optional[str]] = mapped_column(
-        Text, nullable=True
-    )  # e.g., "Request this movie on Overseerr"
-
-    # Target status
+    # Action status
     enabled: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
     # Relationships
-    step: Mapped["ToolChainStep"] = relationship("ToolChainStep", back_populates="target_tools")
+    step: Mapped["ToolChainStep"] = relationship("ToolChainStep", back_populates="then_actions",
+                                                  foreign_keys=[step_id])
 
     def __repr__(self) -> str:
-        return f"<ToolChainStepTarget(step_id={self.step_id}, target={self.target_service}.{self.target_tool})>"
+        if self.action_type == ActionType.MESSAGE.value:
+            return f"<ToolChainAction(step_id={self.step_id}, branch={self.branch}, type=message)>"
+        return f"<ToolChainAction(step_id={self.step_id}, branch={self.branch}, target={self.target_service}.{self.target_tool})>"

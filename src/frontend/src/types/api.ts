@@ -379,7 +379,9 @@ export interface AvailableServicesResponse {
   total: number;
 }
 
-// Tool Chains
+// === Tool Chains with IF/THEN/ELSE ===
+
+// Condition Operators
 export const ConditionOperator = {
   EQUALS: 'eq',
   NOT_EQUALS: 'ne',
@@ -397,13 +399,81 @@ export const ConditionOperator = {
 } as const;
 export type ConditionOperator = typeof ConditionOperator[keyof typeof ConditionOperator];
 
+// Condition Group Operators (AND/OR)
+export const ConditionGroupOperator = {
+  AND: 'and',
+  OR: 'or',
+} as const;
+export type ConditionGroupOperator = typeof ConditionGroupOperator[keyof typeof ConditionGroupOperator];
+
+// Action Types
+export const ActionType = {
+  TOOL_CALL: 'tool_call',
+  MESSAGE: 'message',
+} as const;
+export type ActionType = typeof ActionType[keyof typeof ActionType];
+
+// Execution Mode
 export const ExecutionMode = {
   SEQUENTIAL: 'sequential',
   PARALLEL: 'parallel',
 } as const;
 export type ExecutionMode = typeof ExecutionMode[keyof typeof ExecutionMode];
 
-// Tool Chain - container for steps (no condition at this level)
+// Step Position Types
+export const StepPositionType = {
+  MIDDLE: 'middle',
+  END: 'end',
+} as const;
+export type StepPositionType = typeof StepPositionType[keyof typeof StepPositionType];
+
+// Individual Condition
+export interface Condition {
+  id: string;
+  group_id: string;
+  operator: string;
+  field?: string;
+  value?: string;
+  order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+// Condition Group with AND/OR logic
+export interface ConditionGroup {
+  id: string;
+  step_id: string;
+  parent_group_id?: string;
+  operator: ConditionGroupOperator;
+  order: number;
+  created_at: string;
+  updated_at: string;
+  conditions: Condition[];
+  child_groups: ConditionGroup[];
+}
+
+// Action in THEN or ELSE branch
+export interface Action {
+  id: string;
+  step_id: string;
+  branch: 'then' | 'else';
+  action_type: ActionType;
+  target_service?: string;
+  target_tool?: string;
+  argument_mappings?: Record<string, any>;
+  message_template?: string;
+  order: number;
+  execution_mode: ExecutionMode;
+  ai_comment?: string;
+  enabled: boolean;
+  created_at: string;
+  updated_at: string;
+  // Enriched info
+  target_service_name?: string;
+  target_tool_display_name?: string;
+}
+
+// Tool Chain - container for steps
 export interface ToolChain {
   id: string;
   name: string;
@@ -416,53 +486,37 @@ export interface ToolChain {
   step_count: number;
 }
 
-// Step Target - tool to execute when step condition matches
-export interface StepTarget {
-  id: string;
-  step_id: string;
-  target_service: string;
-  target_tool: string;
-  order: number;
-  execution_mode: string;
-  argument_mappings?: Record<string, any>;
-  target_ai_comment?: string;
-  enabled: boolean;
-  created_at: string;
-  updated_at: string;
-  target_service_name?: string;
-  target_tool_display_name?: string;
-}
-
-// Tool Chain Step - defines trigger (source tool) and condition
+// Tool Chain Step - defines trigger and IF/THEN/ELSE
 export interface ToolChainStep {
   id: string;
   chain_id: string;
   order: number;
+  position_type: StepPositionType;
   // Source tool (trigger)
   source_service: string;
   source_tool: string;
-  // Condition
-  condition_operator: string;
-  condition_field?: string;
-  condition_value?: string;
   // AI guidance
   ai_comment?: string;
   enabled: boolean;
   created_at: string;
   updated_at: string;
-  // Computed
-  target_count: number;
+  // Computed counts
+  condition_count: number;
+  then_action_count: number;
+  else_action_count: number;
   // Enriched info
   source_service_name?: string;
   source_tool_display_name?: string;
 }
 
-// Step with targets
+// Step with conditions and actions
 export interface ToolChainStepDetail extends ToolChainStep {
-  targets: StepTarget[];
+  condition_groups: ConditionGroup[];
+  then_actions: Action[];
+  else_actions: Action[];
 }
 
-// Chain with steps and targets
+// Chain with steps
 export interface ToolChainDetail extends ToolChain {
   steps: ToolChainStepDetail[];
 }
@@ -474,6 +528,7 @@ export interface ToolChainListResponse {
   limit: number;
 }
 
+// Reference data for operators
 export interface ConditionOperatorInfo {
   value: string;
   label: string;
@@ -486,6 +541,37 @@ export interface ConditionOperatorsResponse {
   operators: ConditionOperatorInfo[];
 }
 
+export interface ConditionGroupOperatorInfo {
+  value: string;
+  label: string;
+  description: string;
+}
+
+export interface ConditionGroupOperatorsResponse {
+  operators: ConditionGroupOperatorInfo[];
+}
+
+export interface ActionTypeInfo {
+  value: string;
+  label: string;
+  description: string;
+}
+
+export interface ActionTypesResponse {
+  action_types: ActionTypeInfo[];
+}
+
+export interface StepPositionInfo {
+  value: string;
+  label: string;
+  description: string;
+}
+
+export interface StepPositionTypesResponse {
+  positions: StepPositionInfo[];
+}
+
+// Available tools for chain configuration
 export interface AvailableTool {
   service_type: string;
   service_name: string;
@@ -498,4 +584,113 @@ export interface AvailableTool {
 export interface AvailableToolsForChainResponse {
   tools: AvailableTool[];
   total: number;
+}
+
+// Flowchart visualization
+export interface FlowchartNode {
+  id: string;
+  type: 'step' | 'condition' | 'action' | 'message';
+  label: string;
+  data: Record<string, any>;
+  position: { x: number; y: number };
+}
+
+export interface FlowchartEdge {
+  id: string;
+  source: string;
+  target: string;
+  label?: string;
+  type: 'then' | 'else' | 'default';
+}
+
+export interface FlowchartResponse {
+  chain_id: string;
+  chain_name: string;
+  nodes: FlowchartNode[];
+  edges: FlowchartEdge[];
+}
+
+// Create/Update DTOs
+export interface ConditionCreate {
+  operator: ConditionOperator;
+  field?: string;
+  value?: string;
+  order?: number;
+}
+
+export interface ConditionGroupCreate {
+  operator?: ConditionGroupOperator;
+  order?: number;
+  conditions?: ConditionCreate[];
+  child_groups?: ConditionGroupCreate[];
+}
+
+export interface ActionCreate {
+  branch: 'then' | 'else';
+  action_type?: ActionType;
+  target_service?: string;
+  target_tool?: string;
+  argument_mappings?: Record<string, any>;
+  message_template?: string;
+  order?: number;
+  execution_mode?: ExecutionMode;
+  ai_comment?: string;
+  enabled?: boolean;
+}
+
+export interface ToolChainStepCreate {
+  order?: number;
+  position_type?: StepPositionType;
+  source_service: string;
+  source_tool: string;
+  ai_comment?: string;
+  enabled?: boolean;
+  condition_groups?: ConditionGroupCreate[];
+  then_actions?: ActionCreate[];
+  else_actions?: ActionCreate[];
+}
+
+export interface ToolChainCreate {
+  name: string;
+  description?: string;
+  color?: string;
+  priority?: number;
+  enabled?: boolean;
+  steps?: ToolChainStepCreate[];
+}
+
+export interface ToolChainUpdate {
+  name?: string;
+  description?: string;
+  color?: string;
+  priority?: number;
+  enabled?: boolean;
+}
+
+export interface ToolChainStepUpdate {
+  order?: number;
+  position_type?: StepPositionType;
+  source_service?: string;
+  source_tool?: string;
+  ai_comment?: string;
+  enabled?: boolean;
+}
+
+export interface ActionUpdate {
+  action_type?: ActionType;
+  target_service?: string;
+  target_tool?: string;
+  argument_mappings?: Record<string, any>;
+  message_template?: string;
+  order?: number;
+  execution_mode?: ExecutionMode;
+  ai_comment?: string;
+  enabled?: boolean;
+}
+
+export interface ConditionUpdate {
+  operator?: ConditionOperator;
+  field?: string;
+  value?: string;
+  order?: number;
 }

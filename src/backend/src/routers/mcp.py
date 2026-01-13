@@ -589,6 +589,8 @@ class ToolTestResponse(BaseModel):
     duration_ms: int
     chain_context: Optional[dict[str, Any]] = None
     next_tools_to_call: Optional[list[dict[str, Any]]] = None
+    chain_messages: Optional[list[dict[str, Any]]] = None
+    message_to_display: Optional[str] = None
     ai_instruction: Optional[str] = None
 
     model_config = {"exclude_none": True}
@@ -725,6 +727,8 @@ async def test_tool(
             duration_ms=duration_ms,
             chain_context=enriched.get("chain_context"),
             next_tools_to_call=enriched.get("next_tools_to_call"),
+            chain_messages=enriched.get("chain_messages"),
+            message_to_display=enriched.get("message_to_display"),
             ai_instruction=enriched.get("ai_instruction"),
         )
     except Exception as e:
