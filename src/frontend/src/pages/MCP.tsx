@@ -2862,30 +2862,46 @@ export default function MCP() {
 
           {/* Tools Tab */}
           {activeTab === 'tools' && (
-            <div className="space-y-4">
-              {/* Controls */}
-              <div className="flex items-center justify-between bg-white dark:bg-gray-800 rounded-lg p-4 shadow">
-                <div className="text-sm text-gray-600 dark:text-gray-400">
-                  {t('tools.toolsAvailable', { count: tools?.total || 0, services: Object.keys(toolsByService).length })}
-                </div>
-                <div className="flex items-center gap-2">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+              <div className="p-3 sm:p-4">
+                {/* Actions bar - single row layout matching History tab */}
+                <div className="flex flex-row gap-2 sm:gap-3 items-center mb-4">
+                  {/* Refresh button */}
+                  <button
+                    onClick={fetchData}
+                    className="p-2 sm:px-3 sm:py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 flex items-center gap-2 transition-colors flex-shrink-0"
+                  >
+                    <RefreshCw className="w-4 h-4" />
+                    <span className="hidden sm:inline">{t('refresh')}</span>
+                  </button>
+
+                  {/* Expand All button */}
                   <button
                     onClick={() => toggleAllServices(true)}
-                    className="px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
+                    className="hidden sm:flex px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 items-center gap-2 transition-colors flex-shrink-0"
                   >
                     {t('tools.expandAll')}
                   </button>
+
+                  {/* Collapse All button */}
                   <button
                     onClick={() => toggleAllServices(false)}
-                    className="px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
+                    className="hidden sm:flex px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 items-center gap-2 transition-colors flex-shrink-0"
                   >
                     {t('tools.collapseAll')}
                   </button>
-                  <HelpTooltip topicId="tools" iconSize="sm" />
+
+                  {/* Tools count info */}
+                  <div className="flex-1 text-sm text-gray-600 dark:text-gray-400 hidden md:block">
+                    {t('tools.toolsAvailable', { count: tools?.total || 0, services: Object.keys(toolsByService).length })}
+                  </div>
+
+                  {/* Help button */}
+                  <HelpTooltip topicId="tools" />
                 </div>
-              </div>
 
               {/* Services List */}
+              <div className="space-y-3">
               {Object.keys(toolsByService).length > 0 ? (
                 Object.entries(toolsByService).map(([serviceName, serviceTools]) => {
                   const colors = getServiceColor(serviceName);
@@ -2895,7 +2911,7 @@ export default function MCP() {
                   return (
                     <div
                       key={serviceName}
-                      className={`rounded-lg shadow overflow-hidden border ${colors.border}`}
+                      className={`rounded-lg overflow-hidden border ${colors.border}`}
                     >
                       {/* Service Header - Clickable */}
                       <button
@@ -3007,6 +3023,8 @@ export default function MCP() {
               ) : (
                 <div className="text-center py-12 text-gray-500">{t('tools.noTools')}</div>
               )}
+              </div>
+              </div>
             </div>
           )}
 
