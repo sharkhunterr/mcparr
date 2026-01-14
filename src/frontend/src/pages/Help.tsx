@@ -8,7 +8,6 @@ import {
   History,
   Link2,
   BookOpen,
-  ExternalLink,
   Server,
   Layers,
   RefreshCw,
@@ -270,29 +269,6 @@ const Help = () => {
               )}
             </div>
           )}
-        </div>
-
-        {/* Quick links footer */}
-        <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-          <div className="flex flex-wrap items-center gap-3 text-xs">
-            <span className="text-gray-500 dark:text-gray-400">{t('help.quickLinks')}:</span>
-            <a
-              href="/mcp"
-              className="flex items-center gap-1 text-purple-600 dark:text-purple-400 hover:underline"
-            >
-              <Bot className="w-3 h-3" />
-              MCP Gateway
-              <ExternalLink className="w-2.5 h-2.5" />
-            </a>
-            <a
-              href="/services"
-              className="flex items-center gap-1 text-purple-600 dark:text-purple-400 hover:underline"
-            >
-              <Server className="w-3 h-3" />
-              Services
-              <ExternalLink className="w-2.5 h-2.5" />
-            </a>
-          </div>
         </div>
       </div>
     );
