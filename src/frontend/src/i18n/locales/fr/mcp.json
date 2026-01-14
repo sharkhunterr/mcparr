@@ -79,7 +79,18 @@
     "timeRange6h": "6h",
     "timeRange24h": "24h",
     "timeRange3d": "3j",
-    "timeRange7d": "7j"
+    "timeRange7d": "7j",
+    "help": {
+      "title": "Statistiques MCP",
+      "overview": "Vue d'ensemble",
+      "overviewContent": "L'onglet Statistiques affiche un tableau de bord complet de l'activité MCP. Visualisez les requêtes, taux de succès, durées moyennes et tendances sur la période sélectionnée.",
+      "cards": "Cartes de statistiques",
+      "cardsContent": "Les cartes en haut affichent les métriques clés : total des requêtes, taux de succès, durée moyenne et nombre d'erreurs. Les flèches indiquent la tendance par rapport à la période précédente.",
+      "charts": "Graphiques",
+      "chartsContent": "Les graphiques montrent l'évolution des requêtes dans le temps, la distribution par statut, par service et par utilisateur. Survolez les éléments pour voir les détails.",
+      "timeRange": "Période",
+      "timeRangeContent": "Sélectionnez la période d'analyse : 1h, 6h, 24h, 3 jours ou 7 jours. Les statistiques et graphiques s'actualisent automatiquement."
+    }
   },
 
   "history": {

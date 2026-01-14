@@ -79,7 +79,18 @@
     "timeRange6h": "6h",
     "timeRange24h": "24h",
     "timeRange3d": "3d",
-    "timeRange7d": "7d"
+    "timeRange7d": "7d",
+    "help": {
+      "title": "MCP Statistics",
+      "overview": "Overview",
+      "overviewContent": "The Statistics tab displays a comprehensive dashboard of MCP activity. View requests, success rates, average durations, and trends over the selected time period.",
+      "cards": "Statistics Cards",
+      "cardsContent": "The cards at the top show key metrics: total requests, success rate, average duration, and error count. Arrows indicate the trend compared to the previous period.",
+      "charts": "Charts",
+      "chartsContent": "Charts show request evolution over time, distribution by status, by service, and by user. Hover over elements to see details.",
+      "timeRange": "Time Range",
+      "timeRangeContent": "Select the analysis period: 1h, 6h, 24h, 3 days, or 7 days. Statistics and charts update automatically."
+    }
   },
 
   "history": {

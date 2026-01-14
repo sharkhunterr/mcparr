@@ -79,7 +79,18 @@
     "timeRange6h": "6h",
     "timeRange24h": "24h",
     "timeRange3d": "3g",
-    "timeRange7d": "7g"
+    "timeRange7d": "7g",
+    "help": {
+      "title": "Statistiche MCP",
+      "overview": "Panoramica",
+      "overviewContent": "La scheda Statistiche mostra una dashboard completa dell'attività MCP. Visualizza richieste, tassi di successo, durate medie e tendenze nel periodo selezionato.",
+      "cards": "Schede statistiche",
+      "cardsContent": "Le schede in alto mostrano le metriche chiave: richieste totali, tasso di successo, durata media e numero di errori. Le frecce indicano la tendenza rispetto al periodo precedente.",
+      "charts": "Grafici",
+      "chartsContent": "I grafici mostrano l'evoluzione delle richieste nel tempo, la distribuzione per stato, per servizio e per utente. Passa sopra gli elementi per vedere i dettagli.",
+      "timeRange": "Periodo",
+      "timeRangeContent": "Seleziona il periodo di analisi: 1h, 6h, 24h, 3 giorni o 7 giorni. Le statistiche e i grafici si aggiornano automaticamente."
+    }
   },
 
   "history": {

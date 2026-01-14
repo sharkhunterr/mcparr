@@ -79,7 +79,18 @@
     "timeRange6h": "6h",
     "timeRange24h": "24h",
     "timeRange3d": "3T",
-    "timeRange7d": "7T"
+    "timeRange7d": "7T",
+    "help": {
+      "title": "MCP-Statistiken",
+      "overview": "Übersicht",
+      "overviewContent": "Die Registerkarte Statistiken zeigt ein umfassendes Dashboard der MCP-Aktivität. Sehen Sie Anfragen, Erfolgsraten, durchschnittliche Dauern und Trends über den ausgewählten Zeitraum.",
+      "cards": "Statistikkarten",
+      "cardsContent": "Die Karten oben zeigen wichtige Metriken: Gesamtanfragen, Erfolgsrate, durchschnittliche Dauer und Fehleranzahl. Pfeile zeigen den Trend im Vergleich zum vorherigen Zeitraum.",
+      "charts": "Diagramme",
+      "chartsContent": "Diagramme zeigen die Entwicklung der Anfragen im Zeitverlauf, Verteilung nach Status, nach Dienst und nach Benutzer. Fahren Sie über Elemente, um Details zu sehen.",
+      "timeRange": "Zeitraum",
+      "timeRangeContent": "Wählen Sie den Analysezeitraum: 1h, 6h, 24h, 3 Tage oder 7 Tage. Statistiken und Diagramme werden automatisch aktualisiert."
+    }
   },
 
   "history": {

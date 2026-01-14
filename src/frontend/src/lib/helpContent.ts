@@ -122,6 +122,18 @@ export const helpCategories: HelpCategory[] = [
     icon: 'Bot',
     topics: [
       {
+        id: 'stats',
+        titleKey: 'stats.help.title',
+        descriptionKey: 'stats.help.overviewContent',
+        icon: 'BarChart3',
+        sections: [
+          { titleKey: 'stats.help.overview', contentKey: 'stats.help.overviewContent' },
+          { titleKey: 'stats.help.cards', contentKey: 'stats.help.cardsContent' },
+          { titleKey: 'stats.help.charts', contentKey: 'stats.help.chartsContent' },
+          { titleKey: 'stats.help.timeRange', contentKey: 'stats.help.timeRangeContent' },
+        ],
+      },
+      {
         id: 'tools',
         titleKey: 'tools.help.title',
         descriptionKey: 'tools.help.overviewContent',
