@@ -22,7 +22,6 @@ import {
   Database,
   ArrowRightLeft,
 } from 'lucide-react';
-import { HelpTooltip } from '../common';
 import { useTranslation } from 'react-i18next';
 import { getApiBaseUrl } from '../../lib/api';
 import type {
@@ -1547,26 +1546,12 @@ const ToolChainDetail: FC<ToolChainDetailProps> = ({ chain, onClose, onUpdated }
           </div>
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white truncate">{chain.name}</h2>
         </div>
-        <div className="flex items-center space-x-1">
-          <HelpTooltip
-            title={t('toolChains.detail.help.title')}
-            iconSize="md"
-            sections={[
-              { title: t('toolChains.detail.help.overview'), content: t('toolChains.detail.help.overviewContent') },
-              { title: t('toolChains.detail.help.steps'), content: t('toolChains.detail.help.stepsContent') },
-              { title: t('toolChains.detail.help.conditions'), content: t('toolChains.detail.help.conditionsContent') },
-              { title: t('toolChains.detail.help.actions'), content: t('toolChains.detail.help.actionsContent') },
-              { title: t('toolChains.detail.help.mappings'), content: t('toolChains.detail.help.mappingsContent') },
-              { title: t('toolChains.detail.help.context'), content: t('toolChains.detail.help.contextContent') },
-            ]}
-          />
-          <button
-            onClick={onClose}
-            className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
+        <button
+          onClick={onClose}
+          className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+        >
+          <X className="w-5 h-5" />
+        </button>
       </div>
 
       {/* Mobile header */}
@@ -1575,18 +1560,6 @@ const ToolChainDetail: FC<ToolChainDetailProps> = ({ chain, onClose, onUpdated }
           <div className="w-4 h-4 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
           <h2 className="text-base font-semibold text-gray-900 dark:text-white truncate">{chain.name}</h2>
         </div>
-        <HelpTooltip
-          title={t('toolChains.detail.help.title')}
-          iconSize="md"
-          sections={[
-            { title: t('toolChains.detail.help.overview'), content: t('toolChains.detail.help.overviewContent') },
-            { title: t('toolChains.detail.help.steps'), content: t('toolChains.detail.help.stepsContent') },
-            { title: t('toolChains.detail.help.conditions'), content: t('toolChains.detail.help.conditionsContent') },
-            { title: t('toolChains.detail.help.actions'), content: t('toolChains.detail.help.actionsContent') },
-            { title: t('toolChains.detail.help.mappings'), content: t('toolChains.detail.help.mappingsContent') },
-            { title: t('toolChains.detail.help.context'), content: t('toolChains.detail.help.contextContent') },
-          ]}
-        />
       </div>
 
       {/* Tabs */}

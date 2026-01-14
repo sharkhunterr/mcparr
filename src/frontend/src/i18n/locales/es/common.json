@@ -7,7 +7,8 @@
     "training": "Entrenamiento IA",
     "mcp": "Pasarela MCP",
     "monitoring": "Observabilidad",
-    "configuration": "Configuración"
+    "configuration": "Configuración",
+    "help": "Ayuda"
   },
   "actions": {
     "save": "Guardar",

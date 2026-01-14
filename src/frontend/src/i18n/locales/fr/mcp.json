@@ -3,6 +3,17 @@
   "subtitle": "Passerelle pour outils MCP (Model Context Protocol)",
   "refresh": "Actualiser",
 
+  "help": {
+    "pageTitle": "Centre d'aide",
+    "pageSubtitle": "Documentation et guides d'utilisation",
+    "searchPlaceholder": "Rechercher dans l'aide...",
+    "noResults": "Aucun résultat trouvé",
+    "categories": {
+      "mcp": "MCP & Outils"
+    },
+    "backToList": "Retour à la liste"
+  },
+
   "tabs": {
     "stats": "Statistiques",
     "statsShort": "Stats",
@@ -96,7 +107,18 @@
     "chainEnd": "Fin de chaîne",
     "step": "Étape",
     "nextTools": "Outils suivants",
-    "viewChain": "Voir la configuration de la chaîne"
+    "viewChain": "Voir la configuration de la chaîne",
+    "help": {
+      "title": "Historique des requêtes MCP",
+      "overview": "Vue d'ensemble",
+      "overviewContent": "Consultez l'historique de toutes les requêtes MCP effectuées par l'IA. Chaque ligne représente un appel d'outil avec son statut, sa durée et l'utilisateur concerné.",
+      "filters": "Filtres",
+      "filtersContent": "Filtrez les requêtes par :\n• Service (Plex, Radarr, Sonarr...)\n• Statut (terminé, échoué, en cours...)\n• Période (1h, 6h, 24h, 3j, 7j)",
+      "details": "Détails d'une requête",
+      "detailsContent": "Cliquez sur une requête pour voir :\n• Les paramètres d'entrée envoyés\n• Le résultat JSON retourné\n• Les erreurs éventuelles",
+      "chains": "Chaînes d'outils",
+      "chainsContent": "Le badge coloré indique si la requête fait partie d'une chaîne d'outils. Cliquez dessus pour voir les détails de la chaîne et les outils suggérés en suivant."
+    }
   },
 
   "tools": {
@@ -124,7 +146,20 @@
     "expandAll": "Tout déplier",
     "collapseAll": "Tout replier",
     "nextTools": "Outils suivants (Chaînes)",
-    "chainCondition": "Condition"
+    "chainCondition": "Condition",
+    "help": {
+      "title": "À propos des outils MCP",
+      "overview": "Vue d'ensemble",
+      "overviewContent": "Cette page liste tous les outils MCP disponibles, organisés par service (Plex, Radarr, Sonarr, etc.). Chaque outil représente une action que l'IA peut exécuter pour interagir avec vos services.",
+      "browse": "Parcourir les outils",
+      "browseContent": "• Les outils sont groupés par service\n• Cliquez sur un service pour voir ses outils\n• Chaque outil affiche sa description et ses paramètres\n• Les paramètres marqués d'un * sont obligatoires",
+      "test": "Tester un outil",
+      "testContent": "Cliquez sur \"Tester\" pour exécuter un outil manuellement :\n• Remplissez les paramètres requis\n• Visualisez le résultat JSON retourné\n• Utile pour vérifier le bon fonctionnement",
+      "groups": "Groupes d'accès",
+      "groupsContent": "Les badges colorés sous chaque outil indiquent les groupes d'utilisateurs qui y ont accès. Seuls les utilisateurs appartenant à ces groupes peuvent utiliser l'outil.",
+      "mutations": "Mutations",
+      "mutationsContent": "Les outils marqués \"Mutation\" modifient des données (ajout, suppression, modification). Utilisez-les avec précaution lors des tests."
+    }
   },
 
   "errors": {

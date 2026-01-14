@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { getApiBaseUrl } from '../../lib/api';
+import { HelpTooltip } from '../common';
 import type { ToolChain } from '../../types/api';
 
 interface ToolChainListProps {
@@ -112,6 +113,7 @@ const ToolChainList: FC<ToolChainListProps> = ({ onSelectChain, onCreateChain, s
             <h2 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">{t('toolChains.list.title')}</h2>
           </div>
           <div className="flex items-center space-x-1 sm:space-x-2">
+            <HelpTooltip topicId="toolChains" iconSize="sm" />
             <button
               onClick={fetchChains}
               disabled={loading}

@@ -3,6 +3,17 @@
   "subtitle": "Gateway for MCP tools (Model Context Protocol)",
   "refresh": "Refresh",
 
+  "help": {
+    "pageTitle": "Help Center",
+    "pageSubtitle": "Documentation and user guides",
+    "searchPlaceholder": "Search help...",
+    "noResults": "No results found",
+    "categories": {
+      "mcp": "MCP & Tools"
+    },
+    "backToList": "Back to list"
+  },
+
   "tabs": {
     "stats": "Statistics",
     "statsShort": "Stats",
@@ -96,7 +107,18 @@
     "chainEnd": "Chain End",
     "step": "Step",
     "nextTools": "Next Tools",
-    "viewChain": "View chain configuration"
+    "viewChain": "View chain configuration",
+    "help": {
+      "title": "MCP Request History",
+      "overview": "Overview",
+      "overviewContent": "View the history of all MCP requests made by the AI. Each row represents a tool call with its status, duration, and the user involved.",
+      "filters": "Filters",
+      "filtersContent": "Filter requests by:\n• Service (Plex, Radarr, Sonarr...)\n• Status (completed, failed, processing...)\n• Time range (1h, 6h, 24h, 3d, 7d)",
+      "details": "Request details",
+      "detailsContent": "Click on a request to see:\n• Input parameters sent\n• JSON result returned\n• Any errors that occurred",
+      "chains": "Tool chains",
+      "chainsContent": "The colored badge indicates if the request is part of a tool chain. Click on it to see chain details and suggested follow-up tools."
+    }
   },
 
   "tools": {
@@ -124,7 +146,20 @@
     "expandAll": "Expand all",
     "collapseAll": "Collapse all",
     "nextTools": "Next Tools (from Chains)",
-    "chainCondition": "Condition"
+    "chainCondition": "Condition",
+    "help": {
+      "title": "About MCP Tools",
+      "overview": "Overview",
+      "overviewContent": "This page lists all available MCP tools, organized by service (Plex, Radarr, Sonarr, etc.). Each tool represents an action the AI can execute to interact with your services.",
+      "browse": "Browsing tools",
+      "browseContent": "• Tools are grouped by service\n• Click on a service to see its tools\n• Each tool shows its description and parameters\n• Parameters marked with * are required",
+      "test": "Testing a tool",
+      "testContent": "Click \"Test\" to execute a tool manually:\n• Fill in the required parameters\n• View the JSON result returned\n• Useful for verifying proper operation",
+      "groups": "Access groups",
+      "groupsContent": "The colored badges under each tool indicate which user groups have access to it. Only users belonging to these groups can use the tool.",
+      "mutations": "Mutations",
+      "mutationsContent": "Tools marked \"Mutation\" modify data (add, delete, update). Use them carefully when testing."
+    }
   },
 
   "errors": {

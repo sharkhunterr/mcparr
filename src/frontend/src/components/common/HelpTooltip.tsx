@@ -1,24 +1,37 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import type { FC, ReactNode } from 'react';
 import { HelpCircle, X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { getHelpTopic } from '../../lib/helpContent';
 
 interface HelpSection {
   title: string;
   content: string | ReactNode;
 }
 
-interface HelpTooltipProps {
-  /** Unique key for the help content (used for i18n) */
-  helpKey?: string;
-  /** Title of the help modal */
-  title: string;
-  /** Sections of help content */
-  sections: HelpSection[];
+interface HelpTooltipBaseProps {
   /** Optional custom trigger element */
   trigger?: ReactNode;
   /** Size of the help icon */
   iconSize?: 'sm' | 'md' | 'lg';
 }
+
+interface HelpTooltipWithTopicProps extends HelpTooltipBaseProps {
+  /** Topic ID from helpContent.ts - sections will be loaded automatically */
+  topicId: string;
+  title?: never;
+  sections?: never;
+}
+
+interface HelpTooltipWithSectionsProps extends HelpTooltipBaseProps {
+  /** Title of the help modal */
+  title: string;
+  /** Sections of help content */
+  sections: HelpSection[];
+  topicId?: never;
+}
+
+type HelpTooltipProps = HelpTooltipWithTopicProps | HelpTooltipWithSectionsProps;
 
 const ICON_SIZES = {
   sm: 'w-3.5 h-3.5',
@@ -30,7 +43,10 @@ const ICON_SIZES = {
  * A reusable help tooltip component that shows a modal with help content.
  * Can be used throughout the application for contextual help.
  *
- * @example
+ * @example Using topicId (recommended - uses centralized config)
+ * <HelpTooltip topicId="tools" />
+ *
+ * @example Using title and sections (legacy mode)
  * <HelpTooltip
  *   title="How Tool Chains Work"
  *   sections={[
@@ -39,15 +55,33 @@ const ICON_SIZES = {
  *   ]}
  * />
  */
-const HelpTooltip: FC<HelpTooltipProps> = ({
-  title,
-  sections,
-  trigger,
-  iconSize = 'md',
-}) => {
+const HelpTooltip: FC<HelpTooltipProps> = (props) => {
+  const { trigger, iconSize = 'md' } = props;
+  const { t } = useTranslation('mcp');
   const [isOpen, setIsOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
+
+  // Resolve title and sections from topicId or props
+  const { resolvedTitle, resolvedSections } = useMemo(() => {
+    if ('topicId' in props && props.topicId) {
+      const topic = getHelpTopic(props.topicId);
+      if (topic) {
+        return {
+          resolvedTitle: t(topic.titleKey),
+          resolvedSections: topic.sections.map((s) => ({
+            title: t(s.titleKey),
+            content: t(s.contentKey),
+          })),
+        };
+      }
+      return { resolvedTitle: '', resolvedSections: [] };
+    }
+    return {
+      resolvedTitle: props.title,
+      resolvedSections: props.sections,
+    };
+  }, [props, t]);
 
   // Close on click outside
   useEffect(() => {
@@ -88,6 +122,10 @@ const HelpTooltip: FC<HelpTooltipProps> = ({
     };
   }, [isOpen]);
 
+  if (!resolvedTitle || resolvedSections.length === 0) {
+    return null;
+  }
+
   return (
     <>
       {/* Trigger button */}
@@ -95,8 +133,8 @@ const HelpTooltip: FC<HelpTooltipProps> = ({
         ref={triggerRef}
         onClick={() => setIsOpen(!isOpen)}
         className="inline-flex items-center justify-center p-1 text-gray-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-full transition-colors"
-        title={title}
-        aria-label={`Help: ${title}`}
+        title={resolvedTitle}
+        aria-label={`Help: ${resolvedTitle}`}
         aria-expanded={isOpen}
       >
         {trigger || <HelpCircle className={ICON_SIZES[iconSize]} />}
@@ -125,7 +163,7 @@ const HelpTooltip: FC<HelpTooltipProps> = ({
             <div className="flex items-center justify-between px-3 py-2 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
               <div className="flex items-center gap-2 text-gray-700 dark:text-gray-200">
                 <HelpCircle className="w-4 h-4 text-blue-500" />
-                <h3 id="help-title" className="font-medium text-sm">{title}</h3>
+                <h3 id="help-title" className="font-medium text-sm">{resolvedTitle}</h3>
               </div>
               <button
                 onClick={() => setIsOpen(false)}
@@ -138,7 +176,7 @@ const HelpTooltip: FC<HelpTooltipProps> = ({
 
             {/* Content */}
             <div className="p-3 overflow-y-auto flex-1 space-y-2.5">
-              {sections.map((section, index) => (
+              {resolvedSections.map((section, index) => (
                 <div key={index} className="space-y-1">
                   <h4 className="font-medium text-xs text-gray-800 dark:text-gray-200 flex items-center gap-1.5">
                     <span className="w-1 h-1 rounded-full bg-blue-500 flex-shrink-0" />

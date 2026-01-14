@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Bot, RefreshCw, BarChart3, History, Wrench, Settings, ChevronDown, ChevronRight, Play, X, Loader2, TrendingUp, TrendingDown, Minus, Link2, Workflow, ArrowRight, Square, CircleDot } from 'lucide-react';
 import { ToolChainManagement } from '../components/ToolChains';
+import { HelpTooltip } from '../components/common';
 import { api, getApiBaseUrl } from '../lib/api';
 import { getServiceColor, getServiceFromToolName } from '../lib/serviceColors';
 
@@ -2669,25 +2670,28 @@ export default function MCP() {
           {activeTab === 'history' && (
             <div className="space-y-4">
               {/* Actions bar */}
-              <div className="flex gap-2">
-                <select
-                  value={timeRange}
-                  onChange={(e) => setTimeRange(Number(e.target.value))}
-                  className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                >
-                  <option value={1}>{t('stats.timeRange1h')}</option>
-                  <option value={6}>{t('stats.timeRange6h')}</option>
-                  <option value={24}>{t('stats.timeRange24h')}</option>
-                  <option value={72}>{t('stats.timeRange3d')}</option>
-                  <option value={168}>{t('stats.timeRange7d')}</option>
-                </select>
-                <button
-                  onClick={fetchData}
-                  className="px-3 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors flex items-center gap-2"
-                >
-                  <RefreshCw className="w-4 h-4" />
-                  <span className="hidden sm:inline">{t('refresh')}</span>
-                </button>
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <select
+                    value={timeRange}
+                    onChange={(e) => setTimeRange(Number(e.target.value))}
+                    className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  >
+                    <option value={1}>{t('stats.timeRange1h')}</option>
+                    <option value={6}>{t('stats.timeRange6h')}</option>
+                    <option value={24}>{t('stats.timeRange24h')}</option>
+                    <option value={72}>{t('stats.timeRange3d')}</option>
+                    <option value={168}>{t('stats.timeRange7d')}</option>
+                  </select>
+                  <button
+                    onClick={fetchData}
+                    className="px-3 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors flex items-center gap-2"
+                  >
+                    <RefreshCw className="w-4 h-4" />
+                    <span className="hidden sm:inline">{t('refresh')}</span>
+                  </button>
+                </div>
+                <HelpTooltip topicId="history" iconSize="sm" />
               </div>
               {/* Filters */}
               <div className="flex flex-wrap gap-2 sm:gap-4 bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
@@ -2855,7 +2859,7 @@ export default function MCP() {
                 <div className="text-sm text-gray-600 dark:text-gray-400">
                   {t('tools.toolsAvailable', { count: tools?.total || 0, services: Object.keys(toolsByService).length })}
                 </div>
-                <div className="flex gap-2">
+                <div className="flex items-center gap-2">
                   <button
                     onClick={() => toggleAllServices(true)}
                     className="px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
@@ -2868,6 +2872,7 @@ export default function MCP() {
                   >
                     {t('tools.collapseAll')}
                   </button>
+                  <HelpTooltip topicId="tools" iconSize="sm" />
                 </div>
               </div>
 
