@@ -2668,14 +2668,24 @@ export default function MCP() {
 
           {/* History Tab */}
           {activeTab === 'history' && (
-            <div className="space-y-4">
-              {/* Actions bar */}
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+              <div className="p-3 sm:p-4">
+                {/* Actions bar with filters - single row layout matching UserMappingList */}
+                <div className="flex flex-row gap-2 sm:gap-3 items-center mb-4">
+                  {/* Refresh button */}
+                  <button
+                    onClick={fetchData}
+                    className="p-2 sm:px-3 sm:py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 flex items-center gap-2 transition-colors flex-shrink-0"
+                  >
+                    <RefreshCw className="w-4 h-4" />
+                    <span className="hidden sm:inline">{t('refresh')}</span>
+                  </button>
+
+                  {/* Time range filter */}
                   <select
                     value={timeRange}
                     onChange={(e) => setTimeRange(Number(e.target.value))}
-                    className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white flex-shrink-0"
                   >
                     <option value={1}>{t('stats.timeRange1h')}</option>
                     <option value={6}>{t('stats.timeRange6h')}</option>
@@ -2683,52 +2693,50 @@ export default function MCP() {
                     <option value={72}>{t('stats.timeRange3d')}</option>
                     <option value={168}>{t('stats.timeRange7d')}</option>
                   </select>
-                  <button
-                    onClick={fetchData}
-                    className="px-3 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors flex items-center gap-2"
+
+                  {/* Service filter */}
+                  <select
+                    value={serviceFilter}
+                    onChange={(e) => setServiceFilter(e.target.value)}
+                    className="hidden sm:block px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white flex-shrink-0"
                   >
-                    <RefreshCw className="w-4 h-4" />
-                    <span className="hidden sm:inline">{t('refresh')}</span>
-                  </button>
+                    <option value="">{t('history.filters.allServices')}</option>
+                    {Object.keys(toolsByService).map((service) => (
+                      <option key={service} value={service}>
+                        {service.charAt(0).toUpperCase() + service.slice(1)}
+                      </option>
+                    ))}
+                  </select>
+
+                  {/* Status filter */}
+                  <select
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    className="hidden sm:block px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white flex-shrink-0"
+                  >
+                    <option value="">{t('history.filters.allStatuses')}</option>
+                    <option value="pending">{t('status.pending')}</option>
+                    <option value="processing">{t('status.processing')}</option>
+                    <option value="completed">{t('status.completed')}</option>
+                    <option value="failed">{t('status.failed')}</option>
+                    <option value="cancelled">{t('status.cancelled')}</option>
+                  </select>
+
+                  {/* Spacer to push help to right */}
+                  <div className="flex-1" />
+
+                  {/* Help button */}
+                  <HelpTooltip topicId="history" />
                 </div>
-                <HelpTooltip topicId="history" iconSize="sm" />
-              </div>
-              {/* Filters */}
-              <div className="flex flex-wrap gap-2 sm:gap-4 bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
-                <select
-                  value={serviceFilter}
-                  onChange={(e) => setServiceFilter(e.target.value)}
-                  className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                >
-                  <option value="">{t('history.filters.allServices')}</option>
-                  {Object.keys(toolsByService).map((service) => (
-                    <option key={service} value={service}>
-                      {service.charAt(0).toUpperCase() + service.slice(1)}
-                    </option>
-                  ))}
-                </select>
-                <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                >
-                  <option value="">{t('history.filters.allStatuses')}</option>
-                  <option value="pending">{t('status.pending')}</option>
-                  <option value="processing">{t('status.processing')}</option>
-                  <option value="completed">{t('status.completed')}</option>
-                  <option value="failed">{t('status.failed')}</option>
-                  <option value="cancelled">{t('status.cancelled')}</option>
-                </select>
-              </div>
 
               {/* Request List - Mobile: Card view, Desktop: Table view */}
               {/* Mobile Cards */}
-              <div className="sm:hidden space-y-3">
+              <div className="sm:hidden space-y-2">
                 {requests.length > 0 ? (
                   requests.map((request) => (
                     <div
                       key={request.id}
-                      className="bg-white dark:bg-gray-800 rounded-lg shadow p-4"
+                      className="p-3 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer"
                       onClick={() => setSelectedRequest(request)}
                     >
                       <div className="flex items-start justify-between mb-2">
@@ -2763,7 +2771,7 @@ export default function MCP() {
               </div>
 
               {/* Desktop Table */}
-              <div className="hidden sm:block bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
+              <div className="hidden sm:block overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                     <thead className="bg-gray-50 dark:bg-gray-700">
@@ -2794,7 +2802,7 @@ export default function MCP() {
                         </th>
                       </tr>
                     </thead>
-                    <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                    <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                       {requests.length > 0 ? (
                         requests.map((request) => (
                           <tr key={request.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
@@ -2847,6 +2855,7 @@ export default function MCP() {
                     </tbody>
                   </table>
                 </div>
+              </div>
               </div>
             </div>
           )}
