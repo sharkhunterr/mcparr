@@ -3,6 +3,22 @@
   "subtitle": "Gateway für MCP-Tools (Model Context Protocol)",
   "refresh": "Aktualisieren",
 
+  "help": {
+    "pageTitle": "Hilfezentrum",
+    "pageSubtitle": "Dokumentation und Benutzerhandbücher",
+    "searchPlaceholder": "Hilfe durchsuchen...",
+    "noResults": "Keine Ergebnisse gefunden",
+    "selectTopic": "Wählen Sie ein Thema",
+    "selectTopicDescription": "Wählen Sie links ein Thema aus, um dessen detaillierten Inhalt anzuzeigen.",
+    "topics": "Themen",
+    "quickLinks": "Schnellzugriff",
+    "refresh": "Aktualisieren",
+    "categories": {
+      "mcp": "MCP & Tools"
+    },
+    "backToList": "Zurück zur Liste"
+  },
+
   "tabs": {
     "stats": "Statistiken",
     "statsShort": "Stats",

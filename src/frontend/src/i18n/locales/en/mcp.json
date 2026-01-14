@@ -8,6 +8,11 @@
     "pageSubtitle": "Documentation and user guides",
     "searchPlaceholder": "Search help...",
     "noResults": "No results found",
+    "selectTopic": "Select a topic",
+    "selectTopicDescription": "Choose a topic from the left to view its detailed content.",
+    "topics": "topics",
+    "quickLinks": "Quick links",
+    "refresh": "Refresh",
     "categories": {
       "mcp": "MCP & Tools"
     },

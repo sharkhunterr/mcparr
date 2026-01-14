@@ -3,6 +3,22 @@
   "subtitle": "Pasarela para herramientas MCP (Model Context Protocol)",
   "refresh": "Actualizar",
 
+  "help": {
+    "pageTitle": "Centro de ayuda",
+    "pageSubtitle": "Documentación y guías de usuario",
+    "searchPlaceholder": "Buscar ayuda...",
+    "noResults": "No se encontraron resultados",
+    "selectTopic": "Seleccione un tema",
+    "selectTopicDescription": "Elija un tema de la izquierda para ver su contenido detallado.",
+    "topics": "temas",
+    "quickLinks": "Enlaces rápidos",
+    "refresh": "Actualizar",
+    "categories": {
+      "mcp": "MCP & Herramientas"
+    },
+    "backToList": "Volver a la lista"
+  },
+
   "tabs": {
     "stats": "Estadísticas",
     "statsShort": "Stats",
