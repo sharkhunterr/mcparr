@@ -12,6 +12,7 @@ import {
   Server,
   Layers,
   RefreshCw,
+  X,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { helpCategories, type HelpTopic } from '../lib/helpContent';
@@ -331,9 +332,16 @@ const Help = () => {
 
               {/* Modal Content - Full screen with rounded top */}
               <div className="absolute inset-x-0 bottom-0 top-12 bg-white dark:bg-gray-800 rounded-t-2xl shadow-xl flex flex-col animate-in slide-in-from-bottom duration-300">
-                {/* Drag handle */}
-                <div className="flex justify-center pt-3 pb-1">
+                {/* Header with drag handle and close button */}
+                <div className="flex items-center justify-between px-4 pt-3 pb-1">
+                  <div className="w-8" /> {/* Spacer for centering */}
                   <div className="w-10 h-1 bg-gray-300 dark:bg-gray-600 rounded-full" />
+                  <button
+                    onClick={() => setSelectedTopic(null)}
+                    className="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
                 </div>
 
                 {/* Content */}
