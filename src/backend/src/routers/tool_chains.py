@@ -230,6 +230,7 @@ def _enrich_action_response(action: ToolChainAction) -> dict:
         "target_service": action.target_service,
         "target_tool": action.target_tool,
         "argument_mappings": action.argument_mappings,
+        "save_to_context": getattr(action, 'save_to_context', None),
         "message_template": action.message_template,
         "order": action.order,
         "execution_mode": action.execution_mode,

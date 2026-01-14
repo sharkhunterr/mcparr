@@ -277,6 +277,10 @@ class ToolChainAction(Base, UUIDMixin, TimestampMixin):
     target_tool: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     argument_mappings: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
 
+    # Save result values to chain context for later steps
+    # Format: {"variable_name": "field.path"} e.g. {"media_id": "media_info.tmdbId"}
+    save_to_context: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
+
     # For MESSAGE action - template with placeholders like {result.title}, {input.query}
     message_template: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 

@@ -350,6 +350,7 @@ def build_argument_mappings(
     mappings: Optional[Dict[str, Any]],
     result: Dict[str, Any],
     input_params: Optional[Dict[str, Any]] = None,
+    chain_context: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     """Build arguments for the next tool based on mappings.
 
@@ -357,18 +358,23 @@ def build_argument_mappings(
     {
         "movie_id": "id",              # Maps result.id to movie_id
         "title": "title",              # Maps result.title to title
-        "year": "year"                 # Maps result.year to year
+        "year": "year",                # Maps result.year to year
+        "media_id": "context.saved_id" # Maps from chain context
     }
 
     Advanced mapping format (also supported):
     {
         "target_param": {"source": "result.field.path"},
         "target_param2": {"value": "static_value"},
-        "target_param3": {"input": "original_param"}
+        "target_param3": {"input": "original_param"},
+        "target_param4": {"context": "variable_name"}
     }
 
     The result data is extracted from result.result if it exists (to allow
     using field names directly like "id" instead of "result.id").
+
+    Context variables can be accessed with "context." prefix in simplified format
+    or with {"context": "var_name"} in advanced format.
     """
     if not mappings:
         return {}
@@ -376,6 +382,9 @@ def build_argument_mappings(
     # Extract the actual result data for simpler field access
     # This allows using "id" instead of "result.id"
     eval_data = result.get("result", {}) if isinstance(result.get("result"), dict) else result
+
+    # Ensure chain_context is a dict
+    ctx = chain_context or {}
 
     args = {}
     for target_param, mapping in mappings.items():
@@ -393,19 +402,65 @@ def build_argument_mappings(
                 input_path = mapping["input"]
                 if input_path in input_params:
                     args[target_param] = input_params[input_path]
+            elif "context" in mapping:
+                # From chain context
+                context_var = mapping["context"]
+                if context_var in ctx:
+                    args[target_param] = ctx[context_var]
         elif isinstance(mapping, str):
-            # Simplified format: "target_param": "source_field"
-            # First try from eval_data (result.result), then from full result
-            value = get_nested_value(eval_data, mapping)
-            if value is None:
-                value = get_nested_value(result, mapping)
-            if value is not None:
-                args[target_param] = value
+            # Simplified format: "target_param": "source_field" or "context.var_name"
+            if mapping.startswith("context."):
+                # Get from chain context
+                context_var = mapping[8:]  # Remove "context." prefix
+                if context_var in ctx:
+                    args[target_param] = ctx[context_var]
+            else:
+                # First try from eval_data (result.result), then from full result
+                value = get_nested_value(eval_data, mapping)
+                if value is None:
+                    value = get_nested_value(result, mapping)
+                if value is not None:
+                    args[target_param] = value
         else:
             # Direct value assignment (number, boolean, etc.)
             args[target_param] = mapping
 
     return args
+
+
+def build_context_from_result(
+    save_to_context: Optional[Dict[str, str]],
+    result: Dict[str, Any],
+    existing_context: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    """Extract values from result and add them to chain context.
+
+    Args:
+        save_to_context: Mapping of context variable names to result field paths
+                        e.g. {"media_id": "media_info.tmdbId", "title": "title"}
+        result: The tool execution result
+        existing_context: Existing context to merge with
+
+    Returns:
+        Updated context with new values
+    """
+    ctx = dict(existing_context) if existing_context else {}
+
+    if not save_to_context:
+        return ctx
+
+    # Extract the actual result data
+    eval_data = result.get("result", {}) if isinstance(result.get("result"), dict) else result
+
+    for var_name, field_path in save_to_context.items():
+        value = get_nested_value(eval_data, field_path)
+        if value is None:
+            value = get_nested_value(result, field_path)
+        if value is not None:
+            ctx[var_name] = value
+            logger.debug(f"Saved to context: {var_name} = {value}")
+
+    return ctx
 
 
 # Service display names for better AI readability
@@ -437,6 +492,7 @@ def build_action_suggestions(
     step: ToolChainStep,
     branch: str,
     success: bool = True,
+    chain_context: Optional[Dict[str, Any]] = None,
 ) -> List[Dict[str, Any]]:
     """Build suggestion list from actions.
 
@@ -451,6 +507,7 @@ def build_action_suggestions(
         step: The parent step
         branch: "then" or "else"
         success: Whether tool execution succeeded
+        chain_context: Context with saved variables from previous steps
 
     Returns:
         List of action suggestions (empty list = silent chain end)
@@ -508,6 +565,7 @@ def build_action_suggestions(
                 step,
                 nested_branch,
                 success,
+                chain_context,
             )
             suggestions.extend(nested_suggestions)
 
@@ -530,8 +588,12 @@ def build_action_suggestions(
             # Build suggested arguments if mappings exist
             if action.argument_mappings:
                 suggestion["suggested_arguments"] = build_argument_mappings(
-                    action.argument_mappings, result, input_params
+                    action.argument_mappings, result, input_params, chain_context
                 )
+
+            # Include save_to_context info so AI knows to save result values
+            if action.save_to_context:
+                suggestion["save_to_context"] = action.save_to_context
 
             if action.ai_comment:
                 suggestion["reason"] = action.ai_comment
@@ -549,6 +611,7 @@ async def get_matching_steps(
     success: bool,
     input_params: Optional[Dict[str, Any]] = None,
     only_first_step: bool = True,
+    chain_context: Optional[Dict[str, Any]] = None,
 ) -> List[Dict[str, Any]]:
     """Find all steps that match a tool result and evaluate their conditions.
 
@@ -565,6 +628,7 @@ async def get_matching_steps(
         success: Whether the tool execution was successful
         input_params: Original input parameters
         only_first_step: If True, only evaluate steps at order=0
+        chain_context: Context with saved variables from previous steps
 
     Returns:
         List of action suggestions
@@ -627,14 +691,14 @@ async def get_matching_steps(
             # Conditions TRUE - get THEN actions
             # Empty then_actions = silent end of chain (returns empty list)
             suggestions = build_action_suggestions(
-                step.then_actions, result, input_params, chain, step, "then", success
+                step.then_actions, result, input_params, chain, step, "then", success, chain_context
             )
             all_suggestions.extend(suggestions)
         else:
             # Conditions FALSE - get ELSE actions
             # Empty else_actions = silent end of chain (returns empty list)
             suggestions = build_action_suggestions(
-                step.else_actions, result, input_params, chain, step, "else", success
+                step.else_actions, result, input_params, chain, step, "else", success, chain_context
             )
             all_suggestions.extend(suggestions)
 
@@ -849,7 +913,9 @@ async def check_recent_chain_flow(
         time_window_seconds: How far back to look for previous calls
 
     Returns:
-        Chain context if this tool follows a chain flow, None otherwise
+        Chain context if this tool follows a chain flow, None otherwise.
+        Includes 'save_to_context' from the action that suggested this tool,
+        and 'previous_result' to extract values from.
     """
     from datetime import datetime, timedelta
 
@@ -897,6 +963,10 @@ async def check_recent_chain_flow(
                     "is_chain_flow": True,
                     "previous_tool": recent_request.tool_name,
                     "chain_context": chain_context,
+                    # Include save_to_context from the action that suggested this tool
+                    "save_to_context": next_tool.get("save_to_context"),
+                    # Include the previous tool's result to extract values from
+                    "previous_result": previous_result,
                 }
 
     return None
@@ -962,21 +1032,43 @@ async def enrich_tool_result_with_chains(
                 f"Tool '{tool_name}' is part of chain flow (preceded by '{chain_flow['previous_tool']}')"
             )
 
+            # Get saved variables from previous chain context
+            previous_context = chain_flow.get("chain_context", {})
+            saved_variables = dict(previous_context.get("variables", {}))
+
+            # Extract values from previous result if save_to_context was configured
+            previous_save_to_context = chain_flow.get("save_to_context")
+            previous_result = chain_flow.get("previous_result", {})
+            if previous_save_to_context and previous_result:
+                # Use build_context_from_result to extract actual values
+                saved_variables = build_context_from_result(
+                    previous_save_to_context,
+                    previous_result,
+                    saved_variables,
+                )
+                logger.info(f"Extracted context variables from previous result: {saved_variables}")
+
             existing_position = await get_tool_chain_position(session, service_type, tool_name)
 
             if existing_position:
                 result["chain_context"] = existing_position
+                # Preserve saved variables in context
+                if saved_variables:
+                    result["chain_context"]["variables"] = saved_variables
 
                 if existing_position["position"] == "middle":
                     # Evaluate next step conditions
                     middle_suggestions = await get_matching_steps(
                         session, service_type, tool_name, result, success, input_params,
-                        only_first_step=False
+                        only_first_step=False, chain_context=saved_variables
                     )
                     if middle_suggestions:
                         next_block = format_next_actions_for_response(middle_suggestions, tool_name)
                         if next_block:
                             next_block["chain_context"]["position"] = "middle"
+                            # Preserve saved variables
+                            if saved_variables:
+                                next_block["chain_context"]["variables"] = saved_variables
                             result.update(next_block)
                             logger.info(
                                 f"Added {len(middle_suggestions)} action suggestions to '{tool_name}' (middle step)"
@@ -985,12 +1077,15 @@ async def enrich_tool_result_with_chains(
                     # End of chain - still need to evaluate conditions and return messages
                     end_suggestions = await get_matching_steps(
                         session, service_type, tool_name, result, success, input_params,
-                        only_first_step=False
+                        only_first_step=False, chain_context=saved_variables
                     )
                     if end_suggestions:
                         next_block = format_next_actions_for_response(end_suggestions, tool_name)
                         if next_block:
                             next_block["chain_context"]["position"] = "end"
+                            # Preserve saved variables
+                            if saved_variables:
+                                next_block["chain_context"]["variables"] = saved_variables
                             result.update(next_block)
                             logger.info(
                                 f"Added {len(end_suggestions)} action suggestions to '{tool_name}' (end step)"
@@ -998,6 +1093,8 @@ async def enrich_tool_result_with_chains(
                     else:
                         # No suggestions but still mark as end of chain
                         result["chain_context"] = existing_position
+                        if saved_variables:
+                            result["chain_context"]["variables"] = saved_variables
                         logger.info(
                             f"Tool '{tool_name}' is end of chain(s): "
                             f"{[c['name'] for c in existing_position['chains']]}"

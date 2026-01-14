@@ -18,7 +18,9 @@ import {
   CheckCircle,
   XCircle,
   Flag,
-  Pencil
+  Pencil,
+  Database,
+  ArrowRightLeft
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { getApiBaseUrl } from '../../lib/api';
@@ -89,6 +91,7 @@ const ToolChainDetail: FC<ToolChainDetailProps> = ({ chain, onClose, onUpdated }
   const [newActionMessage, setNewActionMessage] = useState('');
   const [newActionComment, setNewActionComment] = useState('');
   const [newActionArgumentMappings, setNewActionArgumentMappings] = useState<Array<{ targetParam: string; sourceField: string }>>([]);
+  const [newActionSaveToContext, setNewActionSaveToContext] = useState<Array<{ varName: string; fieldPath: string }>>([]);
 
   // Nested action form state (for adding actions inside conditional actions)
   const [addingNestedAction, setAddingNestedAction] = useState<{
@@ -109,6 +112,7 @@ const ToolChainDetail: FC<ToolChainDetailProps> = ({ chain, onClose, onUpdated }
   const [editActionMessage, setEditActionMessage] = useState('');
   const [editActionComment, setEditActionComment] = useState('');
   const [editActionArgumentMappings, setEditActionArgumentMappings] = useState<Array<{ targetParam: string; sourceField: string }>>([]);
+  const [editActionSaveToContext, setEditActionSaveToContext] = useState<Array<{ varName: string; fieldPath: string }>>([]);
 
   // Edit step state
   const [editingStep, setEditingStep] = useState<ToolChainStepDetail | null>(null);
@@ -344,6 +348,18 @@ const ToolChainDetail: FC<ToolChainDetailProps> = ({ chain, onClose, onUpdated }
             body.argument_mappings = mappings;
           }
         }
+        // Build save_to_context from the array
+        if (newActionSaveToContext.length > 0) {
+          const saveContext: Record<string, string> = {};
+          newActionSaveToContext.forEach(s => {
+            if (s.varName && s.fieldPath) {
+              saveContext[s.varName] = s.fieldPath;
+            }
+          });
+          if (Object.keys(saveContext).length > 0) {
+            body.save_to_context = saveContext;
+          }
+        }
       } else if (newActionType === 'message') {
         body.message_template = newActionMessage;
       } else if (newActionType === 'conditional') {
@@ -374,6 +390,7 @@ const ToolChainDetail: FC<ToolChainDetailProps> = ({ chain, onClose, onUpdated }
       setNewActionMessage('');
       setNewActionComment('');
       setNewActionArgumentMappings([]);
+      setNewActionSaveToContext([]);
       setNewConditionOperator('success');
       setNewConditionField('');
       setNewConditionValue('');
@@ -432,6 +449,16 @@ const ToolChainDetail: FC<ToolChainDetailProps> = ({ chain, onClose, onUpdated }
     } else {
       setEditActionArgumentMappings([]);
     }
+    // Convert save_to_context object to array format
+    if (action.save_to_context && typeof action.save_to_context === 'object') {
+      const saveArray = Object.entries(action.save_to_context).map(([varName, fieldPath]) => ({
+        varName,
+        fieldPath: String(fieldPath)
+      }));
+      setEditActionSaveToContext(saveArray);
+    } else {
+      setEditActionSaveToContext([]);
+    }
   };
 
   // Save action edit
@@ -461,12 +488,25 @@ const ToolChainDetail: FC<ToolChainDetailProps> = ({ chain, onClose, onUpdated }
         } else {
           body.argument_mappings = null;
         }
+        // Build save_to_context from the array
+        if (editActionSaveToContext.length > 0) {
+          const saveContext: Record<string, string> = {};
+          editActionSaveToContext.forEach(s => {
+            if (s.varName && s.fieldPath) {
+              saveContext[s.varName] = s.fieldPath;
+            }
+          });
+          body.save_to_context = Object.keys(saveContext).length > 0 ? saveContext : null;
+        } else {
+          body.save_to_context = null;
+        }
         body.message_template = null;
       } else if (editActionType === 'message') {
         body.message_template = editActionMessage;
         body.target_service = null;
         body.target_tool = null;
         body.argument_mappings = null;
+        body.save_to_context = null;
       }
 
       // Use the appropriate endpoint based on whether it's a nested action or not
@@ -646,6 +686,18 @@ const ToolChainDetail: FC<ToolChainDetailProps> = ({ chain, onClose, onUpdated }
             body.argument_mappings = mappings;
           }
         }
+        // Build save_to_context from the array
+        if (newActionSaveToContext.length > 0) {
+          const saveContext: Record<string, string> = {};
+          newActionSaveToContext.forEach(s => {
+            if (s.varName && s.fieldPath) {
+              saveContext[s.varName] = s.fieldPath;
+            }
+          });
+          if (Object.keys(saveContext).length > 0) {
+            body.save_to_context = saveContext;
+          }
+        }
       } else if (newActionType === 'message') {
         body.message_template = newActionMessage;
       } else if (newActionType === 'conditional') {
@@ -679,6 +731,7 @@ const ToolChainDetail: FC<ToolChainDetailProps> = ({ chain, onClose, onUpdated }
       setNewActionMessage('');
       setNewActionComment('');
       setNewActionArgumentMappings([]);
+      setNewActionSaveToContext([]);
       setNewConditionOperator('success');
       setNewConditionField('');
       setNewConditionValue('');
@@ -883,6 +936,18 @@ const ToolChainDetail: FC<ToolChainDetailProps> = ({ chain, onClose, onUpdated }
               <span className="text-xs text-gray-700 dark:text-gray-300 truncate">
                 {action.target_tool_display_name || action.target_tool}
               </span>
+              {action.argument_mappings && Object.keys(action.argument_mappings).length > 0 && (
+                <span className="flex items-center gap-0.5 px-1 py-0.5 text-xs bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 rounded flex-shrink-0" title={Object.keys(action.argument_mappings).join(', ')}>
+                  <ArrowRightLeft className="w-2.5 h-2.5" />
+                  {Object.keys(action.argument_mappings).length}
+                </span>
+              )}
+              {action.save_to_context && Object.keys(action.save_to_context).length > 0 && (
+                <span className="flex items-center gap-0.5 px-1 py-0.5 text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded flex-shrink-0" title={Object.keys(action.save_to_context).join(', ')}>
+                  <Database className="w-2.5 h-2.5" />
+                  {Object.keys(action.save_to_context).length}
+                </span>
+              )}
             </>
           )}
         </div>
@@ -1010,6 +1075,64 @@ const ToolChainDetail: FC<ToolChainDetailProps> = ({ chain, onClose, onUpdated }
                           onClick={() => {
                             const newMappings = newActionArgumentMappings.filter((_, i) => i !== idx);
                             setNewActionArgumentMappings(newMappings);
+                          }}
+                          className="p-0.5 text-gray-400 hover:text-red-600 rounded flex-shrink-0"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              {/* Save to Context (nested action) */}
+              <div className="mt-1 p-1.5 bg-gray-50 dark:bg-gray-800/50 rounded border border-gray-200 dark:border-gray-700 overflow-hidden">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs text-gray-600 dark:text-gray-400">{t('toolChains.detail.saveToContext')}</span>
+                  <button
+                    type="button"
+                    onClick={() => setNewActionSaveToContext([...newActionSaveToContext, { varName: '', fieldPath: '' }])}
+                    className="p-0.5 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded"
+                  >
+                    <Plus className="w-3 h-3" />
+                  </button>
+                </div>
+                {newActionSaveToContext.length === 0 ? (
+                  <div className="text-xs text-gray-400 italic">{t('toolChains.detail.noSaveToContext')}</div>
+                ) : (
+                  <div className="space-y-1.5">
+                    {newActionSaveToContext.map((item, idx) => (
+                      <div key={idx} className="flex items-center gap-1">
+                        <div className="flex-1 min-w-0 flex items-center gap-1">
+                          <input
+                            type="text"
+                            value={item.varName}
+                            onChange={(e) => {
+                              const newItems = [...newActionSaveToContext];
+                              newItems[idx].varName = e.target.value;
+                              setNewActionSaveToContext(newItems);
+                            }}
+                            placeholder={t('toolChains.detail.varName')}
+                            className="w-full min-w-0 px-1.5 py-0.5 text-xs border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded"
+                          />
+                          <span className="text-xs text-gray-400 flex-shrink-0">=</span>
+                          <input
+                            type="text"
+                            value={item.fieldPath}
+                            onChange={(e) => {
+                              const newItems = [...newActionSaveToContext];
+                              newItems[idx].fieldPath = e.target.value;
+                              setNewActionSaveToContext(newItems);
+                            }}
+                            placeholder={t('toolChains.detail.fieldPath')}
+                            className="w-full min-w-0 px-1.5 py-0.5 text-xs border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded"
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newItems = newActionSaveToContext.filter((_, i) => i !== idx);
+                            setNewActionSaveToContext(newItems);
                           }}
                           className="p-0.5 text-gray-400 hover:text-red-600 rounded flex-shrink-0"
                         >
@@ -1235,6 +1358,64 @@ const ToolChainDetail: FC<ToolChainDetailProps> = ({ chain, onClose, onUpdated }
                               onClick={() => {
                                 const newMappings = newActionArgumentMappings.filter((_, i) => i !== idx);
                                 setNewActionArgumentMappings(newMappings);
+                              }}
+                              className="p-0.5 text-gray-400 hover:text-red-600 rounded flex-shrink-0"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  {/* Save to Context */}
+                  <div className="mt-1 p-1.5 bg-gray-50 dark:bg-gray-800/50 rounded border border-gray-200 dark:border-gray-700 overflow-hidden">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs text-gray-600 dark:text-gray-400">{t('toolChains.detail.saveToContext')}</span>
+                      <button
+                        type="button"
+                        onClick={() => setNewActionSaveToContext([...newActionSaveToContext, { varName: '', fieldPath: '' }])}
+                        className="p-0.5 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded"
+                      >
+                        <Plus className="w-3 h-3" />
+                      </button>
+                    </div>
+                    {newActionSaveToContext.length === 0 ? (
+                      <div className="text-xs text-gray-400 italic">{t('toolChains.detail.noSaveToContext')}</div>
+                    ) : (
+                      <div className="space-y-1.5">
+                        {newActionSaveToContext.map((item, idx) => (
+                          <div key={idx} className="flex items-center gap-1">
+                            <div className="flex-1 min-w-0 flex items-center gap-1">
+                              <input
+                                type="text"
+                                value={item.varName}
+                                onChange={(e) => {
+                                  const newItems = [...newActionSaveToContext];
+                                  newItems[idx].varName = e.target.value;
+                                  setNewActionSaveToContext(newItems);
+                                }}
+                                placeholder={t('toolChains.detail.varName')}
+                                className="w-full min-w-0 px-1.5 py-0.5 text-xs border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded"
+                              />
+                              <span className="text-xs text-gray-400 flex-shrink-0">=</span>
+                              <input
+                                type="text"
+                                value={item.fieldPath}
+                                onChange={(e) => {
+                                  const newItems = [...newActionSaveToContext];
+                                  newItems[idx].fieldPath = e.target.value;
+                                  setNewActionSaveToContext(newItems);
+                                }}
+                                placeholder={t('toolChains.detail.fieldPath')}
+                                className="w-full min-w-0 px-1.5 py-0.5 text-xs border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded"
+                              />
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newItems = newActionSaveToContext.filter((_, i) => i !== idx);
+                                setNewActionSaveToContext(newItems);
                               }}
                               className="p-0.5 text-gray-400 hover:text-red-600 rounded flex-shrink-0"
                             >
@@ -1937,6 +2118,70 @@ const ToolChainDetail: FC<ToolChainDetailProps> = ({ chain, onClose, onUpdated }
                         ))}
                       </div>
                     )}
+                  </div>
+
+                  {/* Save to Context */}
+                  <div className="p-2 bg-gray-50 dark:bg-gray-900/50 rounded border border-gray-200 dark:border-gray-700 overflow-hidden">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                        {t('toolChains.detail.saveToContext')}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setEditActionSaveToContext([...editActionSaveToContext, { varName: '', fieldPath: '' }])}
+                        className="p-1 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded flex-shrink-0"
+                      >
+                        <Plus className="w-4 h-4" />
+                      </button>
+                    </div>
+                    {editActionSaveToContext.length === 0 ? (
+                      <div className="text-xs text-gray-400 italic">{t('toolChains.detail.noSaveToContext')}</div>
+                    ) : (
+                      <div className="space-y-2">
+                        {editActionSaveToContext.map((item, idx) => (
+                          <div key={idx} className="flex items-center gap-1.5">
+                            <div className="flex-1 min-w-0 flex items-center gap-1.5">
+                              <input
+                                type="text"
+                                value={item.varName}
+                                onChange={(e) => {
+                                  const newItems = [...editActionSaveToContext];
+                                  newItems[idx].varName = e.target.value;
+                                  setEditActionSaveToContext(newItems);
+                                }}
+                                placeholder={t('toolChains.detail.varName')}
+                                className="w-full min-w-0 px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded"
+                              />
+                              <span className="text-gray-400 flex-shrink-0">=</span>
+                              <input
+                                type="text"
+                                value={item.fieldPath}
+                                onChange={(e) => {
+                                  const newItems = [...editActionSaveToContext];
+                                  newItems[idx].fieldPath = e.target.value;
+                                  setEditActionSaveToContext(newItems);
+                                }}
+                                placeholder={t('toolChains.detail.fieldPath')}
+                                className="w-full min-w-0 px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded"
+                              />
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newItems = editActionSaveToContext.filter((_, i) => i !== idx);
+                                setEditActionSaveToContext(newItems);
+                              }}
+                              className="p-1 text-gray-400 hover:text-red-600 rounded flex-shrink-0"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                      {t('toolChains.detail.saveToContextHelp')}
+                    </p>
                   </div>
                 </>
               )}

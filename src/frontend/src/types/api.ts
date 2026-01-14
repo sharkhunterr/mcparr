@@ -464,6 +464,7 @@ export interface Action {
   target_service?: string;
   target_tool?: string;
   argument_mappings?: Record<string, any>;
+  save_to_context?: Record<string, string>;  // Save result values to context for later steps
   message_template?: string;
   order: number;
   execution_mode: ExecutionMode;

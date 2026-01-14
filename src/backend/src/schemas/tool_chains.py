@@ -108,7 +108,10 @@ class ActionCreate(BaseModel):
     target_service: Optional[str] = Field(None, description="Target service type")
     target_tool: Optional[str] = Field(None, description="Target tool name")
     argument_mappings: Optional[Dict[str, Any]] = Field(
-        None, description="Input argument mappings from source result"
+        None, description="Input argument mappings from source result or context"
+    )
+    save_to_context: Optional[Dict[str, str]] = Field(
+        None, description="Save result values to context for later steps. Format: {'var_name': 'field.path'}"
     )
     # For message action
     message_template: Optional[str] = Field(
@@ -138,6 +141,7 @@ class ActionUpdate(BaseModel):
     target_service: Optional[str] = None
     target_tool: Optional[str] = None
     argument_mappings: Optional[Dict[str, Any]] = None
+    save_to_context: Optional[Dict[str, str]] = None
     message_template: Optional[str] = None
     order: Optional[int] = None
     execution_mode: Optional[ExecutionMode] = None
@@ -156,6 +160,7 @@ class ActionResponse(BaseModel):
     target_service: Optional[str] = None
     target_tool: Optional[str] = None
     argument_mappings: Optional[Dict[str, Any]] = None
+    save_to_context: Optional[Dict[str, str]] = None
     message_template: Optional[str] = None
     order: int
     execution_mode: str

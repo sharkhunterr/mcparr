@@ -1,9 +1,10 @@
-"""Add nested IF/THEN/ELSE conditionals support
+"""Add nested IF/THEN/ELSE conditionals and context variables support
 
 This migration adds support for nested conditional actions within tool chains:
 - Actions can now have a parent_action_id for nesting (IF/THEN/ELSE within IF/THEN/ELSE)
 - Condition groups can be attached to actions (not just steps) via action_id
 - step_id is now nullable on both condition_groups and actions for nested elements
+- Actions can save result values to context for use by later steps (save_to_context)
 
 Revision ID: def456ghi789
 Revises: abc123def456
@@ -54,9 +55,19 @@ def upgrade() -> None:
     with op.batch_alter_table('tool_chain_actions') as batch_op:
         batch_op.alter_column('step_id', existing_type=sa.String(36), nullable=True)
 
+    # 5. Add save_to_context column to actions (for saving result values to chain context)
+    op.add_column(
+        'tool_chain_actions',
+        sa.Column('save_to_context', sa.JSON, nullable=True)
+    )
+
 
 def downgrade() -> None:
     # Reverse order of operations
+
+    # 5. Remove save_to_context from actions
+    with op.batch_alter_table('tool_chain_actions') as batch_op:
+        batch_op.drop_column('save_to_context')
 
     # 4. Make step_id NOT NULL in actions (will fail if NULL values exist)
     with op.batch_alter_table('tool_chain_actions') as batch_op:
