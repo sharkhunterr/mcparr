@@ -686,7 +686,22 @@
       "editAction": "Modifier l'action",
       "editStep": "Modifier l'étape",
       "editCondition": "Modifier la condition",
-      "conditionalEditInfo": "Les conditions d'un bloc conditionnel ne peuvent pas être modifiées ici. Supprimez et recréez le bloc si nécessaire."
+      "conditionalEditInfo": "Les conditions d'un bloc conditionnel ne peuvent pas être modifiées ici. Supprimez et recréez le bloc si nécessaire.",
+      "help": {
+        "title": "Comment fonctionnent les chaînes d'outils",
+        "overview": "Vue d'ensemble",
+        "overviewContent": "Les chaînes d'outils permettent d'automatiser des séquences d'actions basées sur les résultats des outils MCP. Quand un outil s'exécute, ses résultats sont analysés et des actions de suivi peuvent être déclenchées automatiquement.",
+        "steps": "Étapes",
+        "stepsContent": "Chaque étape définit :\n• Un outil déclencheur (source)\n• Des conditions à évaluer sur le résultat\n• Des actions ALORS (si conditions vraies)\n• Des actions SINON (si conditions fausses)",
+        "conditions": "Conditions",
+        "conditionsContent": "Les conditions permettent de tester les résultats :\n• Égal, différent, contient...\n• Supérieur, inférieur (valeurs numériques)\n• Vide, non vide\n• Succès ou échec de l'outil\n\nCombinez avec ET/OU pour des logiques complexes.",
+        "actions": "Types d'actions",
+        "actionsContent": "• Appeler un outil : exécute un autre outil MCP\n• Message : affiche un message à l'IA\n• Conditionnel : bloc SI/ALORS/SINON imbriqué",
+        "mappings": "Mappings d'arguments",
+        "mappingsContent": "Transférez des valeurs entre outils :\n• result.champ → utilise le résultat de l'outil précédent\n• context.variable → utilise une variable sauvegardée",
+        "context": "Variables de contexte",
+        "contextContent": "Sauvegardez des valeurs pour les étapes suivantes :\n• Configurez \"Sauvegarder dans le contexte\" sur une action\n• Utilisez {context.variable} dans les messages\n• Utilisez context.variable dans les mappings"
+      }
     }
   }
 }

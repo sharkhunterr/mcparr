@@ -300,6 +300,7 @@ def interpolate_message_template(
     template: str,
     result: Dict[str, Any],
     input_params: Optional[Dict[str, Any]] = None,
+    chain_context: Optional[Dict[str, Any]] = None,
 ) -> str:
     """Interpolate placeholders in a message template.
 
@@ -307,11 +308,13 @@ def interpolate_message_template(
     - {result.title} - Access result fields
     - {result.data.0.name} - Access nested/array fields
     - {input.query} - Access original input parameters
+    - {context.variable} - Access saved context variables
 
     Args:
         template: The message template with placeholders
         result: The tool execution result (full dict with success, result, error)
         input_params: Original input parameters
+        chain_context: Saved context variables from previous steps
 
     Returns:
         The interpolated message string
@@ -321,9 +324,10 @@ def interpolate_message_template(
 
     # Extract the actual result data for interpolation
     result_data = result.get("result", {}) if isinstance(result.get("result"), dict) else result
+    ctx = chain_context or {}
 
-    # Find all placeholders like {result.field} or {input.param}
-    placeholder_pattern = r'\{((?:result|input)\.[\w.]+)\}'
+    # Find all placeholders like {result.field}, {input.param}, or {context.var}
+    placeholder_pattern = r'\{((?:result|input|context)\.[\w.]+)\}'
 
     def replace_placeholder(match):
         path = match.group(1)
@@ -333,6 +337,9 @@ def interpolate_message_template(
         elif path.startswith("input."):
             field_path = path[6:]  # Remove "input." prefix
             value = input_params.get(field_path) if input_params else None
+        elif path.startswith("context."):
+            var_name = path[8:]  # Remove "context." prefix
+            value = ctx.get(var_name)
         else:
             value = None
 
@@ -528,6 +535,7 @@ def build_action_suggestions(
                 action.message_template or "",
                 result,
                 input_params,
+                chain_context,
             )
             suggestion = {
                 "action_type": "message",

@@ -699,7 +699,22 @@
       "editAction": "Edit action",
       "editStep": "Edit step",
       "editCondition": "Edit condition",
-      "conditionalEditInfo": "Conditions on a conditional block cannot be edited here. Delete and recreate the block if needed."
+      "conditionalEditInfo": "Conditions on a conditional block cannot be edited here. Delete and recreate the block if needed.",
+      "help": {
+        "title": "How Tool Chains Work",
+        "overview": "Overview",
+        "overviewContent": "Tool chains automate action sequences based on MCP tool results. When a tool executes, its results are analyzed and follow-up actions can be triggered automatically.",
+        "steps": "Steps",
+        "stepsContent": "Each step defines:\n• A trigger tool (source)\n• Conditions to evaluate on the result\n• THEN actions (if conditions are true)\n• ELSE actions (if conditions are false)",
+        "conditions": "Conditions",
+        "conditionsContent": "Conditions let you test results:\n• Equals, not equals, contains...\n• Greater than, less than (numeric)\n• Empty, not empty\n• Tool success or failure\n\nCombine with AND/OR for complex logic.",
+        "actions": "Action Types",
+        "actionsContent": "• Call Tool: execute another MCP tool\n• Message: display a message to the AI\n• Conditional: nested IF/THEN/ELSE block",
+        "mappings": "Argument Mappings",
+        "mappingsContent": "Transfer values between tools:\n• result.field → uses previous tool's result\n• context.variable → uses a saved variable",
+        "context": "Context Variables",
+        "contextContent": "Save values for later steps:\n• Configure \"Save to Context\" on an action\n• Use {context.variable} in messages\n• Use context.variable in mappings"
+      }
     }
   }
 }
