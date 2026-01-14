@@ -177,8 +177,8 @@ const Help = () => {
         <div className="p-4 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center space-x-2">
-              <HelpCircle className="w-5 h-5 text-purple-600" />
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{t('help.pageTitle')}</h2>
+              <BookOpen className="w-5 h-5 text-purple-600" />
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{t('help.knowledgeBase')}</h2>
             </div>
             <div className="flex items-center space-x-2">
               <button
@@ -300,9 +300,22 @@ const Help = () => {
 
   return (
     <div className="p-4 sm:p-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <div>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+            <HelpCircle className="w-6 h-6 sm:w-8 sm:h-8 text-purple-600" />
+            {t('help.pageTitle')}
+          </h1>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+            {t('help.pageSubtitle')}
+          </p>
+        </div>
+      </div>
+
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-        {/* Desktop Layout: Side by Side */}
-        <div className="hidden md:flex h-[600px]">
+        {/* Desktop Layout: Side by Side - calc accounts for header, padding, and page title */}
+        <div className="hidden md:flex h-[calc(100vh-220px)] min-h-[400px]">
           {/* Left sidebar - Topic List */}
           <div className="w-1/2 lg:w-2/5 border-r border-gray-200 dark:border-gray-700 flex-shrink-0">
             {renderTopicsList()}
@@ -316,8 +329,8 @@ const Help = () => {
 
         {/* Mobile Layout: Full width list, detail as modal */}
         <div className="md:hidden">
-          {/* Topic List - Full Width */}
-          <div className="min-h-[400px]">
+          {/* Topic List - Full Width - calc accounts for header and padding */}
+          <div className="h-[calc(100vh-200px)] min-h-[300px]">
             {renderTopicsList()}
           </div>
 
