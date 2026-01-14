@@ -74,7 +74,7 @@ const ToolChainCreateModal: FC<ToolChainCreateModalProps> = ({ onClose, onCreate
         {/* Header */}
         <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between flex-shrink-0">
           <div className="flex items-center space-x-2">
-            <Link2 className="w-5 h-5 text-purple-600" />
+            <Link2 className="w-5 h-5 text-emerald-600" />
             <h2 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">
               {t('toolChains.create.title')}
             </h2>
@@ -105,7 +105,7 @@ const ToolChainCreateModal: FC<ToolChainCreateModalProps> = ({ onClose, onCreate
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder={t('toolChains.create.namePlaceholder')}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
               autoFocus
             />
           </div>
@@ -120,7 +120,7 @@ const ToolChainCreateModal: FC<ToolChainCreateModalProps> = ({ onClose, onCreate
               onChange={(e) => setDescription(e.target.value)}
               placeholder={t('toolChains.create.descriptionPlaceholder')}
               rows={2}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none"
             />
           </div>
 
@@ -166,7 +166,7 @@ const ToolChainCreateModal: FC<ToolChainCreateModalProps> = ({ onClose, onCreate
               type="number"
               value={priority}
               onChange={(e) => setPriority(parseInt(e.target.value) || 0)}
-              className="w-24 px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              className="w-24 px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
             />
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
               {t('toolChains.create.priorityHelp')}
@@ -192,7 +192,7 @@ const ToolChainCreateModal: FC<ToolChainCreateModalProps> = ({ onClose, onCreate
             <button
               type="submit"
               disabled={loading || !name.trim()}
-              className="flex items-center space-x-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 transition-colors"
+              className="flex items-center space-x-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-50 transition-colors"
             >
               {loading && <Loader2 className="w-4 h-4 animate-spin" />}
               <span>{t('toolChains.create.submit')}</span>

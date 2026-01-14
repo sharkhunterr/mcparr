@@ -2320,13 +2320,12 @@ export default function MCP() {
               {/* Actions bar in card container */}
               <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-3 sm:p-4">
                 <div className="flex flex-row gap-2 sm:gap-3 items-center">
-                  {/* Refresh button */}
+                  {/* Refresh button - icon only on all screens */}
                   <button
                     onClick={fetchData}
-                    className="p-2 sm:px-3 sm:py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 flex items-center gap-2 transition-colors flex-shrink-0"
+                    className="p-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 flex items-center transition-colors flex-shrink-0"
                   >
                     <RefreshCw className="w-4 h-4" />
-                    <span className="hidden sm:inline">{t('refresh')}</span>
                   </button>
 
                   {/* Time range filter */}
@@ -2683,13 +2682,12 @@ export default function MCP() {
               <div className="p-3 sm:p-4">
                 {/* Actions bar with filters - single row layout matching UserMappingList */}
                 <div className="flex flex-row gap-2 sm:gap-3 items-center mb-4">
-                  {/* Refresh button */}
+                  {/* Refresh button - icon only on all screens */}
                   <button
                     onClick={fetchData}
-                    className="p-2 sm:px-3 sm:py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 flex items-center gap-2 transition-colors flex-shrink-0"
+                    className="p-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 flex items-center transition-colors flex-shrink-0"
                   >
                     <RefreshCw className="w-4 h-4" />
-                    <span className="hidden sm:inline">{t('refresh')}</span>
                   </button>
 
                   {/* Time range filter */}
@@ -2877,16 +2875,15 @@ export default function MCP() {
               <div className="p-3 sm:p-4">
                 {/* Actions bar - single row layout matching History tab */}
                 <div className="flex flex-row gap-2 sm:gap-3 items-center mb-4">
-                  {/* Refresh button */}
+                  {/* Refresh button - icon only on all screens */}
                   <button
                     onClick={fetchData}
-                    className="p-2 sm:px-3 sm:py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 flex items-center gap-2 transition-colors flex-shrink-0"
+                    className="p-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 flex items-center transition-colors flex-shrink-0"
                   >
                     <RefreshCw className="w-4 h-4" />
-                    <span className="hidden sm:inline">{t('refresh')}</span>
                   </button>
 
-                  {/* Expand All button */}
+                  {/* Expand All button - hidden on mobile */}
                   <button
                     onClick={() => toggleAllServices(true)}
                     className="hidden sm:flex px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 items-center gap-2 transition-colors flex-shrink-0"
@@ -2894,7 +2891,7 @@ export default function MCP() {
                     {t('tools.expandAll')}
                   </button>
 
-                  {/* Collapse All button */}
+                  {/* Collapse All button - hidden on mobile */}
                   <button
                     onClick={() => toggleAllServices(false)}
                     className="hidden sm:flex px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 items-center gap-2 transition-colors flex-shrink-0"
@@ -2902,10 +2899,13 @@ export default function MCP() {
                     {t('tools.collapseAll')}
                   </button>
 
-                  {/* Tools count info */}
-                  <div className="flex-1 text-sm text-gray-600 dark:text-gray-400 hidden md:block">
+                  {/* Tools count info - visible on md+ */}
+                  <div className="text-sm text-gray-600 dark:text-gray-400 hidden md:block">
                     {t('tools.toolsAvailable', { count: tools?.total || 0, services: Object.keys(toolsByService).length })}
                   </div>
+
+                  {/* Spacer to push help to the right */}
+                  <div className="flex-1" />
 
                   {/* Help button */}
                   <HelpTooltip topicId="tools" />

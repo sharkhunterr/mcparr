@@ -113,12 +113,12 @@ const GroupList: FC<GroupListProps> = ({ onSelectGroup, onCreateGroup, selectedG
             </button>
             <button
               onClick={onCreateGroup}
-              className="flex items-center space-x-1 px-3 py-1.5 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors"
+              className="flex items-center gap-2 px-3 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors"
             >
               <Plus className="w-4 h-4" />
               <span>{t('list.new')}</span>
             </button>
-            <HelpTooltip topicId="groups" />
+            <HelpTooltip topicId="groups" iconSize="sm" />
           </div>
         </div>
 

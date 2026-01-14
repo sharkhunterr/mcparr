@@ -447,14 +447,13 @@ const UserMappingCreator: FC<UserMappingCreatorProps> = ({
       {/* Actions bar with search and filters */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-3 sm:p-4">
         <div className="flex flex-row gap-2 sm:gap-3 items-center">
-          {/* Refresh button */}
+          {/* Refresh button - icon only on all screens */}
           <button
             onClick={enumerateUsers}
             disabled={loading}
-            className="p-2 sm:px-3 sm:py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 flex items-center gap-2 transition-colors flex-shrink-0"
+            className="p-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 flex items-center transition-colors flex-shrink-0"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-            <span className="hidden sm:inline">{t('creator.refresh')}</span>
           </button>
 
           {/* Search input */}

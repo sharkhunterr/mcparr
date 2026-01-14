@@ -505,24 +505,23 @@ const UserMappingList: FC<UserMappingListProps> = ({
       <div className="p-3 sm:p-4">
         {/* Actions bar with search and filters */}
         <div className="flex flex-row gap-2 sm:gap-3 items-center mb-4">
-          {/* Refresh button */}
+          {/* Refresh button - icon only on all screens */}
           <button
             onClick={fetchMappings}
             disabled={loading}
-            className="p-2 sm:px-3 sm:py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 flex items-center gap-2 transition-colors flex-shrink-0"
+            className="p-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 flex items-center transition-colors flex-shrink-0"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-            <span className="hidden sm:inline">{t('list.refresh')}</span>
           </button>
 
-          {/* Add button */}
+          {/* Add button - text visible on all screens */}
           {onCreateMapping && (
             <button
               onClick={onCreateMapping}
-              className="p-2 sm:px-3 sm:py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg flex items-center gap-2 transition-colors flex-shrink-0"
+              className="px-3 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg flex items-center gap-2 transition-colors flex-shrink-0"
             >
               <Plus className="w-4 h-4" />
-              <span className="hidden sm:inline">{t('list.add')}</span>
+              <span>{t('list.add')}</span>
             </button>
           )}
 

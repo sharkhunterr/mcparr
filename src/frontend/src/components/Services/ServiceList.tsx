@@ -300,20 +300,23 @@ const ServiceList: React.FC = () => {
 
   return (
     <div>
-      {/* Actions bar - buttons left, count + help right */}
-      <div className="flex items-center justify-between gap-4 mb-6">
-        <div className="flex items-center gap-2">
+      {/* Actions bar - card container matching other pages */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-3 sm:p-4 mb-6">
+        <div className="flex flex-row gap-2 sm:gap-3 items-center">
+          {/* Refresh button - icon only on all screens */}
           <button
             onClick={fetchServices}
-            className="p-2 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+            className="p-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 flex items-center transition-colors flex-shrink-0"
             title={t('common:actions.refresh')}
           >
             <RefreshCw className="w-4 h-4" />
           </button>
+
+          {/* Test All button - text visible on all screens */}
           <button
             onClick={handleTestAll}
             disabled={testingAll || services.filter(s => s.enabled).length === 0}
-            className="bg-orange-600 hover:bg-orange-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+            className="px-3 py-2 text-sm font-medium bg-orange-600 hover:bg-orange-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg flex items-center gap-2 transition-colors flex-shrink-0"
             title={t('services:actions.testAll')}
           >
             {testingAll ? (
@@ -321,23 +324,30 @@ const ServiceList: React.FC = () => {
             ) : (
               <PlayCircle className="w-4 h-4" />
             )}
-            <span className="hidden sm:inline">{t('services:actions.testAll')}</span>
+            <span>{t('services:actions.testAll')}</span>
           </button>
+
+          {/* Add button - text visible on all screens */}
           <button
             onClick={() => setShowCreateModal(true)}
-            className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+            className="px-3 py-2 text-sm font-medium bg-orange-600 hover:bg-orange-700 text-white rounded-lg flex items-center gap-2 transition-colors flex-shrink-0"
           >
             <Plus className="w-4 h-4" />
-            <span className="hidden sm:inline">{t('common:actions.add')}</span>
+            <span>{t('common:actions.add')}</span>
           </button>
-        </div>
-        <div className="flex items-center gap-3">
+
+          {/* Services count - visible on md+ */}
           {services.length > 0 && (
-            <span className="hidden sm:inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300">
+            <span className="hidden md:inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300">
               {t(services.length > 1 ? 'services:subtitle_plural' : 'services:subtitle', { count: services.length })}
             </span>
           )}
-          <HelpTooltip topicId="services" iconSize="sm" />
+
+          {/* Spacer */}
+          <div className="flex-1" />
+
+          {/* Help button */}
+          <HelpTooltip topicId="services" />
         </div>
       </div>
 
