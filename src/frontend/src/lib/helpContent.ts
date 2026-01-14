@@ -26,9 +26,41 @@ export interface HelpCategory {
 
 /**
  * All help topics organized by category.
- * Keys reference i18n translation keys in mcp.json
+ * Keys reference i18n translation keys in mcp.json (for MCP topics)
+ * and services.json (for services topics)
  */
 export const helpCategories: HelpCategory[] = [
+  {
+    id: 'services',
+    titleKey: 'services:help.category',
+    icon: 'Server',
+    topics: [
+      {
+        id: 'services',
+        titleKey: 'services:help.title',
+        descriptionKey: 'services:help.overviewContent',
+        icon: 'Server',
+        sections: [
+          { titleKey: 'services:help.overview', contentKey: 'services:help.overviewContent' },
+          { titleKey: 'services:help.configure', contentKey: 'services:help.configureContent' },
+          { titleKey: 'services:help.test', contentKey: 'services:help.testContent' },
+          { titleKey: 'services:help.status', contentKey: 'services:help.statusContent' },
+        ],
+      },
+      {
+        id: 'serviceGroups',
+        titleKey: 'services:serviceGroups.help.title',
+        descriptionKey: 'services:serviceGroups.help.overviewContent',
+        icon: 'Layers',
+        sections: [
+          { titleKey: 'services:serviceGroups.help.overview', contentKey: 'services:serviceGroups.help.overviewContent' },
+          { titleKey: 'services:serviceGroups.help.create', contentKey: 'services:serviceGroups.help.createContent' },
+          { titleKey: 'services:serviceGroups.help.assign', contentKey: 'services:serviceGroups.help.assignContent' },
+          { titleKey: 'services:serviceGroups.help.mcp', contentKey: 'services:serviceGroups.help.mcpContent' },
+        ],
+      },
+    ],
+  },
   {
     id: 'mcp',
     titleKey: 'help.categories.mcp',

@@ -4,6 +4,63 @@
   "subtitle": "{{count}} service configuré",
   "subtitle_plural": "{{count}} services configurés",
 
+  "help": {
+    "category": "Services & Configuration",
+    "title": "Gestion des services",
+    "overview": "Vue d'ensemble",
+    "overviewContent": "Cette page vous permet de configurer et gérer tous les services de votre homelab (Plex, Radarr, Sonarr, etc.). Chaque service représente une application accessible via l'API MCP.",
+    "configure": "Configurer un service",
+    "configureContent": "Pour ajouter un service :\n• Cliquez sur \"Ajouter\"\n• Sélectionnez le type de service\n• Entrez l'URL de base et le port\n• Configurez l'authentification (clé API ou identifiants)\n• Optionnellement, définissez l'URL externe pour l'accès distant",
+    "test": "Tester les connexions",
+    "testContent": "Vérifiez que vos services sont correctement configurés :\n• Bouton \"Tester\" individuel sur chaque service\n• Bouton \"Tester tout\" pour vérifier tous les services actifs\n• Le test vérifie la résolution DNS, la connexion réseau, la réponse HTTP et l'authentification",
+    "status": "États des services",
+    "statusContent": "Les indicateurs de statut montrent l'état de chaque service :\n• Vert (En ligne) : service accessible et fonctionnel\n• Rouge (Erreur) : problème de connexion ou d'authentification\n• Gris (Désactivé) : service désactivé manuellement\n• Jaune (Inconnu) : jamais testé",
+    "groups": "Groupes de services",
+    "groupsContent": "Organisez vos services en groupes personnalisés :\n• Créez des groupes thématiques (Médias, Téléchargement...)\n• Attribuez une couleur et une priorité\n• Utilisez les groupes pour filtrer les outils MCP exposés"
+  },
+
+  "form": {
+    "addTitle": "Ajouter un service",
+    "editTitle": "Modifier le service",
+    "basicInfo": "Informations de base",
+    "serviceName": "Nom du service",
+    "serviceNamePlaceholder": "Mon serveur Plex",
+    "serviceType": "Type de service",
+    "selectServiceType": "Sélectionnez un type de service",
+    "description": "Description",
+    "descriptionPlaceholder": "Description optionnelle du service",
+    "connection": "Connexion",
+    "baseUrl": "URL de base",
+    "baseUrlHelp": "URL interne pour accéder au service",
+    "externalUrl": "URL externe",
+    "externalUrlHelp": "URL publique pour accès distant (optionnel)",
+    "port": "Port",
+    "authentication": "Authentification",
+    "apiKey": "Clé API",
+    "apiKeyHelp": "Clé API ou token d'authentification",
+    "username": "Nom d'utilisateur",
+    "password": "Mot de passe",
+    "options": "Options",
+    "enabled": "Service activé",
+    "healthCheck": "Vérification de santé",
+    "healthCheckEnabled": "Activer les vérifications automatiques",
+    "healthCheckInterval": "Intervalle (secondes)",
+    "cancel": "Annuler",
+    "save": "Enregistrer",
+    "saving": "Enregistrement...",
+    "errors": {
+      "nameRequired": "Le nom du service est requis",
+      "typeRequired": "Le type de service est requis",
+      "urlRequired": "L'URL de base est requise",
+      "urlInvalid": "Format d'URL invalide",
+      "portInvalid": "Le port doit être un nombre entre 1 et 65535",
+      "apiKeyRequired": "La clé API est requise pour ce type de service",
+      "usernameRequired": "Le nom d'utilisateur est requis pour ce type de service",
+      "passwordRequired": "Le mot de passe est requis pour ce type de service",
+      "intervalInvalid": "L'intervalle doit être un nombre"
+    }
+  },
+
   "tabs": {
     "services": {
       "label": "Services",
@@ -123,6 +180,17 @@
   "serviceGroups": {
     "title": "Groupes de services",
     "description": "Créez des groupes personnalisés pour organiser vos services",
+    "help": {
+      "title": "Groupes de services",
+      "overview": "Vue d'ensemble",
+      "overviewContent": "Les groupes de services permettent d'organiser vos services en catégories personnalisées. Ils sont utilisés pour filtrer les outils MCP exposés à l'IA.",
+      "create": "Créer un groupe",
+      "createContent": "Pour créer un groupe :\n• Cliquez sur \"Nouveau\"\n• Donnez un nom descriptif au groupe\n• Ajoutez une description optionnelle\n• Choisissez une couleur pour l'identifier\n• Définissez une priorité d'affichage",
+      "assign": "Assigner des services",
+      "assignContent": "Après avoir créé un groupe :\n• Sélectionnez le groupe dans la liste\n• Allez dans l'onglet \"Services\"\n• Cochez les services à inclure\n• Les changements sont sauvegardés automatiquement",
+      "mcp": "Utilisation avec MCP",
+      "mcpContent": "Les groupes de services sont utilisés pour :\n• Filtrer les outils exposés dans Open WebUI\n• Créer des endpoints MCP spécialisés par groupe\n• Limiter l'accès à certains outils selon le contexte"
+    },
     "management": {
       "title": "Sélectionnez un groupe",
       "description": "Choisissez un groupe de services dans la liste pour voir et gérer ses services."

@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { getApiBaseUrl } from '../../lib/api';
+import { HelpTooltip } from '../common';
 import type { ServiceGroup } from '../../types/api';
 
 interface ServiceGroupListProps {
@@ -131,6 +132,7 @@ const ServiceGroupList: FC<ServiceGroupListProps> = ({ onSelectGroup, onCreateGr
               <Plus className="w-4 h-4" />
               <span>{t('serviceGroups.list.new')}</span>
             </button>
+            <HelpTooltip topicId="serviceGroups" iconSize="sm" />
           </div>
         </div>
 

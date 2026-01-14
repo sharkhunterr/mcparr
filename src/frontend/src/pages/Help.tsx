@@ -10,6 +10,8 @@ import {
   Link2,
   BookOpen,
   ExternalLink,
+  Server,
+  Layers,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { helpCategories, type HelpTopic } from '../lib/helpContent';
@@ -22,10 +24,24 @@ const iconMap: Record<string, React.ElementType> = {
   Link2,
   HelpCircle,
   BookOpen,
+  Server,
+  Layers,
 };
 
 // Color mapping for topics
 const topicColors: Record<string, { bg: string; text: string; border: string; iconBg: string }> = {
+  services: {
+    bg: 'bg-orange-50 dark:bg-orange-900/20',
+    text: 'text-orange-700 dark:text-orange-300',
+    border: 'border-orange-200 dark:border-orange-800',
+    iconBg: 'bg-orange-100 dark:bg-orange-900/40',
+  },
+  serviceGroups: {
+    bg: 'bg-teal-50 dark:bg-teal-900/20',
+    text: 'text-teal-700 dark:text-teal-300',
+    border: 'border-teal-200 dark:border-teal-800',
+    iconBg: 'bg-teal-100 dark:bg-teal-900/40',
+  },
   tools: {
     bg: 'bg-blue-50 dark:bg-blue-900/20',
     text: 'text-blue-700 dark:text-blue-300',
@@ -54,7 +70,8 @@ const defaultColors = {
 };
 
 const Help = () => {
-  const { t } = useTranslation('mcp');
+  // Support multiple namespaces for translations (mcp and services)
+  const { t } = useTranslation(['mcp', 'services']);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTopic, setSelectedTopic] = useState<HelpTopic | null>(null);
 

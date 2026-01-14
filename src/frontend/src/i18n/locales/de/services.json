@@ -4,6 +4,61 @@
   "subtitle": "{{count}} konfigurierter Dienst",
   "subtitle_plural": "{{count}} konfigurierte Dienste",
 
+  "help": {
+    "category": "Dienste & Konfiguration",
+    "title": "Dienstverwaltung",
+    "overview": "Übersicht",
+    "overviewContent": "Diese Seite ermöglicht Ihnen die Konfiguration und Verwaltung aller Ihrer Homelab-Dienste (Plex, Radarr, Sonarr usw.). Jeder Dienst stellt eine Anwendung dar, die über die MCP-API erreichbar ist.",
+    "configure": "Dienst konfigurieren",
+    "configureContent": "Um einen Dienst hinzuzufügen:\n• Klicken Sie auf \"Hinzufügen\"\n• Wählen Sie den Diensttyp\n• Geben Sie die Basis-URL und den Port ein\n• Konfigurieren Sie die Authentifizierung (API-Schlüssel oder Anmeldedaten)\n• Optional: Externe URL für Fernzugriff festlegen",
+    "test": "Verbindungen testen",
+    "testContent": "Überprüfen Sie, ob Ihre Dienste korrekt konfiguriert sind:\n• Individueller \"Testen\"-Button für jeden Dienst\n• \"Alle testen\"-Button für alle aktiven Dienste\n• Tests prüfen DNS-Auflösung, Netzwerkverbindung, HTTP-Antwort und Authentifizierung",
+    "status": "Dienststatus",
+    "statusContent": "Statusanzeigen zeigen den Zustand jedes Dienstes:\n• Grün (Online): Dienst ist erreichbar und funktionsfähig\n• Rot (Fehler): Verbindungs- oder Authentifizierungsproblem\n• Grau (Deaktiviert): Dienst manuell deaktiviert\n• Gelb (Unbekannt): Noch nie getestet"
+  },
+
+  "form": {
+    "addTitle": "Dienst hinzufügen",
+    "editTitle": "Dienst bearbeiten",
+    "basicInfo": "Grundinformationen",
+    "serviceName": "Dienstname",
+    "serviceNamePlaceholder": "Mein Plex-Server",
+    "serviceType": "Diensttyp",
+    "selectServiceType": "Diensttyp auswählen",
+    "description": "Beschreibung",
+    "descriptionPlaceholder": "Optionale Dienstbeschreibung",
+    "connection": "Verbindung",
+    "baseUrl": "Basis-URL",
+    "baseUrlHelp": "Interne URL für den Zugriff auf den Dienst",
+    "externalUrl": "Externe URL",
+    "externalUrlHelp": "Öffentliche URL für Fernzugriff (optional)",
+    "port": "Port",
+    "authentication": "Authentifizierung",
+    "apiKey": "API-Schlüssel",
+    "apiKeyHelp": "API-Schlüssel oder Authentifizierungstoken",
+    "username": "Benutzername",
+    "password": "Passwort",
+    "options": "Optionen",
+    "enabled": "Dienst aktiviert",
+    "healthCheck": "Statusprüfung",
+    "healthCheckEnabled": "Automatische Prüfungen aktivieren",
+    "healthCheckInterval": "Intervall (Sekunden)",
+    "cancel": "Abbrechen",
+    "save": "Speichern",
+    "saving": "Speichern...",
+    "errors": {
+      "nameRequired": "Dienstname ist erforderlich",
+      "typeRequired": "Diensttyp ist erforderlich",
+      "urlRequired": "Basis-URL ist erforderlich",
+      "urlInvalid": "Ungültiges URL-Format",
+      "portInvalid": "Port muss eine Zahl zwischen 1 und 65535 sein",
+      "apiKeyRequired": "API-Schlüssel ist für diesen Diensttyp erforderlich",
+      "usernameRequired": "Benutzername ist für diesen Diensttyp erforderlich",
+      "passwordRequired": "Passwort ist für diesen Diensttyp erforderlich",
+      "intervalInvalid": "Intervall muss eine Zahl sein"
+    }
+  },
+
   "tabs": {
     "services": {
       "label": "Dienste",
@@ -123,6 +178,17 @@
   "serviceGroups": {
     "title": "Dienstgruppen",
     "description": "Erstellen Sie benutzerdefinierte Gruppen zur Organisation Ihrer Dienste",
+    "help": {
+      "title": "Dienstgruppen",
+      "overview": "Übersicht",
+      "overviewContent": "Dienstgruppen ermöglichen es Ihnen, Ihre Dienste in benutzerdefinierten Kategorien zu organisieren. Sie werden verwendet, um die der KI bereitgestellten MCP-Tools zu filtern.",
+      "create": "Gruppe erstellen",
+      "createContent": "Um eine Gruppe zu erstellen:\n• Klicken Sie auf \"Neu\"\n• Geben Sie der Gruppe einen beschreibenden Namen\n• Fügen Sie eine optionale Beschreibung hinzu\n• Wählen Sie eine Farbe zur Identifikation\n• Legen Sie eine Anzeigepriorität fest",
+      "assign": "Dienste zuweisen",
+      "assignContent": "Nach dem Erstellen einer Gruppe:\n• Wählen Sie die Gruppe aus der Liste\n• Gehen Sie zum Tab \"Dienste\"\n• Aktivieren Sie die einzuschließenden Dienste\n• Änderungen werden automatisch gespeichert",
+      "mcp": "Verwendung mit MCP",
+      "mcpContent": "Dienstgruppen werden verwendet für:\n• Filterung der in Open WebUI bereitgestellten Tools\n• Erstellung spezialisierter MCP-Endpunkte pro Gruppe\n• Einschränkung des Zugriffs auf bestimmte Tools je nach Kontext"
+    },
     "management": {
       "title": "Gruppe auswählen",
       "description": "Wählen Sie eine Dienstgruppe aus der Liste, um ihre Dienste anzuzeigen und zu verwalten."

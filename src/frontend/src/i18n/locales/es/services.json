@@ -4,6 +4,61 @@
   "subtitle": "{{count}} servicio configurado",
   "subtitle_plural": "{{count}} servicios configurados",
 
+  "help": {
+    "category": "Servicios y Configuración",
+    "title": "Gestión de servicios",
+    "overview": "Descripción general",
+    "overviewContent": "Esta página le permite configurar y gestionar todos sus servicios homelab (Plex, Radarr, Sonarr, etc.). Cada servicio representa una aplicación accesible a través de la API MCP.",
+    "configure": "Configurar un servicio",
+    "configureContent": "Para agregar un servicio:\n• Haga clic en \"Agregar\"\n• Seleccione el tipo de servicio\n• Ingrese la URL base y el puerto\n• Configure la autenticación (clave API o credenciales)\n• Opcionalmente, establezca la URL externa para acceso remoto",
+    "test": "Probar conexiones",
+    "testContent": "Verifique que sus servicios estén correctamente configurados:\n• Botón \"Probar\" individual en cada servicio\n• Botón \"Probar todos\" para verificar todos los servicios activos\n• Las pruebas verifican resolución DNS, conexión de red, respuesta HTTP y autenticación",
+    "status": "Estados de servicios",
+    "statusContent": "Los indicadores de estado muestran el estado de cada servicio:\n• Verde (En línea): servicio accesible y funcional\n• Rojo (Error): problema de conexión o autenticación\n• Gris (Desactivado): servicio desactivado manualmente\n• Amarillo (Desconocido): nunca probado"
+  },
+
+  "form": {
+    "addTitle": "Agregar un servicio",
+    "editTitle": "Editar servicio",
+    "basicInfo": "Información básica",
+    "serviceName": "Nombre del servicio",
+    "serviceNamePlaceholder": "Mi servidor Plex",
+    "serviceType": "Tipo de servicio",
+    "selectServiceType": "Selecciona un tipo de servicio",
+    "description": "Descripción",
+    "descriptionPlaceholder": "Descripción opcional del servicio",
+    "connection": "Conexión",
+    "baseUrl": "URL base",
+    "baseUrlHelp": "URL interna para acceder al servicio",
+    "externalUrl": "URL externa",
+    "externalUrlHelp": "URL pública para acceso remoto (opcional)",
+    "port": "Puerto",
+    "authentication": "Autenticación",
+    "apiKey": "Clave API",
+    "apiKeyHelp": "Clave API o token de autenticación",
+    "username": "Nombre de usuario",
+    "password": "Contraseña",
+    "options": "Opciones",
+    "enabled": "Servicio habilitado",
+    "healthCheck": "Verificación de estado",
+    "healthCheckEnabled": "Habilitar verificaciones automáticas",
+    "healthCheckInterval": "Intervalo (segundos)",
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "saving": "Guardando...",
+    "errors": {
+      "nameRequired": "El nombre del servicio es requerido",
+      "typeRequired": "El tipo de servicio es requerido",
+      "urlRequired": "La URL base es requerida",
+      "urlInvalid": "Formato de URL inválido",
+      "portInvalid": "El puerto debe ser un número entre 1 y 65535",
+      "apiKeyRequired": "La clave API es requerida para este tipo de servicio",
+      "usernameRequired": "El nombre de usuario es requerido para este tipo de servicio",
+      "passwordRequired": "La contraseña es requerida para este tipo de servicio",
+      "intervalInvalid": "El intervalo debe ser un número"
+    }
+  },
+
   "tabs": {
     "services": {
       "label": "Servicios",
@@ -123,6 +178,17 @@
   "serviceGroups": {
     "title": "Grupos de servicios",
     "description": "Crea grupos personalizados para organizar tus servicios",
+    "help": {
+      "title": "Grupos de servicios",
+      "overview": "Descripción general",
+      "overviewContent": "Los grupos de servicios le permiten organizar sus servicios en categorías personalizadas. Se utilizan para filtrar las herramientas MCP expuestas a la IA.",
+      "create": "Crear un grupo",
+      "createContent": "Para crear un grupo:\n• Haga clic en \"Nuevo\"\n• Dé al grupo un nombre descriptivo\n• Agregue una descripción opcional\n• Elija un color para identificarlo\n• Establezca una prioridad de visualización",
+      "assign": "Asignar servicios",
+      "assignContent": "Después de crear un grupo:\n• Seleccione el grupo de la lista\n• Vaya a la pestaña \"Servicios\"\n• Marque los servicios a incluir\n• Los cambios se guardan automáticamente",
+      "mcp": "Uso con MCP",
+      "mcpContent": "Los grupos de servicios se utilizan para:\n• Filtrar herramientas expuestas en Open WebUI\n• Crear endpoints MCP especializados por grupo\n• Limitar el acceso a ciertas herramientas según el contexto"
+    },
     "management": {
       "title": "Selecciona un grupo",
       "description": "Elige un grupo de servicios de la lista para ver y gestionar sus servicios."

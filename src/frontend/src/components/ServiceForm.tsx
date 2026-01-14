@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Eye, EyeOff, HelpCircle, AlertCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface ServiceFormData {
   name: string;
@@ -196,6 +197,7 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
   initialData = {},
   isEditing = false
 }) => {
+  const { t } = useTranslation('services');
   const [formData, setFormData] = useState<ServiceFormData>({
     name: '',
     service_type: '',
@@ -241,25 +243,25 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
     const newErrors: Record<string, string> = {};
 
     if (!formData.name.trim()) {
-      newErrors.name = 'Service name is required';
+      newErrors.name = t('form.errors.nameRequired');
     }
 
     if (!formData.service_type) {
-      newErrors.service_type = 'Service type is required';
+      newErrors.service_type = t('form.errors.typeRequired');
     }
 
     if (!formData.base_url.trim()) {
-      newErrors.base_url = 'Base URL is required';
+      newErrors.base_url = t('form.errors.urlRequired');
     } else {
       try {
         new URL(formData.base_url);
       } catch {
-        newErrors.base_url = 'Invalid URL format';
+        newErrors.base_url = t('form.errors.urlInvalid');
       }
     }
 
     if (formData.port && (isNaN(Number(formData.port)) || Number(formData.port) < 1 || Number(formData.port) > 65535)) {
-      newErrors.port = 'Port must be a number between 1 and 65535';
+      newErrors.port = t('form.errors.portInvalid');
     }
 
     // Validate external URL if provided
@@ -267,25 +269,25 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
       try {
         new URL(formData.external_url);
       } catch {
-        newErrors.external_url = 'Invalid URL format';
+        newErrors.external_url = t('form.errors.urlInvalid');
       }
     }
 
     // Validate auth fields based on service type
     if (selectedServiceType) {
       if (selectedServiceType.fields.includes('api_key') && !formData.api_key.trim()) {
-        newErrors.api_key = 'API key is required for this service type';
+        newErrors.api_key = t('form.errors.apiKeyRequired');
       }
       if (selectedServiceType.fields.includes('username') && !formData.username.trim()) {
-        newErrors.username = 'Username is required for this service type';
+        newErrors.username = t('form.errors.usernameRequired');
       }
       if (selectedServiceType.fields.includes('password') && !formData.password.trim()) {
-        newErrors.password = 'Password is required for this service type';
+        newErrors.password = t('form.errors.passwordRequired');
       }
     }
 
     if (formData.health_check_interval && isNaN(Number(formData.health_check_interval))) {
-      newErrors.health_check_interval = 'Health check interval must be a number';
+      newErrors.health_check_interval = t('form.errors.intervalInvalid');
     }
 
     setErrors(newErrors);
@@ -318,7 +320,7 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
         <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-6">
           <div className="flex items-center justify-between">
             <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-              {isEditing ? 'Edit Service' : 'Add New Service'}
+              {isEditing ? t('form.editTitle') : t('form.addTitle')}
             </h3>
             <button
               onClick={onClose}
@@ -332,11 +334,11 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
           {/* Basic Information */}
           <div className="space-y-4">
-            <h4 className="text-lg font-medium text-gray-900 dark:text-white">Basic Information</h4>
+            <h4 className="text-lg font-medium text-gray-900 dark:text-white">{t('form.basicInfo')}</h4>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Service Name *
+                {t('form.serviceName')} *
               </label>
               <input
                 type="text"
@@ -345,7 +347,7 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
                 className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white ${
                   errors.name ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                 }`}
-                placeholder="My Plex Server"
+                placeholder={t('form.serviceNamePlaceholder')}
                 disabled={loading}
               />
               {errors.name && (
@@ -358,7 +360,7 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Service Type *
+                {t('form.serviceType')} *
               </label>
               <select
                 value={formData.service_type}
@@ -368,7 +370,7 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
                 }`}
                 disabled={loading}
               >
-                <option value="">Select a service type</option>
+                <option value="">{t('form.selectServiceType')}</option>
                 {SERVICE_TYPES.map((type) => (
                   <option key={type.value} value={type.value}>
                     {type.label}
@@ -390,14 +392,14 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Description
+                {t('form.description')}
               </label>
               <textarea
                 value={formData.description}
                 onChange={(e) => handleChange('description', e.target.value)}
                 rows={3}
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Optional description of this service"
+                placeholder={t('form.descriptionPlaceholder')}
                 disabled={loading}
               />
             </div>
@@ -405,12 +407,12 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
 
           {/* Connection Settings */}
           <div className="space-y-4">
-            <h4 className="text-lg font-medium text-gray-900 dark:text-white">Connection Settings</h4>
+            <h4 className="text-lg font-medium text-gray-900 dark:text-white">{t('form.connection')}</h4>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Base URL *
+                  {t('form.baseUrl')} *
                 </label>
                 <input
                   type="url"
@@ -422,6 +424,9 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
                   placeholder={selectedServiceType?.urlPlaceholder || 'http://service.local'}
                   disabled={loading}
                 />
+                <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                  {t('form.baseUrlHelp')}
+                </p>
                 {errors.base_url && (
                   <p className="mt-1 text-sm text-red-600 flex items-center">
                     <AlertCircle className="w-4 h-4 mr-1" />
@@ -432,7 +437,7 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Port
+                  {t('form.port')}
                 </label>
                 <input
                   type="number"
@@ -457,8 +462,8 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                External URL
-                <span title="Public URL for external access (used for clickable links)">
+                {t('form.externalUrl')}
+                <span title={t('form.externalUrlHelp')}>
                   <HelpCircle className="w-4 h-4 inline ml-1 text-gray-400" />
                 </span>
               </label>
@@ -479,7 +484,7 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
                 </p>
               )}
               <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                Public URL for users to access the service (used for clickable links in AI responses)
+                {t('form.externalUrlHelp')}
               </p>
             </div>
           </div>
@@ -487,13 +492,15 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
           {/* Authentication */}
           {selectedServiceType && selectedServiceType.fields.length > 0 && (
             <div className="space-y-4">
-              <h4 className="text-lg font-medium text-gray-900 dark:text-white">Authentication</h4>
+              <h4 className="text-lg font-medium text-gray-900 dark:text-white">{t('form.authentication')}</h4>
 
               {selectedServiceType.fields.includes('api_key') && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    API Key *
-                    <HelpCircle className="w-4 h-4 inline ml-1 text-gray-400" />
+                    {t('form.apiKey')} *
+                    <span title={t('form.apiKeyHelp')}>
+                      <HelpCircle className="w-4 h-4 inline ml-1 text-gray-400" />
+                    </span>
                   </label>
                   <div className="relative">
                     <input
@@ -503,7 +510,7 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
                       className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-10 dark:bg-gray-700 dark:text-white ${
                         errors.api_key ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                       }`}
-                      placeholder="Enter your API key"
+                      placeholder={t('form.apiKeyHelp')}
                       disabled={loading}
                     />
                     <button
@@ -526,7 +533,7 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
               {selectedServiceType.fields.includes('username') && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Username *
+                    {t('form.username')} *
                   </label>
                   <input
                     type="text"
@@ -535,7 +542,7 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
                     className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white ${
                       errors.username ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                     }`}
-                    placeholder="Username"
+                    placeholder={t('form.username')}
                     disabled={loading}
                   />
                   {errors.username && (
@@ -550,7 +557,7 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
               {selectedServiceType.fields.includes('password') && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Password *
+                    {t('form.password')} *
                   </label>
                   <div className="relative">
                     <input
@@ -560,7 +567,7 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
                       className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-10 dark:bg-gray-700 dark:text-white ${
                         errors.password ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                       }`}
-                      placeholder="Password"
+                      placeholder={t('form.password')}
                       disabled={loading}
                     />
                     <button
@@ -584,7 +591,7 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
 
           {/* Health Check Settings */}
           <div className="space-y-4">
-            <h4 className="text-lg font-medium text-gray-900 dark:text-white">Health Check Settings</h4>
+            <h4 className="text-lg font-medium text-gray-900 dark:text-white">{t('form.options')}</h4>
 
             <div className="flex items-center space-x-3">
               <input
@@ -596,14 +603,14 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
                 disabled={loading}
               />
               <label htmlFor="health_check_enabled" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Enable health monitoring
+                {t('form.healthCheckEnabled')}
               </label>
             </div>
 
             {formData.health_check_enabled && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Health Check Interval (seconds)
+                  {t('form.healthCheckInterval')}
                 </label>
                 <input
                   type="number"
@@ -622,9 +629,6 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
                     {errors.health_check_interval}
                   </p>
                 )}
-                <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                  How often to check if the service is responding (minimum 30 seconds)
-                </p>
               </div>
             )}
 
@@ -638,7 +642,7 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
                 disabled={loading}
               />
               <label htmlFor="enabled" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Enable service immediately
+                {t('form.enabled')}
               </label>
             </div>
           </div>
@@ -651,14 +655,14 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
               className="px-6 py-2 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
               disabled={loading}
             >
-              Cancel
+              {t('form.cancel')}
             </button>
             <button
               type="submit"
               className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               disabled={loading}
             >
-              {loading ? 'Saving...' : isEditing ? 'Save Changes' : 'Create Service'}
+              {loading ? t('form.saving') : t('form.save')}
             </button>
           </div>
         </form>

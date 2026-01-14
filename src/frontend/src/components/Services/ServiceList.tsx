@@ -21,6 +21,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import ServiceForm from '../ServiceForm';
 import ServiceTestModal from '../ServiceTestModal';
+import { HelpTooltip } from '../common';
 import { getApiBaseUrl } from '../../lib/api';
 import { getServiceColor } from '../../lib/serviceColors';
 
@@ -299,12 +300,9 @@ const ServiceList: React.FC = () => {
 
   return (
     <div>
-      {/* Header with actions */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-        <p className="text-sm text-gray-500 dark:text-gray-400">
-          {t(services.length > 1 ? 'services:subtitle_plural' : 'services:subtitle', { count: services.length })}
-        </p>
-        <div className="flex gap-2">
+      {/* Actions bar - buttons left, count + help right */}
+      <div className="flex items-center justify-between gap-4 mb-6">
+        <div className="flex items-center gap-2">
           <button
             onClick={fetchServices}
             className="p-2 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
@@ -332,6 +330,14 @@ const ServiceList: React.FC = () => {
             <Plus className="w-4 h-4" />
             <span className="hidden sm:inline">{t('common:actions.add')}</span>
           </button>
+        </div>
+        <div className="flex items-center gap-3">
+          {services.length > 0 && (
+            <span className="hidden sm:inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300">
+              {t(services.length > 1 ? 'services:subtitle_plural' : 'services:subtitle', { count: services.length })}
+            </span>
+          )}
+          <HelpTooltip topicId="services" iconSize="sm" />
         </div>
       </div>
 
