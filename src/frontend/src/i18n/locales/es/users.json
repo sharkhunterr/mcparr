@@ -2,6 +2,10 @@
   "title": "Usuarios",
   "description": "Gestión de usuarios y asignaciones",
 
+  "help": {
+    "category": "Usuarios"
+  },
+
   "tabs": {
     "detector": {
       "label": "Auto",
@@ -24,6 +28,17 @@
   "detector": {
     "title": "Detección automática",
     "description": "Escanear servicios para detectar asignaciones",
+    "help": {
+      "title": "Detección automática",
+      "overview": "Vista general",
+      "overviewContent": "La detección automática escanea todos sus servicios configurados para encontrar usuarios con identificadores similares (correo, nombre de usuario, ID).",
+      "scan": "Iniciar el escaneo",
+      "scanContent": "Haga clic en el botón Detectar para iniciar el análisis. El sistema compara usuarios entre todos los servicios habilitados y calcula una puntuación de confianza.",
+      "results": "Resultados y filtros",
+      "resultsContent": "Los resultados están agrupados por usuario y ordenados por nivel de confianza (alta, media, baja). Use los filtros para refinar la lista.",
+      "create": "Creación de asignaciones",
+      "createContent": "Seleccione las sugerencias deseadas y haga clic en Crear para generar automáticamente las asignaciones de usuarios correspondientes."
+    },
     "detect": "Detectar",
     "scanning": "Escaneando...",
     "servicesLabel": "Servicios ({{count}})",
@@ -54,6 +69,17 @@
     "title": "Asignación manual",
     "description": "Vincular cuentas de usuario entre servicios",
     "refresh": "Actualizar",
+    "help": {
+      "title": "Asignación manual",
+      "overview": "Vista general",
+      "overviewContent": "La asignación manual le permite vincular manualmente cuentas de usuario entre sus diferentes servicios. Esto es útil cuando la detección automática no funciona o cuando desea control total.",
+      "enumerate": "Actualización de usuarios",
+      "enumerateContent": "Haga clic en el botón Actualizar para cargar la lista de usuarios de todos sus servicios configurados. Use la búsqueda para filtrar por nombre o correo, y el menú desplegable para filtrar por servicio.",
+      "select": "Selección de usuarios",
+      "selectContent": "Haga clic en un usuario para seleccionarlo. Puede seleccionar múltiples usuarios de diferentes servicios para crear una asignación centralizada. Los usuarios seleccionados aparecen en el panel superior.",
+      "create": "Creación de la asignación",
+      "createContent": "Una vez seleccionados los usuarios, haga clic en Crear para generar la asignación. Si se detectan múltiples nombres de usuario, puede elegir cuál usar como identificador central."
+    },
     "loading": "Cargando usuarios...",
     "selected": "Seleccionados ({{count}})",
     "clear": "Limpiar",
@@ -85,6 +111,17 @@
     "count_plural": "{{count}} asignaciones",
     "refresh": "Actualizar",
     "add": "Añadir",
+    "help": {
+      "title": "Lista de asignaciones",
+      "overview": "Vista general",
+      "overviewContent": "Esta página muestra todas las asignaciones de usuarios existentes. Cada tarjeta representa un usuario central con sus cuentas vinculadas en diferentes servicios.",
+      "cards": "Tarjetas de usuario",
+      "cardsContent": "Cada tarjeta muestra el nombre de usuario, el número de servicios activos y badges de colores para cada servicio conectado. Pase el cursor sobre un badge para ver los detalles.",
+      "edit": "Edición y gestión",
+      "editContent": "Haga clic en el icono del lápiz para editar un usuario: modificar su nombre, añadir nuevos servicios o eliminar asignaciones existentes.",
+      "sync": "Sincronización",
+      "syncContent": "Los badges verdes indican sincronización activa. Puede activar/desactivar la sincronización para cada servicio individualmente en los detalles."
+    },
     "search": "Buscar...",
     "allStatus": "Todos los estados",
     "statusActive": "Activo",

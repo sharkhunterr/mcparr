@@ -16,6 +16,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { api } from '../../lib/api';
 import type { Group } from '../../types/api';
+import HelpTooltip from '../common/HelpTooltip';
 
 interface GroupListProps {
   onSelectGroup: (group: Group) => void;
@@ -117,6 +118,7 @@ const GroupList: FC<GroupListProps> = ({ onSelectGroup, onCreateGroup, selectedG
               <Plus className="w-4 h-4" />
               <span>{t('list.new')}</span>
             </button>
+            <HelpTooltip topicId="groups" />
           </div>
         </div>
 

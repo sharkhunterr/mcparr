@@ -26,10 +26,65 @@ export interface HelpCategory {
 
 /**
  * All help topics organized by category.
- * Keys reference i18n translation keys in mcp.json (for MCP topics)
- * and services.json (for services topics)
+ * Keys reference i18n translation keys in mcp.json (for MCP topics),
+ * services.json (for services topics), and users.json (for users topics)
  */
 export const helpCategories: HelpCategory[] = [
+  {
+    id: 'users',
+    titleKey: 'users:help.category',
+    icon: 'User',
+    topics: [
+      {
+        id: 'userDetector',
+        titleKey: 'users:detector.help.title',
+        descriptionKey: 'users:detector.help.overviewContent',
+        icon: 'Search',
+        sections: [
+          { titleKey: 'users:detector.help.overview', contentKey: 'users:detector.help.overviewContent' },
+          { titleKey: 'users:detector.help.scan', contentKey: 'users:detector.help.scanContent' },
+          { titleKey: 'users:detector.help.results', contentKey: 'users:detector.help.resultsContent' },
+          { titleKey: 'users:detector.help.create', contentKey: 'users:detector.help.createContent' },
+        ],
+      },
+      {
+        id: 'userManualMapping',
+        titleKey: 'users:creator.help.title',
+        descriptionKey: 'users:creator.help.overviewContent',
+        icon: 'User',
+        sections: [
+          { titleKey: 'users:creator.help.overview', contentKey: 'users:creator.help.overviewContent' },
+          { titleKey: 'users:creator.help.enumerate', contentKey: 'users:creator.help.enumerateContent' },
+          { titleKey: 'users:creator.help.select', contentKey: 'users:creator.help.selectContent' },
+          { titleKey: 'users:creator.help.create', contentKey: 'users:creator.help.createContent' },
+        ],
+      },
+      {
+        id: 'userMappingList',
+        titleKey: 'users:list.help.title',
+        descriptionKey: 'users:list.help.overviewContent',
+        icon: 'Users',
+        sections: [
+          { titleKey: 'users:list.help.overview', contentKey: 'users:list.help.overviewContent' },
+          { titleKey: 'users:list.help.cards', contentKey: 'users:list.help.cardsContent' },
+          { titleKey: 'users:list.help.edit', contentKey: 'users:list.help.editContent' },
+          { titleKey: 'users:list.help.sync', contentKey: 'users:list.help.syncContent' },
+        ],
+      },
+      {
+        id: 'groups',
+        titleKey: 'groups:help.title',
+        descriptionKey: 'groups:help.overviewContent',
+        icon: 'Shield',
+        sections: [
+          { titleKey: 'groups:help.overview', contentKey: 'groups:help.overviewContent' },
+          { titleKey: 'groups:help.create', contentKey: 'groups:help.createContent' },
+          { titleKey: 'groups:help.members', contentKey: 'groups:help.membersContent' },
+          { titleKey: 'groups:help.permissions', contentKey: 'groups:help.permissionsContent' },
+        ],
+      },
+    ],
+  },
   {
     id: 'services',
     titleKey: 'services:help.category',

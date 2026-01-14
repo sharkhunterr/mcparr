@@ -2,6 +2,18 @@
   "title": "Gruppen",
   "description": "Gruppenverwaltung",
 
+  "help": {
+    "title": "Gruppenverwaltung",
+    "overview": "Übersicht",
+    "overviewContent": "Gruppen ermöglichen die Verwaltung des MCP-Tool-Zugriffs für verschiedene Benutzer. Jede Gruppe definiert einen Satz von Berechtigungen und kann mehrere Mitglieder enthalten.",
+    "create": "Gruppen erstellen",
+    "createContent": "Erstellen Sie eine neue Gruppe, indem Sie auf die Schaltfläche Neu klicken. Definieren Sie einen Namen, eine Beschreibung, eine Farbe und eine Priorität. Die Priorität bestimmt die Reihenfolge der Berechtigungsauflösung.",
+    "members": "Mitgliederverwaltung",
+    "membersContent": "Fügen Sie Benutzer über den Tab Mitglieder hinzu oder entfernen Sie sie aus einer Gruppe. Benutzer erben automatisch die Berechtigungen der Gruppe.",
+    "permissions": "Tool-Berechtigungen",
+    "permissionsContent": "Konfigurieren Sie, welche MCP-Tools für jede Gruppe über den Tab Tools zugänglich sind. Aktivieren oder deaktivieren Sie Tools einzeln oder in großen Mengen."
+  },
+
   "list": {
     "title": "Gruppen",
     "new": "Neu",

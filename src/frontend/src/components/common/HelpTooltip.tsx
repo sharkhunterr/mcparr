@@ -57,8 +57,8 @@ const ICON_SIZES = {
  */
 const HelpTooltip: FC<HelpTooltipProps> = (props) => {
   const { trigger, iconSize = 'md' } = props;
-  // Support multiple namespaces for translations (mcp and services)
-  const { t } = useTranslation(['mcp', 'services']);
+  // Support multiple namespaces for translations (mcp, services, users, and groups)
+  const { t } = useTranslation(['mcp', 'services', 'users', 'groups']);
   const [isOpen, setIsOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);

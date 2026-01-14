@@ -2,6 +2,18 @@
   "title": "Groups",
   "description": "Group management",
 
+  "help": {
+    "title": "Group Management",
+    "overview": "Overview",
+    "overviewContent": "Groups allow you to manage MCP tool access for different users. Each group defines a set of permissions and can contain multiple members.",
+    "create": "Creating Groups",
+    "createContent": "Create a new group by clicking the New button. Define a name, description, color, and priority. Priority determines the order of permission resolution.",
+    "members": "Member Management",
+    "membersContent": "Add or remove users from a group via the Members tab. Users automatically inherit the group's permissions.",
+    "permissions": "Tool Permissions",
+    "permissionsContent": "Configure which MCP tools are accessible for each group via the Tools tab. Enable or disable tools individually or in bulk."
+  },
+
   "list": {
     "title": "Groups",
     "new": "New",

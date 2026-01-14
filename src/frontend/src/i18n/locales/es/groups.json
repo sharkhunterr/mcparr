@@ -2,6 +2,18 @@
   "title": "Grupos",
   "description": "Gestión de grupos",
 
+  "help": {
+    "title": "Gestión de grupos",
+    "overview": "Vista general",
+    "overviewContent": "Los grupos permiten gestionar el acceso a herramientas MCP para diferentes usuarios. Cada grupo define un conjunto de permisos y puede contener múltiples miembros.",
+    "create": "Creación de grupos",
+    "createContent": "Cree un nuevo grupo haciendo clic en el botón Nuevo. Defina un nombre, descripción, color y prioridad. La prioridad determina el orden de resolución de permisos.",
+    "members": "Gestión de miembros",
+    "membersContent": "Agregue o elimine usuarios de un grupo a través de la pestaña Miembros. Los usuarios heredan automáticamente los permisos del grupo.",
+    "permissions": "Permisos de herramientas",
+    "permissionsContent": "Configure qué herramientas MCP son accesibles para cada grupo a través de la pestaña Herramientas. Active o desactive herramientas individualmente o en masa."
+  },
+
   "list": {
     "title": "Grupos",
     "new": "Nuevo",

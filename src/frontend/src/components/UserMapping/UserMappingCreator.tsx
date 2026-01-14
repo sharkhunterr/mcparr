@@ -10,6 +10,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { getApiBaseUrl } from '../../lib/api';
 import { getServiceColor } from '../../lib/serviceColors';
+import HelpTooltip from '../common/HelpTooltip';
 
 interface ServiceUser {
   id?: string;
@@ -443,16 +444,68 @@ const UserMappingCreator: FC<UserMappingCreatorProps> = ({
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      {/* Actions bar */}
-      <div className="flex gap-2 mb-4">
-        <button
-          onClick={enumerateUsers}
-          disabled={loading}
-          className="px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 flex items-center gap-2 transition-colors"
-        >
-          <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-          <span className="hidden sm:inline">{t('creator.refresh')}</span>
-        </button>
+      {/* Actions bar with search and filters */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-3 sm:p-4">
+        <div className="flex flex-row gap-2 sm:gap-3 items-center">
+          {/* Refresh button */}
+          <button
+            onClick={enumerateUsers}
+            disabled={loading}
+            className="p-2 sm:px-3 sm:py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 flex items-center gap-2 transition-colors flex-shrink-0"
+          >
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            <span className="hidden sm:inline">{t('creator.refresh')}</span>
+          </button>
+
+          {/* Search input */}
+          <div className="relative flex-1 min-w-0">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              placeholder={t('creator.search')}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-3 py-2 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+
+          {/* Service filter */}
+          {enumerationData && (
+            <select
+              value={selectedServiceFilter}
+              onChange={(e) => setSelectedServiceFilter(e.target.value)}
+              className="hidden sm:block px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent flex-shrink-0"
+            >
+              <option value="all">{t('creator.allServices')}</option>
+              {Object.entries(enumerationData.services).map(([serviceId, serviceData]) => (
+                <option key={serviceId} value={serviceId}>
+                  {serviceData.service_name} ({serviceData.user_count})
+                </option>
+              ))}
+            </select>
+          )}
+
+          {/* Help button */}
+          <HelpTooltip topicId="userManualMapping" />
+        </div>
+
+        {/* Mobile service filter - second row */}
+        {enumerationData && (
+          <div className="sm:hidden mt-2">
+            <select
+              value={selectedServiceFilter}
+              onChange={(e) => setSelectedServiceFilter(e.target.value)}
+              className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="all">{t('creator.allServices')}</option>
+              {Object.entries(enumerationData.services).map(([serviceId, serviceData]) => (
+                <option key={serviceId} value={serviceId}>
+                  {serviceData.service_name} ({serviceData.user_count})
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
       </div>
 
       {/* Error Display */}
@@ -538,37 +591,6 @@ const UserMappingCreator: FC<UserMappingCreatorProps> = ({
                 </button>
               </div>
             ))}
-          </div>
-        </div>
-      )}
-
-      {/* Filters */}
-      {enumerationData && (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-3 sm:p-4">
-          <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
-            <div className="relative flex-1">
-              <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-              <input
-                type="text"
-                placeholder={t('creator.search')}
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-3 py-2 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-
-            <select
-              value={selectedServiceFilter}
-              onChange={(e) => setSelectedServiceFilter(e.target.value)}
-              className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="all">{t('creator.allServices')}</option>
-              {Object.entries(enumerationData.services).map(([serviceId, serviceData]) => (
-                <option key={serviceId} value={serviceId}>
-                  {serviceData.service_name} ({serviceData.user_count})
-                </option>
-              ))}
-            </select>
           </div>
         </div>
       )}

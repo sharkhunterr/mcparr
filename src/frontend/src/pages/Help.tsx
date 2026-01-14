@@ -12,6 +12,9 @@ import {
   Layers,
   RefreshCw,
   X,
+  User,
+  Users,
+  Shield,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { helpCategories, type HelpTopic } from '../lib/helpContent';
@@ -26,10 +29,40 @@ const iconMap: Record<string, React.ElementType> = {
   BookOpen,
   Server,
   Layers,
+  User,
+  Users,
+  Shield,
+  Search,
 };
 
 // Color mapping for topics
 const topicColors: Record<string, { bg: string; text: string; border: string; iconBg: string }> = {
+  // Users category - green
+  userDetector: {
+    bg: 'bg-green-50 dark:bg-green-900/20',
+    text: 'text-green-700 dark:text-green-300',
+    border: 'border-green-200 dark:border-green-800',
+    iconBg: 'bg-green-100 dark:bg-green-900/40',
+  },
+  userManualMapping: {
+    bg: 'bg-green-50 dark:bg-green-900/20',
+    text: 'text-green-700 dark:text-green-300',
+    border: 'border-green-200 dark:border-green-800',
+    iconBg: 'bg-green-100 dark:bg-green-900/40',
+  },
+  userMappingList: {
+    bg: 'bg-green-50 dark:bg-green-900/20',
+    text: 'text-green-700 dark:text-green-300',
+    border: 'border-green-200 dark:border-green-800',
+    iconBg: 'bg-green-100 dark:bg-green-900/40',
+  },
+  groups: {
+    bg: 'bg-green-50 dark:bg-green-900/20',
+    text: 'text-green-700 dark:text-green-300',
+    border: 'border-green-200 dark:border-green-800',
+    iconBg: 'bg-green-100 dark:bg-green-900/40',
+  },
+  // Services category - orange
   services: {
     bg: 'bg-orange-50 dark:bg-orange-900/20',
     text: 'text-orange-700 dark:text-orange-300',
@@ -37,28 +70,29 @@ const topicColors: Record<string, { bg: string; text: string; border: string; ic
     iconBg: 'bg-orange-100 dark:bg-orange-900/40',
   },
   serviceGroups: {
-    bg: 'bg-teal-50 dark:bg-teal-900/20',
-    text: 'text-teal-700 dark:text-teal-300',
-    border: 'border-teal-200 dark:border-teal-800',
-    iconBg: 'bg-teal-100 dark:bg-teal-900/40',
+    bg: 'bg-orange-50 dark:bg-orange-900/20',
+    text: 'text-orange-700 dark:text-orange-300',
+    border: 'border-orange-200 dark:border-orange-800',
+    iconBg: 'bg-orange-100 dark:bg-orange-900/40',
   },
+  // MCP category - green (MCP color)
   tools: {
-    bg: 'bg-blue-50 dark:bg-blue-900/20',
-    text: 'text-blue-700 dark:text-blue-300',
-    border: 'border-blue-200 dark:border-blue-800',
-    iconBg: 'bg-blue-100 dark:bg-blue-900/40',
+    bg: 'bg-emerald-50 dark:bg-emerald-900/20',
+    text: 'text-emerald-700 dark:text-emerald-300',
+    border: 'border-emerald-200 dark:border-emerald-800',
+    iconBg: 'bg-emerald-100 dark:bg-emerald-900/40',
   },
   history: {
-    bg: 'bg-amber-50 dark:bg-amber-900/20',
-    text: 'text-amber-700 dark:text-amber-300',
-    border: 'border-amber-200 dark:border-amber-800',
-    iconBg: 'bg-amber-100 dark:bg-amber-900/40',
+    bg: 'bg-emerald-50 dark:bg-emerald-900/20',
+    text: 'text-emerald-700 dark:text-emerald-300',
+    border: 'border-emerald-200 dark:border-emerald-800',
+    iconBg: 'bg-emerald-100 dark:bg-emerald-900/40',
   },
   toolChains: {
-    bg: 'bg-purple-50 dark:bg-purple-900/20',
-    text: 'text-purple-700 dark:text-purple-300',
-    border: 'border-purple-200 dark:border-purple-800',
-    iconBg: 'bg-purple-100 dark:bg-purple-900/40',
+    bg: 'bg-emerald-50 dark:bg-emerald-900/20',
+    text: 'text-emerald-700 dark:text-emerald-300',
+    border: 'border-emerald-200 dark:border-emerald-800',
+    iconBg: 'bg-emerald-100 dark:bg-emerald-900/40',
   },
 };
 
@@ -70,8 +104,8 @@ const defaultColors = {
 };
 
 const Help = () => {
-  // Support multiple namespaces for translations (mcp and services)
-  const { t } = useTranslation(['mcp', 'services']);
+  // Support multiple namespaces for translations (mcp, services, users, and groups)
+  const { t } = useTranslation(['mcp', 'services', 'users', 'groups']);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTopic, setSelectedTopic] = useState<HelpTopic | null>(null);
 

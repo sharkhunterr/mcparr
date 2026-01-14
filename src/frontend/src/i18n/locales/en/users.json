@@ -2,6 +2,10 @@
   "title": "Users",
   "description": "User and mapping management",
 
+  "help": {
+    "category": "Users"
+  },
+
   "tabs": {
     "detector": {
       "label": "Auto",
@@ -24,6 +28,17 @@
   "detector": {
     "title": "Automatic detection",
     "description": "Scan services to detect mappings",
+    "help": {
+      "title": "Automatic Detection",
+      "overview": "Overview",
+      "overviewContent": "Automatic detection scans all your configured services to find users with similar identifiers (email, username, ID).",
+      "scan": "Starting the Scan",
+      "scanContent": "Click the Detect button to start the analysis. The system compares users across all enabled services and calculates a confidence score.",
+      "results": "Results and Filters",
+      "resultsContent": "Results are grouped by user and sorted by confidence level (high, medium, low). Use filters to refine the list.",
+      "create": "Creating Mappings",
+      "createContent": "Select the desired suggestions and click Create to automatically generate the corresponding user mappings."
+    },
     "detect": "Detect",
     "scanning": "Scanning...",
     "servicesLabel": "Services ({{count}})",
@@ -54,6 +69,17 @@
     "title": "Manual mapping",
     "description": "Link user accounts across services",
     "refresh": "Refresh",
+    "help": {
+      "title": "Manual Mapping",
+      "overview": "Overview",
+      "overviewContent": "Manual mapping allows you to manually link user accounts across your different services. This is useful when automatic detection doesn't work or when you want full control.",
+      "enumerate": "User Refresh",
+      "enumerateContent": "Click the Refresh button to load the list of users from all your configured services. Use search to filter by name or email, and the dropdown to filter by service.",
+      "select": "User Selection",
+      "selectContent": "Click on a user to select them. You can select multiple users from different services to create a centralized mapping. Selected users appear in the panel at the top.",
+      "create": "Creating the Mapping",
+      "createContent": "Once users are selected, click Create to generate the mapping. If multiple usernames are detected, you can choose which one to use as the central identifier."
+    },
     "loading": "Loading users...",
     "selected": "Selected ({{count}})",
     "clear": "Clear",
@@ -85,6 +111,17 @@
     "count_plural": "{{count}} mappings",
     "refresh": "Refresh",
     "add": "Add",
+    "help": {
+      "title": "Mapping List",
+      "overview": "Overview",
+      "overviewContent": "This page displays all existing user mappings. Each card represents a central user with their linked accounts across different services.",
+      "cards": "User Cards",
+      "cardsContent": "Each card shows the username, number of active services, and colored badges for each connected service. Hover over a badge to see details.",
+      "edit": "Editing and Management",
+      "editContent": "Click the pencil icon to edit a user: modify their name, add new services, or delete existing mappings.",
+      "sync": "Synchronization",
+      "syncContent": "Green badges indicate active synchronization. You can enable/disable synchronization for each service individually in the details."
+    },
     "search": "Search...",
     "allStatus": "All statuses",
     "statusActive": "Active",
