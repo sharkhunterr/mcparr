@@ -43,7 +43,7 @@ const GroupManagement: FC = () => {
       {/* Desktop Layout: Side by Side */}
       <div className="hidden md:flex h-[600px]">
         {/* Left sidebar - Group List */}
-        <div className="w-80 border-r border-gray-200 dark:border-gray-700 flex-shrink-0">
+        <div className="w-1/2 lg:w-2/5 border-r border-gray-200 dark:border-gray-700 flex-shrink-0">
           <GroupList
             key={refreshKey}
             onSelectGroup={handleSelectGroup}
@@ -53,7 +53,7 @@ const GroupManagement: FC = () => {
         </div>
 
         {/* Right content - Group Detail */}
-        <div className="flex-1 min-w-0">
+        <div className="w-1/2 lg:w-3/5 min-w-0">
           {selectedGroup ? (
             <GroupDetail
               key={selectedGroup.id}
