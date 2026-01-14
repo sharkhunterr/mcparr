@@ -39,6 +39,7 @@ class ActionType(str, Enum):
 
     TOOL_CALL = "tool_call"  # Execute a tool
     MESSAGE = "message"       # Display a message to AI (no tool call)
+    CONDITIONAL = "conditional"  # Nested IF/THEN/ELSE block
 
 
 class ExecutionMode(str, Enum):
@@ -155,10 +156,10 @@ class ToolChainConditionGroup(Base, UUIDMixin, TimestampMixin):
 
     __tablename__ = "tool_chain_condition_groups"
 
-    # Parent step
-    step_id: Mapped[str] = mapped_column(
+    # Parent step (NULL for condition groups attached to actions)
+    step_id: Mapped[Optional[str]] = mapped_column(
         String(36), ForeignKey("tool_chain_steps.id", ondelete="CASCADE"),
-        nullable=False, index=True
+        nullable=True, index=True
     )
 
     # Parent group (for nested conditions, NULL if root)
@@ -175,8 +176,14 @@ class ToolChainConditionGroup(Base, UUIDMixin, TimestampMixin):
     # Order within parent group (for display)
     order: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
 
+    # Parent action (for nested conditionals - condition groups can belong to an action)
+    action_id: Mapped[Optional[str]] = mapped_column(
+        String(36), ForeignKey("tool_chain_actions.id", ondelete="CASCADE"),
+        nullable=True, index=True
+    )
+
     # Relationships
-    step: Mapped["ToolChainStep"] = relationship(
+    step: Mapped[Optional["ToolChainStep"]] = relationship(
         "ToolChainStep", back_populates="condition_groups",
         foreign_keys=[step_id]
     )
@@ -192,9 +199,14 @@ class ToolChainConditionGroup(Base, UUIDMixin, TimestampMixin):
         "ToolChainCondition", back_populates="group", cascade="all, delete-orphan",
         order_by="ToolChainCondition.order"
     )
+    # Parent action (for nested conditionals)
+    action: Mapped[Optional["ToolChainAction"]] = relationship(
+        "ToolChainAction", back_populates="condition_groups",
+        foreign_keys=[action_id]
+    )
 
     def __repr__(self) -> str:
-        return f"<ToolChainConditionGroup(step_id={self.step_id}, operator={self.operator})>"
+        return f"<ToolChainConditionGroup(step_id={self.step_id}, action_id={self.action_id}, operator={self.operator})>"
 
 
 class ToolChainCondition(Base, UUIDMixin, TimestampMixin):
@@ -232,15 +244,24 @@ class ToolChainCondition(Base, UUIDMixin, TimestampMixin):
 class ToolChainAction(Base, UUIDMixin, TimestampMixin):
     """An action to execute in THEN or ELSE branch.
 
-    Can be either a tool call or a message to display.
+    Can be:
+    - tool_call: Execute a tool
+    - message: Display a message to AI
+    - conditional: Nested IF/THEN/ELSE block
     """
 
     __tablename__ = "tool_chain_actions"
 
-    # Parent step
-    step_id: Mapped[str] = mapped_column(
+    # Parent step (NULL for nested actions)
+    step_id: Mapped[Optional[str]] = mapped_column(
         String(36), ForeignKey("tool_chain_steps.id", ondelete="CASCADE"),
-        nullable=False, index=True
+        nullable=True, index=True
+    )
+
+    # Parent action (for nested conditionals)
+    parent_action_id: Mapped[Optional[str]] = mapped_column(
+        String(36), ForeignKey("tool_chain_actions.id", ondelete="CASCADE"),
+        nullable=True, index=True
     )
 
     # Branch (then or else)
@@ -272,10 +293,45 @@ class ToolChainAction(Base, UUIDMixin, TimestampMixin):
     enabled: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
     # Relationships
-    step: Mapped["ToolChainStep"] = relationship("ToolChainStep", back_populates="then_actions",
-                                                  foreign_keys=[step_id])
+    step: Mapped[Optional["ToolChainStep"]] = relationship(
+        "ToolChainStep", back_populates="then_actions",
+        foreign_keys=[step_id]
+    )
+
+    # Parent action relationship (for nested actions)
+    parent_action: Mapped[Optional["ToolChainAction"]] = relationship(
+        "ToolChainAction", remote_side="ToolChainAction.id",
+        back_populates="child_actions", foreign_keys=[parent_action_id]
+    )
+
+    # Child actions (for CONDITIONAL type - nested THEN/ELSE)
+    child_actions: Mapped[List["ToolChainAction"]] = relationship(
+        "ToolChainAction", back_populates="parent_action",
+        cascade="all, delete-orphan", foreign_keys="ToolChainAction.parent_action_id"
+    )
+
+    # Condition groups (for CONDITIONAL type - the IF conditions)
+    condition_groups: Mapped[List["ToolChainConditionGroup"]] = relationship(
+        "ToolChainConditionGroup",
+        back_populates="action",
+        foreign_keys="ToolChainConditionGroup.action_id",
+        cascade="all, delete-orphan",
+        order_by="ToolChainConditionGroup.order"
+    )
+
+    @property
+    def then_actions(self) -> List["ToolChainAction"]:
+        """Get child actions for THEN branch (for CONDITIONAL type)."""
+        return [a for a in self.child_actions if a.branch == "then"]
+
+    @property
+    def else_actions(self) -> List["ToolChainAction"]:
+        """Get child actions for ELSE branch (for CONDITIONAL type)."""
+        return [a for a in self.child_actions if a.branch == "else"]
 
     def __repr__(self) -> str:
         if self.action_type == ActionType.MESSAGE.value:
-            return f"<ToolChainAction(step_id={self.step_id}, branch={self.branch}, type=message)>"
-        return f"<ToolChainAction(step_id={self.step_id}, branch={self.branch}, target={self.target_service}.{self.target_tool})>"
+            return f"<ToolChainAction(id={self.id}, branch={self.branch}, type=message)>"
+        if self.action_type == ActionType.CONDITIONAL.value:
+            return f"<ToolChainAction(id={self.id}, branch={self.branch}, type=conditional)>"
+        return f"<ToolChainAction(id={self.id}, branch={self.branch}, target={self.target_service}.{self.target_tool})>"

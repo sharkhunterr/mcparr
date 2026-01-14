@@ -652,6 +652,16 @@
       "addAction": "Add Action",
       "actionTypeToolCall": "Call Tool",
       "actionTypeMessage": "Display Message",
+      "actionTypeConditional": "Conditional (IF/THEN/ELSE)",
+      "conditionalIf": "IF",
+      "conditionalThen": "THEN",
+      "conditionalElse": "ELSE",
+      "noNestedConditions": "No conditions (always true)",
+      "addNestedThenAction": "Add THEN action",
+      "addNestedElseAction": "Add ELSE action",
+      "deleteConditional": "Delete this conditional",
+      "emptyBranch": "Empty branch (silent end)",
+      "conditionSummary": "{{field}} {{operator}} {{value}}",
       "messageTemplatePlaceholder": "Message with {result.field} or {input.param} placeholders...",
       "actionCommentPlaceholder": "Why this action...",
       "emptyMessage": "(empty message)",
@@ -676,7 +686,15 @@
       "deleteStepConfirm": "Delete this step?",
       "deleteTargetConfirm": "Delete this target?",
       "backToList": "Back to list",
-      "selectChain": "Select a chain to view details"
+      "selectChain": "Select a chain to view details",
+      "argumentMappings": "Argument Mappings",
+      "noArgumentMappings": "No mappings (use default values)",
+      "targetParam": "Target param",
+      "sourceField": "Source field",
+      "editAction": "Edit action",
+      "editStep": "Edit step",
+      "editCondition": "Edit condition",
+      "conditionalEditInfo": "Conditions on a conditional block cannot be edited here. Delete and recreate the block if needed."
     }
   }
 }

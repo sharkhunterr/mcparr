@@ -639,6 +639,16 @@
       "addAction": "Ajouter une action",
       "actionTypeToolCall": "Appeler un outil",
       "actionTypeMessage": "Afficher un message",
+      "actionTypeConditional": "Conditionnel (SI/ALORS/SINON)",
+      "conditionalIf": "SI",
+      "conditionalThen": "ALORS",
+      "conditionalElse": "SINON",
+      "noNestedConditions": "Aucune condition (toujours vrai)",
+      "addNestedThenAction": "Ajouter action ALORS",
+      "addNestedElseAction": "Ajouter action SINON",
+      "deleteConditional": "Supprimer ce conditionnel",
+      "emptyBranch": "Branche vide (fin silencieuse)",
+      "conditionSummary": "{{field}} {{operator}} {{value}}",
       "messageTemplatePlaceholder": "Message avec placeholders {result.field} ou {input.param}...",
       "actionCommentPlaceholder": "Pourquoi cette action...",
       "emptyMessage": "(message vide)",
@@ -663,7 +673,15 @@
       "deleteStepConfirm": "Supprimer cette étape ?",
       "deleteTargetConfirm": "Supprimer cette cible ?",
       "backToList": "Retour à la liste",
-      "selectChain": "Sélectionnez une chaîne pour voir les détails"
+      "selectChain": "Sélectionnez une chaîne pour voir les détails",
+      "argumentMappings": "Mappings d'arguments",
+      "noArgumentMappings": "Aucun mapping (utiliser les valeurs par défaut)",
+      "targetParam": "Paramètre cible",
+      "sourceField": "Champ source",
+      "editAction": "Modifier l'action",
+      "editStep": "Modifier l'étape",
+      "editCondition": "Modifier la condition",
+      "conditionalEditInfo": "Les conditions d'un bloc conditionnel ne peuvent pas être modifiées ici. Supprimez et recréez le bloc si nécessaire."
     }
   }
 }

@@ -233,7 +233,7 @@ def evaluate_step_conditions(
     """Evaluate all conditions for a step.
 
     A step can have multiple condition groups at the root level.
-    By default, root-level groups are combined with AND logic.
+    Groups are combined with AND logic.
 
     Args:
         step: The step to evaluate
@@ -241,13 +241,13 @@ def evaluate_step_conditions(
         success: Whether the tool execution was successful
 
     Returns:
-        True if all root condition groups evaluate to true
+        True if conditions pass (THEN branch), False otherwise (ELSE branch)
     """
     if not step.condition_groups:
-        # No conditions = always True (THEN branch executes)
+        # No conditions = THEN branch executes
         return True
 
-    # Only evaluate root groups (those without parent)
+    # Only evaluate root groups (those without parent and not attached to an action)
     root_groups = [g for g in step.condition_groups if g.parent_group_id is None]
 
     if not root_groups:
@@ -257,10 +257,41 @@ def evaluate_step_conditions(
     # This allows conditions to use "available" instead of "result.available"
     eval_data = result.get("result", {}) if isinstance(result.get("result"), dict) else result
 
-    # Root groups are combined with AND logic
+    # All groups are combined with AND logic
     for group in root_groups:
         if not evaluate_condition_group(group, eval_data, success):
             return False
+
+    return True
+
+
+def evaluate_action_conditions(
+    action: "ToolChainAction",
+    result: Dict[str, Any],
+    success: bool,
+) -> bool:
+    """Evaluate conditions for a CONDITIONAL action.
+
+    Args:
+        action: The conditional action with condition_groups
+        result: The tool execution result
+        success: Whether the tool execution was successful
+
+    Returns:
+        True if conditions pass (THEN branch), False otherwise (ELSE branch)
+    """
+    if not action.condition_groups:
+        # No conditions = THEN branch
+        return True
+
+    # Extract the actual result data for condition evaluation
+    eval_data = result.get("result", {}) if isinstance(result.get("result"), dict) else result
+
+    # All groups combined with AND logic
+    for group in action.condition_groups:
+        if group.parent_group_id is None:  # Only root groups
+            if not evaluate_condition_group(group, eval_data, success):
+                return False
 
     return True
 
@@ -322,21 +353,36 @@ def build_argument_mappings(
 ) -> Dict[str, Any]:
     """Build arguments for the next tool based on mappings.
 
-    Mapping format:
+    Simplified mapping format (recommended):
+    {
+        "movie_id": "id",              # Maps result.id to movie_id
+        "title": "title",              # Maps result.title to title
+        "year": "year"                 # Maps result.year to year
+    }
+
+    Advanced mapping format (also supported):
     {
         "target_param": {"source": "result.field.path"},
         "target_param2": {"value": "static_value"},
         "target_param3": {"input": "original_param"}
     }
+
+    The result data is extracted from result.result if it exists (to allow
+    using field names directly like "id" instead of "result.id").
     """
     if not mappings:
         return {}
 
+    # Extract the actual result data for simpler field access
+    # This allows using "id" instead of "result.id"
+    eval_data = result.get("result", {}) if isinstance(result.get("result"), dict) else result
+
     args = {}
     for target_param, mapping in mappings.items():
         if isinstance(mapping, dict):
+            # Advanced format with explicit source type
             if "source" in mapping:
-                # Get value from result
+                # Get value from result (supports nested paths like "result.movie.id")
                 source_path = mapping["source"]
                 args[target_param] = get_nested_value(result, source_path)
             elif "value" in mapping:
@@ -347,8 +393,16 @@ def build_argument_mappings(
                 input_path = mapping["input"]
                 if input_path in input_params:
                     args[target_param] = input_params[input_path]
+        elif isinstance(mapping, str):
+            # Simplified format: "target_param": "source_field"
+            # First try from eval_data (result.result), then from full result
+            value = get_nested_value(eval_data, mapping)
+            if value is None:
+                value = get_nested_value(result, mapping)
+            if value is not None:
+                args[target_param] = value
         else:
-            # Direct value assignment
+            # Direct value assignment (number, boolean, etc.)
             args[target_param] = mapping
 
     return args
@@ -382,8 +436,12 @@ def build_action_suggestions(
     chain: ToolChain,
     step: ToolChainStep,
     branch: str,
+    success: bool = True,
 ) -> List[Dict[str, Any]]:
     """Build suggestion list from actions.
+
+    Handles nested CONDITIONAL actions recursively.
+    Empty action list = silent end of chain (no suggestions returned).
 
     Args:
         actions: List of actions to convert to suggestions
@@ -392,10 +450,15 @@ def build_action_suggestions(
         chain: The parent chain
         step: The parent step
         branch: "then" or "else"
+        success: Whether tool execution succeeded
 
     Returns:
-        List of action suggestions
+        List of action suggestions (empty list = silent chain end)
     """
+    # Empty actions = silent end of chain
+    if not actions:
+        return []
+
     suggestions = []
 
     for action in sorted(actions, key=lambda a: a.order):
@@ -421,6 +484,32 @@ def build_action_suggestions(
             if action.ai_comment:
                 suggestion["reason"] = action.ai_comment
             suggestions.append(suggestion)
+
+        elif action.action_type == ActionType.CONDITIONAL.value:
+            # Nested IF/THEN/ELSE - evaluate conditions and recurse
+            condition_result = evaluate_action_conditions(action, result, success)
+
+            if condition_result:
+                # THEN branch
+                nested_actions = action.then_actions
+                nested_branch = "then"
+            else:
+                # ELSE branch
+                nested_actions = action.else_actions
+                nested_branch = "else"
+
+            # Recursively build suggestions from nested actions
+            # Empty nested_actions = silent end of chain (returns empty list)
+            nested_suggestions = build_action_suggestions(
+                nested_actions,
+                result,
+                input_params,
+                chain,
+                step,
+                nested_branch,
+                success,
+            )
+            suggestions.extend(nested_suggestions)
 
         else:  # TOOL_CALL
             target_service_name = SERVICE_DISPLAY_NAMES.get(
@@ -498,8 +587,24 @@ async def get_matching_steps(
             .selectinload(ToolChainConditionGroup.conditions),
             selectinload(ToolChainStep.condition_groups)
             .selectinload(ToolChainConditionGroup.child_groups),
-            selectinload(ToolChainStep.then_actions),
-            selectinload(ToolChainStep.else_actions),
+            # Load THEN actions with nested conditionals
+            selectinload(ToolChainStep.then_actions)
+            .selectinload(ToolChainAction.child_actions),
+            selectinload(ToolChainStep.then_actions)
+            .selectinload(ToolChainAction.condition_groups)
+            .selectinload(ToolChainConditionGroup.conditions),
+            selectinload(ToolChainStep.then_actions)
+            .selectinload(ToolChainAction.condition_groups)
+            .selectinload(ToolChainConditionGroup.child_groups),
+            # Load ELSE actions with nested conditionals
+            selectinload(ToolChainStep.else_actions)
+            .selectinload(ToolChainAction.child_actions),
+            selectinload(ToolChainStep.else_actions)
+            .selectinload(ToolChainAction.condition_groups)
+            .selectinload(ToolChainConditionGroup.conditions),
+            selectinload(ToolChainStep.else_actions)
+            .selectinload(ToolChainAction.condition_groups)
+            .selectinload(ToolChainConditionGroup.child_groups),
             selectinload(ToolChainStep.chain),
         )
         .join(ToolChain)
@@ -515,23 +620,23 @@ async def get_matching_steps(
     for step in steps:
         chain = step.chain
 
-        # Evaluate conditions
+        # Evaluate conditions - returns True (THEN) or False (ELSE)
         condition_result = evaluate_step_conditions(step, result, success)
 
         if condition_result:
             # Conditions TRUE - get THEN actions
-            if step.then_actions:
-                suggestions = build_action_suggestions(
-                    step.then_actions, result, input_params, chain, step, "then"
-                )
-                all_suggestions.extend(suggestions)
+            # Empty then_actions = silent end of chain (returns empty list)
+            suggestions = build_action_suggestions(
+                step.then_actions, result, input_params, chain, step, "then", success
+            )
+            all_suggestions.extend(suggestions)
         else:
             # Conditions FALSE - get ELSE actions
-            if step.else_actions:
-                suggestions = build_action_suggestions(
-                    step.else_actions, result, input_params, chain, step, "else"
-                )
-                all_suggestions.extend(suggestions)
+            # Empty else_actions = silent end of chain (returns empty list)
+            suggestions = build_action_suggestions(
+                step.else_actions, result, input_params, chain, step, "else", success
+            )
+            all_suggestions.extend(suggestions)
 
     return all_suggestions
 
@@ -619,28 +724,46 @@ async def get_tool_chain_position(
     """Check if this tool is an action target in any chain step.
 
     Returns chain context info if the tool is a target, None otherwise.
+    Handles both direct actions (with step_id) and nested actions (with parent_action_id).
     """
-    # Check if this tool is a target action in any enabled chain step
+    # First, find all actions that target this tool (regardless of nesting level)
     action_query = (
         select(ToolChainAction)
         .options(
             selectinload(ToolChainAction.step).selectinload(ToolChainStep.chain),
+            selectinload(ToolChainAction.parent_action).selectinload(ToolChainAction.step).selectinload(ToolChainStep.chain),
         )
-        .join(ToolChainStep)
-        .join(ToolChain)
         .where(
             and_(
                 ToolChainAction.target_service == service_type,
                 ToolChainAction.target_tool == tool_name,
                 ToolChainAction.enabled == True,
-                ToolChainStep.enabled == True,
-                ToolChain.enabled == True,
             )
         )
     )
 
     action_result = await session.execute(action_query)
-    actions = action_result.scalars().all()
+    all_actions = action_result.scalars().all()
+
+    # Filter to only enabled chains/steps by traversing up to the step
+    actions = []
+    for action in all_actions:
+        # Get the step (either direct or through parent chain)
+        step = action.step
+        if not step and action.parent_action:
+            # Nested action - traverse up to find the step
+            parent = action.parent_action
+            while parent and not parent.step:
+                parent = parent.parent_action
+            if parent:
+                step = parent.step
+
+        if step and step.enabled:
+            chain = step.chain
+            if chain and chain.enabled:
+                # Store both the action and its resolved step
+                action._resolved_step = step
+                actions.append(action)
 
     if not actions:
         return None
@@ -649,7 +772,9 @@ async def get_tool_chain_position(
     chains_info = []
 
     for action in actions:
-        step = action.step
+        step = getattr(action, '_resolved_step', action.step)
+        if not step:
+            continue
         chain = step.chain
 
         # Find the step that uses this tool as SOURCE (the step we're about to execute)

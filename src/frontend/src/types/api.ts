@@ -410,6 +410,7 @@ export type ConditionGroupOperator = typeof ConditionGroupOperator[keyof typeof 
 export const ActionType = {
   TOOL_CALL: 'tool_call',
   MESSAGE: 'message',
+  CONDITIONAL: 'conditional',
 } as const;
 export type ActionType = typeof ActionType[keyof typeof ActionType];
 
@@ -442,7 +443,8 @@ export interface Condition {
 // Condition Group with AND/OR logic
 export interface ConditionGroup {
   id: string;
-  step_id: string;
+  step_id?: string;
+  action_id?: string;  // For nested conditionals
   parent_group_id?: string;
   operator: ConditionGroupOperator;
   order: number;
@@ -455,7 +457,8 @@ export interface ConditionGroup {
 // Action in THEN or ELSE branch
 export interface Action {
   id: string;
-  step_id: string;
+  step_id?: string;  // Null for nested actions
+  parent_action_id?: string;  // For nested actions
   branch: 'then' | 'else';
   action_type: ActionType;
   target_service?: string;
@@ -471,6 +474,10 @@ export interface Action {
   // Enriched info
   target_service_name?: string;
   target_tool_display_name?: string;
+  // For conditional actions - nested structure
+  condition_groups?: ConditionGroup[];
+  then_actions?: Action[];
+  else_actions?: Action[];
 }
 
 // Tool Chain - container for steps

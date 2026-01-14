@@ -79,8 +79,9 @@ class ConditionGroupResponse(BaseModel):
     """Schema for condition group API responses."""
 
     id: str
-    step_id: str
-    parent_group_id: Optional[str]
+    step_id: Optional[str] = None
+    action_id: Optional[str] = None  # For nested conditionals
+    parent_group_id: Optional[str] = None
     operator: str
     order: int
     created_at: datetime
@@ -93,7 +94,13 @@ class ConditionGroupResponse(BaseModel):
 
 
 class ActionCreate(BaseModel):
-    """Schema for creating an action in THEN or ELSE branch."""
+    """Schema for creating an action in THEN or ELSE branch.
+
+    Action types:
+    - tool_call: Execute a tool
+    - message: Display a message
+    - conditional: Nested IF/THEN/ELSE block
+    """
 
     branch: str = Field(..., description="Branch type: 'then' or 'else'")
     action_type: ActionType = Field(ActionType.TOOL_CALL, description="Action type")
@@ -106,6 +113,16 @@ class ActionCreate(BaseModel):
     # For message action
     message_template: Optional[str] = Field(
         None, description="Message template with placeholders like {result.title}"
+    )
+    # For conditional action (nested IF/THEN/ELSE)
+    condition_groups: Optional[List[ConditionGroupCreate]] = Field(
+        None, description="Condition groups for nested IF (only for conditional action)"
+    )
+    then_actions: Optional[List["ActionCreate"]] = Field(
+        None, description="Nested THEN actions (only for conditional action). Empty = silent end of chain."
+    )
+    else_actions: Optional[List["ActionCreate"]] = Field(
+        None, description="Nested ELSE actions (only for conditional action). Empty = silent end of chain."
     )
     # Common
     order: int = Field(0, description="Execution order")
@@ -132,22 +149,27 @@ class ActionResponse(BaseModel):
     """Schema for action API responses."""
 
     id: str
-    step_id: str
+    step_id: Optional[str] = None  # Null for nested actions
+    parent_action_id: Optional[str] = None  # For nested actions
     branch: str
     action_type: str
-    target_service: Optional[str]
-    target_tool: Optional[str]
-    argument_mappings: Optional[Dict[str, Any]]
-    message_template: Optional[str]
+    target_service: Optional[str] = None
+    target_tool: Optional[str] = None
+    argument_mappings: Optional[Dict[str, Any]] = None
+    message_template: Optional[str] = None
     order: int
     execution_mode: str
-    ai_comment: Optional[str]
+    ai_comment: Optional[str] = None
     enabled: bool
     created_at: datetime
     updated_at: datetime
     # Enriched info
     target_service_name: Optional[str] = None
     target_tool_display_name: Optional[str] = None
+    # For conditional actions - nested structure
+    condition_groups: List[ConditionGroupResponse] = []
+    then_actions: List["ActionResponse"] = []
+    else_actions: List["ActionResponse"] = []
 
 
 # === Tool Chain Step Schemas ===

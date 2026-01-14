@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import type { FC } from 'react';
+import type { FC, JSX } from 'react';
 import {
   X,
   Save,
@@ -14,11 +14,11 @@ import {
   MessageSquare,
   ToggleLeft,
   ToggleRight,
-  Pencil,
   GitBranch,
   CheckCircle,
   XCircle,
-  Flag
+  Flag,
+  Pencil
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { getApiBaseUrl } from '../../lib/api';
@@ -88,6 +88,43 @@ const ToolChainDetail: FC<ToolChainDetailProps> = ({ chain, onClose, onUpdated }
   const [newActionTool, setNewActionTool] = useState('');
   const [newActionMessage, setNewActionMessage] = useState('');
   const [newActionComment, setNewActionComment] = useState('');
+  const [newActionArgumentMappings, setNewActionArgumentMappings] = useState<Array<{ targetParam: string; sourceField: string }>>([]);
+
+  // Nested action form state (for adding actions inside conditional actions)
+  const [addingNestedAction, setAddingNestedAction] = useState<{
+    stepId: string;
+    parentActionId: string;
+    branch: 'then' | 'else';
+  } | null>(null);
+
+  // Edit action state
+  const [editingAction, setEditingAction] = useState<{
+    action: Action;
+    stepId: string;
+    parentActionId?: string;
+  } | null>(null);
+  const [editActionType, setEditActionType] = useState<ActionType>('tool_call');
+  const [editActionService, setEditActionService] = useState('');
+  const [editActionTool, setEditActionTool] = useState('');
+  const [editActionMessage, setEditActionMessage] = useState('');
+  const [editActionComment, setEditActionComment] = useState('');
+  const [editActionArgumentMappings, setEditActionArgumentMappings] = useState<Array<{ targetParam: string; sourceField: string }>>([]);
+
+  // Edit step state
+  const [editingStep, setEditingStep] = useState<ToolChainStepDetail | null>(null);
+  const [editStepSourceService, setEditStepSourceService] = useState('');
+  const [editStepSourceTool, setEditStepSourceTool] = useState('');
+  const [editStepPositionType, setEditStepPositionType] = useState<StepPositionType>('middle');
+  const [editStepAiComment, setEditStepAiComment] = useState('');
+
+  // Edit condition state
+  const [editingCondition, setEditingCondition] = useState<{
+    group: ConditionGroup;
+    stepId: string;
+  } | null>(null);
+  const [editConditionOperator, setEditConditionOperator] = useState('');
+  const [editConditionField, setEditConditionField] = useState('');
+  const [editConditionValue, setEditConditionValue] = useState('');
 
   const backendUrl = getApiBaseUrl();
 
@@ -284,7 +321,7 @@ const ToolChainDetail: FC<ToolChainDetailProps> = ({ chain, onClose, onUpdated }
   const handleAddAction = async (stepId: string, branch: 'then' | 'else') => {
     try {
       setError(null);
-      const body: any = {
+      const body: Record<string, unknown> = {
         branch,
         action_type: newActionType,
         order: 0,
@@ -295,8 +332,32 @@ const ToolChainDetail: FC<ToolChainDetailProps> = ({ chain, onClose, onUpdated }
       if (newActionType === 'tool_call') {
         body.target_service = newActionService;
         body.target_tool = newActionTool;
-      } else {
+        // Build argument_mappings from the array
+        if (newActionArgumentMappings.length > 0) {
+          const mappings: Record<string, string> = {};
+          newActionArgumentMappings.forEach(m => {
+            if (m.targetParam && m.sourceField) {
+              mappings[m.targetParam] = m.sourceField;
+            }
+          });
+          if (Object.keys(mappings).length > 0) {
+            body.argument_mappings = mappings;
+          }
+        }
+      } else if (newActionType === 'message') {
         body.message_template = newActionMessage;
+      } else if (newActionType === 'conditional') {
+        body.condition_groups = [{
+          operator: newGroupOperator,
+          conditions: [{
+            operator: newConditionOperator,
+            field: newConditionField || null,
+            value: newConditionValue || null,
+            order: 0
+          }]
+        }];
+        body.then_actions = [];
+        body.else_actions = [];
       }
 
       const response = await fetch(`${backendUrl}/api/tool-chains/${chain.id}/steps/${stepId}/actions/${branch}`, {
@@ -312,6 +373,10 @@ const ToolChainDetail: FC<ToolChainDetailProps> = ({ chain, onClose, onUpdated }
       setNewActionTool('');
       setNewActionMessage('');
       setNewActionComment('');
+      setNewActionArgumentMappings([]);
+      setNewConditionOperator('success');
+      setNewConditionField('');
+      setNewConditionValue('');
       fetchSteps();
       onUpdated();
     } catch (err) {
@@ -349,6 +414,167 @@ const ToolChainDetail: FC<ToolChainDetailProps> = ({ chain, onClose, onUpdated }
     }
   };
 
+  // Open action edit form
+  const openEditAction = (action: Action, stepId: string, parentActionId?: string) => {
+    setEditingAction({ action, stepId, parentActionId });
+    setEditActionType(action.action_type as ActionType);
+    setEditActionService(action.target_service || '');
+    setEditActionTool(action.target_tool || '');
+    setEditActionMessage(action.message_template || '');
+    setEditActionComment(action.ai_comment || '');
+    // Convert argument_mappings object to array format
+    if (action.argument_mappings && typeof action.argument_mappings === 'object') {
+      const mappingsArray = Object.entries(action.argument_mappings).map(([targetParam, sourceField]) => ({
+        targetParam,
+        sourceField: String(sourceField)
+      }));
+      setEditActionArgumentMappings(mappingsArray);
+    } else {
+      setEditActionArgumentMappings([]);
+    }
+  };
+
+  // Save action edit
+  const handleSaveActionEdit = async () => {
+    if (!editingAction) return;
+
+    const { action, stepId, parentActionId } = editingAction;
+    try {
+      setError(null);
+      const body: Record<string, unknown> = {
+        action_type: editActionType,
+        ai_comment: editActionComment || null,
+      };
+
+      if (editActionType === 'tool_call') {
+        body.target_service = editActionService;
+        body.target_tool = editActionTool;
+        // Build argument_mappings from the array
+        if (editActionArgumentMappings.length > 0) {
+          const mappings: Record<string, string> = {};
+          editActionArgumentMappings.forEach(m => {
+            if (m.targetParam && m.sourceField) {
+              mappings[m.targetParam] = m.sourceField;
+            }
+          });
+          body.argument_mappings = Object.keys(mappings).length > 0 ? mappings : null;
+        } else {
+          body.argument_mappings = null;
+        }
+        body.message_template = null;
+      } else if (editActionType === 'message') {
+        body.message_template = editActionMessage;
+        body.target_service = null;
+        body.target_tool = null;
+        body.argument_mappings = null;
+      }
+
+      // Use the appropriate endpoint based on whether it's a nested action or not
+      const url = parentActionId
+        ? `${backendUrl}/api/tool-chains/${chain.id}/actions/${parentActionId}/nested/${action.id}`
+        : `${backendUrl}/api/tool-chains/${chain.id}/steps/${stepId}/actions/${action.branch}/${action.id}`;
+
+      const response = await fetch(url, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+
+      if (!response.ok) throw new Error('Failed to update action');
+
+      setEditingAction(null);
+      fetchSteps();
+      onUpdated();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update action');
+    }
+  };
+
+  // Open step edit form
+  const openEditStep = (step: ToolChainStepDetail) => {
+    setEditingStep(step);
+    setEditStepSourceService(step.source_service);
+    setEditStepSourceTool(step.source_tool);
+    setEditStepPositionType(step.position_type as StepPositionType);
+    setEditStepAiComment(step.ai_comment || '');
+  };
+
+  // Save step edit
+  const handleSaveStepEdit = async () => {
+    if (!editingStep) return;
+
+    try {
+      setError(null);
+      const response = await fetch(
+        `${backendUrl}/api/tool-chains/${chain.id}/steps/${editingStep.id}`,
+        {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            source_service: editStepSourceService,
+            source_tool: editStepSourceTool,
+            position_type: editStepPositionType,
+            ai_comment: editStepAiComment || null,
+          })
+        }
+      );
+
+      if (!response.ok) throw new Error('Failed to update step');
+
+      setEditingStep(null);
+      fetchSteps();
+      onUpdated();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update step');
+    }
+  };
+
+  // Open condition edit form
+  const openEditCondition = (group: ConditionGroup, stepId: string) => {
+    setEditingCondition({ group, stepId });
+    // Use the first condition of the group for editing
+    const firstCondition = group.conditions?.[0];
+    if (firstCondition) {
+      setEditConditionOperator(firstCondition.operator);
+      setEditConditionField(firstCondition.field || '');
+      setEditConditionValue(firstCondition.value || '');
+    }
+  };
+
+  // Save condition edit
+  const handleSaveConditionEdit = async () => {
+    if (!editingCondition) return;
+
+    const { group, stepId } = editingCondition;
+    const firstCondition = group.conditions?.[0];
+    if (!firstCondition) return;
+
+    try {
+      setError(null);
+      // Update the condition
+      const response = await fetch(
+        `${backendUrl}/api/tool-chains/${chain.id}/steps/${stepId}/condition-groups/${group.id}/conditions/${firstCondition.id}`,
+        {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            operator: editConditionOperator,
+            field: editConditionField || null,
+            value: editConditionValue || null,
+          })
+        }
+      );
+
+      if (!response.ok) throw new Error('Failed to update condition');
+
+      setEditingCondition(null);
+      fetchSteps();
+      onUpdated();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update condition');
+    }
+  };
+
   const toggleStepExpanded = (stepId: string) => {
     setExpandedSteps(prev => {
       const newSet = new Set(prev);
@@ -364,6 +590,119 @@ const ToolChainDetail: FC<ToolChainDetailProps> = ({ chain, onClose, onUpdated }
   const getOperatorLabel = (value: string) => {
     const op = operators.find(o => o.value === value);
     return op?.label || value;
+  };
+
+  // Format condition groups for display summary
+  const formatConditionSummary = (groups?: ConditionGroup[]): string => {
+    if (!groups || groups.length === 0) {
+      return t('toolChains.detail.noNestedConditions');
+    }
+
+    const conditions = groups.flatMap(g => g.conditions || []);
+    if (conditions.length === 0) {
+      return t('toolChains.detail.noNestedConditions');
+    }
+
+    return conditions.map(c => {
+      const opLabel = getOperatorLabel(c.operator);
+      if (c.field && c.value) {
+        return `${c.field} ${opLabel} "${c.value}"`;
+      } else if (c.field) {
+        return `${c.field} ${opLabel}`;
+      }
+      return opLabel;
+    }).join(' & ');
+  };
+
+  // Handle adding nested action to a conditional action
+  const handleAddNestedAction = async (
+    _stepId: string,
+    parentActionId: string,
+    branch: 'then' | 'else'
+  ) => {
+    try {
+      setError(null);
+      const body: Record<string, unknown> = {
+        branch,
+        action_type: newActionType,
+        order: 0,
+        ai_comment: newActionComment || null,
+        enabled: true,
+        parent_action_id: parentActionId,
+      };
+
+      if (newActionType === 'tool_call') {
+        body.target_service = newActionService;
+        body.target_tool = newActionTool;
+        // Build argument_mappings from the array
+        if (newActionArgumentMappings.length > 0) {
+          const mappings: Record<string, string> = {};
+          newActionArgumentMappings.forEach(m => {
+            if (m.targetParam && m.sourceField) {
+              mappings[m.targetParam] = m.sourceField;
+            }
+          });
+          if (Object.keys(mappings).length > 0) {
+            body.argument_mappings = mappings;
+          }
+        }
+      } else if (newActionType === 'message') {
+        body.message_template = newActionMessage;
+      } else if (newActionType === 'conditional') {
+        body.condition_groups = [{
+          operator: newGroupOperator,
+          conditions: [{
+            operator: newConditionOperator,
+            field: newConditionField || null,
+            value: newConditionValue || null,
+            order: 0
+          }]
+        }];
+        body.then_actions = [];
+        body.else_actions = [];
+      }
+
+      const response = await fetch(
+        `${backendUrl}/api/tool-chains/${chain.id}/actions/${parentActionId}/nested/${branch}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        }
+      );
+      if (!response.ok) throw new Error('Failed to add nested action');
+
+      setAddingNestedAction(null);
+      setNewActionType('tool_call');
+      setNewActionService('');
+      setNewActionTool('');
+      setNewActionMessage('');
+      setNewActionComment('');
+      setNewActionArgumentMappings([]);
+      setNewConditionOperator('success');
+      setNewConditionField('');
+      setNewConditionValue('');
+      fetchSteps();
+      onUpdated();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to add nested action');
+    }
+  };
+
+  // Handle deleting a nested action
+  const handleDeleteNestedAction = async (actionId: string, parentActionId: string) => {
+    try {
+      setError(null);
+      const response = await fetch(
+        `${backendUrl}/api/tool-chains/${chain.id}/actions/${parentActionId}/nested/${actionId}`,
+        { method: 'DELETE' }
+      );
+      if (!response.ok) throw new Error('Failed to delete nested action');
+      fetchSteps();
+      onUpdated();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete nested action');
+    }
   };
 
   const renderConditions = (groups: ConditionGroup[], stepId: string) => {
@@ -389,12 +728,21 @@ const ToolChainDetail: FC<ToolChainDetailProps> = ({ chain, onClose, onUpdated }
                 <span className="px-1.5 py-0.5 text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded uppercase">
                   {group.operator}
                 </span>
-                <button
-                  onClick={() => handleDeleteConditionGroup(stepId, group.id)}
-                  className="p-0.5 text-gray-400 hover:text-red-600 rounded"
-                >
-                  <Trash2 className="w-3 h-3" />
-                </button>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => openEditCondition(group, stepId)}
+                    className="p-0.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded"
+                    title={t('toolChains.detail.editCondition')}
+                  >
+                    <Pencil className="w-3 h-3" />
+                  </button>
+                  <button
+                    onClick={() => handleDeleteConditionGroup(stepId, group.id)}
+                    className="p-0.5 text-gray-400 hover:text-red-600 rounded"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </button>
+                </div>
               </div>
               <div className="space-y-1">
                 {group.conditions.map((cond, cIdx) => (
@@ -413,6 +761,367 @@ const ToolChainDetail: FC<ToolChainDetailProps> = ({ chain, onClose, onUpdated }
     );
   };
 
+  // Render a single action (recursive for conditional actions)
+  const renderAction = (
+    action: Action,
+    stepId: string,
+    parentBranch: 'then' | 'else',
+    depth: number = 0,
+    parentActionId?: string
+  ): JSX.Element => {
+    const isNested = depth > 0;
+
+    // Conditional action - render IF/THEN/ELSE structure
+    if (action.action_type === 'conditional') {
+      return (
+        <div
+          key={action.id}
+          className={`mt-2 p-2 bg-blue-50 dark:bg-blue-900/20 rounded border border-blue-200 dark:border-blue-800 ${
+            !action.enabled ? 'opacity-50' : ''
+          }`}
+        >
+          {/* Conditional header with IF conditions */}
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2 flex-1 min-w-0">
+              <GitBranch className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" />
+              <span className="text-xs font-medium text-blue-700 dark:text-blue-400">
+                {t('toolChains.detail.conditionalIf')}
+              </span>
+              <span className="text-xs text-gray-600 dark:text-gray-400 truncate">
+                {formatConditionSummary(action.condition_groups)}
+              </span>
+            </div>
+            <div className="flex items-center gap-1 flex-shrink-0">
+              <button
+                onClick={() => handleToggleActionEnabled(stepId, action)}
+                className={`p-0.5 rounded ${
+                  action.enabled
+                    ? 'text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20'
+                    : 'text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                }`}
+              >
+                {action.enabled ? <ToggleRight className="w-3 h-3" /> : <ToggleLeft className="w-3 h-3" />}
+              </button>
+              <button
+                onClick={() => isNested && parentActionId
+                  ? handleDeleteNestedAction(action.id, parentActionId)
+                  : handleDeleteAction(stepId, parentBranch, action.id)
+                }
+                className="p-0.5 text-gray-400 hover:text-red-600 rounded"
+              >
+                <Trash2 className="w-3 h-3" />
+              </button>
+            </div>
+          </div>
+
+          {/* Nested THEN branch */}
+          <div className="ml-2 mt-2 pl-2 border-l-2 border-green-300 dark:border-green-700">
+            <div className="flex items-center gap-1.5 mb-1">
+              <CheckCircle className="w-3 h-3 text-green-600" />
+              <span className="text-xs font-medium text-green-700 dark:text-green-400">
+                {t('toolChains.detail.conditionalThen')}
+              </span>
+            </div>
+            <div className="space-y-1">
+              {action.then_actions && action.then_actions.length > 0 ? (
+                action.then_actions.map(a => renderAction(a, stepId, 'then', depth + 1, action.id))
+              ) : (
+                <div className="text-xs text-gray-400 italic py-1">
+                  {t('toolChains.detail.emptyBranch')}
+                </div>
+              )}
+              {/* Add nested THEN action button */}
+              {renderNestedAddButton(stepId, action.id, 'then')}
+            </div>
+          </div>
+
+          {/* Nested ELSE branch */}
+          <div className="ml-2 mt-2 pl-2 border-l-2 border-orange-300 dark:border-orange-700">
+            <div className="flex items-center gap-1.5 mb-1">
+              <XCircle className="w-3 h-3 text-orange-600" />
+              <span className="text-xs font-medium text-orange-700 dark:text-orange-400">
+                {t('toolChains.detail.conditionalElse')}
+              </span>
+            </div>
+            <div className="space-y-1">
+              {action.else_actions && action.else_actions.length > 0 ? (
+                action.else_actions.map(a => renderAction(a, stepId, 'else', depth + 1, action.id))
+              ) : (
+                <div className="text-xs text-gray-400 italic py-1">
+                  {t('toolChains.detail.emptyBranch')}
+                </div>
+              )}
+              {/* Add nested ELSE action button */}
+              {renderNestedAddButton(stepId, action.id, 'else')}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Tool call or message action
+    return (
+      <div
+        key={action.id}
+        className={`flex items-center justify-between p-1.5 bg-white dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700 ${
+          !action.enabled ? 'opacity-50' : ''
+        }`}
+      >
+        <div className="flex items-center gap-2 min-w-0">
+          {action.action_type === 'message' ? (
+            <>
+              <MessageSquare className="w-3 h-3 text-purple-500 flex-shrink-0" />
+              <span className="text-xs text-gray-600 dark:text-gray-400 truncate">
+                {action.message_template || t('toolChains.detail.emptyMessage')}
+              </span>
+            </>
+          ) : (
+            <>
+              <span className="px-1 py-0.5 text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded flex-shrink-0">
+                {action.target_service_name || action.target_service}
+              </span>
+              <span className="text-xs text-gray-700 dark:text-gray-300 truncate">
+                {action.target_tool_display_name || action.target_tool}
+              </span>
+            </>
+          )}
+        </div>
+        <div className="flex items-center gap-1 flex-shrink-0">
+          <button
+            onClick={() => openEditAction(action, stepId, parentActionId)}
+            className="p-0.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded"
+            title={t('toolChains.detail.editAction')}
+          >
+            <Pencil className="w-3 h-3" />
+          </button>
+          <button
+            onClick={() => handleToggleActionEnabled(stepId, action)}
+            className={`p-0.5 rounded ${
+              action.enabled
+                ? 'text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20'
+                : 'text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+            }`}
+          >
+            {action.enabled ? <ToggleRight className="w-3 h-3" /> : <ToggleLeft className="w-3 h-3" />}
+          </button>
+          <button
+            onClick={() => isNested && parentActionId
+              ? handleDeleteNestedAction(action.id, parentActionId)
+              : handleDeleteAction(stepId, parentBranch, action.id)
+            }
+            className="p-0.5 text-gray-400 hover:text-red-600 rounded"
+          >
+            <Trash2 className="w-3 h-3" />
+          </button>
+        </div>
+      </div>
+    );
+  };
+
+  // Render add button for nested actions
+  const renderNestedAddButton = (stepId: string, parentActionId: string, branch: 'then' | 'else') => {
+    const isAdding = addingNestedAction?.stepId === stepId &&
+                     addingNestedAction?.parentActionId === parentActionId &&
+                     addingNestedAction?.branch === branch;
+
+    if (isAdding) {
+      return (
+        <div className="mt-1 p-2 bg-white dark:bg-gray-800 rounded border border-gray-300 dark:border-gray-600 space-y-2">
+          <select
+            value={newActionType}
+            onChange={(e) => setNewActionType(e.target.value as ActionType)}
+            className="w-full px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded"
+          >
+            <option value="tool_call">{t('toolChains.detail.actionTypeToolCall')}</option>
+            <option value="message">{t('toolChains.detail.actionTypeMessage')}</option>
+            <option value="conditional">{t('toolChains.detail.actionTypeConditional')}</option>
+          </select>
+
+          {newActionType === 'tool_call' && (
+            <div className="space-y-1">
+              <div className="grid grid-cols-2 gap-1">
+                <select
+                  value={newActionService}
+                  onChange={(e) => { setNewActionService(e.target.value); setNewActionTool(''); }}
+                  className="px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded"
+                >
+                  <option value="">{t('toolChains.detail.selectService')}</option>
+                  {Object.entries(serviceGroups).map(([svc, group]) => (
+                    <option key={svc} value={svc}>{group.service_name}</option>
+                  ))}
+                </select>
+                <select
+                  value={newActionTool}
+                  onChange={(e) => setNewActionTool(e.target.value)}
+                  disabled={!newActionService}
+                  className="px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded"
+                >
+                  <option value="">{t('toolChains.detail.selectTool')}</option>
+                  {newActionService && serviceGroups[newActionService]?.tools.map((tool) => (
+                    <option key={tool.tool_name} value={tool.tool_name}>{tool.tool_display_name}</option>
+                  ))}
+                </select>
+              </div>
+              {/* Argument Mappings */}
+              <div className="mt-1 p-1.5 bg-gray-50 dark:bg-gray-800/50 rounded border border-gray-200 dark:border-gray-700 overflow-hidden">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs text-gray-600 dark:text-gray-400">{t('toolChains.detail.argumentMappings')}</span>
+                  <button
+                    type="button"
+                    onClick={() => setNewActionArgumentMappings([...newActionArgumentMappings, { targetParam: '', sourceField: '' }])}
+                    className="p-0.5 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded"
+                  >
+                    <Plus className="w-3 h-3" />
+                  </button>
+                </div>
+                {newActionArgumentMappings.length === 0 ? (
+                  <div className="text-xs text-gray-400 italic">{t('toolChains.detail.noArgumentMappings')}</div>
+                ) : (
+                  <div className="space-y-1.5">
+                    {newActionArgumentMappings.map((mapping, idx) => (
+                      <div key={idx} className="flex items-center gap-1">
+                        <div className="flex-1 min-w-0 flex items-center gap-1">
+                          <input
+                            type="text"
+                            value={mapping.targetParam}
+                            onChange={(e) => {
+                              const newMappings = [...newActionArgumentMappings];
+                              newMappings[idx].targetParam = e.target.value;
+                              setNewActionArgumentMappings(newMappings);
+                            }}
+                            placeholder={t('toolChains.detail.targetParam')}
+                            className="w-full min-w-0 px-1.5 py-0.5 text-xs border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded"
+                          />
+                          <span className="text-xs text-gray-400 flex-shrink-0">=</span>
+                          <input
+                            type="text"
+                            value={mapping.sourceField}
+                            onChange={(e) => {
+                              const newMappings = [...newActionArgumentMappings];
+                              newMappings[idx].sourceField = e.target.value;
+                              setNewActionArgumentMappings(newMappings);
+                            }}
+                            placeholder={t('toolChains.detail.sourceField')}
+                            className="w-full min-w-0 px-1.5 py-0.5 text-xs border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded"
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newMappings = newActionArgumentMappings.filter((_, i) => i !== idx);
+                            setNewActionArgumentMappings(newMappings);
+                          }}
+                          className="p-0.5 text-gray-400 hover:text-red-600 rounded flex-shrink-0"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {newActionType === 'message' && (
+            <textarea
+              value={newActionMessage}
+              onChange={(e) => setNewActionMessage(e.target.value)}
+              placeholder={t('toolChains.detail.messageTemplatePlaceholder')}
+              rows={2}
+              className="w-full px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded resize-none"
+            />
+          )}
+
+          {newActionType === 'conditional' && (
+            <div className="space-y-1">
+              <div className="text-xs text-gray-600 dark:text-gray-400">{t('toolChains.detail.conditionalIf')}:</div>
+              <div className="grid grid-cols-3 gap-1">
+                <select
+                  value={newConditionOperator}
+                  onChange={(e) => setNewConditionOperator(e.target.value)}
+                  className="px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded"
+                >
+                  {operators.map((op) => (
+                    <option key={op.value} value={op.value}>{op.label}</option>
+                  ))}
+                </select>
+                <input
+                  type="text"
+                  value={newConditionField}
+                  onChange={(e) => setNewConditionField(e.target.value)}
+                  placeholder={t('toolChains.detail.conditionFieldPlaceholder')}
+                  className="px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded"
+                />
+                <input
+                  type="text"
+                  value={newConditionValue}
+                  onChange={(e) => setNewConditionValue(e.target.value)}
+                  placeholder={t('toolChains.detail.conditionValuePlaceholder')}
+                  className="px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded"
+                />
+              </div>
+            </div>
+          )}
+
+          <input
+            type="text"
+            value={newActionComment}
+            onChange={(e) => setNewActionComment(e.target.value)}
+            placeholder={t('toolChains.detail.actionCommentPlaceholder')}
+            className="w-full px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded"
+          />
+
+          <div className="flex justify-end gap-1">
+            <button
+              onClick={() => setAddingNestedAction(null)}
+              className="px-2 py-0.5 text-xs text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+            >
+              {t('toolChains.detail.cancel')}
+            </button>
+            <button
+              onClick={() => handleAddNestedAction(stepId, parentActionId, branch)}
+              disabled={
+                (newActionType === 'tool_call' && (!newActionService || !newActionTool)) ||
+                (newActionType === 'message' && !newActionMessage)
+              }
+              className={`px-2 py-0.5 text-xs text-white rounded disabled:opacity-50 ${
+                branch === 'then' ? 'bg-green-600 hover:bg-green-700' : 'bg-orange-600 hover:bg-orange-700'
+              }`}
+            >
+              {t('toolChains.detail.add')}
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <button
+        onClick={() => {
+          setAddingNestedAction({ stepId, parentActionId, branch });
+          setNewActionType('tool_call');
+          setNewActionService('');
+          setNewActionTool('');
+          setNewActionMessage('');
+          setNewActionComment('');
+          setNewConditionOperator('success');
+          setNewConditionField('');
+          setNewConditionValue('');
+        }}
+        className={`w-full mt-1 p-1 border border-dashed rounded text-xs flex items-center justify-center gap-1 ${
+          branch === 'then'
+            ? 'border-green-300 dark:border-green-700 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20'
+            : 'border-orange-300 dark:border-orange-700 text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/20'
+        }`}
+      >
+        <Plus className="w-3 h-3" />
+        <span>{branch === 'then' ? t('toolChains.detail.addNestedThenAction') : t('toolChains.detail.addNestedElseAction')}</span>
+      </button>
+    );
+  };
+
+  // Render actions for a branch (THEN or ELSE)
   const renderActions = (actions: Action[], stepId: string, branch: 'then' | 'else') => {
     const branchColor = branch === 'then' ? 'green' : 'orange';
 
@@ -421,9 +1130,9 @@ const ToolChainDetail: FC<ToolChainDetailProps> = ({ chain, onClose, onUpdated }
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-1.5">
             {branch === 'then' ? (
-              <CheckCircle className={`w-3.5 h-3.5 text-green-600`} />
+              <CheckCircle className="w-3.5 h-3.5 text-green-600" />
             ) : (
-              <XCircle className={`w-3.5 h-3.5 text-orange-600`} />
+              <XCircle className="w-3.5 h-3.5 text-orange-600" />
             )}
             <span className={`text-xs font-medium ${branch === 'then' ? 'text-green-700 dark:text-green-400' : 'text-orange-700 dark:text-orange-400'}`}>
               {branch === 'then' ? t('toolChains.detail.thenBranch') : t('toolChains.detail.elseBranch')}
@@ -432,56 +1141,7 @@ const ToolChainDetail: FC<ToolChainDetailProps> = ({ chain, onClose, onUpdated }
         </div>
 
         <div className="space-y-1.5">
-          {actions.map((action) => (
-            <div
-              key={action.id}
-              className={`flex items-center justify-between p-1.5 bg-white dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700 ${
-                !action.enabled ? 'opacity-50' : ''
-              }`}
-            >
-              <div className="flex items-center gap-2">
-                {action.action_type === 'message' ? (
-                  <>
-                    <MessageSquare className="w-3 h-3 text-purple-500" />
-                    <span className="text-xs text-gray-600 dark:text-gray-400 truncate max-w-[200px]">
-                      {action.message_template || t('toolChains.detail.emptyMessage')}
-                    </span>
-                  </>
-                ) : (
-                  <>
-                    <span className="px-1 py-0.5 text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded">
-                      {action.target_service_name || action.target_service}
-                    </span>
-                    <span className="text-xs text-gray-700 dark:text-gray-300">
-                      {action.target_tool_display_name || action.target_tool}
-                    </span>
-                  </>
-                )}
-              </div>
-              <div className="flex items-center gap-1">
-                <button
-                  onClick={() => handleToggleActionEnabled(stepId, action)}
-                  className={`p-0.5 rounded ${
-                    action.enabled
-                      ? 'text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20'
-                      : 'text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
-                  }`}
-                >
-                  {action.enabled ? (
-                    <ToggleRight className="w-3 h-3" />
-                  ) : (
-                    <ToggleLeft className="w-3 h-3" />
-                  )}
-                </button>
-                <button
-                  onClick={() => handleDeleteAction(stepId, branch, action.id)}
-                  className="p-0.5 text-gray-400 hover:text-red-600 rounded"
-                >
-                  <Trash2 className="w-3 h-3" />
-                </button>
-              </div>
-            </div>
-          ))}
+          {actions.map((action) => renderAction(action, stepId, branch, 0))}
 
           {actions.length === 0 && (
             <div className="text-xs text-gray-400 italic py-1">
@@ -499,38 +1159,96 @@ const ToolChainDetail: FC<ToolChainDetailProps> = ({ chain, onClose, onUpdated }
               >
                 <option value="tool_call">{t('toolChains.detail.actionTypeToolCall')}</option>
                 <option value="message">{t('toolChains.detail.actionTypeMessage')}</option>
+                <option value="conditional">{t('toolChains.detail.actionTypeConditional')}</option>
               </select>
 
-              {newActionType === 'tool_call' ? (
-                <div className="grid grid-cols-2 gap-1">
-                  <select
-                    value={newActionService}
-                    onChange={(e) => {
-                      setNewActionService(e.target.value);
-                      setNewActionTool('');
-                    }}
-                    className="px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded"
-                  >
-                    <option value="">{t('toolChains.detail.selectService')}</option>
-                    {Object.entries(serviceGroups).map(([svc, group]) => (
-                      <option key={svc} value={svc}>{group.service_name}</option>
-                    ))}
-                  </select>
-                  <select
-                    value={newActionTool}
-                    onChange={(e) => setNewActionTool(e.target.value)}
-                    disabled={!newActionService}
-                    className="px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded"
-                  >
-                    <option value="">{t('toolChains.detail.selectTool')}</option>
-                    {newActionService && serviceGroups[newActionService]?.tools.map((tool) => (
-                      <option key={tool.tool_name} value={tool.tool_name}>
-                        {tool.tool_display_name}
-                      </option>
-                    ))}
-                  </select>
+              {newActionType === 'tool_call' && (
+                <div className="space-y-1">
+                  <div className="grid grid-cols-2 gap-1">
+                    <select
+                      value={newActionService}
+                      onChange={(e) => { setNewActionService(e.target.value); setNewActionTool(''); }}
+                      className="px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded"
+                    >
+                      <option value="">{t('toolChains.detail.selectService')}</option>
+                      {Object.entries(serviceGroups).map(([svc, group]) => (
+                        <option key={svc} value={svc}>{group.service_name}</option>
+                      ))}
+                    </select>
+                    <select
+                      value={newActionTool}
+                      onChange={(e) => setNewActionTool(e.target.value)}
+                      disabled={!newActionService}
+                      className="px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded"
+                    >
+                      <option value="">{t('toolChains.detail.selectTool')}</option>
+                      {newActionService && serviceGroups[newActionService]?.tools.map((tool) => (
+                        <option key={tool.tool_name} value={tool.tool_name}>{tool.tool_display_name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  {/* Argument Mappings */}
+                  <div className="mt-1 p-1.5 bg-gray-50 dark:bg-gray-800/50 rounded border border-gray-200 dark:border-gray-700 overflow-hidden">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs text-gray-600 dark:text-gray-400">{t('toolChains.detail.argumentMappings')}</span>
+                      <button
+                        type="button"
+                        onClick={() => setNewActionArgumentMappings([...newActionArgumentMappings, { targetParam: '', sourceField: '' }])}
+                        className="p-0.5 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded"
+                      >
+                        <Plus className="w-3 h-3" />
+                      </button>
+                    </div>
+                    {newActionArgumentMappings.length === 0 ? (
+                      <div className="text-xs text-gray-400 italic">{t('toolChains.detail.noArgumentMappings')}</div>
+                    ) : (
+                      <div className="space-y-1.5">
+                        {newActionArgumentMappings.map((mapping, idx) => (
+                          <div key={idx} className="flex items-center gap-1">
+                            <div className="flex-1 min-w-0 flex items-center gap-1">
+                              <input
+                                type="text"
+                                value={mapping.targetParam}
+                                onChange={(e) => {
+                                  const newMappings = [...newActionArgumentMappings];
+                                  newMappings[idx].targetParam = e.target.value;
+                                  setNewActionArgumentMappings(newMappings);
+                                }}
+                                placeholder={t('toolChains.detail.targetParam')}
+                                className="w-full min-w-0 px-1.5 py-0.5 text-xs border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded"
+                              />
+                              <span className="text-xs text-gray-400 flex-shrink-0">=</span>
+                              <input
+                                type="text"
+                                value={mapping.sourceField}
+                                onChange={(e) => {
+                                  const newMappings = [...newActionArgumentMappings];
+                                  newMappings[idx].sourceField = e.target.value;
+                                  setNewActionArgumentMappings(newMappings);
+                                }}
+                                placeholder={t('toolChains.detail.sourceField')}
+                                className="w-full min-w-0 px-1.5 py-0.5 text-xs border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded"
+                              />
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newMappings = newActionArgumentMappings.filter((_, i) => i !== idx);
+                                setNewActionArgumentMappings(newMappings);
+                              }}
+                              className="p-0.5 text-gray-400 hover:text-red-600 rounded flex-shrink-0"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              ) : (
+              )}
+
+              {newActionType === 'message' && (
                 <textarea
                   value={newActionMessage}
                   onChange={(e) => setNewActionMessage(e.target.value)}
@@ -538,6 +1256,37 @@ const ToolChainDetail: FC<ToolChainDetailProps> = ({ chain, onClose, onUpdated }
                   rows={2}
                   className="w-full px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded resize-none"
                 />
+              )}
+
+              {newActionType === 'conditional' && (
+                <div className="space-y-1">
+                  <div className="text-xs text-gray-600 dark:text-gray-400">{t('toolChains.detail.conditionalIf')}:</div>
+                  <div className="grid grid-cols-3 gap-1">
+                    <select
+                      value={newConditionOperator}
+                      onChange={(e) => setNewConditionOperator(e.target.value)}
+                      className="px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded"
+                    >
+                      {operators.map((op) => (
+                        <option key={op.value} value={op.value}>{op.label}</option>
+                      ))}
+                    </select>
+                    <input
+                      type="text"
+                      value={newConditionField}
+                      onChange={(e) => setNewConditionField(e.target.value)}
+                      placeholder={t('toolChains.detail.conditionFieldPlaceholder')}
+                      className="px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded"
+                    />
+                    <input
+                      type="text"
+                      value={newConditionValue}
+                      onChange={(e) => setNewConditionValue(e.target.value)}
+                      placeholder={t('toolChains.detail.conditionValuePlaceholder')}
+                      className="px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded"
+                    />
+                  </div>
+                </div>
               )}
 
               <input
@@ -557,7 +1306,10 @@ const ToolChainDetail: FC<ToolChainDetailProps> = ({ chain, onClose, onUpdated }
                 </button>
                 <button
                   onClick={() => handleAddAction(stepId, branch)}
-                  disabled={(newActionType === 'tool_call' && (!newActionService || !newActionTool)) || (newActionType === 'message' && !newActionMessage)}
+                  disabled={
+                    (newActionType === 'tool_call' && (!newActionService || !newActionTool)) ||
+                    (newActionType === 'message' && !newActionMessage)
+                  }
                   className={`px-2 py-0.5 text-xs text-white rounded disabled:opacity-50 ${
                     branch === 'then' ? 'bg-green-600 hover:bg-green-700' : 'bg-orange-600 hover:bg-orange-700'
                   }`}
@@ -574,7 +1326,11 @@ const ToolChainDetail: FC<ToolChainDetailProps> = ({ chain, onClose, onUpdated }
                 setNewActionService('');
                 setNewActionTool('');
                 setNewActionMessage('');
+                setNewActionArgumentMappings([]);
                 setNewActionComment('');
+                setNewConditionOperator('success');
+                setNewConditionField('');
+                setNewConditionValue('');
               }}
               className={`w-full mt-1 p-1 border border-dashed rounded text-xs flex items-center justify-center gap-1 ${
                 branch === 'then'
@@ -810,6 +1566,13 @@ const ToolChainDetail: FC<ToolChainDetailProps> = ({ chain, onClose, onUpdated }
                           </div>
                           <div className="flex items-center space-x-1">
                             <button
+                              onClick={(e) => { e.stopPropagation(); openEditStep(step); }}
+                              className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
+                              title={t('toolChains.detail.editStep')}
+                            >
+                              <Pencil className="w-4 h-4" />
+                            </button>
+                            <button
                               onClick={(e) => { e.stopPropagation(); handleToggleStepEnabled(step); }}
                               className={`p-1 rounded transition-colors ${
                                 step.enabled
@@ -1044,6 +1807,380 @@ const ToolChainDetail: FC<ToolChainDetailProps> = ({ chain, onClose, onUpdated }
           </div>
         )}
       </div>
+
+      {/* Edit Action Modal */}
+      {editingAction && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+                {t('toolChains.detail.editAction')}
+              </h3>
+              <button
+                onClick={() => setEditingAction(null)}
+                className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-4 space-y-4">
+              {/* Action Type (read-only for conditional) */}
+              {editingAction.action.action_type !== 'conditional' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Type
+                  </label>
+                  <select
+                    value={editActionType}
+                    onChange={(e) => setEditActionType(e.target.value as ActionType)}
+                    className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg"
+                  >
+                    <option value="tool_call">{t('toolChains.detail.actionTypeToolCall')}</option>
+                    <option value="message">{t('toolChains.detail.actionTypeMessage')}</option>
+                  </select>
+                </div>
+              )}
+
+              {/* Tool Call fields */}
+              {editActionType === 'tool_call' && editingAction.action.action_type !== 'conditional' && (
+                <>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                        Service
+                      </label>
+                      <select
+                        value={editActionService}
+                        onChange={(e) => { setEditActionService(e.target.value); setEditActionTool(''); }}
+                        className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded"
+                      >
+                        <option value="">{t('toolChains.detail.selectService')}</option>
+                        {Object.entries(serviceGroups).map(([svc, group]) => (
+                          <option key={svc} value={svc}>{group.service_name}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                        Tool
+                      </label>
+                      <select
+                        value={editActionTool}
+                        onChange={(e) => setEditActionTool(e.target.value)}
+                        disabled={!editActionService}
+                        className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded"
+                      >
+                        <option value="">{t('toolChains.detail.selectTool')}</option>
+                        {editActionService && serviceGroups[editActionService]?.tools.map((tool) => (
+                          <option key={tool.tool_name} value={tool.tool_name}>{tool.tool_display_name}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Argument Mappings */}
+                  <div className="p-2 bg-gray-50 dark:bg-gray-900/50 rounded border border-gray-200 dark:border-gray-700 overflow-hidden">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                        {t('toolChains.detail.argumentMappings')}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setEditActionArgumentMappings([...editActionArgumentMappings, { targetParam: '', sourceField: '' }])}
+                        className="p-1 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded flex-shrink-0"
+                      >
+                        <Plus className="w-4 h-4" />
+                      </button>
+                    </div>
+                    {editActionArgumentMappings.length === 0 ? (
+                      <div className="text-xs text-gray-400 italic">{t('toolChains.detail.noArgumentMappings')}</div>
+                    ) : (
+                      <div className="space-y-2">
+                        {editActionArgumentMappings.map((mapping, idx) => (
+                          <div key={idx} className="flex items-center gap-1.5">
+                            <div className="flex-1 min-w-0 flex items-center gap-1.5">
+                              <input
+                                type="text"
+                                value={mapping.targetParam}
+                                onChange={(e) => {
+                                  const newMappings = [...editActionArgumentMappings];
+                                  newMappings[idx].targetParam = e.target.value;
+                                  setEditActionArgumentMappings(newMappings);
+                                }}
+                                placeholder={t('toolChains.detail.targetParam')}
+                                className="w-full min-w-0 px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded"
+                              />
+                              <span className="text-gray-400 flex-shrink-0">=</span>
+                              <input
+                                type="text"
+                                value={mapping.sourceField}
+                                onChange={(e) => {
+                                  const newMappings = [...editActionArgumentMappings];
+                                  newMappings[idx].sourceField = e.target.value;
+                                  setEditActionArgumentMappings(newMappings);
+                                }}
+                                placeholder={t('toolChains.detail.sourceField')}
+                                className="w-full min-w-0 px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded"
+                              />
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newMappings = editActionArgumentMappings.filter((_, i) => i !== idx);
+                                setEditActionArgumentMappings(newMappings);
+                              }}
+                              className="p-1 text-gray-400 hover:text-red-600 rounded flex-shrink-0"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+
+              {/* Message field */}
+              {editActionType === 'message' && editingAction.action.action_type !== 'conditional' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Message
+                  </label>
+                  <textarea
+                    value={editActionMessage}
+                    onChange={(e) => setEditActionMessage(e.target.value)}
+                    placeholder={t('toolChains.detail.messageTemplatePlaceholder')}
+                    rows={3}
+                    className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg resize-none"
+                  />
+                </div>
+              )}
+
+              {/* Conditional action info */}
+              {editingAction.action.action_type === 'conditional' && (
+                <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded border border-blue-200 dark:border-blue-800">
+                  <p className="text-sm text-blue-700 dark:text-blue-300">
+                    {t('toolChains.detail.conditionalEditInfo')}
+                  </p>
+                </div>
+              )}
+
+              {/* AI Comment */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  {t('toolChains.detail.aiComment')}
+                </label>
+                <input
+                  type="text"
+                  value={editActionComment}
+                  onChange={(e) => setEditActionComment(e.target.value)}
+                  placeholder={t('toolChains.detail.actionCommentPlaceholder')}
+                  className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg"
+                />
+              </div>
+            </div>
+            <div className="p-3 sm:p-4 border-t border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row justify-end gap-2">
+              <button
+                onClick={() => setEditingAction(null)}
+                className="w-full sm:w-auto px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+              >
+                {t('toolChains.detail.cancel')}
+              </button>
+              <button
+                onClick={handleSaveActionEdit}
+                disabled={
+                  editingAction.action.action_type !== 'conditional' &&
+                  editActionType === 'tool_call' &&
+                  (!editActionService || !editActionTool)
+                }
+                className="w-full sm:w-auto px-4 py-2 text-sm bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                <Save className="w-4 h-4" />
+                {t('toolChains.detail.save')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Step Modal */}
+      {editingStep && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+            <div className="p-3 sm:p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+              <h3 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white">
+                {t('toolChains.detail.editStep')}
+              </h3>
+              <button
+                onClick={() => setEditingStep(null)}
+                className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-3 sm:p-4 space-y-4">
+              {/* Source Tool */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  {t('toolChains.detail.sourceTool')}
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <select
+                    value={editStepSourceService}
+                    onChange={(e) => { setEditStepSourceService(e.target.value); setEditStepSourceTool(''); }}
+                    className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg"
+                  >
+                    <option value="">{t('toolChains.detail.selectService')}</option>
+                    {Object.entries(serviceGroups).map(([svc, group]) => (
+                      <option key={svc} value={svc}>{group.service_name}</option>
+                    ))}
+                  </select>
+                  <select
+                    value={editStepSourceTool}
+                    onChange={(e) => setEditStepSourceTool(e.target.value)}
+                    disabled={!editStepSourceService}
+                    className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg"
+                  >
+                    <option value="">{t('toolChains.detail.selectTool')}</option>
+                    {editStepSourceService && serviceGroups[editStepSourceService]?.tools.map((tool) => (
+                      <option key={tool.tool_name} value={tool.tool_name}>{tool.tool_display_name}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Position Type */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  {t('toolChains.detail.positionType')}
+                </label>
+                <select
+                  value={editStepPositionType}
+                  onChange={(e) => setEditStepPositionType(e.target.value as StepPositionType)}
+                  className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg"
+                >
+                  <option value="middle">{t('toolChains.detail.positionMiddle')}</option>
+                  <option value="end">{t('toolChains.detail.positionEnd')}</option>
+                </select>
+              </div>
+
+              {/* AI Comment */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  {t('toolChains.detail.aiComment')}
+                </label>
+                <input
+                  type="text"
+                  value={editStepAiComment}
+                  onChange={(e) => setEditStepAiComment(e.target.value)}
+                  placeholder={t('toolChains.detail.stepCommentPlaceholder')}
+                  className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg"
+                />
+              </div>
+            </div>
+            <div className="p-3 sm:p-4 border-t border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row justify-end gap-2">
+              <button
+                onClick={() => setEditingStep(null)}
+                className="w-full sm:w-auto px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+              >
+                {t('toolChains.detail.cancel')}
+              </button>
+              <button
+                onClick={handleSaveStepEdit}
+                disabled={!editStepSourceService || !editStepSourceTool}
+                className="w-full sm:w-auto px-4 py-2 text-sm bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                <Save className="w-4 h-4" />
+                {t('toolChains.detail.save')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Condition Modal */}
+      {editingCondition && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+            <div className="p-3 sm:p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+              <h3 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white">
+                {t('toolChains.detail.editCondition')}
+              </h3>
+              <button
+                onClick={() => setEditingCondition(null)}
+                className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-3 sm:p-4 space-y-4">
+              {/* Operator */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  {t('toolChains.detail.condition')}
+                </label>
+                <select
+                  value={editConditionOperator}
+                  onChange={(e) => setEditConditionOperator(e.target.value)}
+                  className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg"
+                >
+                  {operators.map((op) => (
+                    <option key={op.value} value={op.value}>{op.label}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Field */}
+              {operators.find(o => o.value === editConditionOperator)?.requires_field && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    {t('toolChains.detail.sourceField')}
+                  </label>
+                  <input
+                    type="text"
+                    value={editConditionField}
+                    onChange={(e) => setEditConditionField(e.target.value)}
+                    placeholder={t('toolChains.detail.conditionFieldPlaceholder')}
+                    className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg"
+                  />
+                </div>
+              )}
+
+              {/* Value */}
+              {operators.find(o => o.value === editConditionOperator)?.requires_value && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    {t('toolChains.detail.conditionValuePlaceholder')}
+                  </label>
+                  <input
+                    type="text"
+                    value={editConditionValue}
+                    onChange={(e) => setEditConditionValue(e.target.value)}
+                    placeholder={t('toolChains.detail.conditionValuePlaceholder')}
+                    className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg"
+                  />
+                </div>
+              )}
+            </div>
+            <div className="p-3 sm:p-4 border-t border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row justify-end gap-2">
+              <button
+                onClick={() => setEditingCondition(null)}
+                className="w-full sm:w-auto px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+              >
+                {t('toolChains.detail.cancel')}
+              </button>
+              <button
+                onClick={handleSaveConditionEdit}
+                className="w-full sm:w-auto px-4 py-2 text-sm bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                <Save className="w-4 h-4" />
+                {t('toolChains.detail.save')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
