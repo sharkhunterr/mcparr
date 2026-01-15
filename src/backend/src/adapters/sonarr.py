@@ -375,7 +375,11 @@ class SonarrAdapter(TokenAuthAdapter):
     async def get_queue(self) -> List[Dict[str, Any]]:
         """Get download queue."""
         try:
-            response = await self._make_request("GET", "/api/v3/queue")
+            response = await self._make_request(
+                "GET",
+                "/api/v3/queue",
+                params={"includeSeries": "true", "includeEpisode": "true"},
+            )
             data = response.json()
 
             return [
