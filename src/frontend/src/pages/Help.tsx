@@ -18,6 +18,9 @@ import {
   BarChart3,
   Settings,
   Brain,
+  Activity,
+  Bell,
+  FileText,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { helpCategories, type HelpTopic } from '../lib/helpContent';
@@ -39,10 +42,32 @@ const iconMap: Record<string, React.ElementType> = {
   BarChart3,
   Settings,
   Brain,
+  Activity,
+  Bell,
+  FileText,
 };
 
 // Color mapping for topics
 const topicColors: Record<string, { bg: string; text: string; border: string; iconBg: string }> = {
+  // Monitoring category - blue
+  monitoringMetrics: {
+    bg: 'bg-blue-50 dark:bg-blue-900/20',
+    text: 'text-blue-700 dark:text-blue-300',
+    border: 'border-blue-200 dark:border-blue-800',
+    iconBg: 'bg-blue-100 dark:bg-blue-900/40',
+  },
+  monitoringAlerts: {
+    bg: 'bg-blue-50 dark:bg-blue-900/20',
+    text: 'text-blue-700 dark:text-blue-300',
+    border: 'border-blue-200 dark:border-blue-800',
+    iconBg: 'bg-blue-100 dark:bg-blue-900/40',
+  },
+  monitoringLogs: {
+    bg: 'bg-blue-50 dark:bg-blue-900/20',
+    text: 'text-blue-700 dark:text-blue-300',
+    border: 'border-blue-200 dark:border-blue-800',
+    iconBg: 'bg-blue-100 dark:bg-blue-900/40',
+  },
   // Users category - green
   userDetector: {
     bg: 'bg-green-50 dark:bg-green-900/20',
@@ -153,8 +178,8 @@ const defaultColors = {
 };
 
 const Help = () => {
-  // Support multiple namespaces for translations (mcp, services, users, and groups)
-  const { t } = useTranslation(['mcp', 'services', 'users', 'groups', 'training']);
+  // Support multiple namespaces for translations (mcp, services, users, groups, training, monitoring)
+  const { t } = useTranslation(['mcp', 'services', 'users', 'groups', 'training', 'monitoring']);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTopic, setSelectedTopic] = useState<HelpTopic | null>(null);
 

@@ -2,6 +2,10 @@
   "title": "Monitoreo",
   "subtitle": "Monitoreo del sistema en tiempo real",
 
+  "help": {
+    "category": "Monitoreo"
+  },
+
   "tabs": {
     "metrics": "Métricas",
     "logs": "Registros",
@@ -107,6 +111,17 @@
       "worker_offline": "Worker fuera de línea",
       "worker_gpu_usage": "Uso de GPU",
       "training_failed": "Entrenamiento fallido"
+    },
+    "help": {
+      "title": "Gestión de Alertas",
+      "overview": "Descripción general",
+      "overviewContent": "La pestaña Alertas permite crear y gestionar alertas de sistema personalizadas. Reciba notificaciones cuando las métricas superen los umbrales definidos.",
+      "types": "Tipos de alertas",
+      "typesContent": "Alertas disponibles por categoría:\n• Sistema: CPU, memoria, disco, tasa de errores\n• Servicios: servicio caído, prueba fallida, latencia\n• MCP: tasa de errores, volumen de solicitudes, tiempo de respuesta\n• Usuarios: sincronización fallida, permisos denegados\n• Entrenamiento: worker offline, GPU, entrenamiento fallido",
+      "config": "Configuración",
+      "configContent": "Para crear una alerta:\n• Nombre: identificador de la alerta\n• Tipo: métrica a supervisar\n• Severidad: baja, media, alta, crítica\n• Umbral: valor que activa la alerta\n• Duración: tiempo antes de activarse\n• Tiempo de recuperación: retraso entre activaciones",
+      "management": "Gestión",
+      "managementContent": "Pestañas disponibles:\n• Alertas activas: alertas en curso a resolver\n• Configuraciones: lista de reglas de alerta\n• Historial: registro de alertas pasadas\n• MTTR: tiempo medio de resolución"
     }
   },
 
@@ -132,7 +147,18 @@
     "errorRate": "errores",
     "networkIO": "E/S de red",
     "totalTransferred": "Total transferido",
-    "loadingMetrics": "Cargando métricas..."
+    "loadingMetrics": "Cargando métricas...",
+    "help": {
+      "title": "Métricas del Sistema",
+      "overview": "Descripción general",
+      "overviewContent": "La pestaña Métricas muestra un panel de control en tiempo real del estado del sistema. Supervise los recursos de CPU, memoria, disco y la disponibilidad de servicios.",
+      "resources": "Recursos del sistema",
+      "resourcesContent": "Ver utilización de recursos:\n• CPU: porcentaje de uso del procesador\n• Memoria: RAM usada / total\n• Disco: espacio de almacenamiento usado\n• Tiempo de actividad: tiempo de ejecución del sistema",
+      "services": "Servicios",
+      "servicesContent": "Supervisar el estado de los servicios:\n• Continuidad: historial de pruebas de disponibilidad\n• Planificador: pruebas automáticas configurables\n• Indicadores visuales: verde (OK) / rojo (error)",
+      "stats": "Estadísticas",
+      "statsContent": "Tarjetas de estadísticas clave:\n• Servicios: ratio servicios sanos / total\n• Alertas activas: número de alertas en curso\n• Logs 24h: volumen y tasa de errores\n• E/S de red: datos transferidos"
+    }
   },
 
   "serviceContinuity": {
@@ -238,6 +264,17 @@
     },
     "exportModal": {
       "title": "Exportar Logs"
+    },
+    "help": {
+      "title": "Visor de Logs",
+      "overview": "Descripción general",
+      "overviewContent": "La pestaña Logs permite buscar y analizar logs del sistema en tiempo real. Filtre por nivel, fuente o servicio para encontrar información rápidamente.",
+      "levels": "Niveles de log",
+      "levelsContent": "Niveles disponibles:\n• Debug: información de depuración detallada\n• Info: eventos normales del sistema\n• Warning: advertencias no críticas\n• Error: errores que requieren atención\n• Critical: errores críticos urgentes",
+      "filters": "Filtrado",
+      "filtersContent": "Opciones de filtrado:\n• Búsqueda: texto libre en mensajes\n• Nivel: debug, info, warning, error, critical\n• Fuente: componente emisor del log\n• Servicio: servicio asociado al log",
+      "export": "Exportar",
+      "exportContent": "Exportar logs filtrados:\n• Formato JSON o CSV\n• Período personalizable\n• Incluye metadatos\n• Auto-actualización opcional para monitoreo continuo"
     }
   }
 }

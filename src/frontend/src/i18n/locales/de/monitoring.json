@@ -2,6 +2,10 @@
   "title": "Überwachung",
   "subtitle": "Echtzeit-Systemüberwachung",
 
+  "help": {
+    "category": "Überwachung"
+  },
+
   "tabs": {
     "metrics": "Metriken",
     "logs": "Protokolle",
@@ -107,6 +111,17 @@
       "worker_offline": "Worker offline",
       "worker_gpu_usage": "GPU-Auslastung",
       "training_failed": "Training fehlgeschlagen"
+    },
+    "help": {
+      "title": "Warnungsverwaltung",
+      "overview": "Übersicht",
+      "overviewContent": "Die Registerkarte Warnungen ermöglicht das Erstellen und Verwalten benutzerdefinierter Systemwarnungen. Erhalten Sie Benachrichtigungen, wenn Metriken definierte Schwellenwerte überschreiten.",
+      "types": "Warnungstypen",
+      "typesContent": "Verfügbare Warnungen nach Kategorie:\n• System: CPU, Speicher, Festplatte, Fehlerrate\n• Dienste: Dienst offline, Test fehlgeschlagen, Latenz\n• MCP: Fehlerrate, Anfragevolumen, Antwortzeit\n• Benutzer: Sync fehlgeschlagen, Berechtigungen verweigert\n• Training: Worker offline, GPU, Training fehlgeschlagen",
+      "config": "Konfiguration",
+      "configContent": "Um eine Warnung zu erstellen:\n• Name: Warnungskennung\n• Typ: zu überwachende Metrik\n• Schweregrad: niedrig, mittel, hoch, kritisch\n• Schwellenwert: Wert, der die Warnung auslöst\n• Dauer: Zeit vor Auslösung\n• Abklingzeit: Verzögerung zwischen Auslösungen",
+      "management": "Verwaltung",
+      "managementContent": "Verfügbare Registerkarten:\n• Aktive Warnungen: laufende Warnungen zu lösen\n• Konfigurationen: Liste der Warnungsregeln\n• Verlauf: Protokoll vergangener Warnungen\n• MTTR: durchschnittliche Lösungszeit"
     }
   },
 
@@ -132,7 +147,18 @@
     "errorRate": "Fehler",
     "networkIO": "Netzwerk-E/A",
     "totalTransferred": "Gesamt übertragen",
-    "loadingMetrics": "Metriken werden geladen..."
+    "loadingMetrics": "Metriken werden geladen...",
+    "help": {
+      "title": "Systemmetriken",
+      "overview": "Übersicht",
+      "overviewContent": "Die Registerkarte Metriken zeigt ein Echtzeit-Dashboard des Systemzustands. Überwachen Sie CPU-, Speicher-, Festplattenressourcen und Dienstverfügbarkeit.",
+      "resources": "Systemressourcen",
+      "resourcesContent": "Ressourcenauslastung anzeigen:\n• CPU: Prozessorauslastung in Prozent\n• Speicher: verwendeter / gesamter RAM\n• Festplatte: verwendeter Speicherplatz\n• Betriebszeit: Systemlaufzeit",
+      "services": "Dienste",
+      "servicesContent": "Dienststatus überwachen:\n• Kontinuität: Verfügbarkeitstest-Verlauf\n• Planer: konfigurierbare automatische Tests\n• Visuelle Indikatoren: grün (OK) / rot (Fehler)",
+      "stats": "Statistiken",
+      "statsContent": "Wichtige Statistikkarten:\n• Dienste: Verhältnis gesunder Dienste / Gesamt\n• Aktive Warnungen: Anzahl laufender Warnungen\n• Logs 24h: Volumen und Fehlerrate\n• Netzwerk-E/A: übertragene Daten"
+    }
   },
 
   "serviceContinuity": {
@@ -238,6 +264,17 @@
     },
     "exportModal": {
       "title": "Logs exportieren"
+    },
+    "help": {
+      "title": "Log-Betrachter",
+      "overview": "Übersicht",
+      "overviewContent": "Die Registerkarte Logs ermöglicht das Suchen und Analysieren von Systemprotokollen in Echtzeit. Filtern Sie nach Stufe, Quelle oder Dienst, um Informationen schnell zu finden.",
+      "levels": "Log-Stufen",
+      "levelsContent": "Verfügbare Stufen:\n• Debug: detaillierte Debugging-Informationen\n• Info: normale Systemereignisse\n• Warning: nicht-kritische Warnungen\n• Error: Fehler, die Aufmerksamkeit erfordern\n• Critical: dringende kritische Fehler",
+      "filters": "Filterung",
+      "filtersContent": "Filteroptionen:\n• Suche: Freitext in Nachrichten\n• Stufe: debug, info, warning, error, critical\n• Quelle: Log-emittierende Komponente\n• Dienst: mit Log verbundener Dienst",
+      "export": "Export",
+      "exportContent": "Gefilterte Logs exportieren:\n• JSON- oder CSV-Format\n• Anpassbarer Zeitraum\n• Enthält Metadaten\n• Optionale Auto-Aktualisierung für kontinuierliche Überwachung"
     }
   }
 }

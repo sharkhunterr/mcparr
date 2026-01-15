@@ -188,6 +188,49 @@ export const helpCategories: HelpCategory[] = [
     ],
   },
   {
+    id: 'monitoring',
+    titleKey: 'monitoring:help.category',
+    icon: 'Activity',
+    topics: [
+      {
+        id: 'monitoringMetrics',
+        titleKey: 'monitoring:metrics.help.title',
+        descriptionKey: 'monitoring:metrics.help.overviewContent',
+        icon: 'Activity',
+        sections: [
+          { titleKey: 'monitoring:metrics.help.overview', contentKey: 'monitoring:metrics.help.overviewContent' },
+          { titleKey: 'monitoring:metrics.help.resources', contentKey: 'monitoring:metrics.help.resourcesContent' },
+          { titleKey: 'monitoring:metrics.help.services', contentKey: 'monitoring:metrics.help.servicesContent' },
+          { titleKey: 'monitoring:metrics.help.stats', contentKey: 'monitoring:metrics.help.statsContent' },
+        ],
+      },
+      {
+        id: 'monitoringAlerts',
+        titleKey: 'monitoring:alerts.help.title',
+        descriptionKey: 'monitoring:alerts.help.overviewContent',
+        icon: 'Bell',
+        sections: [
+          { titleKey: 'monitoring:alerts.help.overview', contentKey: 'monitoring:alerts.help.overviewContent' },
+          { titleKey: 'monitoring:alerts.help.types', contentKey: 'monitoring:alerts.help.typesContent' },
+          { titleKey: 'monitoring:alerts.help.config', contentKey: 'monitoring:alerts.help.configContent' },
+          { titleKey: 'monitoring:alerts.help.management', contentKey: 'monitoring:alerts.help.managementContent' },
+        ],
+      },
+      {
+        id: 'monitoringLogs',
+        titleKey: 'monitoring:logs.help.title',
+        descriptionKey: 'monitoring:logs.help.overviewContent',
+        icon: 'FileText',
+        sections: [
+          { titleKey: 'monitoring:logs.help.overview', contentKey: 'monitoring:logs.help.overviewContent' },
+          { titleKey: 'monitoring:logs.help.levels', contentKey: 'monitoring:logs.help.levelsContent' },
+          { titleKey: 'monitoring:logs.help.filters', contentKey: 'monitoring:logs.help.filtersContent' },
+          { titleKey: 'monitoring:logs.help.export', contentKey: 'monitoring:logs.help.exportContent' },
+        ],
+      },
+    ],
+  },
+  {
     id: 'training',
     titleKey: 'training:help.category',
     icon: 'Brain',

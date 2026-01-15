@@ -2,6 +2,10 @@
   "title": "Monitoraggio",
   "subtitle": "Monitoraggio del sistema in tempo reale",
 
+  "help": {
+    "category": "Monitoraggio"
+  },
+
   "tabs": {
     "metrics": "Metriche",
     "logs": "Log",
@@ -107,6 +111,17 @@
       "worker_offline": "Worker offline",
       "worker_gpu_usage": "Utilizzo GPU",
       "training_failed": "Addestramento fallito"
+    },
+    "help": {
+      "title": "Gestione Avvisi",
+      "overview": "Panoramica",
+      "overviewContent": "La scheda Avvisi permette di creare e gestire avvisi di sistema personalizzati. Ricevi notifiche quando le metriche superano le soglie definite.",
+      "types": "Tipi di avvisi",
+      "typesContent": "Avvisi disponibili per categoria:\n• Sistema: CPU, memoria, disco, tasso di errori\n• Servizi: servizio offline, test fallito, latenza\n• MCP: tasso di errori, volume richieste, tempo di risposta\n• Utenti: sincronizzazione fallita, permessi negati\n• Addestramento: worker offline, GPU, addestramento fallito",
+      "config": "Configurazione",
+      "configContent": "Per creare un avviso:\n• Nome: identificatore dell'avviso\n• Tipo: metrica da monitorare\n• Gravità: bassa, media, alta, critica\n• Soglia: valore che attiva l'avviso\n• Durata: tempo prima dell'attivazione\n• Tempo di recupero: ritardo tra le attivazioni",
+      "management": "Gestione",
+      "managementContent": "Schede disponibili:\n• Avvisi attivi: avvisi in corso da risolvere\n• Configurazioni: elenco delle regole di avviso\n• Cronologia: registro degli avvisi passati\n• MTTR: tempo medio di risoluzione"
     }
   },
 
@@ -132,7 +147,18 @@
     "errorRate": "errori",
     "networkIO": "I/O di rete",
     "totalTransferred": "Totale trasferito",
-    "loadingMetrics": "Caricamento metriche..."
+    "loadingMetrics": "Caricamento metriche...",
+    "help": {
+      "title": "Metriche di Sistema",
+      "overview": "Panoramica",
+      "overviewContent": "La scheda Metriche mostra una dashboard in tempo reale dello stato del sistema. Monitora le risorse CPU, memoria, disco e la disponibilità dei servizi.",
+      "resources": "Risorse di sistema",
+      "resourcesContent": "Visualizza l'utilizzo delle risorse:\n• CPU: percentuale di utilizzo del processore\n• Memoria: RAM usata / totale\n• Disco: spazio di archiviazione usato\n• Tempo di attività: durata di esecuzione del sistema",
+      "services": "Servizi",
+      "servicesContent": "Monitora lo stato dei servizi:\n• Continuità: cronologia dei test di disponibilità\n• Pianificatore: test automatici configurabili\n• Indicatori visivi: verde (OK) / rosso (errore)",
+      "stats": "Statistiche",
+      "statsContent": "Schede statistiche chiave:\n• Servizi: rapporto servizi sani / totale\n• Avvisi attivi: numero di avvisi in corso\n• Log 24h: volume e tasso di errori\n• I/O di rete: dati trasferiti"
+    }
   },
 
   "serviceContinuity": {
@@ -237,6 +263,17 @@
     },
     "exportModal": {
       "title": "Esporta Log"
+    },
+    "help": {
+      "title": "Visualizzatore Log",
+      "overview": "Panoramica",
+      "overviewContent": "La scheda Log permette di cercare e analizzare i log di sistema in tempo reale. Filtra per livello, fonte o servizio per trovare rapidamente le informazioni.",
+      "levels": "Livelli di log",
+      "levelsContent": "Livelli disponibili:\n• Debug: informazioni di debug dettagliate\n• Info: eventi di sistema normali\n• Warning: avvisi non critici\n• Error: errori che richiedono attenzione\n• Critical: errori critici urgenti",
+      "filters": "Filtri",
+      "filtersContent": "Opzioni di filtro:\n• Ricerca: testo libero nei messaggi\n• Livello: debug, info, warning, error, critical\n• Fonte: componente che emette il log\n• Servizio: servizio associato al log",
+      "export": "Esportazione",
+      "exportContent": "Esporta log filtrati:\n• Formato JSON o CSV\n• Periodo personalizzabile\n• Include metadati\n• Auto-refresh opzionale per monitoraggio continuo"
     }
   }
 }

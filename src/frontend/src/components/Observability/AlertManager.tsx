@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { FC, FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Bell, Plus, Trash2, Power, CheckCircle, AlertTriangle, X } from 'lucide-react';
+import { Bell, Plus, Trash2, Power, CheckCircle, AlertTriangle, X, RefreshCw } from 'lucide-react';
 import { api } from '../../lib/api';
+import { HelpTooltip } from '../common';
 
 interface AlertConfig {
   id: string;
@@ -203,15 +204,33 @@ export const AlertManager: FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Actions bar */}
-      <div className="flex">
-        <button
-          onClick={() => setShowCreateModal(true)}
-          className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
-        >
-          <Plus className="w-4 h-4" />
-          <span className="hidden sm:inline">{t('alerts.create')}</span>
-        </button>
+      {/* Actions bar in card container */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-3 sm:p-4">
+        <div className="flex flex-row gap-2 sm:gap-3 items-center">
+          {/* Refresh button - icon only */}
+          <button
+            onClick={fetchData}
+            className="p-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 flex items-center transition-colors flex-shrink-0"
+            title={tCommon('common.refresh')}
+          >
+            <RefreshCw className="w-4 h-4" />
+          </button>
+
+          {/* Create Alert button */}
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            <span className="hidden sm:inline">{t('alerts.create')}</span>
+          </button>
+
+          {/* Spacer */}
+          <div className="flex-1" />
+
+          {/* Help button */}
+          <HelpTooltip topicId="monitoringAlerts" />
+        </div>
       </div>
 
       {/* Stats Cards */}

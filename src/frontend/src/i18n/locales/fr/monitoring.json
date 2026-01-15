@@ -2,6 +2,10 @@
   "title": "Monitoring",
   "subtitle": "Surveillance système en temps réel",
 
+  "help": {
+    "category": "Monitoring"
+  },
+
   "tabs": {
     "metrics": "Métriques",
     "logs": "Logs",
@@ -107,6 +111,17 @@
       "worker_offline": "Worker hors ligne",
       "worker_gpu_usage": "Utilisation GPU",
       "training_failed": "Entraînement échoué"
+    },
+    "help": {
+      "title": "Gestion des Alertes",
+      "overview": "Vue d'ensemble",
+      "overviewContent": "L'onglet Alertes permet de créer et gérer des alertes système personnalisées. Soyez notifié lorsque des métriques dépassent des seuils définis.",
+      "types": "Types d'alertes",
+      "typesContent": "Alertes disponibles par catégorie :\n• Système : CPU, mémoire, disque, taux d'erreur\n• Services : service hors ligne, test échoué, latence\n• MCP : taux d'erreur, volume de requêtes, temps de réponse\n• Utilisateurs : sync échouée, permissions refusées\n• Training : worker offline, GPU, échec d'entraînement",
+      "config": "Configuration",
+      "configContent": "Pour créer une alerte :\n• Nom : identifiant de l'alerte\n• Type : métrique à surveiller\n• Sévérité : faible, moyenne, haute, critique\n• Seuil : valeur déclenchant l'alerte\n• Durée : temps avant déclenchement\n• Cooldown : délai entre deux déclenchements",
+      "management": "Gestion",
+      "managementContent": "Onglets disponibles :\n• Alertes actives : alertes en cours à résoudre\n• Configurations : liste des règles d'alerte\n• Historique : journal des alertes passées\n• MTTR : temps moyen de résolution"
     }
   },
 
@@ -132,7 +147,18 @@
     "errorRate": "erreurs",
     "networkIO": "Réseau I/O",
     "totalTransferred": "Total transféré",
-    "loadingMetrics": "Chargement des métriques..."
+    "loadingMetrics": "Chargement des métriques...",
+    "help": {
+      "title": "Métriques Système",
+      "overview": "Vue d'ensemble",
+      "overviewContent": "L'onglet Métriques affiche un tableau de bord en temps réel de la santé de votre système. Surveillez les ressources CPU, mémoire, disque et la disponibilité des services.",
+      "resources": "Ressources système",
+      "resourcesContent": "Visualisez l'utilisation des ressources :\n• CPU : pourcentage d'utilisation du processeur\n• Mémoire : RAM utilisée / totale\n• Disque : espace de stockage utilisé\n• Uptime : durée de fonctionnement du système",
+      "services": "Services",
+      "servicesContent": "Surveillez l'état de vos services :\n• Continuité : historique des tests de disponibilité\n• Planificateur : tests automatiques configurables\n• Indicateurs visuels : vert (OK) / rouge (erreur)",
+      "stats": "Statistiques",
+      "statsContent": "Cartes de statistiques clés :\n• Services : ratio services sains / total\n• Alertes actives : nombre d'alertes en cours\n• Logs 24h : volume et taux d'erreur\n• Réseau I/O : données transférées"
+    }
   },
 
   "serviceContinuity": {
@@ -238,6 +264,17 @@
     },
     "exportModal": {
       "title": "Exporter les Logs"
+    },
+    "help": {
+      "title": "Visualiseur de Logs",
+      "overview": "Vue d'ensemble",
+      "overviewContent": "L'onglet Logs permet de rechercher et analyser les logs système en temps réel. Filtrez par niveau, source ou service pour trouver rapidement les informations.",
+      "levels": "Niveaux de log",
+      "levelsContent": "Niveaux disponibles :\n• Debug : informations de débogage détaillées\n• Info : événements normaux du système\n• Warning : avertissements non critiques\n• Error : erreurs nécessitant attention\n• Critical : erreurs critiques urgentes",
+      "filters": "Filtrage",
+      "filtersContent": "Options de filtrage :\n• Recherche : texte libre dans les messages\n• Niveau : debug, info, warning, error, critical\n• Source : composant émetteur du log\n• Service : service associé au log",
+      "export": "Export",
+      "exportContent": "Exportez les logs filtrés :\n• Format JSON ou CSV\n• Période personnalisable\n• Inclut les métadonnées\n• Auto-refresh optionnel pour surveillance continue"
     }
   }
 }
