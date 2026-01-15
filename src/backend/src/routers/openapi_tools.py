@@ -330,10 +330,7 @@ async def get_service_openapi(service_name: str):
     }
 
     if service_name not in service_display_names:
-        return JSONResponse(
-            status_code=404,
-            content={"error": f"Unknown service: {service_name}"}
-        )
+        return JSONResponse(status_code=404, content={"error": f"Unknown service: {service_name}"})
 
     display_name = service_display_names[service_name]
     full_spec = generate_openwebui_openapi_spec()
@@ -519,7 +516,7 @@ MUTATION_TOOLS = {
 
 async def get_tool_registry(session: AsyncSession) -> ToolRegistry:
     """Get tool registry with enabled services."""
-    result = await session.execute(select(ServiceConfig).where(ServiceConfig.enabled == True))
+    result = await session.execute(select(ServiceConfig).where(ServiceConfig.enabled is True))
     enabled_services = result.scalars().all()
 
     configs_by_type = {}
@@ -694,8 +691,12 @@ async def execute_tool_with_logging(
         # Enrich result with tool chain suggestions BEFORE storing
         # Pass session_id and user_id for multi-user chain flow tracking
         from src.services.tool_chain_service import enrich_tool_result_with_chains
+
         result = await enrich_tool_result_with_chains(
-            session, tool_name, result, arguments,
+            session,
+            tool_name,
+            result,
+            arguments,
             session_id=mcp_request.session_id,
             user_id=mcp_request.user_id,
         )
@@ -1047,7 +1048,7 @@ async def get_user_tautulli_mapping(session: AsyncSession, openwebui_user: dict)
 
     # Now find the Tautulli service config
     tautulli_service = await session.execute(
-        select(ServiceConfig).where(ServiceConfig.service_type == "tautulli", ServiceConfig.enabled == True)
+        select(ServiceConfig).where(ServiceConfig.service_type == "tautulli", ServiceConfig.enabled is True)
     )
     tautulli_config = tautulli_service.scalar_one_or_none()
 
@@ -1059,7 +1060,7 @@ async def get_user_tautulli_mapping(session: AsyncSession, openwebui_user: dict)
         select(UserMapping).where(
             UserMapping.central_user_id == central_user_id,
             UserMapping.service_config_id == str(tautulli_config.id),
-            UserMapping.enabled == True,
+            UserMapping.enabled is True,
         )
     )
     mapping = tautulli_mapping.scalar_one_or_none()
@@ -1124,7 +1125,7 @@ async def tautulli_get_my_stats(
     try:
         # Get Tautulli service config
         tautulli_service = await session.execute(
-            select(ServiceConfig).where(ServiceConfig.service_type == "tautulli", ServiceConfig.enabled == True)
+            select(ServiceConfig).where(ServiceConfig.service_type == "tautulli", ServiceConfig.enabled is True)
         )
         tautulli_config = tautulli_service.scalar_one_or_none()
 
@@ -2497,10 +2498,12 @@ async def radarr_get_indexers(request: Request, session: AsyncSession = Depends(
 )
 async def radarr_test_indexer(
     request: Request,
-    body: dict = {"indexer_id": Field(..., description="ID of the indexer to test")},
+    body: dict = None,
     session: AsyncSession = Depends(get_db_session),
 ):
     """Test Radarr indexer."""
+    if body is None:
+        body = {"indexer_id": Field(..., description="ID of the indexer to test")}
     result = await execute_tool_with_logging(session, "radarr_test_indexer", body, request)
     return ToolResponse(**result)
 
@@ -2537,10 +2540,12 @@ async def sonarr_get_indexers(request: Request, session: AsyncSession = Depends(
 )
 async def sonarr_test_indexer(
     request: Request,
-    body: dict = {"indexer_id": Field(..., description="ID of the indexer to test")},
+    body: dict = None,
     session: AsyncSession = Depends(get_db_session),
 ):
     """Test Sonarr indexer."""
+    if body is None:
+        body = {"indexer_id": Field(..., description="ID of the indexer to test")}
     result = await execute_tool_with_logging(session, "sonarr_test_indexer", body, request)
     return ToolResponse(**result)
 
@@ -2565,10 +2570,12 @@ async def sonarr_test_all_indexers(request: Request, session: AsyncSession = Dep
 )
 async def prowlarr_test_indexer(
     request: Request,
-    body: dict = {"indexer_id": Field(..., description="ID of the indexer to test")},
+    body: dict = None,
     session: AsyncSession = Depends(get_db_session),
 ):
     """Test Prowlarr indexer."""
+    if body is None:
+        body = {"indexer_id": Field(..., description="ID of the indexer to test")}
     result = await execute_tool_with_logging(session, "prowlarr_test_indexer", body, request)
     return ToolResponse(**result)
 
@@ -2649,10 +2656,12 @@ async def jackett_search(request: Request, body: JackettSearchRequest, session: 
 )
 async def jackett_test_indexer(
     request: Request,
-    body: dict = {"indexer_id": Field(..., description="ID of the indexer to test")},
+    body: dict = None,
     session: AsyncSession = Depends(get_db_session),
 ):
     """Test Jackett indexer."""
+    if body is None:
+        body = {"indexer_id": Field(..., description="ID of the indexer to test")}
     result = await execute_tool_with_logging(session, "jackett_test_indexer", body, request)
     return ToolResponse(**result)
 
@@ -2870,7 +2879,9 @@ class SystemGetLogsRequest(BaseModel):
     description="Get recent system logs with optional level filtering.",
 )
 async def system_get_logs(
-    request: Request, body: SystemGetLogsRequest = SystemGetLogsRequest(), session: AsyncSession = Depends(get_db_session)
+    request: Request,
+    body: SystemGetLogsRequest = SystemGetLogsRequest(),
+    session: AsyncSession = Depends(get_db_session),
 ):
     """Get system logs."""
     result = await execute_tool_with_logging(session, "system_get_logs", body.model_dump(), request)
@@ -2970,7 +2981,9 @@ async def overseerr_search_media(
     request: Request, body: OverseerrSearchRequest, session: AsyncSession = Depends(get_db_session)
 ):
     """Search media in Overseerr."""
-    result = await execute_tool_with_logging(session, "overseerr_search_media", body.model_dump(exclude_none=True), request)
+    result = await execute_tool_with_logging(
+        session, "overseerr_search_media", body.model_dump(exclude_none=True), request
+    )
     return ToolResponse(**result)
 
 
@@ -2984,7 +2997,9 @@ async def overseerr_check_availability(
     request: Request, body: OverseerrCheckAvailabilityRequest, session: AsyncSession = Depends(get_db_session)
 ):
     """Check media availability."""
-    result = await execute_tool_with_logging(session, "overseerr_check_availability", body.model_dump(exclude_none=True), request)
+    result = await execute_tool_with_logging(
+        session, "overseerr_check_availability", body.model_dump(exclude_none=True), request
+    )
     return ToolResponse(**result)
 
 
@@ -3096,23 +3111,24 @@ class OpenWebUIAutoConfigRequest(BaseModel):
 
     mcparr_external_url: str = Field(..., description="External URL of MCParr (e.g., https://mcparr.example.com)")
     groups: Optional[list[str]] = Field(
-        None, description="Specific groups to configure (for 'group' mode). Options: media, books, download, games, system, knowledge, auth"
+        None,
+        description="Specific groups to configure (for 'group' mode). Options: media, books, download, games, system, knowledge, auth",
     )
     services: Optional[list[str]] = Field(
-        None, description="Specific services to configure (for 'service' mode). Options: plex, tautulli, overseerr, radarr, sonarr, prowlarr, jackett, deluge, komga, audiobookshelf, romm, system, zammad, openwebui, wikijs, authentik"
+        None,
+        description="Specific services to configure (for 'service' mode). Options: plex, tautulli, overseerr, radarr, sonarr, prowlarr, jackett, deluge, komga, audiobookshelf, romm, system, zammad, openwebui, wikijs, authentik",
     )
     service_group_ids: Optional[list[str]] = Field(
         None, description="Custom service group IDs to configure (for 'serviceGroup' mode)"
     )
     endpoint_mode: str = Field(
-        "group", description="Endpoint mode: 'all' = single endpoint, 'group' = per category, 'service' = per service, 'serviceGroup' = per custom service group"
+        "group",
+        description="Endpoint mode: 'all' = single endpoint, 'group' = per category, 'service' = per service, 'serviceGroup' = per custom service group",
     )
     use_function_filters: bool = Field(
         True, description="Add function name filter lists to restrict visible tools per group"
     )
-    replace_existing: bool = Field(
-        False, description="Replace existing MCParr tool connections (default: append)"
-    )
+    replace_existing: bool = Field(False, description="Replace existing MCParr tool connections (default: append)")
 
 
 class OpenWebUIAutoConfigResponse(BaseModel):
@@ -3144,7 +3160,6 @@ async def configure_openwebui(
     3. Creates/updates MCParr tool connections by category
     4. Returns status of configuration
     """
-    errors = []
     configured_groups = []
     total_tools = 0
 
@@ -3152,7 +3167,7 @@ async def configure_openwebui(
     result = await session.execute(
         select(ServiceConfig).where(
             ServiceConfig.service_type == "openwebui",
-            ServiceConfig.enabled == True,
+            ServiceConfig.enabled is True,
         )
     )
     openwebui_config = result.scalar_one_or_none()
@@ -3218,7 +3233,7 @@ async def configure_openwebui(
             result = await session.execute(
                 select(ServiceGroup).where(
                     ServiceGroup.id == group_id,
-                    ServiceGroup.enabled == True,
+                    ServiceGroup.enabled is True,
                 )
             )
             service_group = result.scalar_one_or_none()
@@ -3227,17 +3242,19 @@ async def configure_openwebui(
                 memberships_result = await session.execute(
                     select(ServiceGroupMembership).where(
                         ServiceGroupMembership.group_id == group_id,
-                        ServiceGroupMembership.enabled == True,
+                        ServiceGroupMembership.enabled is True,
                     )
                 )
                 memberships = memberships_result.scalars().all()
                 service_types = [m.service_type for m in memberships]
 
-                service_groups_to_configure.append({
-                    "id": str(service_group.id),
-                    "name": service_group.name,
-                    "service_types": service_types,
-                })
+                service_groups_to_configure.append(
+                    {
+                        "id": str(service_group.id),
+                        "name": service_group.name,
+                        "service_types": service_types,
+                    }
+                )
 
         if not service_groups_to_configure:
             return OpenWebUIAutoConfigResponse(
@@ -3290,9 +3307,9 @@ async def configure_openwebui(
             # Always filter out existing MCParr connections to avoid duplicates
             # Keep all non-MCParr connections intact
             non_mcparr_connections = [
-                c for c in existing_connections
-                if not c.get("url", "").startswith(mcparr_url)
-                and not c.get("name", "").startswith("MCParr")
+                c
+                for c in existing_connections
+                if not c.get("url", "").startswith(mcparr_url) and not c.get("name", "").startswith("MCParr")
             ]
 
             logger.info(
@@ -3376,7 +3393,9 @@ async def configure_openwebui(
                     new_connections.append(connection)
                     configured_groups.extend(group_ids)
                     total_tools += tool_count
-                    logger.info(f"[OpenWebUI Config] Added group endpoint '{endpoint}' with {tool_count} tools for: {group_ids}")
+                    logger.info(
+                        f"[OpenWebUI Config] Added group endpoint '{endpoint}' with {tool_count} tools for: {group_ids}"
+                    )
 
             elif endpoint_mode == "serviceGroup":
                 # Custom service groups mode: one connection per custom service group
@@ -3533,7 +3552,7 @@ def get_all_tool_definitions() -> Dict[str, Any]:
     response_model=ToolResponse,
     summary="Execute any registered tool dynamically",
     description="Dynamic endpoint that can execute any tool registered in the system. "
-                "The tool_name path parameter determines which tool to execute.",
+    "The tool_name path parameter determines which tool to execute.",
     include_in_schema=False,  # Don't show in main schema, individual tools are in openapi.json
 )
 async def execute_dynamic_tool(

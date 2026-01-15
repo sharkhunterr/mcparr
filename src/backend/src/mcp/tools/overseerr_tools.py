@@ -235,10 +235,11 @@ class OverseerrTools(BaseTool):
                         if item.get("overview") and len(item.get("overview", "")) > 200
                         else item.get("overview"),
                         "tmdb_id": item.get("id"),
-                        "status": item.get("media_info", {}).get("status") if item.get("media_info") else "not_requested",
+                        "status": item.get("media_info", {}).get("status")
+                        if item.get("media_info")
+                        else "not_requested",
                         "url": adapter._get_media_url(
-                            "movie" if item.get("mediaType") == "movie" else "tv",
-                            item.get("id")
+                            "movie" if item.get("mediaType") == "movie" else "tv", item.get("id")
                         ),
                     }
                     for item in results[:limit]
@@ -344,8 +345,7 @@ class OverseerrTools(BaseTool):
                         "tmdb_id": item.get("id"),
                         "available": item.get("media_info", {}).get("status") == 5 if item.get("media_info") else False,
                         "url": adapter._get_media_url(
-                            "movie" if item.get("mediaType") == "movie" else "tv",
-                            item.get("id")
+                            "movie" if item.get("mediaType") == "movie" else "tv", item.get("id")
                         ),
                     }
                     for item in items

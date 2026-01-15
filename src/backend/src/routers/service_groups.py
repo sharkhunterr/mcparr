@@ -213,9 +213,7 @@ async def delete_service_group(group_id: str, db: AsyncSession = Depends(get_db)
 
 
 @router.get("/{group_id}/services", response_model=List[ServiceGroupMembershipResponse])
-async def list_group_services(
-    group_id: str, enabled: Optional[bool] = Query(None), db: AsyncSession = Depends(get_db)
-):
+async def list_group_services(group_id: str, enabled: Optional[bool] = Query(None), db: AsyncSession = Depends(get_db)):
     """List all services in a group."""
     # Verify group exists
     group_result = await db.execute(select(ServiceGroup).where(ServiceGroup.id == group_id))
@@ -317,7 +315,9 @@ async def bulk_update_group_services(group_id: str, bulk_data: BulkServiceUpdate
             # Check if already exists
             existing = await db.execute(
                 select(ServiceGroupMembership).where(
-                    and_(ServiceGroupMembership.group_id == group_id, ServiceGroupMembership.service_type == service_type)
+                    and_(
+                        ServiceGroupMembership.group_id == group_id, ServiceGroupMembership.service_type == service_type
+                    )
                 )
             )
             if existing.scalar_one_or_none():
@@ -332,7 +332,9 @@ async def bulk_update_group_services(group_id: str, bulk_data: BulkServiceUpdate
         for service_type in bulk_data.service_types:
             result = await db.execute(
                 select(ServiceGroupMembership).where(
-                    and_(ServiceGroupMembership.group_id == group_id, ServiceGroupMembership.service_type == service_type)
+                    and_(
+                        ServiceGroupMembership.group_id == group_id, ServiceGroupMembership.service_type == service_type
+                    )
                 )
             )
             membership = result.scalar_one_or_none()

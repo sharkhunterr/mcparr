@@ -1,6 +1,6 @@
 """Tool Chain management API routes for IF/THEN/ELSE conditional tool execution sequences."""
 
-from typing import Any, Dict, List, Optional
+from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from loguru import logger
@@ -97,9 +97,7 @@ def _enrich_chain_response(chain: ToolChain) -> dict:
 def _enrich_step_response(step: ToolChainStep) -> dict:
     """Enrich a step response with computed fields."""
     display_names = _get_service_display_names()
-    source_tool_display = step.source_tool.replace("_", " ").replace(
-        f"{step.source_service}_", ""
-    ).title()
+    source_tool_display = step.source_tool.replace("_", " ").replace(f"{step.source_service}_", "").title()
 
     # Count conditions (recursive through groups)
     condition_count = 0
@@ -129,9 +127,7 @@ def _enrich_step_response(step: ToolChainStep) -> dict:
         "condition_count": condition_count,
         "then_action_count": then_count,
         "else_action_count": else_count,
-        "source_service_name": display_names.get(
-            step.source_service, step.source_service.capitalize()
-        ),
+        "source_service_name": display_names.get(step.source_service, step.source_service.capitalize()),
         "source_tool_display_name": source_tool_display,
     }
 
@@ -141,28 +137,28 @@ def _enrich_condition_group_response(group: ToolChainConditionGroup) -> dict:
     conditions = []
     if group.conditions:
         for cond in sorted(group.conditions, key=lambda c: c.order):
-            conditions.append(ConditionResponse(
-                id=str(cond.id),
-                group_id=str(cond.group_id),
-                operator=cond.operator,
-                field=cond.field,
-                value=cond.value,
-                order=cond.order,
-                created_at=cond.created_at,
-                updated_at=cond.updated_at,
-            ))
+            conditions.append(
+                ConditionResponse(
+                    id=str(cond.id),
+                    group_id=str(cond.group_id),
+                    operator=cond.operator,
+                    field=cond.field,
+                    value=cond.value,
+                    order=cond.order,
+                    created_at=cond.created_at,
+                    updated_at=cond.updated_at,
+                )
+            )
 
     child_groups = []
     if group.child_groups:
         for child in sorted(group.child_groups, key=lambda g: g.order):
-            child_groups.append(
-                ConditionGroupResponse(**_enrich_condition_group_response(child))
-            )
+            child_groups.append(ConditionGroupResponse(**_enrich_condition_group_response(child)))
 
     return {
         "id": str(group.id),
         "step_id": str(group.step_id) if group.step_id else None,
-        "action_id": str(group.action_id) if getattr(group, 'action_id', None) else None,
+        "action_id": str(group.action_id) if getattr(group, "action_id", None) else None,
         "parent_group_id": str(group.parent_group_id) if group.parent_group_id else None,
         "operator": group.operator,
         "order": group.order,
@@ -183,25 +179,19 @@ def _enrich_action_response(action: ToolChainAction) -> dict:
     target_service_name = None
     target_tool_display = None
     if action.target_service:
-        target_service_name = display_names.get(
-            action.target_service, action.target_service.capitalize()
-        )
+        target_service_name = display_names.get(action.target_service, action.target_service.capitalize())
     if action.target_tool:
-        target_tool_display = action.target_tool.replace("_", " ").replace(
-            f"{action.target_service}_", ""
-        ).title()
+        target_tool_display = action.target_tool.replace("_", " ").replace(f"{action.target_service}_", "").title()
 
     # Build condition groups for conditional actions
     condition_groups = []
     try:
         # Access the relationship - it will return empty list if not loaded or have items if loaded
-        action_groups = getattr(action, 'condition_groups', None)
+        action_groups = getattr(action, "condition_groups", None)
         if action_groups:
             for group in sorted(action_groups, key=lambda g: g.order):
                 if group.parent_group_id is None:  # Only root groups
-                    condition_groups.append(
-                        ConditionGroupResponse(**_enrich_condition_group_response(group))
-                    )
+                    condition_groups.append(ConditionGroupResponse(**_enrich_condition_group_response(group)))
     except Exception:
         pass  # Relationship not loaded in async context
 
@@ -210,7 +200,7 @@ def _enrich_action_response(action: ToolChainAction) -> dict:
     else_actions = []
     try:
         # Access the relationship - it will return empty list if not loaded or have items if loaded
-        child_actions = getattr(action, 'child_actions', None)
+        child_actions = getattr(action, "child_actions", None)
         if child_actions:
             for child in sorted(child_actions, key=lambda a: a.order):
                 enriched = _enrich_action_response(child)
@@ -224,13 +214,13 @@ def _enrich_action_response(action: ToolChainAction) -> dict:
     return {
         "id": str(action.id),
         "step_id": str(action.step_id) if action.step_id else None,
-        "parent_action_id": str(action.parent_action_id) if getattr(action, 'parent_action_id', None) else None,
+        "parent_action_id": str(action.parent_action_id) if getattr(action, "parent_action_id", None) else None,
         "branch": action.branch,
         "action_type": action.action_type,
         "target_service": action.target_service,
         "target_tool": action.target_tool,
         "argument_mappings": action.argument_mappings,
-        "save_to_context": getattr(action, 'save_to_context', None),
+        "save_to_context": getattr(action, "save_to_context", None),
         "message_template": action.message_template,
         "order": action.order,
         "execution_mode": action.execution_mode,
@@ -255,9 +245,7 @@ def _build_step_detail_response(step: ToolChainStep) -> dict:
     if step.condition_groups:
         for group in sorted(step.condition_groups, key=lambda g: g.order):
             if group.parent_group_id is None:  # Only root groups
-                condition_groups.append(
-                    ConditionGroupResponse(**_enrich_condition_group_response(group))
-                )
+                condition_groups.append(ConditionGroupResponse(**_enrich_condition_group_response(group)))
 
     # Get all actions for this step and separate by branch
     then_actions = []
@@ -291,7 +279,9 @@ async def _create_condition_groups_recursive(
         group = ToolChainConditionGroup(
             step_id=step_id,
             parent_group_id=parent_group_id,
-            operator=group_data.operator.value if isinstance(group_data.operator, ConditionGroupOperator) else group_data.operator,
+            operator=group_data.operator.value
+            if isinstance(group_data.operator, ConditionGroupOperator)
+            else group_data.operator,
             order=group_data.order if group_data.order != 0 else i,
         )
         db.add(group)
@@ -302,7 +292,9 @@ async def _create_condition_groups_recursive(
             for j, cond_data in enumerate(group_data.conditions):
                 condition = ToolChainCondition(
                     group_id=group.id,
-                    operator=cond_data.operator.value if isinstance(cond_data.operator, ConditionOperator) else cond_data.operator,
+                    operator=cond_data.operator.value
+                    if isinstance(cond_data.operator, ConditionOperator)
+                    else cond_data.operator,
                     field=cond_data.field,
                     value=cond_data.value,
                     order=cond_data.order if cond_data.order != 0 else j,
@@ -311,9 +303,7 @@ async def _create_condition_groups_recursive(
 
         # Recursively create child groups
         if group_data.child_groups:
-            await _create_condition_groups_recursive(
-                db, step_id, group_data.child_groups, group.id
-            )
+            await _create_condition_groups_recursive(db, step_id, group_data.child_groups, group.id)
 
         created_groups.append(group)
 
@@ -339,7 +329,11 @@ async def _create_actions(
     created_actions = []
 
     for i, action_data in enumerate(actions_data):
-        action_type_value = action_data.action_type.value if isinstance(action_data.action_type, ActionType) else action_data.action_type
+        action_type_value = (
+            action_data.action_type.value
+            if isinstance(action_data.action_type, ActionType)
+            else action_data.action_type
+        )
 
         action = ToolChainAction(
             step_id=step_id,
@@ -351,7 +345,9 @@ async def _create_actions(
             argument_mappings=action_data.argument_mappings,
             message_template=action_data.message_template,
             order=action_data.order if action_data.order != 0 else i,
-            execution_mode=action_data.execution_mode.value if isinstance(action_data.execution_mode, ExecutionMode) else action_data.execution_mode,
+            execution_mode=action_data.execution_mode.value
+            if isinstance(action_data.execution_mode, ExecutionMode)
+            else action_data.execution_mode,
             ai_comment=action_data.ai_comment,
             enabled=action_data.enabled,
         )
@@ -362,21 +358,15 @@ async def _create_actions(
         if action_type_value == ActionType.CONDITIONAL.value:
             # Create condition groups for this action
             if action_data.condition_groups:
-                await _create_condition_groups_for_action(
-                    db, action.id, action_data.condition_groups
-                )
+                await _create_condition_groups_for_action(db, action.id, action_data.condition_groups)
 
             # Create nested THEN actions
             if action_data.then_actions:
-                await _create_actions(
-                    db, None, action_data.then_actions, "then", action.id
-                )
+                await _create_actions(db, None, action_data.then_actions, "then", action.id)
 
             # Create nested ELSE actions
             if action_data.else_actions:
-                await _create_actions(
-                    db, None, action_data.else_actions, "else", action.id
-                )
+                await _create_actions(db, None, action_data.else_actions, "else", action.id)
 
         created_actions.append(action)
 
@@ -396,7 +386,9 @@ async def _create_condition_groups_for_action(
         group = ToolChainConditionGroup(
             action_id=action_id,
             parent_group_id=parent_group_id,
-            operator=group_data.operator.value if isinstance(group_data.operator, ConditionGroupOperator) else group_data.operator,
+            operator=group_data.operator.value
+            if isinstance(group_data.operator, ConditionGroupOperator)
+            else group_data.operator,
             order=group_data.order if group_data.order != 0 else i,
         )
         db.add(group)
@@ -407,7 +399,9 @@ async def _create_condition_groups_for_action(
             for j, cond_data in enumerate(group_data.conditions):
                 condition = ToolChainCondition(
                     group_id=group.id,
-                    operator=cond_data.operator.value if isinstance(cond_data.operator, ConditionOperator) else cond_data.operator,
+                    operator=cond_data.operator.value
+                    if isinstance(cond_data.operator, ConditionOperator)
+                    else cond_data.operator,
                     field=cond_data.field,
                     value=cond_data.value,
                     order=cond_data.order if cond_data.order != 0 else j,
@@ -416,9 +410,7 @@ async def _create_condition_groups_for_action(
 
         # Create child groups recursively
         if group_data.child_groups:
-            await _create_condition_groups_for_action(
-                db, action_id, group_data.child_groups, group.id
-            )
+            await _create_condition_groups_for_action(db, action_id, group_data.child_groups, group.id)
 
         created_groups.append(group)
 
@@ -610,9 +602,7 @@ async def get_tool_chain(chain_id: str, db: AsyncSession = Depends(get_db)):
     chain_data["steps"] = []
 
     for step in sorted(chain.steps, key=lambda s: s.order):
-        chain_data["steps"].append(
-            ToolChainStepDetailResponse(**_build_step_detail_response(step))
-        )
+        chain_data["steps"].append(ToolChainStepDetailResponse(**_build_step_detail_response(step)))
 
     return ToolChainDetailResponse(**chain_data)
 
@@ -637,7 +627,9 @@ async def create_tool_chain(chain_data: ToolChainCreate, db: AsyncSession = Depe
             step = ToolChainStep(
                 chain_id=chain.id,
                 order=step_data.order if step_data.order != 0 else i,
-                position_type=step_data.position_type.value if isinstance(step_data.position_type, StepPositionType) else step_data.position_type,
+                position_type=step_data.position_type.value
+                if isinstance(step_data.position_type, StepPositionType)
+                else step_data.position_type,
                 source_service=step_data.source_service,
                 source_tool=step_data.source_tool,
                 ai_comment=step_data.ai_comment,
@@ -648,9 +640,7 @@ async def create_tool_chain(chain_data: ToolChainCreate, db: AsyncSession = Depe
 
             # Create condition groups
             if step_data.condition_groups:
-                await _create_condition_groups_recursive(
-                    db, step.id, step_data.condition_groups
-                )
+                await _create_condition_groups_recursive(db, step.id, step_data.condition_groups)
 
             # Create THEN actions
             if step_data.then_actions:
@@ -670,9 +660,7 @@ async def create_tool_chain(chain_data: ToolChainCreate, db: AsyncSession = Depe
 @router.put("/{chain_id}", response_model=ToolChainResponse)
 async def update_tool_chain(chain_id: str, chain_data: ToolChainUpdate, db: AsyncSession = Depends(get_db)):
     """Update an existing tool chain."""
-    result = await db.execute(
-        select(ToolChain).options(selectinload(ToolChain.steps)).where(ToolChain.id == chain_id)
-    )
+    result = await db.execute(select(ToolChain).options(selectinload(ToolChain.steps)).where(ToolChain.id == chain_id))
     chain = result.scalar_one_or_none()
 
     if not chain:
@@ -723,10 +711,8 @@ async def list_chain_steps(
         select(ToolChainStep)
         .options(
             # Step condition groups
-            selectinload(ToolChainStep.condition_groups)
-            .selectinload(ToolChainConditionGroup.conditions),
-            selectinload(ToolChainStep.condition_groups)
-            .selectinload(ToolChainConditionGroup.child_groups),
+            selectinload(ToolChainStep.condition_groups).selectinload(ToolChainConditionGroup.conditions),
+            selectinload(ToolChainStep.condition_groups).selectinload(ToolChainConditionGroup.child_groups),
             # THEN actions with their nested structure
             selectinload(ToolChainStep.then_actions)
             .selectinload(ToolChainAction.condition_groups)
@@ -734,8 +720,7 @@ async def list_chain_steps(
             selectinload(ToolChainStep.then_actions)
             .selectinload(ToolChainAction.condition_groups)
             .selectinload(ToolChainConditionGroup.child_groups),
-            selectinload(ToolChainStep.then_actions)
-            .selectinload(ToolChainAction.child_actions),
+            selectinload(ToolChainStep.then_actions).selectinload(ToolChainAction.child_actions),
             selectinload(ToolChainStep.then_actions)
             .selectinload(ToolChainAction.child_actions)
             .selectinload(ToolChainAction.condition_groups)
@@ -751,8 +736,7 @@ async def list_chain_steps(
             selectinload(ToolChainStep.else_actions)
             .selectinload(ToolChainAction.condition_groups)
             .selectinload(ToolChainConditionGroup.child_groups),
-            selectinload(ToolChainStep.else_actions)
-            .selectinload(ToolChainAction.child_actions),
+            selectinload(ToolChainStep.else_actions).selectinload(ToolChainAction.child_actions),
             selectinload(ToolChainStep.else_actions)
             .selectinload(ToolChainAction.child_actions)
             .selectinload(ToolChainAction.condition_groups)
@@ -772,10 +756,7 @@ async def list_chain_steps(
     result = await db.execute(query)
     steps = result.scalars().all()
 
-    return [
-        ToolChainStepDetailResponse(**_build_step_detail_response(step))
-        for step in steps
-    ]
+    return [ToolChainStepDetailResponse(**_build_step_detail_response(step)) for step in steps]
 
 
 @router.post("/{chain_id}/steps", response_model=ToolChainStepDetailResponse, status_code=status.HTTP_201_CREATED)
@@ -793,7 +774,9 @@ async def add_chain_step(
     step = ToolChainStep(
         chain_id=chain_id,
         order=step_data.order,
-        position_type=step_data.position_type.value if isinstance(step_data.position_type, StepPositionType) else step_data.position_type,
+        position_type=step_data.position_type.value
+        if isinstance(step_data.position_type, StepPositionType)
+        else step_data.position_type,
         source_service=step_data.source_service,
         source_tool=step_data.source_tool,
         ai_comment=step_data.ai_comment,
@@ -820,10 +803,8 @@ async def add_chain_step(
     result = await db.execute(
         select(ToolChainStep)
         .options(
-            selectinload(ToolChainStep.condition_groups)
-            .selectinload(ToolChainConditionGroup.conditions),
-            selectinload(ToolChainStep.condition_groups)
-            .selectinload(ToolChainConditionGroup.child_groups),
+            selectinload(ToolChainStep.condition_groups).selectinload(ToolChainConditionGroup.conditions),
+            selectinload(ToolChainStep.condition_groups).selectinload(ToolChainConditionGroup.child_groups),
             selectinload(ToolChainStep.then_actions),
             selectinload(ToolChainStep.else_actions),
         )
@@ -841,16 +822,12 @@ async def get_chain_step(chain_id: str, step_id: str, db: AsyncSession = Depends
     result = await db.execute(
         select(ToolChainStep)
         .options(
-            selectinload(ToolChainStep.condition_groups)
-            .selectinload(ToolChainConditionGroup.conditions),
-            selectinload(ToolChainStep.condition_groups)
-            .selectinload(ToolChainConditionGroup.child_groups),
+            selectinload(ToolChainStep.condition_groups).selectinload(ToolChainConditionGroup.conditions),
+            selectinload(ToolChainStep.condition_groups).selectinload(ToolChainConditionGroup.child_groups),
             selectinload(ToolChainStep.then_actions),
             selectinload(ToolChainStep.else_actions),
         )
-        .where(
-            and_(ToolChainStep.chain_id == chain_id, ToolChainStep.id == step_id)
-        )
+        .where(and_(ToolChainStep.chain_id == chain_id, ToolChainStep.id == step_id))
     )
     step = result.scalar_one_or_none()
 
@@ -871,16 +848,12 @@ async def update_chain_step(
     result = await db.execute(
         select(ToolChainStep)
         .options(
-            selectinload(ToolChainStep.condition_groups)
-            .selectinload(ToolChainConditionGroup.conditions),
-            selectinload(ToolChainStep.condition_groups)
-            .selectinload(ToolChainConditionGroup.child_groups),
+            selectinload(ToolChainStep.condition_groups).selectinload(ToolChainConditionGroup.conditions),
+            selectinload(ToolChainStep.condition_groups).selectinload(ToolChainConditionGroup.child_groups),
             selectinload(ToolChainStep.then_actions),
             selectinload(ToolChainStep.else_actions),
         )
-        .where(
-            and_(ToolChainStep.chain_id == chain_id, ToolChainStep.id == step_id)
-        )
+        .where(and_(ToolChainStep.chain_id == chain_id, ToolChainStep.id == step_id))
     )
     step = result.scalar_one_or_none()
 
@@ -908,9 +881,7 @@ async def update_chain_step(
 async def delete_chain_step(chain_id: str, step_id: str, db: AsyncSession = Depends(get_db)):
     """Delete a step from a tool chain (cascade deletes conditions and actions)."""
     result = await db.execute(
-        select(ToolChainStep).where(
-            and_(ToolChainStep.chain_id == chain_id, ToolChainStep.id == step_id)
-        )
+        select(ToolChainStep).where(and_(ToolChainStep.chain_id == chain_id, ToolChainStep.id == step_id))
     )
     step = result.scalar_one_or_none()
 
@@ -938,9 +909,7 @@ async def reorder_chain_steps(
         raise HTTPException(status_code=404, detail="Tool chain not found")
 
     # Get all steps for this chain
-    result = await db.execute(
-        select(ToolChainStep).where(ToolChainStep.chain_id == chain_id)
-    )
+    result = await db.execute(select(ToolChainStep).where(ToolChainStep.chain_id == chain_id))
     steps = {str(s.id): s for s in result.scalars().all()}
 
     # Validate all step_ids belong to this chain
@@ -980,17 +949,13 @@ async def add_condition_group(
     """Add a condition group to a step."""
     # Verify step exists and belongs to chain
     step_result = await db.execute(
-        select(ToolChainStep).where(
-            and_(ToolChainStep.chain_id == chain_id, ToolChainStep.id == step_id)
-        )
+        select(ToolChainStep).where(and_(ToolChainStep.chain_id == chain_id, ToolChainStep.id == step_id))
     )
     if not step_result.scalar_one_or_none():
         raise HTTPException(status_code=404, detail="Step not found")
 
     # Create the group (and nested conditions/groups)
-    created_groups = await _create_condition_groups_recursive(
-        db, step_id, [group_data]
-    )
+    created_groups = await _create_condition_groups_recursive(db, step_id, [group_data])
     await db.commit()
 
     # Reload with relationships
@@ -1021,9 +986,7 @@ async def delete_condition_group(
     """Delete a condition group from a step (cascade deletes conditions and child groups)."""
     # Verify step exists and belongs to chain
     step_result = await db.execute(
-        select(ToolChainStep).where(
-            and_(ToolChainStep.chain_id == chain_id, ToolChainStep.id == step_id)
-        )
+        select(ToolChainStep).where(and_(ToolChainStep.chain_id == chain_id, ToolChainStep.id == step_id))
     )
     if not step_result.scalar_one_or_none():
         raise HTTPException(status_code=404, detail="Step not found")
@@ -1060,9 +1023,7 @@ async def update_condition_group(
     """Update a condition group (operator, order)."""
     # Verify step exists and belongs to chain
     step_result = await db.execute(
-        select(ToolChainStep).where(
-            and_(ToolChainStep.chain_id == chain_id, ToolChainStep.id == step_id)
-        )
+        select(ToolChainStep).where(and_(ToolChainStep.chain_id == chain_id, ToolChainStep.id == step_id))
     )
     if not step_result.scalar_one_or_none():
         raise HTTPException(status_code=404, detail="Step not found")
@@ -1254,9 +1215,7 @@ async def list_step_actions(
 
     # Verify step exists and belongs to chain
     step_result = await db.execute(
-        select(ToolChainStep).where(
-            and_(ToolChainStep.chain_id == chain_id, ToolChainStep.id == step_id)
-        )
+        select(ToolChainStep).where(and_(ToolChainStep.chain_id == chain_id, ToolChainStep.id == step_id))
     )
     if not step_result.scalar_one_or_none():
         raise HTTPException(status_code=404, detail="Step not found")
@@ -1299,9 +1258,7 @@ async def add_step_action(
 
     # Verify step exists and belongs to chain
     step_result = await db.execute(
-        select(ToolChainStep).where(
-            and_(ToolChainStep.chain_id == chain_id, ToolChainStep.id == step_id)
-        )
+        select(ToolChainStep).where(and_(ToolChainStep.chain_id == chain_id, ToolChainStep.id == step_id))
     )
     if not step_result.scalar_one_or_none():
         raise HTTPException(status_code=404, detail="Step not found")
@@ -1316,10 +1273,8 @@ async def add_step_action(
         select(ToolChainAction)
         .options(
             # Load condition groups and their conditions and child groups
-            selectinload(ToolChainAction.condition_groups)
-            .selectinload(ToolChainConditionGroup.conditions),
-            selectinload(ToolChainAction.condition_groups)
-            .selectinload(ToolChainConditionGroup.child_groups),
+            selectinload(ToolChainAction.condition_groups).selectinload(ToolChainConditionGroup.conditions),
+            selectinload(ToolChainAction.condition_groups).selectinload(ToolChainConditionGroup.child_groups),
             # Load child actions (THEN/ELSE) and their condition groups
             selectinload(ToolChainAction.child_actions)
             .selectinload(ToolChainAction.condition_groups)
@@ -1328,8 +1283,7 @@ async def add_step_action(
             .selectinload(ToolChainAction.condition_groups)
             .selectinload(ToolChainConditionGroup.child_groups),
             # Load grandchild actions (nested nested)
-            selectinload(ToolChainAction.child_actions)
-            .selectinload(ToolChainAction.child_actions),
+            selectinload(ToolChainAction.child_actions).selectinload(ToolChainAction.child_actions),
         )
         .where(ToolChainAction.id == action.id)
     )
@@ -1426,6 +1380,7 @@ async def delete_step_action(
 # Nested Actions (for conditional action's THEN/ELSE branches)
 # =============================================================================
 
+
 @router.post(
     "/{chain_id}/actions/{parent_action_id}/nested/{branch}",
     response_model=ActionResponse,
@@ -1456,10 +1411,7 @@ async def add_nested_action(
         raise HTTPException(status_code=404, detail="Parent action not found")
 
     if parent_action.action_type != ActionType.CONDITIONAL:
-        raise HTTPException(
-            status_code=400,
-            detail="Parent action must be of type 'conditional'"
-        )
+        raise HTTPException(status_code=400, detail="Parent action must be of type 'conditional'")
 
     # Create the nested action with modified data
     action_dict = action_data.model_dump(exclude_unset=True)
@@ -1474,8 +1426,8 @@ async def add_nested_action(
 
     # Handle nested conditional with condition groups
     condition_groups_data = action_dict.pop("condition_groups", None)
-    then_actions_data = action_dict.pop("then_actions", None)
-    else_actions_data = action_dict.pop("else_actions", None)
+    action_dict.pop("then_actions", None)
+    action_dict.pop("else_actions", None)
 
     # Convert enums
     if "action_type" in action_dict and isinstance(action_dict["action_type"], ActionType):
@@ -1498,10 +1450,8 @@ async def add_nested_action(
     result = await db.execute(
         select(ToolChainAction)
         .options(
-            selectinload(ToolChainAction.condition_groups)
-            .selectinload(ToolChainConditionGroup.conditions),
-            selectinload(ToolChainAction.condition_groups)
-            .selectinload(ToolChainConditionGroup.child_groups),
+            selectinload(ToolChainAction.condition_groups).selectinload(ToolChainConditionGroup.conditions),
+            selectinload(ToolChainAction.condition_groups).selectinload(ToolChainConditionGroup.child_groups),
             selectinload(ToolChainAction.child_actions),
         )
         .where(ToolChainAction.id == action.id)
@@ -1602,9 +1552,7 @@ async def reorder_step_actions(
 
     # Verify step exists and belongs to chain
     step_result = await db.execute(
-        select(ToolChainStep).where(
-            and_(ToolChainStep.chain_id == chain_id, ToolChainStep.id == step_id)
-        )
+        select(ToolChainStep).where(and_(ToolChainStep.chain_id == chain_id, ToolChainStep.id == step_id))
     )
     if not step_result.scalar_one_or_none():
         raise HTTPException(status_code=404, detail="Step not found")
@@ -1655,10 +1603,8 @@ async def get_chain_flowchart(chain_id: str, db: AsyncSession = Depends(get_db))
             selectinload(ToolChain.steps)
             .selectinload(ToolChainStep.condition_groups)
             .selectinload(ToolChainConditionGroup.conditions),
-            selectinload(ToolChain.steps)
-            .selectinload(ToolChainStep.then_actions),
-            selectinload(ToolChain.steps)
-            .selectinload(ToolChainStep.else_actions),
+            selectinload(ToolChain.steps).selectinload(ToolChainStep.then_actions),
+            selectinload(ToolChain.steps).selectinload(ToolChainStep.else_actions),
         )
         .where(ToolChain.id == chain_id)
     )
@@ -1677,19 +1623,19 @@ async def get_chain_flowchart(chain_id: str, db: AsyncSession = Depends(get_db))
 
     for step in sorted(chain.steps, key=lambda s: s.order):
         step_id = str(step.id)
-        source_tool_display = step.source_tool.replace("_", " ").replace(
-            f"{step.source_service}_", ""
-        ).title()
+        source_tool_display = step.source_tool.replace("_", " ").replace(f"{step.source_service}_", "").title()
 
         # Step node (trigger)
         step_node_id = f"step-{step_id}"
-        nodes.append(FlowchartNode(
-            id=step_node_id,
-            type="step",
-            label=f"{display_names.get(step.source_service, step.source_service)}: {source_tool_display}",
-            data={"step_id": step_id, "position_type": step.position_type},
-            position={"x": 0, "y": y_offset},
-        ))
+        nodes.append(
+            FlowchartNode(
+                id=step_node_id,
+                type="step",
+                label=f"{display_names.get(step.source_service, step.source_service)}: {source_tool_display}",
+                data={"step_id": step_id, "position_type": step.position_type},
+                position={"x": 0, "y": y_offset},
+            )
+        )
 
         # Condition node (diamond)
         condition_node_id = f"condition-{step_id}"
@@ -1700,19 +1646,23 @@ async def get_chain_flowchart(chain_id: str, db: AsyncSession = Depends(get_db))
                 first_cond = first_group.conditions[0]
                 condition_label = f"{first_cond.field or ''} {first_cond.operator} {first_cond.value or ''}"
 
-        nodes.append(FlowchartNode(
-            id=condition_node_id,
-            type="condition",
-            label=condition_label,
-            data={"step_id": step_id},
-            position={"x": 0, "y": y_offset + spacing_y},
-        ))
-        edges.append(FlowchartEdge(
-            id=f"edge-{step_node_id}-{condition_node_id}",
-            source=step_node_id,
-            target=condition_node_id,
-            type="default",
-        ))
+        nodes.append(
+            FlowchartNode(
+                id=condition_node_id,
+                type="condition",
+                label=condition_label,
+                data={"step_id": step_id},
+                position={"x": 0, "y": y_offset + spacing_y},
+            )
+        )
+        edges.append(
+            FlowchartEdge(
+                id=f"edge-{step_node_id}-{condition_node_id}",
+                source=step_node_id,
+                target=condition_node_id,
+                type="default",
+            )
+        )
 
         # THEN branch
         then_y = y_offset + spacing_y * 2
@@ -1726,30 +1676,36 @@ async def get_chain_flowchart(chain_id: str, db: AsyncSession = Depends(get_db))
                     label = f"{display_names.get(action.target_service, action.target_service or '')}: {action.target_tool or ''}"
                     node_type = "action"
 
-                nodes.append(FlowchartNode(
-                    id=action_id,
-                    type=node_type,
-                    label=label,
-                    data={"action_id": str(action.id), "branch": "then"},
-                    position={"x": -spacing_x, "y": then_y + (i * 80)},
-                ))
+                nodes.append(
+                    FlowchartNode(
+                        id=action_id,
+                        type=node_type,
+                        label=label,
+                        data={"action_id": str(action.id), "branch": "then"},
+                        position={"x": -spacing_x, "y": then_y + (i * 80)},
+                    )
+                )
 
                 if i == 0:
-                    edges.append(FlowchartEdge(
-                        id=f"edge-{condition_node_id}-{action_id}",
-                        source=condition_node_id,
-                        target=action_id,
-                        label="TRUE",
-                        type="then",
-                    ))
+                    edges.append(
+                        FlowchartEdge(
+                            id=f"edge-{condition_node_id}-{action_id}",
+                            source=condition_node_id,
+                            target=action_id,
+                            label="TRUE",
+                            type="then",
+                        )
+                    )
                 else:
                     prev_action = f"then-{step.then_actions[i - 1].id}"
-                    edges.append(FlowchartEdge(
-                        id=f"edge-{prev_action}-{action_id}",
-                        source=prev_action,
-                        target=action_id,
-                        type="then",
-                    ))
+                    edges.append(
+                        FlowchartEdge(
+                            id=f"edge-{prev_action}-{action_id}",
+                            source=prev_action,
+                            target=action_id,
+                            type="then",
+                        )
+                    )
 
         # ELSE branch
         if step.else_actions:
@@ -1762,30 +1718,36 @@ async def get_chain_flowchart(chain_id: str, db: AsyncSession = Depends(get_db))
                     label = f"{display_names.get(action.target_service, action.target_service or '')}: {action.target_tool or ''}"
                     node_type = "action"
 
-                nodes.append(FlowchartNode(
-                    id=action_id,
-                    type=node_type,
-                    label=label,
-                    data={"action_id": str(action.id), "branch": "else"},
-                    position={"x": spacing_x, "y": then_y + (i * 80)},
-                ))
+                nodes.append(
+                    FlowchartNode(
+                        id=action_id,
+                        type=node_type,
+                        label=label,
+                        data={"action_id": str(action.id), "branch": "else"},
+                        position={"x": spacing_x, "y": then_y + (i * 80)},
+                    )
+                )
 
                 if i == 0:
-                    edges.append(FlowchartEdge(
-                        id=f"edge-{condition_node_id}-{action_id}",
-                        source=condition_node_id,
-                        target=action_id,
-                        label="FALSE",
-                        type="else",
-                    ))
+                    edges.append(
+                        FlowchartEdge(
+                            id=f"edge-{condition_node_id}-{action_id}",
+                            source=condition_node_id,
+                            target=action_id,
+                            label="FALSE",
+                            type="else",
+                        )
+                    )
                 else:
                     prev_action = f"else-{step.else_actions[i - 1].id}"
-                    edges.append(FlowchartEdge(
-                        id=f"edge-{prev_action}-{action_id}",
-                        source=prev_action,
-                        target=action_id,
-                        type="else",
-                    ))
+                    edges.append(
+                        FlowchartEdge(
+                            id=f"edge-{prev_action}-{action_id}",
+                            source=prev_action,
+                            target=action_id,
+                            type="else",
+                        )
+                    )
 
         # Calculate next step y offset
         max_actions = max(
@@ -1819,10 +1781,8 @@ async def lookup_steps_for_tool(
     result = await db.execute(
         select(ToolChainStep)
         .options(
-            selectinload(ToolChainStep.condition_groups)
-            .selectinload(ToolChainConditionGroup.conditions),
-            selectinload(ToolChainStep.condition_groups)
-            .selectinload(ToolChainConditionGroup.child_groups),
+            selectinload(ToolChainStep.condition_groups).selectinload(ToolChainConditionGroup.conditions),
+            selectinload(ToolChainStep.condition_groups).selectinload(ToolChainConditionGroup.child_groups),
             selectinload(ToolChainStep.then_actions),
             selectinload(ToolChainStep.else_actions),
         )
@@ -1831,15 +1791,12 @@ async def lookup_steps_for_tool(
             and_(
                 ToolChainStep.source_service == service_type,
                 ToolChainStep.source_tool == tool_name,
-                ToolChainStep.enabled == True,
-                ToolChain.enabled == True,
+                ToolChainStep.enabled is True,
+                ToolChain.enabled is True,
             )
         )
         .order_by(ToolChain.priority.desc(), ToolChainStep.order)
     )
     steps = result.scalars().all()
 
-    return [
-        ToolChainStepDetailResponse(**_build_step_detail_response(step))
-        for step in steps
-    ]
+    return [ToolChainStepDetailResponse(**_build_step_detail_response(step)) for step in steps]

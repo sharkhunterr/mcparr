@@ -327,7 +327,7 @@ def interpolate_message_template(
     ctx = chain_context or {}
 
     # Find all placeholders like {result.field}, {input.param}, or {context.var}
-    placeholder_pattern = r'\{((?:result|input|context)\.[\w.]+)\}'
+    placeholder_pattern = r"\{((?:result|input|context)\.[\w.]+)\}"
 
     def replace_placeholder(match):
         path = match.group(1)
@@ -578,9 +578,7 @@ def build_action_suggestions(
             suggestions.extend(nested_suggestions)
 
         else:  # TOOL_CALL
-            target_service_name = SERVICE_DISPLAY_NAMES.get(
-                action.target_service, action.target_service
-            )
+            target_service_name = SERVICE_DISPLAY_NAMES.get(action.target_service, action.target_service)
             suggestion = {
                 "action_type": "tool_call",
                 "tool": action.target_tool,
@@ -645,8 +643,8 @@ async def get_matching_steps(
     conditions = [
         ToolChainStep.source_service == service_type,
         ToolChainStep.source_tool == tool_name,
-        ToolChainStep.enabled == True,
-        ToolChain.enabled == True,
+        ToolChainStep.enabled is True,
+        ToolChain.enabled is True,
     ]
 
     if only_first_step:
@@ -655,13 +653,10 @@ async def get_matching_steps(
     query = (
         select(ToolChainStep)
         .options(
-            selectinload(ToolChainStep.condition_groups)
-            .selectinload(ToolChainConditionGroup.conditions),
-            selectinload(ToolChainStep.condition_groups)
-            .selectinload(ToolChainConditionGroup.child_groups),
+            selectinload(ToolChainStep.condition_groups).selectinload(ToolChainConditionGroup.conditions),
+            selectinload(ToolChainStep.condition_groups).selectinload(ToolChainConditionGroup.child_groups),
             # Load THEN actions with nested conditionals
-            selectinload(ToolChainStep.then_actions)
-            .selectinload(ToolChainAction.child_actions),
+            selectinload(ToolChainStep.then_actions).selectinload(ToolChainAction.child_actions),
             selectinload(ToolChainStep.then_actions)
             .selectinload(ToolChainAction.condition_groups)
             .selectinload(ToolChainConditionGroup.conditions),
@@ -669,8 +664,7 @@ async def get_matching_steps(
             .selectinload(ToolChainAction.condition_groups)
             .selectinload(ToolChainConditionGroup.child_groups),
             # Load ELSE actions with nested conditionals
-            selectinload(ToolChainStep.else_actions)
-            .selectinload(ToolChainAction.child_actions),
+            selectinload(ToolChainStep.else_actions).selectinload(ToolChainAction.child_actions),
             selectinload(ToolChainStep.else_actions)
             .selectinload(ToolChainAction.condition_groups)
             .selectinload(ToolChainConditionGroup.conditions),
@@ -803,13 +797,15 @@ async def get_tool_chain_position(
         select(ToolChainAction)
         .options(
             selectinload(ToolChainAction.step).selectinload(ToolChainStep.chain),
-            selectinload(ToolChainAction.parent_action).selectinload(ToolChainAction.step).selectinload(ToolChainStep.chain),
+            selectinload(ToolChainAction.parent_action)
+            .selectinload(ToolChainAction.step)
+            .selectinload(ToolChainStep.chain),
         )
         .where(
             and_(
                 ToolChainAction.target_service == service_type,
                 ToolChainAction.target_tool == tool_name,
-                ToolChainAction.enabled == True,
+                ToolChainAction.enabled is True,
             )
         )
     )
@@ -844,21 +840,18 @@ async def get_tool_chain_position(
     chains_info = []
 
     for action in actions:
-        step = getattr(action, '_resolved_step', action.step)
+        step = getattr(action, "_resolved_step", action.step)
         if not step:
             continue
         chain = step.chain
 
         # Find the step that uses this tool as SOURCE (the step we're about to execute)
-        source_step_query = (
-            select(ToolChainStep)
-            .where(
-                and_(
-                    ToolChainStep.chain_id == chain.id,
-                    ToolChainStep.source_service == service_type,
-                    ToolChainStep.source_tool == tool_name,
-                    ToolChainStep.enabled == True,
-                )
+        source_step_query = select(ToolChainStep).where(
+            and_(
+                ToolChainStep.chain_id == chain.id,
+                ToolChainStep.source_service == service_type,
+                ToolChainStep.source_tool == tool_name,
+                ToolChainStep.enabled is True,
             )
         )
         source_step_result = await session.execute(source_step_query)
@@ -873,15 +866,17 @@ async def get_tool_chain_position(
             pos = "end" if step.position_type == StepPositionType.END.value else "middle"
             step_order = step.order
 
-        chains_info.append({
-            "id": str(chain.id),
-            "name": chain.name,
-            "color": chain.color,
-            "position": pos,
-            "previous_step_order": step_order,
-            "source_tool": step.source_tool,
-            "branch": action.branch,
-        })
+        chains_info.append(
+            {
+                "id": str(chain.id),
+                "name": chain.name,
+                "color": chain.color,
+                "position": pos,
+                "previous_step_order": step_order,
+                "source_tool": step.source_tool,
+                "branch": action.branch,
+            }
+        )
 
     if not chains_info:
         return None
@@ -1012,10 +1007,22 @@ async def enrich_tool_result_with_chains(
     # Determine service type from tool name
     service_type = None
     prefixes = [
-        "plex_", "overseerr_", "zammad_", "tautulli_", "openwebui_",
-        "radarr_", "sonarr_", "prowlarr_", "jackett_", "deluge_",
-        "komga_", "romm_", "audiobookshelf_", "wikijs_", "authentik_",
-        "system_"
+        "plex_",
+        "overseerr_",
+        "zammad_",
+        "tautulli_",
+        "openwebui_",
+        "radarr_",
+        "sonarr_",
+        "prowlarr_",
+        "jackett_",
+        "deluge_",
+        "komga_",
+        "romm_",
+        "audiobookshelf_",
+        "wikijs_",
+        "authentik_",
+        "system_",
     ]
 
     for prefix in prefixes:
@@ -1036,9 +1043,7 @@ async def enrich_tool_result_with_chains(
 
         if chain_flow and chain_flow.get("is_chain_flow"):
             # This tool was called as part of a chain flow
-            logger.info(
-                f"Tool '{tool_name}' is part of chain flow (preceded by '{chain_flow['previous_tool']}')"
-            )
+            logger.info(f"Tool '{tool_name}' is part of chain flow (preceded by '{chain_flow['previous_tool']}')")
 
             # Get saved variables from previous chain context
             previous_context = chain_flow.get("chain_context", {})
@@ -1067,8 +1072,14 @@ async def enrich_tool_result_with_chains(
                 if existing_position["position"] == "middle":
                     # Evaluate next step conditions
                     middle_suggestions = await get_matching_steps(
-                        session, service_type, tool_name, result, success, input_params,
-                        only_first_step=False, chain_context=saved_variables
+                        session,
+                        service_type,
+                        tool_name,
+                        result,
+                        success,
+                        input_params,
+                        only_first_step=False,
+                        chain_context=saved_variables,
                     )
                     if middle_suggestions:
                         next_block = format_next_actions_for_response(middle_suggestions, tool_name)
@@ -1084,8 +1095,14 @@ async def enrich_tool_result_with_chains(
                 else:
                     # End of chain - still need to evaluate conditions and return messages
                     end_suggestions = await get_matching_steps(
-                        session, service_type, tool_name, result, success, input_params,
-                        only_first_step=False, chain_context=saved_variables
+                        session,
+                        service_type,
+                        tool_name,
+                        result,
+                        success,
+                        input_params,
+                        only_first_step=False,
+                        chain_context=saved_variables,
                     )
                     if end_suggestions:
                         next_block = format_next_actions_for_response(end_suggestions, tool_name)
@@ -1095,9 +1112,7 @@ async def enrich_tool_result_with_chains(
                             if saved_variables:
                                 next_block["chain_context"]["variables"] = saved_variables
                             result.update(next_block)
-                            logger.info(
-                                f"Added {len(end_suggestions)} action suggestions to '{tool_name}' (end step)"
-                            )
+                            logger.info(f"Added {len(end_suggestions)} action suggestions to '{tool_name}' (end step)")
                     else:
                         # No suggestions but still mark as end of chain
                         result["chain_context"] = existing_position
@@ -1110,17 +1125,14 @@ async def enrich_tool_result_with_chains(
         else:
             # Not part of a chain flow - only evaluate first steps
             suggestions = await get_matching_steps(
-                session, service_type, tool_name, result, success, input_params,
-                only_first_step=True
+                session, service_type, tool_name, result, success, input_params, only_first_step=True
             )
 
             if suggestions:
                 next_block = format_next_actions_for_response(suggestions, tool_name)
                 if next_block:
                     result.update(next_block)
-                    logger.info(
-                        f"Added {len(suggestions)} action suggestions to '{tool_name}' result"
-                    )
+                    logger.info(f"Added {len(suggestions)} action suggestions to '{tool_name}' result")
 
     except Exception as e:
         logger.error(f"Error evaluating tool chains for '{tool_name}': {e}")

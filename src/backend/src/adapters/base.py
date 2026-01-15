@@ -104,9 +104,9 @@ class BaseServiceAdapter(ABC):
         Returns external_url if configured, otherwise falls back to base_url.
         This should be used for generating clickable URLs in tool responses.
         """
-        external = getattr(self.service_config, 'external_url', None)
+        external = getattr(self.service_config, "external_url", None)
         if external:
-            return external.rstrip('/')
+            return external.rstrip("/")
         return self.base_url
 
     @property

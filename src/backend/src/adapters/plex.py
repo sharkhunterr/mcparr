@@ -297,10 +297,7 @@ class PlexAdapter(TokenAuthAdapter):
             if library_name:
                 libraries = await self.get_libraries()
                 # Exact match (case-insensitive)
-                library = next(
-                    (lib for lib in libraries if lib.get("title", "").lower() == library_name.lower()),
-                    None
-                )
+                library = next((lib for lib in libraries if lib.get("title", "").lower() == library_name.lower()), None)
                 if library:
                     response = await self._make_request(
                         "GET",
@@ -394,9 +391,7 @@ class PlexAdapter(TokenAuthAdapter):
             self.logger.warning(f"Failed to search content: {e}")
             return []
 
-    async def _search_single_query(
-        self, query: str, media_type: Optional[str], limit: int
-    ) -> List[Dict[str, Any]]:
+    async def _search_single_query(self, query: str, media_type: Optional[str], limit: int) -> List[Dict[str, Any]]:
         """Execute a single search query against Plex API."""
         params = {"query": query, "limit": str(limit)}
         if media_type:

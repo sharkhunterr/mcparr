@@ -92,7 +92,7 @@ class OllamaService:
     ) -> Optional["OllamaService"]:
         """Create OllamaService from database configuration."""
         query = select(ServiceConfig).where(
-            ServiceConfig.service_type == ServiceType.OLLAMA, ServiceConfig.enabled == True
+            ServiceConfig.service_type == ServiceType.OLLAMA, ServiceConfig.enabled is True
         )
         if service_id:
             query = query.where(ServiceConfig.id == service_id)

@@ -181,7 +181,7 @@ async def enumerate_all_users(db: AsyncSession = Depends(get_db)):
     SERVICES_WITHOUT_USERS = {"ollama"}
 
     # Get all enabled services
-    services_result = await db.execute(select(ServiceConfig).where(ServiceConfig.enabled == True))
+    services_result = await db.execute(select(ServiceConfig).where(ServiceConfig.enabled is True))
     services = services_result.scalars().all()
 
     all_users = {}

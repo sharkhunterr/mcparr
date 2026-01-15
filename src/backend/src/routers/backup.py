@@ -279,9 +279,7 @@ async def export_configuration(
 
         # Export service groups
         if options.service_groups:
-            result = await db.execute(
-                select(ServiceGroup).options(selectinload(ServiceGroup.memberships))
-            )
+            result = await db.execute(select(ServiceGroup).options(selectinload(ServiceGroup.memberships)))
             service_groups = result.scalars().all()
             data["service_groups"] = [
                 {
@@ -308,9 +306,7 @@ async def export_configuration(
         # Export tool chains with full structure
         if options.tool_chains:
             # Load chains with steps
-            result = await db.execute(
-                select(ToolChain).options(selectinload(ToolChain.steps))
-            )
+            result = await db.execute(select(ToolChain).options(selectinload(ToolChain.steps)))
             chains = result.scalars().all()
 
             # Load all related data separately to avoid lazy loading issues
@@ -386,13 +382,9 @@ async def export_configuration(
                             "ai_comment": step.ai_comment,
                             "enabled": step.enabled,
                             "condition_groups": [
-                                export_condition_group(cg)
-                                for cg in step_condition_groups.get(step.id, [])
+                                export_condition_group(cg) for cg in step_condition_groups.get(step.id, [])
                             ],
-                            "actions": [
-                                export_action(a)
-                                for a in step_actions.get(step.id, [])
-                            ],
+                            "actions": [export_action(a) for a in step_actions.get(step.id, [])],
                         }
                         for step in tc.steps
                     ],
@@ -790,9 +782,7 @@ async def import_configuration(request: ImportRequest, db: AsyncSession = Depend
 
             for sg_data in request.data["service_groups"]:
                 try:
-                    existing = await db.execute(
-                        select(ServiceGroup).where(ServiceGroup.name == sg_data["name"])
-                    )
+                    existing = await db.execute(select(ServiceGroup).where(ServiceGroup.name == sg_data["name"]))
                     existing_sg = existing.scalar_one_or_none()
 
                     if existing_sg:
@@ -839,7 +829,9 @@ async def import_configuration(request: ImportRequest, db: AsyncSession = Depend
                                 db.add(membership)
                                 membership_count += 1
                         except Exception as e:
-                            errors.append({"type": "service_group_membership", "group": sg_data["name"], "error": str(e)})
+                            errors.append(
+                                {"type": "service_group_membership", "group": sg_data["name"], "error": str(e)}
+                            )
 
                 except Exception as e:
                     errors.append({"type": "service_group", "name": sg_data.get("name", "unknown"), "error": str(e)})
@@ -852,7 +844,9 @@ async def import_configuration(request: ImportRequest, db: AsyncSession = Depend
             chain_count = 0
             step_count = 0
 
-            def import_condition_group(group_data: dict, step_id: str = None, parent_group_id: str = None, action_id: str = None) -> str:
+            def import_condition_group(
+                group_data: dict, step_id: str = None, parent_group_id: str = None, action_id: str = None
+            ) -> str:
                 """Recursively import condition group and return its ID."""
                 cg = ToolChainConditionGroup(
                     step_id=step_id,
@@ -904,9 +898,7 @@ async def import_configuration(request: ImportRequest, db: AsyncSession = Depend
 
             for chain_data in request.data["tool_chains"]:
                 try:
-                    existing = await db.execute(
-                        select(ToolChain).where(ToolChain.name == chain_data["name"])
-                    )
+                    existing = await db.execute(select(ToolChain).where(ToolChain.name == chain_data["name"]))
                     existing_chain = existing.scalar_one_or_none()
 
                     if existing_chain:
@@ -916,9 +908,7 @@ async def import_configuration(request: ImportRequest, db: AsyncSession = Depend
                             existing_chain.priority = chain_data.get("priority", 0)
                             existing_chain.enabled = chain_data.get("enabled", True)
                             # Delete existing steps and recreate
-                            await db.execute(
-                                delete(ToolChainStep).where(ToolChainStep.chain_id == existing_chain.id)
-                            )
+                            await db.execute(delete(ToolChainStep).where(ToolChainStep.chain_id == existing_chain.id))
                             chain = existing_chain
                             chain_count += 1
                         else:
@@ -1008,7 +998,9 @@ async def import_configuration(request: ImportRequest, db: AsyncSession = Depend
                             db.add(gsc)
                             count += 1
                 except Exception as e:
-                    errors.append({"type": "global_search", "service": gs_data.get("service_name", "unknown"), "error": str(e)})
+                    errors.append(
+                        {"type": "global_search", "service": gs_data.get("service_name", "unknown"), "error": str(e)}
+                    )
 
             imported["global_search"] = count
 

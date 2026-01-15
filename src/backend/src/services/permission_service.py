@@ -36,7 +36,7 @@ class PermissionService:
         result = await self.db.execute(
             select(func.count(GroupToolPermission.id)).where(
                 and_(
-                    GroupToolPermission.enabled == True,
+                    GroupToolPermission.enabled is True,
                     # Match tool name or wildcard
                     ((GroupToolPermission.tool_name == tool_name) | (GroupToolPermission.tool_name == "*")),
                 )
@@ -69,7 +69,7 @@ class PermissionService:
         # Get user's active group memberships
         memberships_result = await self.db.execute(
             select(GroupMembership).where(
-                and_(GroupMembership.central_user_id == central_user_id, GroupMembership.enabled == True)
+                and_(GroupMembership.central_user_id == central_user_id, GroupMembership.enabled is True)
             )
         )
         memberships = memberships_result.scalars().all()
@@ -86,7 +86,7 @@ class PermissionService:
         groups_result = await self.db.execute(
             select(Group)
             .options(selectinload(Group.tool_permissions))
-            .where(and_(Group.id.in_(group_ids), Group.enabled == True))
+            .where(and_(Group.id.in_(group_ids), Group.enabled is True))
             .order_by(Group.priority.desc())
         )
         groups = groups_result.scalars().all()
@@ -118,7 +118,7 @@ class PermissionService:
         # Get user's active group memberships
         memberships_result = await self.db.execute(
             select(GroupMembership).where(
-                and_(GroupMembership.central_user_id == central_user_id, GroupMembership.enabled == True)
+                and_(GroupMembership.central_user_id == central_user_id, GroupMembership.enabled is True)
             )
         )
         memberships = memberships_result.scalars().all()
@@ -131,7 +131,7 @@ class PermissionService:
         groups_result = await self.db.execute(
             select(Group)
             .options(selectinload(Group.tool_permissions))
-            .where(and_(Group.id.in_(group_ids), Group.enabled == True))
+            .where(and_(Group.id.in_(group_ids), Group.enabled is True))
         )
         groups = groups_result.scalars().all()
 
@@ -158,7 +158,7 @@ class PermissionService:
         """Get all groups that have access to a specific tool."""
         # Get all groups with permissions for this tool
         result = await self.db.execute(
-            select(Group).options(selectinload(Group.tool_permissions)).where(Group.enabled == True)
+            select(Group).options(selectinload(Group.tool_permissions)).where(Group.enabled is True)
         )
         groups = result.scalars().all()
 

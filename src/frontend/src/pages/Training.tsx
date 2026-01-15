@@ -886,17 +886,18 @@ const PromptsTab = ({
     return true;
   });
 
-  // Pagination
+  // Pagination - auto-adjust page if current page is out of bounds
   const totalPages = Math.max(1, Math.ceil(filteredPrompts.length / pageSize));
-  const startIndex = (currentPage - 1) * pageSize;
+  const effectivePage = Math.min(currentPage, totalPages);
+  const startIndex = (effectivePage - 1) * pageSize;
   const endIndex = startIndex + pageSize;
   const paginatedPrompts = filteredPrompts.slice(startIndex, endIndex);
 
-  // Reset to page 1 when filter changes
-  useEffect(() => {
-    setCurrentPage(1);
-    setExpandedPrompt(null);
-  }, [serviceFilter, searchQuery, pageSize]);
+  // Sync currentPage if it's out of bounds (non-effect approach)
+  if (effectivePage !== currentPage && currentPage > 1) {
+    // Schedule the state update for next render to avoid cascading
+    Promise.resolve().then(() => setCurrentPage(effectivePage));
+  }
 
   // Compter les prompts par service
   const serviceCounts = prompts.reduce((acc, p) => {

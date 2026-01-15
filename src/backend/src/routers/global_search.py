@@ -8,12 +8,11 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
 
 from ..database.connection import get_db_session
-from ..models.global_search import GlobalSearchConfig, SEARCHABLE_SERVICES
-from ..models.service_config import ServiceConfig
 from ..models.configuration import ConfigurationSetting
+from ..models.global_search import SEARCHABLE_SERVICES, GlobalSearchConfig
+from ..models.service_config import ServiceConfig
 
 router = APIRouter(prefix="/api/global-search", tags=["global-search"])
 
@@ -87,7 +86,9 @@ async def get_searchable_services(db: AsyncSession = Depends(get_db_session)):
 
     searchable_services = []
     for service in services:
-        service_type = service.service_type.value if hasattr(service.service_type, "value") else str(service.service_type)
+        service_type = (
+            service.service_type.value if hasattr(service.service_type, "value") else str(service.service_type)
+        )
         service_type_lower = service_type.lower()
 
         # Check if this service type has search capability
@@ -117,9 +118,7 @@ async def get_searchable_services(db: AsyncSession = Depends(get_db_session)):
 async def get_global_search_configs(db: AsyncSession = Depends(get_db_session)):
     """Get all global search configurations."""
 
-    result = await db.execute(
-        select(GlobalSearchConfig).order_by(GlobalSearchConfig.priority)
-    )
+    result = await db.execute(select(GlobalSearchConfig).order_by(GlobalSearchConfig.priority))
     configs = result.scalars().all()
 
     return [GlobalSearchConfigResponse.model_validate(cfg) for cfg in configs]
@@ -134,23 +133,18 @@ async def update_global_search_config(
     """Update or create global search configuration for a service."""
 
     # Verify service exists
-    service_result = await db.execute(
-        select(ServiceConfig).where(ServiceConfig.id == service_id)
-    )
+    service_result = await db.execute(select(ServiceConfig).where(ServiceConfig.id == service_id))
     service = service_result.scalar_one_or_none()
 
     if not service:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Service not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Service not found")
 
     # Check if service type is searchable
     service_type = service.service_type.value if hasattr(service.service_type, "value") else str(service.service_type)
     if service_type.lower() not in SEARCHABLE_SERVICES:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Service type '{service_type}' does not have search capability"
+            detail=f"Service type '{service_type}' does not have search capability",
         )
 
     # Get or create config
@@ -204,13 +198,12 @@ async def _get_or_create_setting(
     db: AsyncSession, key: str, default_value: str, description: str
 ) -> ConfigurationSetting:
     """Get or create a configuration setting."""
-    result = await db.execute(
-        select(ConfigurationSetting).where(ConfigurationSetting.key == key)
-    )
+    result = await db.execute(select(ConfigurationSetting).where(ConfigurationSetting.key == key))
     setting = result.scalar_one_or_none()
 
     if not setting:
         from sqlalchemy.exc import IntegrityError
+
         try:
             setting = ConfigurationSetting(
                 id=str(uuid4()),
@@ -231,9 +224,7 @@ async def _get_or_create_setting(
         except IntegrityError:
             # Race condition: another request created the setting, fetch it
             await db.rollback()
-            result = await db.execute(
-                select(ConfigurationSetting).where(ConfigurationSetting.key == key)
-            )
+            result = await db.execute(select(ConfigurationSetting).where(ConfigurationSetting.key == key))
             setting = result.scalar_one()
 
     return setting
@@ -244,17 +235,14 @@ async def get_global_search_settings(db: AsyncSession = Depends(get_db_session))
     """Get global search feature settings."""
 
     enabled_setting = await _get_or_create_setting(
-        db,
-        GLOBAL_SEARCH_ENABLED_KEY,
-        "true",
-        "Enable or disable the global search feature"
+        db, GLOBAL_SEARCH_ENABLED_KEY, "true", "Enable or disable the global search feature"
     )
 
     hide_notifications_setting = await _get_or_create_setting(
         db,
         GLOBAL_SEARCH_HIDE_NOTIFICATIONS_KEY,
         "false",
-        "Hide global search notification banners on Tools and Services pages"
+        "Hide global search notification banners on Tools and Services pages",
     )
 
     return GlobalSearchSettingsResponse(
@@ -272,10 +260,7 @@ async def update_global_search_settings(
 
     if settings_update.enabled is not None:
         enabled_setting = await _get_or_create_setting(
-            db,
-            GLOBAL_SEARCH_ENABLED_KEY,
-            "true",
-            "Enable or disable the global search feature"
+            db, GLOBAL_SEARCH_ENABLED_KEY, "true", "Enable or disable the global search feature"
         )
         enabled_setting.value = "true" if settings_update.enabled else "false"
         enabled_setting.updated_at = datetime.utcnow()
@@ -285,7 +270,7 @@ async def update_global_search_settings(
             db,
             GLOBAL_SEARCH_HIDE_NOTIFICATIONS_KEY,
             "false",
-            "Hide global search notification banners on Tools and Services pages"
+            "Hide global search notification banners on Tools and Services pages",
         )
         hide_setting.value = "true" if settings_update.hide_notifications else "false"
         hide_setting.updated_at = datetime.utcnow()

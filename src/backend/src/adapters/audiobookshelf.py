@@ -282,44 +282,48 @@ class AudiobookshelfAdapter(TokenAuthAdapter):
                 lib_item = item.get("libraryItem", {})
                 media = lib_item.get("media", {})
                 metadata = media.get("metadata", {})
-                books.append({
-                    "id": lib_item.get("id"),
-                    "title": metadata.get("title"),
-                    "subtitle": metadata.get("subtitle"),
-                    "author": metadata.get("authorName"),
-                    "narrator": metadata.get("narratorName"),
-                    "series": metadata.get("seriesName"),
-                    "description": metadata.get("description"),
-                    "publisher": metadata.get("publisher"),
-                    "publish_year": metadata.get("publishedYear"),
-                    "language": metadata.get("language"),
-                    "genres": metadata.get("genres", []),
-                    "duration": media.get("duration", 0),
-                    "num_chapters": len(media.get("chapters", [])),
-                    "num_audio_files": media.get("numAudioFiles", 0),
-                    "match_key": item.get("matchKey"),
-                    "match_text": item.get("matchText"),
-                    "url": self._get_item_url(lib_item.get("id")),
-                })
+                books.append(
+                    {
+                        "id": lib_item.get("id"),
+                        "title": metadata.get("title"),
+                        "subtitle": metadata.get("subtitle"),
+                        "author": metadata.get("authorName"),
+                        "narrator": metadata.get("narratorName"),
+                        "series": metadata.get("seriesName"),
+                        "description": metadata.get("description"),
+                        "publisher": metadata.get("publisher"),
+                        "publish_year": metadata.get("publishedYear"),
+                        "language": metadata.get("language"),
+                        "genres": metadata.get("genres", []),
+                        "duration": media.get("duration", 0),
+                        "num_chapters": len(media.get("chapters", [])),
+                        "num_audio_files": media.get("numAudioFiles", 0),
+                        "match_key": item.get("matchKey"),
+                        "match_text": item.get("matchText"),
+                        "url": self._get_item_url(lib_item.get("id")),
+                    }
+                )
 
             podcasts = []
             for item in data.get("podcast", []):
                 lib_item = item.get("libraryItem", {})
                 media = lib_item.get("media", {})
                 metadata = media.get("metadata", {})
-                podcasts.append({
-                    "id": lib_item.get("id"),
-                    "title": metadata.get("title"),
-                    "author": metadata.get("author"),
-                    "description": metadata.get("description"),
-                    "release_date": metadata.get("releaseDate"),
-                    "language": metadata.get("language"),
-                    "genres": metadata.get("genres", []),
-                    "num_episodes": media.get("numEpisodes", 0),
-                    "match_key": item.get("matchKey"),
-                    "match_text": item.get("matchText"),
-                    "url": self._get_item_url(lib_item.get("id")),
-                })
+                podcasts.append(
+                    {
+                        "id": lib_item.get("id"),
+                        "title": metadata.get("title"),
+                        "author": metadata.get("author"),
+                        "description": metadata.get("description"),
+                        "release_date": metadata.get("releaseDate"),
+                        "language": metadata.get("language"),
+                        "genres": metadata.get("genres", []),
+                        "num_episodes": media.get("numEpisodes", 0),
+                        "match_key": item.get("matchKey"),
+                        "match_text": item.get("matchText"),
+                        "url": self._get_item_url(lib_item.get("id")),
+                    }
+                )
 
             return {
                 "book": books,

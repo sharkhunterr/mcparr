@@ -70,9 +70,7 @@ class ServiceGroupMembership(Base, UUIDMixin, TimestampMixin):
     __tablename__ = "service_group_memberships"
 
     # Ensure unique service_type per group
-    __table_args__ = (
-        UniqueConstraint('group_id', 'service_type', name='uix_group_service'),
-    )
+    __table_args__ = (UniqueConstraint("group_id", "service_type", name="uix_group_service"),)
 
     # Group reference
     group_id: Mapped[str] = mapped_column(

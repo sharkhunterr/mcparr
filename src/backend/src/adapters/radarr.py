@@ -331,24 +331,26 @@ class RadarrAdapter(TokenAuthAdapter):
                 # Get rejection reasons if any
                 rejections = release.get("rejections", [])
 
-                formatted_releases.append({
-                    "title": release.get("title"),
-                    "indexer": release.get("indexer"),
-                    "quality": quality.get("name"),
-                    "quality_source": quality.get("source"),
-                    "resolution": quality.get("resolution"),
-                    "languages": [lang.get("name") for lang in languages if lang.get("name")],
-                    "size_bytes": release.get("size", 0),
-                    "size_gb": round(release.get("size", 0) / (1024**3), 2),
-                    "seeders": release.get("seeders"),
-                    "leechers": release.get("leechers"),
-                    "age_days": release.get("ageMinutes", 0) // 1440 if release.get("ageMinutes") else None,
-                    "approved": release.get("approved", False),
-                    "download_allowed": release.get("downloadAllowed", False),
-                    "rejections": rejections[:3] if rejections else None,  # Limit rejection reasons
-                    "custom_format_score": release.get("customFormatScore"),
-                    "guid": release.get("guid"),
-                })
+                formatted_releases.append(
+                    {
+                        "title": release.get("title"),
+                        "indexer": release.get("indexer"),
+                        "quality": quality.get("name"),
+                        "quality_source": quality.get("source"),
+                        "resolution": quality.get("resolution"),
+                        "languages": [lang.get("name") for lang in languages if lang.get("name")],
+                        "size_bytes": release.get("size", 0),
+                        "size_gb": round(release.get("size", 0) / (1024**3), 2),
+                        "seeders": release.get("seeders"),
+                        "leechers": release.get("leechers"),
+                        "age_days": release.get("ageMinutes", 0) // 1440 if release.get("ageMinutes") else None,
+                        "approved": release.get("approved", False),
+                        "download_allowed": release.get("downloadAllowed", False),
+                        "rejections": rejections[:3] if rejections else None,  # Limit rejection reasons
+                        "custom_format_score": release.get("customFormatScore"),
+                        "guid": release.get("guid"),
+                    }
+                )
 
             # Summary stats
             approved_count = sum(1 for r in formatted_releases if r["approved"])
@@ -511,8 +513,7 @@ class RadarrAdapter(TokenAuthAdapter):
         indexers = await self.get_indexers()
         # Filter enabled indexers - check both 'enable' (v3) and 'enableRss'/'enableAutomaticSearch' fields
         enabled_indexers = [
-            i for i in indexers
-            if i.get("enable") or i.get("enableRss") or i.get("enableAutomaticSearch")
+            i for i in indexers if i.get("enable") or i.get("enableRss") or i.get("enableAutomaticSearch")
         ]
 
         # If no enabled indexers but we have indexers, test all of them

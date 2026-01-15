@@ -223,21 +223,31 @@ class SystemTools(BaseTool):
 
             # Get enabled services
             async with async_session_maker() as session:
-                result = await session.execute(
-                    select(ServiceConfig).where(ServiceConfig.enabled == True)
-                )
+                result = await session.execute(select(ServiceConfig).where(ServiceConfig.enabled is True))
                 services = result.scalars().all()
                 enabled_services = [
-                    (s.service_type.value if hasattr(s.service_type, 'value') else str(s.service_type)).lower()
+                    (s.service_type.value if hasattr(s.service_type, "value") else str(s.service_type)).lower()
                     for s in services
                 ]
 
             # Map service types to tool classes and categories
             service_config = {
-                "plex": {"class": PlexTools, "category": "📺 MEDIA (regarder/chercher du contenu)", "desc": "Bibliothèque multimédia"},
-                "tautulli": {"class": TautulliTools, "category": "📺 MEDIA (regarder/chercher du contenu)", "desc": "Stats et activité Plex"},
+                "plex": {
+                    "class": PlexTools,
+                    "category": "📺 MEDIA (regarder/chercher du contenu)",
+                    "desc": "Bibliothèque multimédia",
+                },
+                "tautulli": {
+                    "class": TautulliTools,
+                    "category": "📺 MEDIA (regarder/chercher du contenu)",
+                    "desc": "Stats et activité Plex",
+                },
                 "komga": {"class": KomgaTools, "category": "📚 LECTURE (livres, BD, manga)", "desc": "BD/Manga/Comics"},
-                "audiobookshelf": {"class": AudiobookshelfTools, "category": "📚 LECTURE (livres, BD, manga)", "desc": "Livres audio/Podcasts"},
+                "audiobookshelf": {
+                    "class": AudiobookshelfTools,
+                    "category": "📚 LECTURE (livres, BD, manga)",
+                    "desc": "Livres audio/Podcasts",
+                },
                 "romm": {"class": RommTools, "category": "🎮 JEUX", "desc": "ROMs/Jeux rétro"},
                 "radarr": {"class": RadarrTools, "category": "⬇️ TÉLÉCHARGEMENT", "desc": "Téléchargement films"},
                 "sonarr": {"class": SonarrTools, "category": "⬇️ TÉLÉCHARGEMENT", "desc": "Téléchargement séries"},
@@ -324,7 +334,7 @@ class SystemTools(BaseTool):
             from src.models.service_config import ServiceConfig
 
             async with async_session_maker() as session:
-                result = await session.execute(select(ServiceConfig).where(ServiceConfig.enabled == True))
+                result = await session.execute(select(ServiceConfig).where(ServiceConfig.enabled is True))
                 services = result.scalars().all()
                 for svc in services:
                     status = svc.status.value if hasattr(svc.status, "value") else str(svc.status)
@@ -507,6 +517,7 @@ class SystemTools(BaseTool):
                             # Rollback and retry
                             await session.rollback()
                             import asyncio
+
                             await asyncio.sleep(0.5 * (attempt + 1))  # Exponential backoff
                             continue
                         raise  # Re-raise if not a locking issue
@@ -529,7 +540,7 @@ class SystemTools(BaseTool):
             # First, get all enabled services
             async with async_session_maker() as session:
                 result = await session.execute(
-                    select(ServiceConfig).where(ServiceConfig.enabled == True).order_by(ServiceConfig.name)
+                    select(ServiceConfig).where(ServiceConfig.enabled is True).order_by(ServiceConfig.name)
                 )
                 services = result.scalars().all()
 
@@ -564,9 +575,7 @@ class SystemTools(BaseTool):
             for service_data in services_data:
                 try:
                     # Test without passing session to avoid commit issues
-                    test_result = await ServiceTester.test_service_connection(
-                        service_data["config"], db_session=None
-                    )
+                    test_result = await ServiceTester.test_service_connection(service_data["config"], db_session=None)
 
                     service_result = {
                         "name": service_data["name"],
@@ -811,15 +820,13 @@ class SystemTools(BaseTool):
             from sqlalchemy import select
 
             from src.database.connection import async_session_maker
-            from src.models.global_search import GlobalSearchConfig, SEARCHABLE_SERVICES
+            from src.models.global_search import SEARCHABLE_SERVICES, GlobalSearchConfig
             from src.models.service_config import ServiceConfig
 
             # Get enabled services and their global search configs
             async with async_session_maker() as session:
                 # Get all enabled services
-                services_result = await session.execute(
-                    select(ServiceConfig).where(ServiceConfig.enabled == True)
-                )
+                services_result = await session.execute(select(ServiceConfig).where(ServiceConfig.enabled is True))
                 services = services_result.scalars().all()
 
                 # Get global search configs
@@ -830,9 +837,7 @@ class SystemTools(BaseTool):
             services_to_search = []
             for service in services:
                 service_type = (
-                    service.service_type.value
-                    if hasattr(service.service_type, "value")
-                    else str(service.service_type)
+                    service.service_type.value if hasattr(service.service_type, "value") else str(service.service_type)
                 ).lower()
 
                 # Check if service type is searchable
@@ -844,11 +849,13 @@ class SystemTools(BaseTool):
                 if config and not config.enabled:
                     continue
 
-                services_to_search.append({
-                    "service": service,
-                    "type": service_type,
-                    "info": SEARCHABLE_SERVICES[service_type],
-                })
+                services_to_search.append(
+                    {
+                        "service": service,
+                        "type": service_type,
+                        "info": SEARCHABLE_SERVICES[service_type],
+                    }
+                )
 
             if not services_to_search:
                 return {
@@ -970,11 +977,13 @@ class SystemTools(BaseTool):
                 if error:
                     errors.append(error)
                 elif success_result:
-                    results_list.append({
-                        "service_name": success_result["service_name"],
-                        "service_type": success_result["service_type"],
-                        "results": success_result["results"],
-                    })
+                    results_list.append(
+                        {
+                            "service_name": success_result["service_name"],
+                            "service_type": success_result["service_type"],
+                            "results": success_result["results"],
+                        }
+                    )
 
             return {
                 "success": True,

@@ -217,18 +217,17 @@ class AudiobookshelfTools(BaseTool):
             podcast_aliases = ["podcast", "podcasts"]
 
             # First try exact case-insensitive match
-            library = next(
-                (lib for lib in libraries if lib.get("name", "").lower() == search_name),
-                None
-            )
+            library = next((lib for lib in libraries if lib.get("name", "").lower() == search_name), None)
 
             # If not found, try partial match (search term in library name or vice versa)
             if not library:
                 library = next(
-                    (lib for lib in libraries
-                     if search_name in lib.get("name", "").lower()
-                     or lib.get("name", "").lower() in search_name),
-                    None
+                    (
+                        lib
+                        for lib in libraries
+                        if search_name in lib.get("name", "").lower() or lib.get("name", "").lower() in search_name
+                    ),
+                    None,
                 )
 
             # If still not found, try alias matching for common library types
@@ -236,18 +235,24 @@ class AudiobookshelfTools(BaseTool):
                 # Check if search term matches audiobook aliases
                 if any(alias in search_name or search_name in alias for alias in audiobook_aliases):
                     library = next(
-                        (lib for lib in libraries
-                         if any(alias in lib.get("name", "").lower() for alias in audiobook_aliases)
-                         or lib.get("mediaType") == "book"),
-                        None
+                        (
+                            lib
+                            for lib in libraries
+                            if any(alias in lib.get("name", "").lower() for alias in audiobook_aliases)
+                            or lib.get("mediaType") == "book"
+                        ),
+                        None,
                     )
                 # Check if search term matches podcast aliases
                 elif any(alias in search_name or search_name in alias for alias in podcast_aliases):
                     library = next(
-                        (lib for lib in libraries
-                         if any(alias in lib.get("name", "").lower() for alias in podcast_aliases)
-                         or lib.get("mediaType") == "podcast"),
-                        None
+                        (
+                            lib
+                            for lib in libraries
+                            if any(alias in lib.get("name", "").lower() for alias in podcast_aliases)
+                            or lib.get("mediaType") == "podcast"
+                        ),
+                        None,
                     )
 
             # If no match found, fallback to first library (don't fail)
@@ -285,17 +290,16 @@ class AudiobookshelfTools(BaseTool):
         if library_name:
             search_name = library_name.lower()
             # Try exact match first
-            library = next(
-                (lib for lib in libraries if lib.get("name", "").lower() == search_name),
-                None
-            )
+            library = next((lib for lib in libraries if lib.get("name", "").lower() == search_name), None)
             # Try partial match
             if not library:
                 library = next(
-                    (lib for lib in libraries
-                     if search_name in lib.get("name", "").lower()
-                     or lib.get("name", "").lower() in search_name),
-                    None
+                    (
+                        lib
+                        for lib in libraries
+                        if search_name in lib.get("name", "").lower() or lib.get("name", "").lower() in search_name
+                    ),
+                    None,
                 )
             if library:
                 libraries_to_search = [library]
@@ -347,17 +351,16 @@ class AudiobookshelfTools(BaseTool):
         if library_name:
             search_name = library_name.lower()
             # Try exact match first
-            library = next(
-                (lib for lib in libraries if lib.get("name", "").lower() == search_name),
-                None
-            )
+            library = next((lib for lib in libraries if lib.get("name", "").lower() == search_name), None)
             # Try partial match
             if not library:
                 library = next(
-                    (lib for lib in libraries
-                     if search_name in lib.get("name", "").lower()
-                     or lib.get("name", "").lower() in search_name),
-                    None
+                    (
+                        lib
+                        for lib in libraries
+                        if search_name in lib.get("name", "").lower() or lib.get("name", "").lower() in search_name
+                    ),
+                    None,
                 )
             if library:
                 libraries_to_search = [library]

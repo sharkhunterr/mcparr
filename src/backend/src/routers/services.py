@@ -30,7 +30,7 @@ async def list_services(
         query = query.where(ServiceConfig.service_type == service_type)
 
     if enabled_only:
-        query = query.where(ServiceConfig.enabled == True)
+        query = query.where(ServiceConfig.enabled is True)
 
     result = await db.execute(query)
     services = result.scalars().all()
@@ -115,9 +115,9 @@ async def test_service_connection(service_id: str, db: AsyncSession = Depends(ge
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Service not found")
 
     # Import the service tester
-    from ..services.service_tester import ServiceTester
-    from ..services.alert_service import alert_service
     from ..models.alert_config import AlertConfiguration
+    from ..services.alert_service import alert_service
+    from ..services.service_tester import ServiceTester
 
     # Test the connection using the appropriate adapter
     test_result = await ServiceTester.test_service_connection(service, db)
@@ -126,7 +126,7 @@ async def test_service_connection(service_id: str, db: AsyncSession = Depends(ge
     try:
         alert_result = await db.execute(
             select(AlertConfiguration).where(
-                AlertConfiguration.enabled == True,
+                AlertConfiguration.enabled is True,
                 AlertConfiguration.metric_type.in_(["service_test_failed", "service_down"]),
             )
         )
@@ -150,6 +150,7 @@ async def test_service_connection(service_id: str, db: AsyncSession = Depends(ge
     except Exception as e:
         # Don't fail the test response if alert check fails
         import logging
+
         logging.getLogger(__name__).error(f"Error checking alerts: {e}")
 
     return ServiceTestResult(
@@ -220,7 +221,7 @@ async def get_all_services_health_history(hours: int = 24, db: AsyncSession = De
     since = datetime.utcnow() - timedelta(hours=hours)
 
     # Get all enabled services
-    services_result = await db.execute(select(ServiceConfig).where(ServiceConfig.enabled == True))
+    services_result = await db.execute(select(ServiceConfig).where(ServiceConfig.enabled is True))
     services = services_result.scalars().all()
 
     result = []

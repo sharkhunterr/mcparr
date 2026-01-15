@@ -58,9 +58,7 @@ class DatabaseManager:
 
         # Register SQLite pragma configuration
         if self.is_sqlite:
-            event.listen(
-                self.engine.sync_engine, "connect", _configure_sqlite_connection
-            )
+            event.listen(self.engine.sync_engine, "connect", _configure_sqlite_connection)
         self.session_factory = async_sessionmaker(
             bind=self.engine,
             class_=AsyncSession,

@@ -1515,7 +1515,7 @@ const ConfigurationTab = ({ tools }: { tools: McpToolsResponse | null }) => {
     }
 
     // Build request body based on endpoint mode
-    let requestBody: {
+    const requestBody: {
       mcparr_external_url: string;
       endpoint_mode: string;
       use_function_filters: boolean;

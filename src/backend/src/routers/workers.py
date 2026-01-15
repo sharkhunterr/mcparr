@@ -232,7 +232,7 @@ async def list_workers(enabled_only: bool = Query(default=False), session: Async
     query = select(TrainingWorker).order_by(desc(TrainingWorker.created_at))
 
     if enabled_only:
-        query = query.where(TrainingWorker.enabled == True)
+        query = query.where(TrainingWorker.enabled is True)
 
     result = await session.execute(query)
     workers = result.scalars().all()
@@ -616,7 +616,7 @@ async def get_available_models(worker_id: str, session: AsyncSession = Depends(g
 @router.post("/refresh-all")
 async def refresh_all_workers(background_tasks: BackgroundTasks, session: AsyncSession = Depends(get_db_session)):
     """Refresh status of all enabled workers."""
-    result = await session.execute(select(TrainingWorker).where(TrainingWorker.enabled == True))
+    result = await session.execute(select(TrainingWorker).where(TrainingWorker.enabled is True))
     workers = result.scalars().all()
 
     async def refresh_worker(worker_id: str):

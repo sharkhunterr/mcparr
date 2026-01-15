@@ -4,7 +4,6 @@ Supports IF/THEN/ELSE logic with compound conditions (AND/OR).
 """
 
 from datetime import datetime
-from enum import Enum
 from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field
@@ -16,7 +15,6 @@ from src.models.tool_chain import (
     ExecutionMode,
     StepPositionType,
 )
-
 
 # === Condition Schemas ===
 
@@ -114,9 +112,7 @@ class ActionCreate(BaseModel):
         None, description="Save result values to context for later steps. Format: {'var_name': 'field.path'}"
     )
     # For message action
-    message_template: Optional[str] = Field(
-        None, description="Message template with placeholders like {result.title}"
-    )
+    message_template: Optional[str] = Field(None, description="Message template with placeholders like {result.title}")
     # For conditional action (nested IF/THEN/ELSE)
     condition_groups: Optional[List[ConditionGroupCreate]] = Field(
         None, description="Condition groups for nested IF (only for conditional action)"
@@ -184,9 +180,7 @@ class ToolChainStepCreate(BaseModel):
     """Schema for creating a step in a tool chain."""
 
     order: int = Field(0, description="Step order within the chain")
-    position_type: StepPositionType = Field(
-        StepPositionType.MIDDLE, description="Step position type (middle or end)"
-    )
+    position_type: StepPositionType = Field(StepPositionType.MIDDLE, description="Step position type (middle or end)")
     # Source tool (trigger)
     source_service: str = Field(..., description="Source service type that triggers this step")
     source_tool: str = Field(..., description="Source tool name that triggers this step")
@@ -317,56 +311,87 @@ class ConditionOperatorsResponse(BaseModel):
 
     operators: List[ConditionOperatorInfo] = [
         ConditionOperatorInfo(
-            value="eq", label="Equals", description="Result equals value",
-            requires_value=True, requires_field=True
+            value="eq", label="Equals", description="Result equals value", requires_value=True, requires_field=True
         ),
         ConditionOperatorInfo(
-            value="ne", label="Not Equals", description="Result does not equal value",
-            requires_value=True, requires_field=True
+            value="ne",
+            label="Not Equals",
+            description="Result does not equal value",
+            requires_value=True,
+            requires_field=True,
         ),
         ConditionOperatorInfo(
-            value="gt", label="Greater Than", description="Result is greater than value",
-            requires_value=True, requires_field=True
+            value="gt",
+            label="Greater Than",
+            description="Result is greater than value",
+            requires_value=True,
+            requires_field=True,
         ),
         ConditionOperatorInfo(
-            value="lt", label="Less Than", description="Result is less than value",
-            requires_value=True, requires_field=True
+            value="lt",
+            label="Less Than",
+            description="Result is less than value",
+            requires_value=True,
+            requires_field=True,
         ),
         ConditionOperatorInfo(
-            value="gte", label="Greater or Equal", description="Result >= value",
-            requires_value=True, requires_field=True
+            value="gte",
+            label="Greater or Equal",
+            description="Result >= value",
+            requires_value=True,
+            requires_field=True,
         ),
         ConditionOperatorInfo(
-            value="lte", label="Less or Equal", description="Result <= value",
-            requires_value=True, requires_field=True
+            value="lte", label="Less or Equal", description="Result <= value", requires_value=True, requires_field=True
         ),
         ConditionOperatorInfo(
-            value="contains", label="Contains", description="Result contains value",
-            requires_value=True, requires_field=True
+            value="contains",
+            label="Contains",
+            description="Result contains value",
+            requires_value=True,
+            requires_field=True,
         ),
         ConditionOperatorInfo(
-            value="not_contains", label="Not Contains", description="Result does not contain value",
-            requires_value=True, requires_field=True
+            value="not_contains",
+            label="Not Contains",
+            description="Result does not contain value",
+            requires_value=True,
+            requires_field=True,
         ),
         ConditionOperatorInfo(
-            value="is_empty", label="Is Empty", description="Result is empty or null",
-            requires_value=False, requires_field=True
+            value="is_empty",
+            label="Is Empty",
+            description="Result is empty or null",
+            requires_value=False,
+            requires_field=True,
         ),
         ConditionOperatorInfo(
-            value="is_not_empty", label="Is Not Empty", description="Result is not empty",
-            requires_value=False, requires_field=True
+            value="is_not_empty",
+            label="Is Not Empty",
+            description="Result is not empty",
+            requires_value=False,
+            requires_field=True,
         ),
         ConditionOperatorInfo(
-            value="success", label="Success", description="Tool execution succeeded",
-            requires_value=False, requires_field=False
+            value="success",
+            label="Success",
+            description="Tool execution succeeded",
+            requires_value=False,
+            requires_field=False,
         ),
         ConditionOperatorInfo(
-            value="failed", label="Failed", description="Tool execution failed",
-            requires_value=False, requires_field=False
+            value="failed",
+            label="Failed",
+            description="Tool execution failed",
+            requires_value=False,
+            requires_field=False,
         ),
         ConditionOperatorInfo(
-            value="regex", label="Regex Match", description="Result matches regex pattern",
-            requires_value=True, requires_field=True
+            value="regex",
+            label="Regex Match",
+            description="Result matches regex pattern",
+            requires_value=True,
+            requires_field=True,
         ),
     ]
 
@@ -386,12 +411,8 @@ class ConditionGroupOperatorsResponse(BaseModel):
     """List of available group operators."""
 
     operators: List[ConditionGroupOperatorInfo] = [
-        ConditionGroupOperatorInfo(
-            value="and", label="AND", description="All conditions must be true"
-        ),
-        ConditionGroupOperatorInfo(
-            value="or", label="OR", description="At least one condition must be true"
-        ),
+        ConditionGroupOperatorInfo(value="and", label="AND", description="All conditions must be true"),
+        ConditionGroupOperatorInfo(value="or", label="OR", description="At least one condition must be true"),
     ]
 
 
@@ -410,12 +431,8 @@ class ActionTypesResponse(BaseModel):
     """List of available action types."""
 
     action_types: List[ActionTypeInfo] = [
-        ActionTypeInfo(
-            value="tool_call", label="Call Tool", description="Execute a tool"
-        ),
-        ActionTypeInfo(
-            value="message", label="Display Message", description="Display a message to AI (no tool call)"
-        ),
+        ActionTypeInfo(value="tool_call", label="Call Tool", description="Execute a tool"),
+        ActionTypeInfo(value="message", label="Display Message", description="Display a message to AI (no tool call)"),
     ]
 
 
@@ -434,12 +451,8 @@ class StepPositionTypesResponse(BaseModel):
     """List of available step positions."""
 
     positions: List[StepPositionInfo] = [
-        StepPositionInfo(
-            value="middle", label="Middle", description="Continue to next steps"
-        ),
-        StepPositionInfo(
-            value="end", label="End", description="Terminal step (chain ends here)"
-        ),
+        StepPositionInfo(value="middle", label="Middle", description="Continue to next steps"),
+        StepPositionInfo(value="end", label="End", description="Terminal step (chain ends here)"),
     ]
 
 

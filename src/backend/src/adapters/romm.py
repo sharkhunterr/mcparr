@@ -236,9 +236,7 @@ class RommAdapter(TokenAuthAdapter):
             self.logger.error(f"Failed to search ROMs: {e}")
             return []
 
-    async def get_collections(
-        self, name_filter: Optional[str] = None, limit: int = 50
-    ) -> List[Dict[str, Any]]:
+    async def get_collections(self, name_filter: Optional[str] = None, limit: int = 50) -> List[Dict[str, Any]]:
         """Get list of ROM collections.
 
         Args:

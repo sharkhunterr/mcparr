@@ -249,12 +249,12 @@ class SonarrAdapter(TokenAuthAdapter):
             except Exception:
                 pass
 
-            title_lower = title.lower().strip()
+            title.lower().strip()
             best_match = None
             best_score = 0
 
             for series in series_list:
-                series_title = series.get("title", "").lower().strip()
+                series.get("title", "").lower().strip()
                 series_year = series.get("year")
 
                 # Calculate match score
@@ -275,7 +275,7 @@ class SonarrAdapter(TokenAuthAdapter):
                 return {
                     "found": False,
                     "message": f"Series '{title}' not found in Sonarr library",
-                    "suggestion": "Use sonarr_search_series to find and add the series first"
+                    "suggestion": "Use sonarr_search_series to find and add the series first",
                 }
 
             profile_id = best_match.get("qualityProfileId")
@@ -365,8 +365,8 @@ class SonarrAdapter(TokenAuthAdapter):
                 "summary": {
                     "has_approved_releases": approved_count > 0,
                     "best_seeders": max((r.get("seeders") or 0 for r in formatted_releases), default=0),
-                    "indexers_with_results": list(set(r.get("indexer") for r in formatted_releases if r.get("indexer"))),
-                }
+                    "indexers_with_results": list({r.get("indexer") for r in formatted_releases if r.get("indexer")}),
+                },
             }
         except Exception as e:
             self.logger.error(f"Failed to get releases: {e}")
@@ -534,8 +534,7 @@ class SonarrAdapter(TokenAuthAdapter):
         indexers = await self.get_indexers()
         # Filter enabled indexers - check both 'enable' (v3) and 'enableRss'/'enableAutomaticSearch' fields
         enabled_indexers = [
-            i for i in indexers
-            if i.get("enable") or i.get("enableRss") or i.get("enableAutomaticSearch")
+            i for i in indexers if i.get("enable") or i.get("enableRss") or i.get("enableAutomaticSearch")
         ]
 
         # If no enabled indexers but we have indexers, test all of them

@@ -28,7 +28,7 @@ async def load_service_configs():
 
     configs = []
     async for session in get_db_session():
-        result = await session.execute(select(ServiceConfig).where(ServiceConfig.enabled == True))
+        result = await session.execute(select(ServiceConfig).where(ServiceConfig.enabled is True))
         services = result.scalars().all()
 
         for service in services:

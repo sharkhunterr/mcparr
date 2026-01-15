@@ -173,10 +173,10 @@ class MCPServer:
         if self.db_session_factory and result.get("success", False):
             try:
                 from src.services.tool_chain_service import enrich_tool_result_with_chains
+
                 async with self.db_session_factory() as session:
                     enriched_result = await enrich_tool_result_with_chains(
-                        session, tool_name, result, arguments,
-                        session_id=self._session_id
+                        session, tool_name, result, arguments, session_id=self._session_id
                     )
             except Exception as e:
                 print(f"Failed to enrich result with chains: {e}", file=sys.stderr)

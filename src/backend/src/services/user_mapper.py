@@ -71,7 +71,7 @@ class UserMappingDetector:
 
         # Get all other enabled services
         services_result = await db.execute(
-            select(ServiceConfig).where(ServiceConfig.enabled == True).where(ServiceConfig.id != authentik_service_id)
+            select(ServiceConfig).where(ServiceConfig.enabled is True).where(ServiceConfig.id != authentik_service_id)
         )
         other_services = services_result.scalars().all()
 
@@ -138,7 +138,7 @@ class UserMappingDetector:
         SERVICES_WITHOUT_USERS = {"ollama"}
 
         # Get all enabled services
-        services_result = await db.execute(select(ServiceConfig).where(ServiceConfig.enabled == True))
+        services_result = await db.execute(select(ServiceConfig).where(ServiceConfig.enabled is True))
         all_services_raw = services_result.scalars().all()
 
         # Filter out services without user management
