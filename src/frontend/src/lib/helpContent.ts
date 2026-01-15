@@ -240,6 +240,18 @@ export const helpCategories: HelpCategory[] = [
           { titleKey: 'training:models.help.info', contentKey: 'training:models.help.infoContent' },
         ],
       },
+      {
+        id: 'trainingPrompts',
+        titleKey: 'training:prompts.help.title',
+        descriptionKey: 'training:prompts.help.overviewContent',
+        icon: 'FileText',
+        sections: [
+          { titleKey: 'training:prompts.help.overview', contentKey: 'training:prompts.help.overviewContent' },
+          { titleKey: 'training:prompts.help.structure', contentKey: 'training:prompts.help.structureContent' },
+          { titleKey: 'training:prompts.help.management', contentKey: 'training:prompts.help.managementContent' },
+          { titleKey: 'training:prompts.help.filtering', contentKey: 'training:prompts.help.filteringContent' },
+        ],
+      },
     ],
   },
 ];

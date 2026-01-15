@@ -143,6 +143,7 @@
     "noPrompts": "Keine Trainings-Prompts",
     "noPromptsFound": "Keine Prompts gefunden",
     "noPromptsHint": "Fügen Sie Prompts hinzu, um Ihre Modelle zu trainieren",
+    "perPage": "Pro Seite",
     "addPrompt": "Prompt hinzufügen",
     "createPrompt": "Prompt erstellen",
     "newPrompt": "Neuer Trainings-Prompt",
@@ -189,7 +190,18 @@
     "description": "Beschreibung",
     "descriptionPlaceholder": "Beschreibung des Prompts",
     "importSuccess": "Prompts erfolgreich importiert",
-    "confirmResetAll": "Dies wird ALLE vorhandenen Prompts löschen und durch die Standard-Prompts ersetzen. Fortfahren?"
+    "confirmResetAll": "Dies wird ALLE vorhandenen Prompts löschen und durch die Standard-Prompts ersetzen. Fortfahren?",
+    "help": {
+      "title": "Trainings-Prompts",
+      "overview": "Übersicht",
+      "overviewContent": "Die Registerkarte Prompts verwaltet die Trainingsdaten für Ihre KI-Modelle. Jeder Prompt ist ein Konversationsbeispiel, das das Modell lernt zu reproduzieren.",
+      "structure": "Prompt-Struktur",
+      "structureContent": "Ein Prompt enthält:\n• Benutzereingabe: Frage oder Anfrage\n• Erwartete Ausgabe: ideale Modellantwort\n• Tool Call (optional): Tool-Aufruf mit Argumenten\n• Tool Response: Tool-Ergebnis\n• Finale Antwort: Datensynthese",
+      "management": "Verwaltung",
+      "managementContent": "Verfügbare Aktionen:\n• Neu: Prompt manuell erstellen\n• Reset: Standard-Homelab-Prompts neu laden\n• Import/Export: als JSON sichern oder wiederherstellen\n• Validieren: Prompt als geprüft markieren",
+      "filtering": "Filterung",
+      "filteringContent": "Filtern Sie Prompts nach Dienst (Plex, Radarr, Sonarr, etc.) oder suchen Sie nach Text. Badges zeigen Dienst, Schwierigkeit und Validierungsstatus an."
+    }
   },
 
   "models": {

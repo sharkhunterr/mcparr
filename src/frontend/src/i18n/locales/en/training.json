@@ -143,6 +143,7 @@
     "noPrompts": "No training prompts",
     "noPromptsFound": "No prompts found",
     "noPromptsHint": "Add prompts to train your models",
+    "perPage": "Per page",
     "addPrompt": "Add prompt",
     "createPrompt": "Create prompt",
     "newPrompt": "New training prompt",
@@ -189,7 +190,18 @@
     "description": "Description",
     "descriptionPlaceholder": "Prompt description",
     "importSuccess": "Prompts imported successfully",
-    "confirmResetAll": "This will delete ALL existing prompts and replace them with the default prompts. Continue?"
+    "confirmResetAll": "This will delete ALL existing prompts and replace them with the default prompts. Continue?",
+    "help": {
+      "title": "Training Prompts",
+      "overview": "Overview",
+      "overviewContent": "The Prompts tab manages training data for your AI models. Each prompt is a conversation example that the model learns to reproduce.",
+      "structure": "Prompt Structure",
+      "structureContent": "A prompt contains:\n• User input: question or request\n• Expected output: ideal model response\n• Tool Call (optional): tool invocation with arguments\n• Tool Response: tool result\n• Final response: data synthesis",
+      "management": "Management",
+      "managementContent": "Available actions:\n• New: create a prompt manually\n• Reset: reload default homelab prompts\n• Import/Export: backup or restore as JSON\n• Validate: mark a prompt as verified",
+      "filtering": "Filtering",
+      "filteringContent": "Filter prompts by service (Plex, Radarr, Sonarr, etc.) or search by text. Badges indicate service, difficulty and validation status."
+    }
   },
 
   "models": {

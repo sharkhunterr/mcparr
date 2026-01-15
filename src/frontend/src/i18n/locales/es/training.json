@@ -143,6 +143,7 @@
     "noPrompts": "Sin prompts de entrenamiento",
     "noPromptsFound": "No se encontraron prompts",
     "noPromptsHint": "Añada prompts para entrenar sus modelos",
+    "perPage": "Por página",
     "addPrompt": "Añadir prompt",
     "createPrompt": "Crear prompt",
     "newPrompt": "Nuevo prompt de entrenamiento",
@@ -189,7 +190,18 @@
     "description": "Descripción",
     "descriptionPlaceholder": "Descripción del prompt",
     "importSuccess": "Prompts importados con éxito",
-    "confirmResetAll": "Esto eliminará TODOS los prompts existentes y los reemplazará por los prompts predeterminados. ¿Continuar?"
+    "confirmResetAll": "Esto eliminará TODOS los prompts existentes y los reemplazará por los prompts predeterminados. ¿Continuar?",
+    "help": {
+      "title": "Prompts de Entrenamiento",
+      "overview": "Descripción general",
+      "overviewContent": "La pestaña Prompts gestiona los datos de entrenamiento para sus modelos de IA. Cada prompt es un ejemplo de conversación que el modelo aprende a reproducir.",
+      "structure": "Estructura del prompt",
+      "structureContent": "Un prompt contiene:\n• Entrada del usuario: pregunta o solicitud\n• Salida esperada: respuesta ideal del modelo\n• Tool Call (opcional): invocación de herramienta con argumentos\n• Tool Response: resultado de la herramienta\n• Respuesta final: síntesis de datos",
+      "management": "Gestión",
+      "managementContent": "Acciones disponibles:\n• Nuevo: crear un prompt manualmente\n• Reset: recargar prompts homelab predeterminados\n• Importar/Exportar: guardar o restaurar como JSON\n• Validar: marcar un prompt como verificado",
+      "filtering": "Filtrado",
+      "filteringContent": "Filtre prompts por servicio (Plex, Radarr, Sonarr, etc.) o busque por texto. Las insignias indican servicio, dificultad y estado de validación."
+    }
   },
 
   "models": {

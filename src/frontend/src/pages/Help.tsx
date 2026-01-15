@@ -137,6 +137,12 @@ const topicColors: Record<string, { bg: string; text: string; border: string; ic
     border: 'border-purple-200 dark:border-purple-800',
     iconBg: 'bg-purple-100 dark:bg-purple-900/40',
   },
+  trainingPrompts: {
+    bg: 'bg-purple-50 dark:bg-purple-900/20',
+    text: 'text-purple-700 dark:text-purple-300',
+    border: 'border-purple-200 dark:border-purple-800',
+    iconBg: 'bg-purple-100 dark:bg-purple-900/40',
+  },
 };
 
 const defaultColors = {

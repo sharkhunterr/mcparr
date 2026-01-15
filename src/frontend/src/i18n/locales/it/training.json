@@ -143,6 +143,7 @@
     "noPrompts": "Nessun prompt di addestramento",
     "noPromptsFound": "Nessun prompt trovato",
     "noPromptsHint": "Aggiunga dei prompt per addestrare i Suoi modelli",
+    "perPage": "Per pagina",
     "addPrompt": "Aggiungi prompt",
     "createPrompt": "Crea prompt",
     "newPrompt": "Nuovo prompt di addestramento",
@@ -189,7 +190,18 @@
     "description": "Descrizione",
     "descriptionPlaceholder": "Descrizione del prompt",
     "importSuccess": "Prompt importati con successo",
-    "confirmResetAll": "Questa operazione eliminerà TUTTI i prompt esistenti e li sostituirà con i prompt predefiniti. Continuare?"
+    "confirmResetAll": "Questa operazione eliminerà TUTTI i prompt esistenti e li sostituirà con i prompt predefiniti. Continuare?",
+    "help": {
+      "title": "Prompt di Addestramento",
+      "overview": "Panoramica",
+      "overviewContent": "La scheda Prompt gestisce i dati di addestramento per i tuoi modelli IA. Ogni prompt è un esempio di conversazione che il modello impara a riprodurre.",
+      "structure": "Struttura del prompt",
+      "structureContent": "Un prompt contiene:\n• Input utente: domanda o richiesta\n• Output atteso: risposta ideale del modello\n• Tool Call (opzionale): chiamata dello strumento con argomenti\n• Tool Response: risultato dello strumento\n• Risposta finale: sintesi dei dati",
+      "management": "Gestione",
+      "managementContent": "Azioni disponibili:\n• Nuovo: crea un prompt manualmente\n• Reset: ricarica i prompt homelab predefiniti\n• Importa/Esporta: salva o ripristina come JSON\n• Valida: contrassegna un prompt come verificato",
+      "filtering": "Filtraggio",
+      "filteringContent": "Filtra i prompt per servizio (Plex, Radarr, Sonarr, ecc.) o cerca per testo. I badge indicano servizio, difficoltà e stato di validazione."
+    }
   },
 
   "models": {
