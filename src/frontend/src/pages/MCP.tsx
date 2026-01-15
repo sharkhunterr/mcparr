@@ -2883,18 +2883,18 @@ export default function MCP() {
                     <RefreshCw className="w-4 h-4" />
                   </button>
 
-                  {/* Expand All button - hidden on mobile */}
+                  {/* Expand All button */}
                   <button
                     onClick={() => toggleAllServices(true)}
-                    className="hidden sm:flex px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 items-center gap-2 transition-colors flex-shrink-0"
+                    className="flex px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 items-center gap-2 transition-colors flex-shrink-0"
                   >
                     {t('tools.expandAll')}
                   </button>
 
-                  {/* Collapse All button - hidden on mobile */}
+                  {/* Collapse All button */}
                   <button
                     onClick={() => toggleAllServices(false)}
-                    className="hidden sm:flex px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 items-center gap-2 transition-colors flex-shrink-0"
+                    className="flex px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 items-center gap-2 transition-colors flex-shrink-0"
                   >
                     {t('tools.collapseAll')}
                   </button>

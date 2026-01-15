@@ -109,7 +109,7 @@ const ToolChainList: FC<ToolChainListProps> = ({ onSelectChain, onCreateChain, s
       <div className="p-4 border-b border-gray-200 dark:border-gray-700">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center space-x-2">
-            <Link2 className="w-5 h-5 text-emerald-600" />
+            <Link2 className="w-5 h-5 text-teal-600" />
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{t('toolChains.list.title')}</h2>
           </div>
           <div className="flex items-center space-x-2">
@@ -123,7 +123,7 @@ const ToolChainList: FC<ToolChainListProps> = ({ onSelectChain, onCreateChain, s
             </button>
             <button
               onClick={onCreateChain}
-              className="flex items-center gap-2 px-3 py-2 bg-emerald-600 text-white text-sm font-medium rounded-lg hover:bg-emerald-700 transition-colors"
+              className="flex items-center gap-2 px-3 py-2 bg-teal-600 text-white text-sm font-medium rounded-lg hover:bg-teal-700 transition-colors"
             >
               <Plus className="w-4 h-4" />
               <span>{t('toolChains.list.new')}</span>
@@ -140,7 +140,7 @@ const ToolChainList: FC<ToolChainListProps> = ({ onSelectChain, onCreateChain, s
             placeholder={t('toolChains.list.search')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+            className="w-full pl-9 pr-3 py-2 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
           />
         </div>
 
@@ -158,7 +158,7 @@ const ToolChainList: FC<ToolChainListProps> = ({ onSelectChain, onCreateChain, s
             />
             <span className="text-xs text-gray-500 dark:text-gray-400">{t('toolChains.list.showDisabled')}</span>
             {showDisabled ? (
-              <ToggleRight className="w-5 h-5 text-emerald-600" />
+              <ToggleRight className="w-5 h-5 text-teal-600" />
             ) : (
               <ToggleLeft className="w-5 h-5 text-gray-400" />
             )}
@@ -184,7 +184,7 @@ const ToolChainList: FC<ToolChainListProps> = ({ onSelectChain, onCreateChain, s
             onClick={() => onSelectChain(chain)}
             className={`p-3 rounded-lg border cursor-pointer transition-all ${
               selectedChainId === chain.id
-                ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20'
+                ? 'border-teal-500 bg-teal-50 dark:bg-teal-900/20'
                 : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800'
             } ${!chain.enabled ? 'opacity-60' : ''}`}
           >
@@ -194,7 +194,7 @@ const ToolChainList: FC<ToolChainListProps> = ({ onSelectChain, onCreateChain, s
                   {/* Color indicator */}
                   <div
                     className="w-3 h-3 rounded-full flex-shrink-0"
-                    style={{ backgroundColor: chain.color || '#10b981' }}
+                    style={{ backgroundColor: chain.color || '#0d9488' }}
                   />
                   <h3 className="font-medium text-sm sm:text-base text-gray-900 dark:text-white truncate">
                     {chain.name}
@@ -228,7 +228,7 @@ const ToolChainList: FC<ToolChainListProps> = ({ onSelectChain, onCreateChain, s
                   onClick={(e) => handleToggleEnabled(chain, e)}
                   className={`p-1 sm:p-1.5 rounded transition-colors ${
                     chain.enabled
-                      ? 'text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20'
+                      ? 'text-teal-600 hover:bg-teal-50 dark:hover:bg-teal-900/20'
                       : 'text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
                   }`}
                   title={chain.enabled ? t('toolChains.list.disable') : t('toolChains.list.enable')}
@@ -261,7 +261,7 @@ const ToolChainList: FC<ToolChainListProps> = ({ onSelectChain, onCreateChain, s
             {!searchTerm && (
               <button
                 onClick={onCreateChain}
-                className="mt-3 text-sm text-emerald-600 hover:text-emerald-700 dark:text-emerald-400"
+                className="mt-3 text-sm text-teal-600 hover:text-teal-700 dark:text-teal-400"
               >
                 {t('toolChains.list.createFirst')}
               </button>

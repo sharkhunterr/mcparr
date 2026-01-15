@@ -46,7 +46,7 @@ type TabType = 'info' | 'steps';
 
 // Predefined colors for chains
 const CHAIN_COLORS = [
-  '#8b5cf6', '#3b82f6', '#10b981', '#f59e0b',
+  '#8b5cf6', '#3b82f6', '#0d9488', '#f59e0b',
   '#ef4444', '#ec4899', '#06b6d4', '#84cc16',
 ];
 
@@ -803,7 +803,7 @@ const ToolChainDetail: FC<ToolChainDetailProps> = ({ chain, onClose, onUpdated }
                     {cIdx > 0 && <span className="text-gray-400">{group.operator.toUpperCase()}</span>}
                     <span className="font-medium">{getOperatorLabel(cond.operator)}</span>
                     {cond.field && <span className="text-gray-500">({cond.field})</span>}
-                    {cond.value && <span className="text-emerald-600 dark:text-emerald-400">= "{cond.value}"</span>}
+                    {cond.value && <span className="text-teal-600 dark:text-teal-400">= "{cond.value}"</span>}
                   </div>
                 ))}
               </div>
@@ -849,7 +849,7 @@ const ToolChainDetail: FC<ToolChainDetailProps> = ({ chain, onClose, onUpdated }
                 onClick={() => handleToggleActionEnabled(stepId, action)}
                 className={`p-0.5 rounded ${
                   action.enabled
-                    ? 'text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20'
+                    ? 'text-teal-600 hover:bg-teal-50 dark:hover:bg-teal-900/20'
                     : 'text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
                 }`}
               >
@@ -923,7 +923,7 @@ const ToolChainDetail: FC<ToolChainDetailProps> = ({ chain, onClose, onUpdated }
         <div className="flex items-center gap-2 min-w-0">
           {action.action_type === 'message' ? (
             <>
-              <MessageSquare className="w-3 h-3 text-emerald-500 flex-shrink-0" />
+              <MessageSquare className="w-3 h-3 text-teal-500 flex-shrink-0" />
               <span className="text-xs text-gray-600 dark:text-gray-400 truncate">
                 {action.message_template || t('toolChains.detail.emptyMessage')}
               </span>
@@ -963,7 +963,7 @@ const ToolChainDetail: FC<ToolChainDetailProps> = ({ chain, onClose, onUpdated }
             onClick={() => handleToggleActionEnabled(stepId, action)}
             className={`p-0.5 rounded ${
               action.enabled
-                ? 'text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20'
+                ? 'text-teal-600 hover:bg-teal-50 dark:hover:bg-teal-900/20'
                 : 'text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
             }`}
           >
@@ -1571,7 +1571,7 @@ const ToolChainDetail: FC<ToolChainDetailProps> = ({ chain, onClose, onUpdated }
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center space-x-1.5 sm:space-x-2 px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium rounded-lg transition-colors ${
                 activeTab === tab.id
-                  ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300'
+                  ? 'bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300'
                   : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
               }`}
             >
@@ -1601,7 +1601,7 @@ const ToolChainDetail: FC<ToolChainDetailProps> = ({ chain, onClose, onUpdated }
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
               />
             </div>
 
@@ -1613,7 +1613,7 @@ const ToolChainDetail: FC<ToolChainDetailProps> = ({ chain, onClose, onUpdated }
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={2}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent resize-none"
               />
             </div>
 
@@ -1646,7 +1646,7 @@ const ToolChainDetail: FC<ToolChainDetailProps> = ({ chain, onClose, onUpdated }
                 type="number"
                 value={priority}
                 onChange={(e) => setPriority(parseInt(e.target.value) || 0)}
-                className="w-24 px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                className="w-24 px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
               />
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                 {t('toolChains.detail.priorityHelp')}
@@ -1657,7 +1657,7 @@ const ToolChainDetail: FC<ToolChainDetailProps> = ({ chain, onClose, onUpdated }
               <button
                 onClick={handleSaveInfo}
                 disabled={saving || !name.trim()}
-                className="flex items-center space-x-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-50 transition-colors"
+                className="flex items-center space-x-2 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 disabled:opacity-50 transition-colors"
               >
                 {saving ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -1678,7 +1678,7 @@ const ToolChainDetail: FC<ToolChainDetailProps> = ({ chain, onClose, onUpdated }
 
             {stepsLoading ? (
               <div className="flex justify-center py-8">
-                <Loader2 className="w-6 h-6 text-emerald-600 animate-spin" />
+                <Loader2 className="w-6 h-6 text-teal-600 animate-spin" />
               </div>
             ) : (
               <>
@@ -1759,7 +1759,7 @@ const ToolChainDetail: FC<ToolChainDetailProps> = ({ chain, onClose, onUpdated }
                               onClick={(e) => { e.stopPropagation(); handleToggleStepEnabled(step); }}
                               className={`p-1 rounded transition-colors ${
                                 step.enabled
-                                  ? 'text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20'
+                                  ? 'text-teal-600 hover:bg-teal-50 dark:hover:bg-teal-900/20'
                                   : 'text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
                               }`}
                             >
@@ -1889,7 +1889,7 @@ const ToolChainDetail: FC<ToolChainDetailProps> = ({ chain, onClose, onUpdated }
 
                 {/* Add Step Form */}
                 {showAddStep ? (
-                  <div className="p-3 sm:p-4 border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg space-y-3">
+                  <div className="p-3 sm:p-4 border border-teal-200 dark:border-teal-800 bg-teal-50 dark:bg-teal-900/20 rounded-lg space-y-3">
                     <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">
                       {t('toolChains.detail.addStep')}
                     </h4>
@@ -1970,7 +1970,7 @@ const ToolChainDetail: FC<ToolChainDetailProps> = ({ chain, onClose, onUpdated }
                       <button
                         onClick={handleAddStep}
                         disabled={!newStepSourceService || !newStepSourceTool}
-                        className="px-3 py-1.5 text-sm bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-50"
+                        className="px-3 py-1.5 text-sm bg-teal-600 text-white rounded-lg hover:bg-teal-700 disabled:opacity-50"
                       >
                         {t('toolChains.detail.add')}
                       </button>
@@ -1979,7 +1979,7 @@ const ToolChainDetail: FC<ToolChainDetailProps> = ({ chain, onClose, onUpdated }
                 ) : (
                   <button
                     onClick={() => setShowAddStep(true)}
-                    className="w-full p-3 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg text-gray-500 dark:text-gray-400 hover:border-emerald-400 hover:text-emerald-600 transition-colors flex items-center justify-center space-x-2"
+                    className="w-full p-3 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg text-gray-500 dark:text-gray-400 hover:border-teal-400 hover:text-teal-600 transition-colors flex items-center justify-center space-x-2"
                   >
                     <Plus className="w-4 h-4" />
                     <span>{t('toolChains.detail.addStep')}</span>
@@ -2241,7 +2241,7 @@ const ToolChainDetail: FC<ToolChainDetailProps> = ({ chain, onClose, onUpdated }
                   editActionType === 'tool_call' &&
                   (!editActionService || !editActionTool)
                 }
-                className="w-full sm:w-auto px-4 py-2 text-sm bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-50 flex items-center justify-center gap-2"
+                className="w-full sm:w-auto px-4 py-2 text-sm bg-teal-600 text-white rounded-lg hover:bg-teal-700 disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 <Save className="w-4 h-4" />
                 {t('toolChains.detail.save')}
@@ -2336,7 +2336,7 @@ const ToolChainDetail: FC<ToolChainDetailProps> = ({ chain, onClose, onUpdated }
               <button
                 onClick={handleSaveStepEdit}
                 disabled={!editStepSourceService || !editStepSourceTool}
-                className="w-full sm:w-auto px-4 py-2 text-sm bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-50 flex items-center justify-center gap-2"
+                className="w-full sm:w-auto px-4 py-2 text-sm bg-teal-600 text-white rounded-lg hover:bg-teal-700 disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 <Save className="w-4 h-4" />
                 {t('toolChains.detail.save')}
@@ -2419,7 +2419,7 @@ const ToolChainDetail: FC<ToolChainDetailProps> = ({ chain, onClose, onUpdated }
               </button>
               <button
                 onClick={handleSaveConditionEdit}
-                className="w-full sm:w-auto px-4 py-2 text-sm bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-50 flex items-center justify-center gap-2"
+                className="w-full sm:w-auto px-4 py-2 text-sm bg-teal-600 text-white rounded-lg hover:bg-teal-700 disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 <Save className="w-4 h-4" />
                 {t('toolChains.detail.save')}
