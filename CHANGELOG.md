@@ -2,6 +2,87 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.2.25](https://github.com/sharkhunterr/mcparr/-/compare/v0.2.24...v0.2.25) (2026-01-15)
+
+This release introduces major new features: **Tool Chains** for automated workflows, **Global Search** across services, **Service Groups** for organization, and a comprehensive **Help System**.
+
+### ✨ Features
+
+#### Tool Chains - Automated Workflows
+* **tool-chains:** implement step-based tool chain architecture with AI guidance ([025586a](https://github.com/sharkhunterr/mcparr/-/commit/025586a))
+* **tool-chains:** add automatic chain flow detection with multi-user support ([91e9ab4](https://github.com/sharkhunterr/mcparr/-/commit/91e9ab4))
+* **tool-chains:** add IF/THEN/ELSE conditional logic system ([1d2f6a1](https://github.com/sharkhunterr/mcparr/-/commit/1d2f6a1))
+* **tool-chains:** add nested conditionals, argument mappings, and edit UI ([cebbab9](https://github.com/sharkhunterr/mcparr/-/commit/cebbab9))
+* **tool-chains:** add save_to_context for chain variable persistence ([8d8e824](https://github.com/sharkhunterr/mcparr/-/commit/8d8e824))
+* **tool-chains:** add context variables in messages + reusable HelpTooltip component ([ba9eaaa](https://github.com/sharkhunterr/mcparr/-/commit/ba9eaaa))
+* **tool-chains:** display step number instead of suggestion count ([2d2f709](https://github.com/sharkhunterr/mcparr/-/commit/2d2f709))
+
+#### Global Search
+* **global-search:** add global search feature with settings and limit support ([f26208d](https://github.com/sharkhunterr/mcparr/-/commit/f26208d))
+
+#### Service Groups
+* **services:** add custom service groups for flexible tool organization ([cb62df3](https://github.com/sharkhunterr/mcparr/-/commit/cb62df3))
+* **openwebui:** add endpoint mode selector with 3 configuration options ([f051da1](https://github.com/sharkhunterr/mcparr/-/commit/f051da1))
+
+#### Help System
+* **help:** add centralized Help page and refactor HelpTooltip ([c9109fb](https://github.com/sharkhunterr/mcparr/-/commit/c9109fb))
+* **help:** add help tooltips to Users page tabs with i18n support ([b266682](https://github.com/sharkhunterr/mcparr/-/commit/b266682))
+* **help:** add help system for MCP Config tab ([5f32835](https://github.com/sharkhunterr/mcparr/-/commit/5f32835))
+* **help:** add help system for AI Training tabs (Sessions, Workers, Models) ([a027cf6](https://github.com/sharkhunterr/mcparr/-/commit/a027cf6))
+* **monitoring:** add help system for Metrics, Alerts and Logs tabs ([a808e76](https://github.com/sharkhunterr/mcparr/-/commit/a808e76))
+* **services:** add help tooltips and i18n for ServiceForm ([d314517](https://github.com/sharkhunterr/mcparr/-/commit/d314517))
+
+#### New MCP Tools
+* **system:** add system_test_all_services tool ([3ff306b](https://github.com/sharkhunterr/mcparr/-/commit/3ff306b))
+* **romm:** add romm_get_recently_added tool ([be9dbd2](https://github.com/sharkhunterr/mcparr/-/commit/be9dbd2))
+* **deluge:** add deluge_search_torrents tool with fuzzy matching ([f1fc901](https://github.com/sharkhunterr/mcparr/-/commit/f1fc901))
+* **tools:** add dynamic endpoint + new Radarr/Sonarr tools ([1b22951](https://github.com/sharkhunterr/mcparr/-/commit/1b22951))
+
+#### UI/UX Improvements
+* **wizard:** add tool chains and help steps, update all translations ([9276fe4](https://github.com/sharkhunterr/mcparr/-/commit/9276fe4))
+* **backup:** add support for new models in backup/restore system ([305d40b](https://github.com/sharkhunterr/mcparr/-/commit/305d40b))
+* **mcp:** add help and card layout to Overview tab ([743cd72](https://github.com/sharkhunterr/mcparr/-/commit/743cd72))
+* **training:** refactor PromptsTab with mobile-responsive design and help system ([b19623e](https://github.com/sharkhunterr/mcparr/-/commit/b19623e))
+
+#### Styling
+* **ui:** unify button styles and colors across components ([fa2ec2d](https://github.com/sharkhunterr/mcparr/-/commit/fa2ec2d))
+* **ui:** use teal color for ToolChains and show expand/collapse on mobile ([ba5b94d](https://github.com/sharkhunterr/mcparr/-/commit/ba5b94d))
+* **mcp:** unify History tab layout with UserMappingList design ([bd7e67a](https://github.com/sharkhunterr/mcparr/-/commit/bd7e67a))
+* **mcp:** unify Tools tab layout with History/UserMappingList design ([ea997d7](https://github.com/sharkhunterr/mcparr/-/commit/ea997d7))
+* **groups:** align column widths with MCP tool chains layout ([3230d98](https://github.com/sharkhunterr/mcparr/-/commit/3230d98))
+* **help:** modernize Help page to match site design ([0762186](https://github.com/sharkhunterr/mcparr/-/commit/0762186))
+* **help:** apply side-by-side layout matching group management ([713c1b3](https://github.com/sharkhunterr/mcparr/-/commit/713c1b3))
+* **help:** add page header and responsive height ([c1c7437](https://github.com/sharkhunterr/mcparr/-/commit/c1c7437))
+
+### 🐛 Bug Fixes
+
+* **db:** restore SQLAlchemy boolean comparisons and update docs ([409d1e7](https://github.com/sharkhunterr/mcparr/-/commit/409d1e7))
+* **ci:** resolve all linting errors for backend and frontend ([66b398c](https://github.com/sharkhunterr/mcparr/-/commit/66b398c))
+* **database:** improve SQLite concurrency with WAL mode and busy timeout ([6f40b62](https://github.com/sharkhunterr/mcparr/-/commit/6f40b62))
+* **sonarr:** include series and episode data in queue response ([37e9f6d](https://github.com/sharkhunterr/mcparr/-/commit/37e9f6d))
+* **plex:** filter word-based search results to only include relevant matches ([2e0b5e1](https://github.com/sharkhunterr/mcparr/-/commit/2e0b5e1))
+* **i18n:** add missing translation keys for group permissions ([a1d5457](https://github.com/sharkhunterr/mcparr/-/commit/a1d5457))
+* **mcp:** improve history filters with service filter and dynamic limit ([dc57bf7](https://github.com/sharkhunterr/mcparr/-/commit/dc57bf7))
+* **overseerr:** use dedicated schema for check_availability endpoint ([fbab706](https://github.com/sharkhunterr/mcparr/-/commit/fbab706))
+* **overseerr:** use correct snake_case key for media_info ([6c1e6a1](https://github.com/sharkhunterr/mcparr/-/commit/6c1e6a1))
+* **help:** add close button to mobile modal ([c671e0c](https://github.com/sharkhunterr/mcparr/-/commit/c671e0c))
+
+### ♻️ Refactor
+
+* **ui:** remove redundant chain icon from chain badge ([2164c33](https://github.com/sharkhunterr/mcparr/-/commit/2164c33))
+* **help:** remove quick links footer section ([c671e0c](https://github.com/sharkhunterr/mcparr/-/commit/c671e0c))
+
+### 📚 Documentation
+
+* Update README with new features (Service Groups, Tool Chains, Global Search, Alerts)
+* Update docs/API.md with new endpoints and correct ports
+* Update docs/CONFIGURATION.md with Tool Chains, Global Search, Alerts configuration
+* Update docs/INSTALLATION.md with wizard and auto-configure instructions
+* Update docs/MCP.md with new tools and features documentation
+* Update docs/USER_GUIDE.md with Service Groups, Tool Chains, Global Search, Alerts, Help System
+
+---
+
 ### [0.2.24](https://github.com/sharkhunterr/mcparr/-/compare/v0.2.23...v0.2.24) (2026-01-10)
 
 
