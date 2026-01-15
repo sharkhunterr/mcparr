@@ -302,8 +302,10 @@ deploy:
   variables:
     DOCKER_HOST: tcp://docker:2375
     DOCKER_TLS_CERTDIR: ""
+    GIT_DEPTH: 0  # Full clone required for GitHub push
   before_script:
     - apk add --no-cache git curl jq
+    - git fetch --unshallow || true  # Ensure complete history
   script:
     # Publication Docker Hub
     - |
