@@ -63,6 +63,13 @@ class SystemTools(BaseTool):
                 is_mutation=False,
             ),
             ToolDefinition(
+                name="system_test_all_services",
+                description="Test connection to all enabled services and return their status",
+                parameters=[],
+                category="system",
+                is_mutation=False,
+            ),
+            ToolDefinition(
                 name="system_get_logs",
                 description="Get recent system logs with optional filtering",
                 parameters=[
@@ -139,6 +146,27 @@ class SystemTools(BaseTool):
                 category="users",
                 is_mutation=False,
             ),
+            ToolDefinition(
+                name="system_global_search",
+                description="Search across all enabled services with search capability (Overseerr, Radarr, Sonarr, Plex, Jackett, Prowlarr, Komga, Audiobookshelf, RoMM, WikiJS, Zammad). Use this to search for content across your entire homelab with a single query.",
+                parameters=[
+                    ToolParameter(
+                        name="query",
+                        description="Search query (title, keyword, etc.)",
+                        type="string",
+                        required=True,
+                    ),
+                    ToolParameter(
+                        name="limit",
+                        description="Maximum number of results per service",
+                        type="number",
+                        required=False,
+                        default=5,
+                    ),
+                ],
+                category="system",
+                is_mutation=False,
+            ),
         ]
 
     async def execute(self, tool_name: str, arguments: dict) -> dict:
@@ -154,12 +182,16 @@ class SystemTools(BaseTool):
                 return await self._get_services(arguments)
             elif tool_name == "system_test_service":
                 return await self._test_service(arguments)
+            elif tool_name == "system_test_all_services":
+                return await self._test_all_services()
             elif tool_name == "system_get_logs":
                 return await self._get_logs(arguments)
             elif tool_name == "system_get_alerts":
                 return await self._get_alerts(arguments)
             elif tool_name == "system_get_users":
                 return await self._get_users(arguments)
+            elif tool_name == "system_global_search":
+                return await self._global_search(arguments)
             else:
                 return {"success": False, "error": f"Unknown tool: {tool_name}"}
 
@@ -191,21 +223,31 @@ class SystemTools(BaseTool):
 
             # Get enabled services
             async with async_session_maker() as session:
-                result = await session.execute(
-                    select(ServiceConfig).where(ServiceConfig.enabled == True)
-                )
+                result = await session.execute(select(ServiceConfig).where(ServiceConfig.enabled == True))
                 services = result.scalars().all()
                 enabled_services = [
-                    (s.service_type.value if hasattr(s.service_type, 'value') else str(s.service_type)).lower()
+                    (s.service_type.value if hasattr(s.service_type, "value") else str(s.service_type)).lower()
                     for s in services
                 ]
 
             # Map service types to tool classes and categories
             service_config = {
-                "plex": {"class": PlexTools, "category": "📺 MEDIA (regarder/chercher du contenu)", "desc": "Bibliothèque multimédia"},
-                "tautulli": {"class": TautulliTools, "category": "📺 MEDIA (regarder/chercher du contenu)", "desc": "Stats et activité Plex"},
+                "plex": {
+                    "class": PlexTools,
+                    "category": "📺 MEDIA (regarder/chercher du contenu)",
+                    "desc": "Bibliothèque multimédia",
+                },
+                "tautulli": {
+                    "class": TautulliTools,
+                    "category": "📺 MEDIA (regarder/chercher du contenu)",
+                    "desc": "Stats et activité Plex",
+                },
                 "komga": {"class": KomgaTools, "category": "📚 LECTURE (livres, BD, manga)", "desc": "BD/Manga/Comics"},
-                "audiobookshelf": {"class": AudiobookshelfTools, "category": "📚 LECTURE (livres, BD, manga)", "desc": "Livres audio/Podcasts"},
+                "audiobookshelf": {
+                    "class": AudiobookshelfTools,
+                    "category": "📚 LECTURE (livres, BD, manga)",
+                    "desc": "Livres audio/Podcasts",
+                },
                 "romm": {"class": RommTools, "category": "🎮 JEUX", "desc": "ROMs/Jeux rétro"},
                 "radarr": {"class": RadarrTools, "category": "⬇️ TÉLÉCHARGEMENT", "desc": "Téléchargement films"},
                 "sonarr": {"class": SonarrTools, "category": "⬇️ TÉLÉCHARGEMENT", "desc": "Téléchargement séries"},
@@ -475,6 +517,7 @@ class SystemTools(BaseTool):
                             # Rollback and retry
                             await session.rollback()
                             import asyncio
+
                             await asyncio.sleep(0.5 * (attempt + 1))  # Exponential backoff
                             continue
                         raise  # Re-raise if not a locking issue
@@ -484,6 +527,97 @@ class SystemTools(BaseTool):
 
         except Exception as e:
             return {"success": False, "error": f"Failed to test service: {str(e)}"}
+
+    async def _test_all_services(self) -> dict:
+        """Test all enabled services and return their status."""
+        try:
+            from sqlalchemy import select
+
+            from src.database.connection import async_session_maker
+            from src.models.service_config import ServiceConfig
+            from src.services.service_tester import ServiceTester
+
+            # First, get all enabled services
+            async with async_session_maker() as session:
+                result = await session.execute(
+                    select(ServiceConfig).where(ServiceConfig.enabled == True).order_by(ServiceConfig.name)
+                )
+                services = result.scalars().all()
+
+                if not services:
+                    return {
+                        "success": True,
+                        "result": {
+                            "message": "No enabled services found",
+                            "count": 0,
+                            "services": [],
+                            "summary": {"total": 0, "success": 0, "failed": 0},
+                        },
+                    }
+
+                # Copy service data to avoid detached instance issues
+                services_data = [
+                    {
+                        "config": service,
+                        "name": service.name,
+                        "type": service.service_type.value
+                        if hasattr(service.service_type, "value")
+                        else str(service.service_type),
+                    }
+                    for service in services
+                ]
+
+            # Test each service (outside the session context to avoid greenlet issues)
+            results = []
+            success_count = 0
+            failed_count = 0
+
+            for service_data in services_data:
+                try:
+                    # Test without passing session to avoid commit issues
+                    test_result = await ServiceTester.test_service_connection(service_data["config"], db_session=None)
+
+                    service_result = {
+                        "name": service_data["name"],
+                        "type": service_data["type"],
+                        "success": test_result.success,
+                        "message": test_result.message,
+                        "response_time_ms": test_result.response_time_ms,
+                    }
+                    if test_result.success:
+                        success_count += 1
+                    else:
+                        failed_count += 1
+
+                    results.append(service_result)
+
+                except Exception as e:
+                    results.append(
+                        {
+                            "name": service_data["name"],
+                            "type": service_data["type"],
+                            "success": False,
+                            "message": str(e),
+                            "response_time_ms": None,
+                        }
+                    )
+                    failed_count += 1
+
+            return {
+                "success": True,
+                "result": {
+                    "count": len(results),
+                    "services": results,
+                    "summary": {
+                        "total": len(results),
+                        "success": success_count,
+                        "failed": failed_count,
+                    },
+                },
+            }
+
+        except Exception as e:
+            return {"success": False, "error": f"Failed to test all services: {str(e)}"}
 
     async def _get_logs(self, arguments: dict) -> dict:
         """Get recent logs."""
@@ -671,3 +805,195 @@ class SystemTools(BaseTool):
 
         except Exception as e:
             return {"success": False, "error": f"Failed to get users: {str(e)}"}
+
+    async def _global_search(self, arguments: dict) -> dict:
+        """Execute global search across enabled services."""
+        import asyncio
+
+        query = arguments.get("query")
+        limit = int(arguments.get("limit", 5))
+
+        if not query:
+            return {"success": False, "error": "query parameter is required"}
+
+        try:
+            from sqlalchemy import select
+
+            from src.database.connection import async_session_maker
+            from src.models.global_search import SEARCHABLE_SERVICES, GlobalSearchConfig
+            from src.models.service_config import ServiceConfig
+
+            # Get enabled services and their global search configs
+            async with async_session_maker() as session:
+                # Get all enabled services
+                services_result = await session.execute(select(ServiceConfig).where(ServiceConfig.enabled == True))
+                services = services_result.scalars().all()
+
+                # Get global search configs
+                configs_result = await session.execute(select(GlobalSearchConfig))
+                configs = {cfg.service_config_id: cfg for cfg in configs_result.scalars().all()}
+
+            # Build list of services to search
+            services_to_search = []
+            for service in services:
+                service_type = (
+                    service.service_type.value if hasattr(service.service_type, "value") else str(service.service_type)
+                ).lower()
+
+                # Check if service type is searchable
+                if service_type not in SEARCHABLE_SERVICES:
+                    continue
+
+                # Check if enabled for global search
+                config = configs.get(service.id)
+                if config and not config.enabled:
+                    continue
+
+                services_to_search.append(
+                    {
+                        "service": service,
+                        "type": service_type,
+                        "info": SEARCHABLE_SERVICES[service_type],
+                    }
+                )
+
+            if not services_to_search:
+                return {
+                    "success": True,
+                    "result": {
+                        "query": query,
+                        "message": "No services available for search",
+                        "results": [],
+                        "errors": [],
+                    },
+                }
+
+            # Import tool classes
+            from src.mcp.tools.audiobookshelf_tools import AudiobookshelfTools
+            from src.mcp.tools.jackett_tools import JackettTools
+            from src.mcp.tools.komga_tools import KomgaTools
+            from src.mcp.tools.overseerr_tools import OverseerrTools
+            from src.mcp.tools.plex_tools import PlexTools
+            from src.mcp.tools.prowlarr_tools import ProwlarrTools
+            from src.mcp.tools.radarr_tools import RadarrTools
+            from src.mcp.tools.romm_tools import RommTools
+            from src.mcp.tools.sonarr_tools import SonarrTools
+            from src.mcp.tools.wikijs_tools import WikiJSTools
+            from src.mcp.tools.zammad_tools import ZammadTools
+
+            tool_classes = {
+                "overseerr": OverseerrTools,
+                "radarr": RadarrTools,
+                "sonarr": SonarrTools,
+                "plex": PlexTools,
+                "jackett": JackettTools,
+                "prowlarr": ProwlarrTools,
+                "komga": KomgaTools,
+                "audiobookshelf": AudiobookshelfTools,
+                "wikijs": WikiJSTools,
+                "zammad": ZammadTools,
+                "romm": RommTools,
+            }
+
+            # Search tool names per service
+            search_tools = {
+                "overseerr": "overseerr_search_media",
+                "radarr": "radarr_search_movie",
+                "sonarr": "sonarr_search_series",
+                "plex": "plex_search_media",
+                "jackett": "jackett_search",
+                "prowlarr": "prowlarr_search",
+                "komga": "komga_search",
+                "audiobookshelf": "audiobookshelf_search",
+                "wikijs": "wikijs_search",
+                "zammad": "zammad_search_tickets",
+                "romm": "romm_search_roms",
+            }
+
+            # Execute searches in parallel
+            async def search_service(service_data):
+                service = service_data["service"]
+                service_type = service_data["type"]
+
+                try:
+                    tool_class = tool_classes.get(service_type)
+                    if not tool_class:
+                        return None, {"service": service.name, "error": f"No tool class for {service_type}"}
+
+                    # Build service config for tool
+                    service_config = {
+                        "api_key": service.api_key,
+                        "base_url": service.base_url,
+                        "external_url": service.external_url,
+                        "port": service.port,
+                        "username": service.username,
+                        "password": service.password,
+                        "extra_config": service.config or {},
+                    }
+
+                    tool = tool_class(service_config)
+                    search_tool_name = search_tools.get(service_type)
+
+                    if not search_tool_name:
+                        return None, {"service": service.name, "error": f"No search tool for {service_type}"}
+
+                    # Build search arguments
+                    search_args = {"query": query}
+
+                    # Add limit if supported by the service (all search tools now support limit)
+                    search_args["limit"] = limit
+
+                    result = await tool.execute(search_tool_name, search_args)
+
+                    if result.get("success"):
+                        return {
+                            "service_name": service.name,
+                            "service_type": service_type,
+                            "results": result.get("result", {}),
+                        }, None
+                    else:
+                        return None, {
+                            "service": service.name,
+                            "error": result.get("error", "Unknown error"),
+                        }
+
+                except Exception as e:
+                    return None, {"service": service.name, "error": str(e)}
+
+            # Run all searches in parallel
+            tasks = [search_service(s) for s in services_to_search]
+            search_results = await asyncio.gather(*tasks, return_exceptions=True)
+
+            # Process results - flat list instead of grouped by category
+            results_list = []
+            errors = []
+
+            for result in search_results:
+                if isinstance(result, Exception):
+                    errors.append({"service": "unknown", "error": str(result)})
+                    continue
+
+                success_result, error = result
+                if error:
+                    errors.append(error)
+                elif success_result:
+                    results_list.append(
+                        {
+                            "service_name": success_result["service_name"],
+                            "service_type": success_result["service_type"],
+                            "results": success_result["results"],
+                        }
+                    )
+
+            return {
+                "success": True,
+                "result": {
+                    "query": query,
+                    "services_searched": len(services_to_search),
+                    "results": results_list,
+                    "errors": errors if errors else None,
+                },
+            }
+
+        except Exception as e:
+            return {"success": False, "error": f"Global search failed: {str(e)}"}

@@ -9,10 +9,14 @@
     "or": "o",
     "guideInfo": "Esta guía le acompaña a través de la configuración inicial. Puede modificar todos estos ajustes posteriormente.",
     "features": {
-      "services": "Conectar a sus servicios",
-      "users": "Asignación de usuarios",
-      "permissions": "Gestión de permisos",
-      "mcp": "Servidor MCP integrado"
+      "services": "Gestión de servicios",
+      "users": "Gestión de usuarios",
+      "chains": "Cadenas de respuesta",
+      "help": "Ayuda integrada",
+      "mcp": "Servidor MCP integrado",
+      "dashboard": "Dashboard y monitoreo",
+      "training": "Entrenamiento de IA",
+      "permissions": "Gestión de permisos"
     },
     "import": {
       "selectFile": "Haga clic para seleccionar un archivo",
@@ -43,7 +47,7 @@
     "nextStepsTitle": "Próximos pasos recomendados",
     "accessDashboard": "Acceder al panel de control",
     "guideInfo": "Puede acceder a esta guía en cualquier momento desde",
-    "guideLocation": "Configuración -> General -> Restablecer guía",
+    "guideLocation": "Configuración → General → Restablecer guía",
     "steps": {
       "configureServices": "Configurar sus servicios",
       "mapUsers": "Asignar sus usuarios",
@@ -54,19 +58,21 @@
   "steps": {
     "services": {
       "title": "Servicios de Homelab",
-      "subtitle": "Conectar sus aplicaciones",
-      "description": "Configure los servicios de homelab que MCParr controlará: Plex, Radarr, Sonarr, Overseerr, Tautulli, etc. Para cada servicio, necesitará proporcionar su URL y clave API o credenciales.",
+      "subtitle": "Conecte sus aplicaciones",
+      "description": "Configure los servicios de homelab que MCParr controlará. Para cada servicio, ingrese su URL, clave API (o nombre de usuario y contraseña según el servicio), y opcionalmente una URL externa para acceso remoto. Pruebe cada servicio individualmente o todos a la vez.",
       "linkText": "Configurar servicios",
+      "tip": "En la pestaña Grupos de la página Servicios, puede crear grupos de servicios (ej. Media con Plex, Tautulli, Overseerr) que se usarán como endpoints de herramientas para Open WebUI.",
       "steps": [
         "Acceda a la página de Servicios a través del menú de navegación",
-        "Haga clic en \"Añadir un servicio\" y complete el formulario",
-        "Pruebe la conexión para verificar la comunicación",
-        "Repita para todos sus servicios (recomendado: al menos 2)"
+        "Haga clic en \"Añadir un servicio\" e ingrese URL, clave API o credenciales",
+        "Configure la URL externa si desea acceder al servicio remotamente",
+        "Pruebe la conexión (individual o todos los servicios)",
+        "Cree grupos de servicios en la pestaña Grupos para organizar sus endpoints"
       ]
     },
     "users": {
       "title": "Asignación de usuarios",
-      "subtitle": "Vincular sus cuentas entre servicios",
+      "subtitle": "Vincule sus cuentas entre servicios",
       "description": "La asignación de usuarios permite que MCParr sepa qué cuenta en Plex corresponde al mismo usuario en Overseerr, Radarr, etc. Esto permite la gestión de permisos y el acceso a herramientas MCP.",
       "linkText": "Asignar usuarios",
       "tip": "La detección automática funciona mejor con al menos 2 servicios configurados que tengan usuarios.",
@@ -78,7 +84,7 @@
     },
     "groups": {
       "title": "Grupos y permisos",
-      "subtitle": "Controlar el acceso a herramientas MCP",
+      "subtitle": "Controle el acceso a herramientas MCP",
       "description": "Los grupos definen qué herramientas MCP (Model Context Protocol) son accesibles para sus usuarios. Por ejemplo, un grupo 'Admin' podría tener acceso a todas las herramientas, mientras que un grupo 'Usuario' solo tendría acceso a herramientas de solo lectura.",
       "linkText": "Gestionar grupos",
       "tip": "Las herramientas MCP permiten que la IA interactúe con sus servicios. Los permisos controlan lo que cada grupo puede hacer.",
@@ -92,19 +98,32 @@
     "mcp": {
       "title": "Servidor MCP",
       "subtitle": "Model Context Protocol",
-      "description": "El servidor MCP (Model Context Protocol) permite que su IA interactúe con sus servicios de homelab. Es el puente entre el asistente conversacional y sus aplicaciones (Plex, Radarr, etc.).",
+      "description": "El servidor MCP permite que su IA interactúe con sus servicios de homelab. Visualice el historial de llamadas, pruebe herramientas directamente desde la interfaz, configure herramientas en Open WebUI y gestione la búsqueda global.",
       "linkText": "Ver configuración MCP",
-      "tip": "El servidor MCP se ejecuta en segundo plano y expone las herramientas que su IA puede usar para controlar sus servicios.",
+      "tip": "Use la pestaña Configuración para configurar herramientas directamente en Open WebUI (si el servicio está correctamente configurado) y para configurar la búsqueda global.",
       "steps": [
-        "Verifique que el servidor MCP esté iniciado y accesible",
-        "Revise las herramientas MCP disponibles para cada servicio",
-        "Pruebe la integración con su cliente de IA (Claude Desktop, etc.)",
-        "Configure los permisos de grupo si es necesario"
+        "Visualice el historial de llamadas MCP en la pestaña Historial",
+        "Pruebe herramientas directamente desde la pestaña Herramientas",
+        "Configure herramientas para Open WebUI en la pestaña Configuración",
+        "Configure la Búsqueda Global para buscar en todos sus servicios"
+      ]
+    },
+    "chains": {
+      "title": "Cadenas de herramientas",
+      "subtitle": "Automatice sus flujos de trabajo",
+      "description": "Las cadenas de herramientas permiten crear secuencias de acciones automatizadas. Esto alivia la lógica que el modelo de IA debe manejar al definir respuestas y secuencias basadas en configuraciones específicas.",
+      "linkText": "Gestionar cadenas",
+      "tip": "Una cadena bien configurada permite al modelo de IA delegar flujos de trabajo complejos manteniendo un control preciso sobre los pasos.",
+      "steps": [
+        "Acceda a la página MCP, pestaña Cadenas",
+        "Cree una nueva cadena con las herramientas deseadas",
+        "Defina condiciones de activación y parámetros",
+        "Configure respuestas automáticas y secuencias"
       ]
     },
     "training": {
       "title": "Entrenamiento de IA",
-      "subtitle": "Personalizar su asistente",
+      "subtitle": "Personalice su asistente",
       "description": "El módulo de entrenamiento le permite entrenar y personalizar su asistente de IA según sus preferencias y uso. Cree prompts personalizados y ajuste el comportamiento de la IA.",
       "linkText": "Acceder a Entrenamiento",
       "tip": "Los prompts personalizados le permiten adaptar el comportamiento de la IA a sus necesidades específicas y estilo de interacción.",
@@ -117,7 +136,7 @@
     },
     "monitoring": {
       "title": "Monitoreo",
-      "subtitle": "Supervisar su sistema",
+      "subtitle": "Supervise su sistema",
       "description": "El monitoreo le permite seguir en tiempo real el estado de sus servicios, el rendimiento del sistema y el historial de interacciones con la IA. Detecte rápidamente problemas y optimice su infraestructura.",
       "linkText": "Ver Monitoreo",
       "tip": "El monitoreo proactivo le ayuda a identificar y resolver problemas antes de que afecten a sus usuarios.",
@@ -130,7 +149,7 @@
     },
     "config": {
       "title": "Configuración",
-      "subtitle": "Personalizar MCParr",
+      "subtitle": "Personalice MCParr",
       "description": "La página de configuración centraliza todos los ajustes de la aplicación: apariencia, notificaciones, registros, panel de control y copia de seguridad. Personalice MCParr según sus preferencias y exporte su configuración.",
       "linkText": "Abrir Configuración",
       "tip": "Recuerde exportar regularmente su configuración para poder restaurarla fácilmente si es necesario.",
@@ -139,6 +158,19 @@
         "Configure notificaciones y alertas",
         "Establezca el nivel de registro y actualización automática",
         "Exporte/importe su configuración para respaldos"
+      ]
+    },
+    "help": {
+      "title": "Sistema de ayuda",
+      "subtitle": "Documentación integrada",
+      "description": "MCParr dispone de un sistema de ayuda integrado accesible en cada página mediante el icono de ayuda (?). La página de Ayuda centraliza toda la documentación disponible del sitio para una referencia rápida.",
+      "linkText": "Ver Ayuda",
+      "tip": "Haga clic en el icono ? en cada página para acceder a la ayuda contextual de esa sección.",
+      "steps": [
+        "Busque el icono de ayuda (?) en las diferentes páginas",
+        "Haga clic para mostrar la ayuda contextual",
+        "Acceda a la página de Ayuda para ver toda la documentación",
+        "Use la búsqueda para encontrar información rápidamente"
       ]
     }
   },
@@ -153,9 +185,11 @@
       "users": "usuarios",
       "groups": "grupos",
       "mcp": "mcp",
+      "chains": "cadenas",
       "training": "entrenamiento",
       "monitoring": "monitoreo",
-      "config": "configuración"
+      "config": "configuración",
+      "help": "ayuda"
     }
   }
 }

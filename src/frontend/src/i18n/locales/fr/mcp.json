@@ -3,6 +3,23 @@
   "subtitle": "Passerelle pour outils MCP (Model Context Protocol)",
   "refresh": "Actualiser",
 
+  "help": {
+    "pageTitle": "Centre d'aide",
+    "pageSubtitle": "Documentation et guides d'utilisation",
+    "searchPlaceholder": "Rechercher dans l'aide...",
+    "noResults": "Aucun résultat trouvé",
+    "selectTopic": "Sélectionnez un sujet",
+    "selectTopicDescription": "Choisissez un sujet à gauche pour afficher son contenu détaillé.",
+    "topics": "sujets",
+    "quickLinks": "Liens rapides",
+    "refresh": "Actualiser",
+    "knowledgeBase": "Base de connaissances",
+    "categories": {
+      "mcp": "MCP & Outils"
+    },
+    "backToList": "Retour à la liste"
+  },
+
   "tabs": {
     "stats": "Statistiques",
     "statsShort": "Stats",
@@ -16,6 +33,8 @@
     "config": "Configuration",
     "configShort": "Config",
     "configFull": "Configuration",
+    "interactionsShort": "Chaînes",
+    "interactionsFull": "Chaînes d'outils",
     "toolGroups": "Groupes d'Outils",
     "settings": "Paramètres"
   },
@@ -60,7 +79,18 @@
     "timeRange6h": "6h",
     "timeRange24h": "24h",
     "timeRange3d": "3j",
-    "timeRange7d": "7j"
+    "timeRange7d": "7j",
+    "help": {
+      "title": "Statistiques MCP",
+      "overview": "Vue d'ensemble",
+      "overviewContent": "L'onglet Statistiques affiche un tableau de bord complet de l'activité MCP. Visualisez les requêtes, taux de succès, durées moyennes et tendances sur la période sélectionnée.",
+      "cards": "Cartes de statistiques",
+      "cardsContent": "Les cartes en haut affichent les métriques clés : total des requêtes, taux de succès, durée moyenne et nombre d'erreurs. Les flèches indiquent la tendance par rapport à la période précédente.",
+      "charts": "Graphiques",
+      "chartsContent": "Les graphiques montrent l'évolution des requêtes dans le temps, la distribution par statut, par service et par utilisateur. Survolez les éléments pour voir les détails.",
+      "timeRange": "Période",
+      "timeRangeContent": "Sélectionnez la période d'analyse : 1h, 6h, 24h, 3 jours ou 7 jours. Les statistiques et graphiques s'actualisent automatiquement."
+    }
   },
 
   "history": {
@@ -73,6 +103,7 @@
       "user": "Utilisateur",
       "timeRange": "Période",
       "allCategories": "Toutes les catégories",
+      "allServices": "Tous les services",
       "allStatuses": "Tous les statuts"
     },
     "columns": {
@@ -85,7 +116,26 @@
     "noRequests": "Aucune requête trouvée",
     "loadMore": "Charger plus",
     "totalRequests": "{{count}} requêtes au total",
-    "by": "par"
+    "by": "par",
+    "chainTriggered": "Chaîne d'outils déclenchée",
+    "suggestedArgs": "Arguments suggérés",
+    "chainStart": "Début de chaîne",
+    "chainMiddle": "Étape",
+    "chainEnd": "Fin de chaîne",
+    "step": "Étape",
+    "nextTools": "Outils suivants",
+    "viewChain": "Voir la configuration de la chaîne",
+    "help": {
+      "title": "Historique des requêtes MCP",
+      "overview": "Vue d'ensemble",
+      "overviewContent": "Consultez l'historique de toutes les requêtes MCP effectuées par l'IA. Chaque ligne représente un appel d'outil avec son statut, sa durée et l'utilisateur concerné.",
+      "filters": "Filtres",
+      "filtersContent": "Filtrez les requêtes par :\n• Service (Plex, Radarr, Sonarr...)\n• Statut (terminé, échoué, en cours...)\n• Période (1h, 6h, 24h, 3j, 7j)",
+      "details": "Détails d'une requête",
+      "detailsContent": "Cliquez sur une requête pour voir :\n• Les paramètres d'entrée envoyés\n• Le résultat JSON retourné\n• Les erreurs éventuelles",
+      "chains": "Chaînes d'outils",
+      "chainsContent": "Le badge coloré indique si la requête fait partie d'une chaîne d'outils. Cliquez dessus pour voir les détails de la chaîne et les outils suggérés en suivant."
+    }
   },
 
   "tools": {
@@ -111,7 +161,22 @@
     "noTools": "Aucun outil disponible",
     "toolsAvailable": "{{count}} outils disponibles • {{services}} services",
     "expandAll": "Tout déplier",
-    "collapseAll": "Tout replier"
+    "collapseAll": "Tout replier",
+    "nextTools": "Outils suivants (Chaînes)",
+    "chainCondition": "Condition",
+    "help": {
+      "title": "À propos des outils MCP",
+      "overview": "Vue d'ensemble",
+      "overviewContent": "Cette page liste tous les outils MCP disponibles, organisés par service (Plex, Radarr, Sonarr, etc.). Chaque outil représente une action que l'IA peut exécuter pour interagir avec vos services.",
+      "browse": "Parcourir les outils",
+      "browseContent": "• Les outils sont groupés par service\n• Cliquez sur un service pour voir ses outils\n• Chaque outil affiche sa description et ses paramètres\n• Les paramètres marqués d'un * sont obligatoires",
+      "test": "Tester un outil",
+      "testContent": "Cliquez sur \"Tester\" pour exécuter un outil manuellement :\n• Remplissez les paramètres requis\n• Visualisez le résultat JSON retourné\n• Utile pour vérifier le bon fonctionnement",
+      "groups": "Groupes d'accès",
+      "groupsContent": "Les badges colorés sous chaque outil indiquent les groupes d'utilisateurs qui y ont accès. Seuls les utilisateurs appartenant à ces groupes peuvent utiliser l'outil.",
+      "mutations": "Mutations",
+      "mutationsContent": "Les outils marqués \"Mutation\" modifient des données (ajout, suppression, modification). Utilisez-les avec précaution lors des tests."
+    }
   },
 
   "errors": {
@@ -141,8 +206,10 @@
   },
 
   "categories": {
+    "downloads": "Téléchargements",
+    "gaming": "Jeux",
+    "indexers": "Indexeurs",
     "media": "Média",
-    "requests": "Requêtes",
     "support": "Support",
     "system": "Système",
     "users": "Utilisateurs"
@@ -157,7 +224,17 @@
       "performanceTip": "Utilisez les endpoints séparés pour de meilleures performances.",
       "recommended": "Recommandé",
       "copyUrl": "Copier URL",
+      "copyFilter": "Copier Filter List",
+      "copyFilterTitle": "Copier la liste des fonctions pour le Function Name Filter List dans Open WebUI",
+      "tools": "outils",
       "copied": "✓ Copié!"
+    },
+    "endpointsRef": {
+      "title": "Référence des endpoints",
+      "description": "URLs à utiliser pour la configuration manuelle dans Open WebUI → Admin → Settings → Tools.",
+      "allTools": "Tous les outils",
+      "byCategory": "Par catégorie",
+      "tip": "Conseil : utilisez les endpoints par catégorie pour de meilleures performances avec les LLMs."
     },
     "endpoints": {
       "all": {
@@ -188,17 +265,53 @@
       "comma": "(virgule)"
     },
     "autoConfig": {
-      "title": "Configuration automatique",
-      "description": "Configurez automatiquement Open WebUI avec les outils MCParr en un clic. Nécessite que le service Open WebUI soit configuré avec une clé API admin.",
+      "title": "Configuration automatique Open WebUI",
+      "description": "Configurez automatiquement Open WebUI avec les outils MCParr en un clic.",
+      "notAvailable": "Open WebUI n'est pas configuré",
+      "notAvailableDetail": "Pour utiliser la configuration automatique, configurez le service Open WebUI avec une clé API admin dans l'onglet Services.",
+      "selectCategories": "Groupes d'outils à configurer :",
+      "selectServices": "Services à configurer :",
+      "errorNoService": "Aucun service sélectionné",
+      "errorNoServiceDetail": "Veuillez sélectionner au moins un service à configurer",
+      "endpointMode": {
+        "label": "Mode d'endpoint",
+        "group": "Par catégorie (recommandé)",
+        "groupHelp": "Un tool server par catégorie (media, system, etc.) - Équilibre entre performance et flexibilité",
+        "serviceGroup": "Par groupe personnalisé",
+        "serviceGroupHelp": "Un tool server par groupe de services personnalisé - Utilisez vos propres groupements définis dans Services → Groupes",
+        "service": "Par service",
+        "serviceHelp": "Un tool server par service (Plex, Sonarr, etc.) - Maximum de flexibilité, plus de connexions",
+        "all": "Tout ensemble",
+        "allHelp": "Un seul tool server avec tous les outils - Simple mais peut surcharger le modèle"
+      },
+      "selectServiceGroups": "Groupes de services personnalisés à configurer :",
+      "noServiceGroups": "Aucun groupe de services personnalisé",
+      "noServiceGroupsHint": "Créez des groupes de services dans l'onglet Services → Groupes",
+      "servicesInGroup": "services",
+      "errorNoServiceGroup": "Aucun groupe de services sélectionné",
+      "errorNoServiceGroupDetail": "Veuillez sélectionner au moins un groupe de services personnalisé à configurer",
+      "useFunctionFilters": "Ajouter les Function Name Filter Lists",
+      "useFunctionFiltersHelp": "Restreint les outils visibles pour chaque groupe",
       "urlPlaceholder": "https://mcparr.example.com (URL externe MCParr)",
       "button": "Configurer Open WebUI",
       "configuring": "Configuration...",
       "errorNoUrl": "URL requise",
       "errorNoUrlDetail": "Veuillez entrer l'URL externe de MCParr",
+      "errorNoCategory": "Aucun groupe sélectionné",
+      "errorNoCategoryDetail": "Veuillez sélectionner au moins un groupe à configurer",
       "errorNetwork": "Erreur de connexion",
       "successDetail": "{{groups}} groupes configurés avec {{tools}} outils",
-      "requirement": "Prérequis : Open WebUI doit être configuré dans l'onglet Services avec une clé API admin",
-      "manual": "manuel"
+      "requirement": "Prérequis : URL externe de MCParr accessible depuis Open WebUI",
+      "manual": "manuel",
+      "groups": {
+        "media": "Média (Plex/Tautulli)",
+        "books": "Livres & Audio",
+        "download": "Téléchargement",
+        "games": "Jeux (RomM)",
+        "system": "Système & Support",
+        "knowledge": "Connaissances & IA",
+        "auth": "Authentification (SSO)"
+      }
     },
     "openWebUISetup": {
       "title": "Configuration Open WebUI - Function Filters",
@@ -273,6 +386,19 @@
         "copy": "Copier",
         "copied": "✓"
       }
+    },
+    "help": {
+      "title": "Configuration MCP",
+      "overview": "Vue d'ensemble",
+      "overviewContent": "L'onglet Configuration permet de connecter MCParr à vos clients IA (Open WebUI, Claude Desktop). Configurez les endpoints, copiez les prompts système et testez les connexions.",
+      "autoConfig": "Configuration automatique",
+      "autoConfigContent": "Pour Open WebUI, utilisez la configuration automatique :\n• Choisissez le mode d'endpoint (par catégorie, service, ou tout ensemble)\n• Sélectionnez les groupes ou services à configurer\n• Entrez l'URL externe de MCParr\n• Cliquez sur \"Configurer Open WebUI\"",
+      "endpoints": "Endpoints",
+      "endpointsContent": "Les endpoints exposent les outils MCP via OpenAPI :\n• Tous les outils : /tools/openapi.json\n• Par catégorie : /tools/media/openapi.json, etc.\n\nUtilisez les endpoints par catégorie pour de meilleures performances.",
+      "systemPrompt": "Prompt système",
+      "systemPromptContent": "Le prompt système est généré automatiquement selon vos services actifs. Copiez-le dans la configuration de votre client IA pour guider le modèle dans l'utilisation des outils.",
+      "otherConfigs": "Autres configurations",
+      "otherConfigsContent": "• Documentation API : accédez au Swagger interactif (/docs)\n• Claude Desktop : configuration MCP stdio pour l'app desktop"
     }
   },
 
@@ -350,6 +476,11 @@
         "content": "Téléchargement torrent actif, vitesse",
         "service": "Deluge",
         "tool": "deluge_get_torrents"
+      },
+      "torrentSearch": {
+        "content": "Chercher un torrent par nom",
+        "service": "Deluge",
+        "tool": "deluge_search_torrents"
       },
       "movieDownload": {
         "content": "Télécharger/ajouter un FILM",
@@ -439,10 +570,12 @@
     "romm": {
       "q1": "Quelles plateformes de jeux sont disponibles?",
       "a1": "Utilise l'outil romm_get_platforms",
-      "q2": "Quels sont les derniers jeux ajoutés dans RomM?",
-      "a2": "Utilise l'outil romm_get_roms avec limit=10",
+      "q2": "Quels sont les derniers jeux ajoutés?",
+      "a2": "Utilise l'outil romm_get_recently_added",
       "q3": "Cherche le jeu Mario",
-      "a3": "Utilise l'outil romm_search_roms avec query=\"Mario\""
+      "a3": "Utilise l'outil romm_search_roms avec query=\"Mario\"",
+      "q4": "Montre les ROMs ajoutées cette semaine",
+      "a4": "Utilise l'outil romm_get_recently_added avec days=7"
     },
     "zammad": {
       "q1": "Crée un ticket de support pour un problème de connexion",
@@ -493,10 +626,201 @@
       "a3": "Utilise l'outil system_get_services",
       "q4": "Teste la connexion à Plex",
       "a4": "Utilise l'outil system_test_service avec service_name=\"Plex\"",
-      "q5": "Montre les derniers logs d'erreur",
-      "a5": "Utilise l'outil system_get_logs avec level=\"error\"",
-      "q6": "Quelles alertes sont actives?",
-      "a6": "Utilise l'outil system_get_alerts avec active_only=true"
+      "q5": "Teste tous les services",
+      "a5": "Utilise l'outil system_test_all_services",
+      "q6": "Montre les derniers logs d'erreur",
+      "a6": "Utilise l'outil system_get_logs avec level=\"error\"",
+      "q7": "Quelles alertes sont actives?",
+      "a7": "Utilise l'outil system_get_alerts avec active_only=true"
+    }
+  },
+
+  "toolChains": {
+    "list": {
+      "title": "Chaînes d'outils",
+      "new": "Nouveau",
+      "refresh": "Actualiser",
+      "search": "Rechercher des chaînes...",
+      "count": "{{count}} chaîne(s)",
+      "stepCount": "{{count}} étape(s)",
+      "showDisabled": "Afficher désactivées",
+      "priority": "Priorité",
+      "disabled": "Désactivée",
+      "enable": "Activer",
+      "disable": "Désactiver",
+      "delete": "Supprimer",
+      "deleteConfirm": "Supprimer la chaîne \"{{name}}\" ?",
+      "noChains": "Aucune chaîne d'outils configurée",
+      "noChainsFound": "Aucune chaîne ne correspond à votre recherche",
+      "createFirst": "Créer votre première chaîne"
+    },
+    "create": {
+      "title": "Créer une chaîne d'outils",
+      "name": "Nom",
+      "namePlaceholder": "ex: Rechercher puis demander",
+      "description": "Description",
+      "descriptionPlaceholder": "Ce que fait cette chaîne...",
+      "color": "Couleur",
+      "customColor": "Couleur personnalisée",
+      "priority": "Priorité",
+      "priorityHelp": "Les chaînes avec une priorité plus élevée sont évaluées en premier",
+      "stepsInfo": "Après avoir créé la chaîne, vous pourrez ajouter des étapes avec des conditions de déclenchement et des outils cibles.",
+      "cancel": "Annuler",
+      "submit": "Créer"
+    },
+    "detail": {
+      "tabs": {
+        "info": "Info",
+        "steps": "Étapes"
+      },
+      "name": "Nom",
+      "description": "Description",
+      "color": "Couleur",
+      "customColor": "Couleur personnalisée",
+      "priority": "Priorité",
+      "priorityHelp": "Les chaînes avec une priorité plus élevée sont évaluées en premier",
+      "save": "Enregistrer",
+      "stepsHelp": "Chaque étape définit un déclencheur (outil source + condition) et des outils cibles à exécuter",
+      "stepsHelpIfThenElse": "Chaque étape : SI les conditions sont remplies ALORS exécuter les actions, SINON exécuter les actions alternatives",
+      "noSteps": "Aucune étape configurée",
+      "addStep": "Ajouter une étape",
+      "editStep": "Modifier l'étape",
+      "sourceTool": "Outil source",
+      "trigger": "déclencheur",
+      "when": "Quand",
+      "condition": "Condition",
+      "conditions": "conditions",
+      "conditionFieldPlaceholder": "ex: count, data.items.length",
+      "conditionValuePlaceholder": "Valeur à comparer",
+      "ifConditions": "SI (Conditions)",
+      "noConditions": "Aucune condition",
+      "alwaysTrue": "toujours vrai",
+      "thenBranch": "ALORS (si vrai)",
+      "elseBranch": "SINON (si faux)",
+      "then": "alors",
+      "else": "sinon",
+      "noActions": "Aucune action",
+      "addCondition": "Ajouter une condition",
+      "addAction": "Ajouter une action",
+      "actionTypeToolCall": "Appeler un outil",
+      "actionTypeMessage": "Afficher un message",
+      "actionTypeConditional": "Conditionnel (SI/ALORS/SINON)",
+      "conditionalIf": "SI",
+      "conditionalThen": "ALORS",
+      "conditionalElse": "SINON",
+      "noNestedConditions": "Aucune condition (toujours vrai)",
+      "addNestedThenAction": "Ajouter action ALORS",
+      "addNestedElseAction": "Ajouter action SINON",
+      "deleteConditional": "Supprimer ce conditionnel",
+      "emptyBranch": "Branche vide (fin silencieuse)",
+      "conditionSummary": "{{field}} {{operator}} {{value}}",
+      "messageTemplatePlaceholder": "Message avec placeholders {result.field} ou {input.param}...",
+      "actionCommentPlaceholder": "Pourquoi cette action...",
+      "emptyMessage": "(message vide)",
+      "positionType": "Position de l'étape",
+      "positionMiddle": "Milieu (continuer la chaîne)",
+      "positionEnd": "Fin (étape terminale)",
+      "endStep": "Fin",
+      "targets": "cible(s)",
+      "targetTools": "Outils cibles",
+      "addTarget": "Ajouter une cible",
+      "targetCommentPlaceholder": "Pourquoi appeler cet outil...",
+      "selectService": "Sélectionner service",
+      "selectTool": "Sélectionner outil",
+      "sequential": "Séquentiel",
+      "parallel": "Parallèle",
+      "aiComment": "Instructions pour l'IA",
+      "stepCommentPlaceholder": "Quand/pourquoi déclencher cette étape...",
+      "cancel": "Annuler",
+      "add": "Ajouter",
+      "enable": "Activer",
+      "disable": "Désactiver",
+      "deleteStepConfirm": "Supprimer cette étape ?",
+      "deleteTargetConfirm": "Supprimer cette cible ?",
+      "backToList": "Retour à la liste",
+      "selectChain": "Sélectionnez une chaîne pour voir les détails",
+      "argumentMappings": "Mappings d'arguments",
+      "noArgumentMappings": "Aucun mapping (utiliser les valeurs par défaut)",
+      "targetParam": "Paramètre cible",
+      "sourceField": "Champ source",
+      "saveToContext": "Sauvegarder dans le contexte",
+      "noSaveToContext": "Aucune variable sauvegardée",
+      "varName": "Nom de variable",
+      "fieldPath": "Chemin du champ",
+      "saveToContextHelp": "Sauvegarde des valeurs du résultat pour les utiliser dans les étapes suivantes (ex: context.ma_variable)",
+      "editAction": "Modifier l'action",
+      "editStep": "Modifier l'étape",
+      "editCondition": "Modifier la condition",
+      "conditionalEditInfo": "Les conditions d'un bloc conditionnel ne peuvent pas être modifiées ici. Supprimez et recréez le bloc si nécessaire.",
+      "help": {
+        "title": "Comment fonctionnent les chaînes d'outils",
+        "overview": "Vue d'ensemble",
+        "overviewContent": "Les chaînes d'outils permettent d'automatiser des séquences d'actions basées sur les résultats des outils MCP. Quand un outil s'exécute, ses résultats sont analysés et des actions de suivi peuvent être déclenchées automatiquement.",
+        "steps": "Étapes",
+        "stepsContent": "Chaque étape définit :\n• Un outil déclencheur (source)\n• Des conditions à évaluer sur le résultat\n• Des actions ALORS (si conditions vraies)\n• Des actions SINON (si conditions fausses)",
+        "conditions": "Conditions",
+        "conditionsContent": "Les conditions permettent de tester les résultats :\n• Égal, différent, contient...\n• Supérieur, inférieur (valeurs numériques)\n• Vide, non vide\n• Succès ou échec de l'outil\n\nCombinez avec ET/OU pour des logiques complexes.",
+        "actions": "Types d'actions",
+        "actionsContent": "• Appeler un outil : exécute un autre outil MCP\n• Message : affiche un message à l'IA\n• Conditionnel : bloc SI/ALORS/SINON imbriqué",
+        "mappings": "Mappings d'arguments",
+        "mappingsContent": "Transférez des valeurs entre outils :\n• result.champ → utilise le résultat de l'outil précédent\n• context.variable → utilise une variable sauvegardée",
+        "context": "Variables de contexte",
+        "contextContent": "Sauvegardez des valeurs pour les étapes suivantes :\n• Configurez \"Sauvegarder dans le contexte\" sur une action\n• Utilisez {context.variable} dans les messages\n• Utilisez context.variable dans les mappings"
+      }
+    }
+  },
+
+  "globalSearch": {
+    "title": "Recherche Globale",
+    "description": "Rechercher dans tous les services activés",
+    "config": "Configuration",
+    "configDescription": "Configurez les services inclus dans la recherche globale",
+    "enabledServices": "Services activés",
+    "noServices": "Aucun service avec capacité de recherche",
+    "noSearchableServices": "Aucun service de recherche configuré",
+    "noSearchableServicesHint": "Configurez des services comme Overseerr, Radarr, Sonarr, etc. pour activer la recherche globale",
+    "serviceEnabled": "Activé",
+    "serviceDisabled": "Désactivé",
+    "enableAll": "Tout activer",
+    "disableAll": "Tout désactiver",
+    "searchIn": "Rechercher dans",
+    "priority": "Priorité",
+    "categories": {
+      "all": "Tous",
+      "media": "Média",
+      "indexers": "Indexeurs",
+      "books": "Livres",
+      "gaming": "Jeux",
+      "wiki": "Wiki",
+      "support": "Support"
+    },
+    "categoryDescriptions": {
+      "media": "Overseerr, Radarr, Sonarr, Plex",
+      "indexers": "Jackett, Prowlarr",
+      "books": "Komga, Audiobookshelf",
+      "gaming": "RoMM",
+      "wiki": "WikiJS",
+      "support": "Zammad"
+    },
+    "aiFeature": "Fonctionnalité IA",
+    "aiFeatureHint": "Cet outil est disponible pour les assistants IA via MCP",
+    "toolName": "system_global_search",
+    "featureEnabled": "Activer la Recherche Globale",
+    "hideNotifications": "Masquer les bannières d'info",
+    "featureDisabledMessage": "La Recherche Globale est désactivée. L'outil ne sera pas disponible pour les assistants IA.",
+    "infoBlock": {
+      "title": "Recherche Globale Disponible",
+      "description": "Recherchez dans tous vos services avec une seule requête.",
+      "configure": "Configurer"
+    },
+    "help": {
+      "title": "Recherche Globale",
+      "overview": "Vue d'ensemble",
+      "overviewContent": "La recherche globale permet à l'IA de rechercher dans tous vos services configurés avec une seule requête. Les résultats sont groupés par catégorie (média, livres, wiki, etc.).",
+      "configuration": "Configuration",
+      "configurationContent": "Activez ou désactivez les services pour la recherche globale. Seuls les services activés seront interrogés lors de l'utilisation de system_global_search.",
+      "usage": "Utilisation",
+      "usageContent": "L'IA peut utiliser cet outil pour trouver du contenu dans votre homelab :\n• Rechercher un film dans Overseerr, Radarr et Plex\n• Trouver des livres dans Komga et Audiobookshelf\n• Rechercher dans la documentation WikiJS\n• Trouver des tickets support dans Zammad"
     }
   }
 }

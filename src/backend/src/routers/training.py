@@ -1990,7 +1990,7 @@ async def get_training_stats(session: AsyncSession = Depends(get_db_session)):
     total_prompts = total_prompts.scalar() or 0
 
     validated_prompts = await session.execute(
-        select(func.count(TrainingPrompt.id)).where(TrainingPrompt.is_validated is True)
+        select(func.count(TrainingPrompt.id)).where(TrainingPrompt.is_validated == True)
     )
     validated_prompts = validated_prompts.scalar() or 0
 

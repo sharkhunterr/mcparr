@@ -2,6 +2,10 @@
   "title": "Monitoring",
   "subtitle": "Real-time system monitoring",
 
+  "help": {
+    "category": "Monitoring"
+  },
+
   "tabs": {
     "metrics": "Metrics",
     "logs": "Logs",
@@ -107,6 +111,17 @@
       "worker_offline": "Worker Offline",
       "worker_gpu_usage": "GPU Usage",
       "training_failed": "Training Failed"
+    },
+    "help": {
+      "title": "Alert Management",
+      "overview": "Overview",
+      "overviewContent": "The Alerts tab allows you to create and manage custom system alerts. Get notified when metrics exceed defined thresholds.",
+      "types": "Alert Types",
+      "typesContent": "Available alerts by category:\n• System: CPU, memory, disk, error rate\n• Services: service down, test failed, latency\n• MCP: error rate, request volume, response time\n• Users: sync failed, permissions denied\n• Training: worker offline, GPU, training failed",
+      "config": "Configuration",
+      "configContent": "To create an alert:\n• Name: alert identifier\n• Type: metric to monitor\n• Severity: low, medium, high, critical\n• Threshold: value that triggers the alert\n• Duration: time before triggering\n• Cooldown: delay between triggers",
+      "management": "Management",
+      "managementContent": "Available tabs:\n• Active alerts: ongoing alerts to resolve\n• Configurations: list of alert rules\n• History: log of past alerts\n• MTTR: mean time to resolution"
     }
   },
 
@@ -132,7 +147,18 @@
     "errorRate": "errors",
     "networkIO": "Network I/O",
     "totalTransferred": "Total transferred",
-    "loadingMetrics": "Loading metrics..."
+    "loadingMetrics": "Loading metrics...",
+    "help": {
+      "title": "System Metrics",
+      "overview": "Overview",
+      "overviewContent": "The Metrics tab displays a real-time dashboard of your system's health. Monitor CPU, memory, disk resources and service availability.",
+      "resources": "System Resources",
+      "resourcesContent": "View resource utilization:\n• CPU: processor usage percentage\n• Memory: used / total RAM\n• Disk: storage space used\n• Uptime: system running time",
+      "services": "Services",
+      "servicesContent": "Monitor your services status:\n• Continuity: availability test history\n• Scheduler: configurable automatic tests\n• Visual indicators: green (OK) / red (error)",
+      "stats": "Statistics",
+      "statsContent": "Key statistics cards:\n• Services: healthy services / total ratio\n• Active alerts: number of ongoing alerts\n• Logs 24h: volume and error rate\n• Network I/O: transferred data"
+    }
   },
 
   "serviceContinuity": {
@@ -238,6 +264,17 @@
     },
     "exportModal": {
       "title": "Export Logs"
+    },
+    "help": {
+      "title": "Log Viewer",
+      "overview": "Overview",
+      "overviewContent": "The Logs tab allows you to search and analyze system logs in real-time. Filter by level, source, or service to quickly find information.",
+      "levels": "Log Levels",
+      "levelsContent": "Available levels:\n• Debug: detailed debugging information\n• Info: normal system events\n• Warning: non-critical warnings\n• Error: errors requiring attention\n• Critical: urgent critical errors",
+      "filters": "Filtering",
+      "filtersContent": "Filter options:\n• Search: free text in messages\n• Level: debug, info, warning, error, critical\n• Source: log emitting component\n• Service: service associated with log",
+      "export": "Export",
+      "exportContent": "Export filtered logs:\n• JSON or CSV format\n• Customizable time period\n• Includes metadata\n• Optional auto-refresh for continuous monitoring"
     }
   }
 }

@@ -19,6 +19,7 @@ import {
   CheckCircle,
   ExternalLink,
   AlertTriangle,
+  HelpCircle,
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { api } from '../lib/api';
@@ -47,6 +48,7 @@ const navigation: NavigationItem[] = [
   { labelKey: 'nav.training', href: '/training', icon: Brain },
   { labelKey: 'nav.monitoring', href: '/monitoring', icon: Activity },
   { labelKey: 'nav.configuration', href: '/configuration', icon: Settings },
+  { labelKey: 'nav.help', href: '/help', icon: HelpCircle },
 ];
 
 interface LayoutProps {

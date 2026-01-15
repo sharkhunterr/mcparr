@@ -10,9 +10,19 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from src.database.connection import get_db_session
+from src.models.alert_config import AlertConfiguration
 from src.models.configuration import ConfigurationSetting
+from src.models.global_search import GlobalSearchConfig
 from src.models.group import Group, GroupMembership, GroupToolPermission
 from src.models.service_config import ServiceConfig
+from src.models.service_group import ServiceGroup, ServiceGroupMembership
+from src.models.tool_chain import (
+    ToolChain,
+    ToolChainAction,
+    ToolChainCondition,
+    ToolChainConditionGroup,
+    ToolChainStep,
+)
 from src.models.training_prompt import PromptTemplate, TrainingPrompt
 from src.models.training_worker import TrainingWorker
 from src.models.user_mapping import UserMapping
@@ -27,12 +37,16 @@ class ExportOptions(BaseModel):
     """Options for what to include in export."""
 
     services: bool = Field(default=True, description="Include service configurations")
+    service_groups: bool = Field(default=True, description="Include service groups")
     user_mappings: bool = Field(default=True, description="Include user mappings")
     groups: bool = Field(default=True, description="Include groups and permissions")
     site_config: bool = Field(default=True, description="Include site configuration")
     training_prompts: bool = Field(default=True, description="Include AI training prompts")
     prompt_templates: bool = Field(default=True, description="Include prompt templates")
     training_workers: bool = Field(default=True, description="Include training worker configurations")
+    tool_chains: bool = Field(default=True, description="Include tool chains")
+    global_search: bool = Field(default=True, description="Include global search configuration")
+    alerts: bool = Field(default=True, description="Include alert configurations")
 
 
 class ExportResponse(BaseModel):
@@ -50,12 +64,16 @@ class ImportOptions(BaseModel):
     """Options for what to import."""
 
     services: bool = Field(default=True, description="Import service configurations")
+    service_groups: bool = Field(default=True, description="Import service groups")
     user_mappings: bool = Field(default=True, description="Import user mappings")
     groups: bool = Field(default=True, description="Import groups and permissions")
     site_config: bool = Field(default=True, description="Import site configuration")
     training_prompts: bool = Field(default=True, description="Import AI training prompts")
     prompt_templates: bool = Field(default=True, description="Import prompt templates")
     training_workers: bool = Field(default=True, description="Import training worker configurations")
+    tool_chains: bool = Field(default=True, description="Import tool chains")
+    global_search: bool = Field(default=True, description="Import global search configuration")
+    alerts: bool = Field(default=True, description="Import alert configurations")
     merge_mode: bool = Field(default=False, description="Merge with existing data instead of replacing")
 
 
@@ -258,6 +276,165 @@ async def export_configuration(
                 for w in workers
             ]
             stats["training_workers"] = len(data["training_workers"])
+
+        # Export service groups
+        if options.service_groups:
+            result = await db.execute(select(ServiceGroup).options(selectinload(ServiceGroup.memberships)))
+            service_groups = result.scalars().all()
+            data["service_groups"] = [
+                {
+                    "name": sg.name,
+                    "description": sg.description,
+                    "color": sg.color,
+                    "icon": sg.icon,
+                    "priority": sg.priority,
+                    "is_system": sg.is_system,
+                    "enabled": sg.enabled,
+                    "memberships": [
+                        {
+                            "service_type": m.service_type,
+                            "enabled": m.enabled,
+                        }
+                        for m in sg.memberships
+                    ],
+                }
+                for sg in service_groups
+            ]
+            stats["service_groups"] = len(data["service_groups"])
+            stats["service_group_memberships"] = sum(len(sg.memberships) for sg in service_groups)
+
+        # Export tool chains with full structure
+        if options.tool_chains:
+            # Load chains with steps
+            result = await db.execute(select(ToolChain).options(selectinload(ToolChain.steps)))
+            chains = result.scalars().all()
+
+            # Load all related data separately to avoid lazy loading issues
+            all_step_ids = [step.id for tc in chains for step in tc.steps]
+
+            # Load condition groups for steps
+            step_condition_groups: Dict[str, List[ToolChainConditionGroup]] = {}
+            if all_step_ids:
+                cg_result = await db.execute(
+                    select(ToolChainConditionGroup)
+                    .where(ToolChainConditionGroup.step_id.in_(all_step_ids))
+                    .options(selectinload(ToolChainConditionGroup.conditions))
+                )
+                for cg in cg_result.scalars().all():
+                    if cg.step_id not in step_condition_groups:
+                        step_condition_groups[cg.step_id] = []
+                    step_condition_groups[cg.step_id].append(cg)
+
+            # Load actions for steps
+            step_actions: Dict[str, List[ToolChainAction]] = {}
+            if all_step_ids:
+                action_result = await db.execute(
+                    select(ToolChainAction).where(ToolChainAction.step_id.in_(all_step_ids))
+                )
+                for action in action_result.scalars().all():
+                    if action.step_id not in step_actions:
+                        step_actions[action.step_id] = []
+                    step_actions[action.step_id].append(action)
+
+            def export_condition_group(group: ToolChainConditionGroup) -> dict:
+                return {
+                    "operator": group.operator,
+                    "order": group.order,
+                    "conditions": [
+                        {
+                            "operator": c.operator,
+                            "field": c.field,
+                            "value": c.value,
+                            "order": c.order,
+                        }
+                        for c in group.conditions
+                    ],
+                }
+
+            def export_action(action: ToolChainAction) -> dict:
+                return {
+                    "branch": action.branch,
+                    "action_type": action.action_type,
+                    "target_service": action.target_service,
+                    "target_tool": action.target_tool,
+                    "argument_mappings": action.argument_mappings,
+                    "save_to_context": action.save_to_context,
+                    "message_template": action.message_template,
+                    "order": action.order,
+                    "execution_mode": action.execution_mode,
+                    "ai_comment": action.ai_comment,
+                    "enabled": action.enabled,
+                }
+
+            data["tool_chains"] = [
+                {
+                    "name": tc.name,
+                    "description": tc.description,
+                    "color": tc.color,
+                    "priority": tc.priority,
+                    "enabled": tc.enabled,
+                    "steps": [
+                        {
+                            "order": step.order,
+                            "position_type": step.position_type,
+                            "source_service": step.source_service,
+                            "source_tool": step.source_tool,
+                            "ai_comment": step.ai_comment,
+                            "enabled": step.enabled,
+                            "condition_groups": [
+                                export_condition_group(cg) for cg in step_condition_groups.get(step.id, [])
+                            ],
+                            "actions": [export_action(a) for a in step_actions.get(step.id, [])],
+                        }
+                        for step in tc.steps
+                    ],
+                }
+                for tc in chains
+            ]
+            stats["tool_chains"] = len(data["tool_chains"])
+            stats["tool_chain_steps"] = sum(len(tc.steps) for tc in chains)
+
+        # Export global search configuration
+        if options.global_search:
+            result = await db.execute(
+                select(GlobalSearchConfig).options(selectinload(GlobalSearchConfig.service_config))
+            )
+            global_search_configs = result.scalars().all()
+            data["global_search"] = [
+                {
+                    "service_name": gsc.service_config.name if gsc.service_config else None,
+                    "enabled": gsc.enabled,
+                    "priority": gsc.priority,
+                }
+                for gsc in global_search_configs
+                if gsc.service_config  # Only export if service still exists
+            ]
+            stats["global_search"] = len(data["global_search"])
+
+        # Export alert configurations
+        if options.alerts:
+            result = await db.execute(select(AlertConfiguration))
+            alerts = result.scalars().all()
+            data["alerts"] = [
+                {
+                    "name": a.name,
+                    "description": a.description,
+                    "enabled": a.enabled,
+                    "severity": a.severity,
+                    "metric_type": a.metric_type,
+                    "threshold_operator": a.threshold_operator,
+                    "threshold_value": a.threshold_value,
+                    "duration_seconds": a.duration_seconds,
+                    "service_type": a.service_type,
+                    "notification_channels": a.notification_channels,
+                    "notification_config": a.notification_config,
+                    "cooldown_minutes": a.cooldown_minutes,
+                    "tags": a.tags,
+                    # Don't export volatile state fields like last_triggered_at, trigger_count, is_firing
+                }
+                for a in alerts
+            ]
+            stats["alerts"] = len(data["alerts"])
 
         response = ExportResponse(
             version="1.0", exported_at=datetime.utcnow().isoformat(), options=options, data=data, stats=stats
@@ -598,6 +775,285 @@ async def import_configuration(request: ImportRequest, db: AsyncSession = Depend
 
             imported["training_workers"] = count
 
+        # Import service groups
+        if request.options.service_groups and "service_groups" in request.data:
+            group_count = 0
+            membership_count = 0
+
+            for sg_data in request.data["service_groups"]:
+                try:
+                    existing = await db.execute(select(ServiceGroup).where(ServiceGroup.name == sg_data["name"]))
+                    existing_sg = existing.scalar_one_or_none()
+
+                    if existing_sg:
+                        if request.options.merge_mode:
+                            existing_sg.description = sg_data.get("description")
+                            existing_sg.color = sg_data.get("color", "#6366f1")
+                            existing_sg.icon = sg_data.get("icon")
+                            existing_sg.priority = sg_data.get("priority", 0)
+                            existing_sg.enabled = sg_data.get("enabled", True)
+                            service_group = existing_sg
+                            group_count += 1
+                        else:
+                            warnings.append(f"Service group '{sg_data['name']}' already exists, skipped")
+                            continue
+                    else:
+                        service_group = ServiceGroup(
+                            name=sg_data["name"],
+                            description=sg_data.get("description"),
+                            color=sg_data.get("color", "#6366f1"),
+                            icon=sg_data.get("icon"),
+                            priority=sg_data.get("priority", 0),
+                            is_system=sg_data.get("is_system", False),
+                            enabled=sg_data.get("enabled", True),
+                        )
+                        db.add(service_group)
+                        await db.flush()
+                        group_count += 1
+
+                    # Import memberships
+                    for member_data in sg_data.get("memberships", []):
+                        try:
+                            existing_member = await db.execute(
+                                select(ServiceGroupMembership).where(
+                                    ServiceGroupMembership.group_id == service_group.id,
+                                    ServiceGroupMembership.service_type == member_data["service_type"],
+                                )
+                            )
+                            if not existing_member.scalar_one_or_none():
+                                membership = ServiceGroupMembership(
+                                    group_id=service_group.id,
+                                    service_type=member_data["service_type"],
+                                    enabled=member_data.get("enabled", True),
+                                )
+                                db.add(membership)
+                                membership_count += 1
+                        except Exception as e:
+                            errors.append(
+                                {"type": "service_group_membership", "group": sg_data["name"], "error": str(e)}
+                            )
+
+                except Exception as e:
+                    errors.append({"type": "service_group", "name": sg_data.get("name", "unknown"), "error": str(e)})
+
+            imported["service_groups"] = group_count
+            imported["service_group_memberships"] = membership_count
+
+        # Import tool chains
+        if request.options.tool_chains and "tool_chains" in request.data:
+            chain_count = 0
+            step_count = 0
+
+            def import_condition_group(
+                group_data: dict, step_id: str = None, parent_group_id: str = None, action_id: str = None
+            ) -> str:
+                """Recursively import condition group and return its ID."""
+                cg = ToolChainConditionGroup(
+                    step_id=step_id,
+                    parent_group_id=parent_group_id,
+                    action_id=action_id,
+                    operator=group_data.get("operator", "and"),
+                    order=group_data.get("order", 0),
+                )
+                db.add(cg)
+                return cg
+
+            async def import_action(action_data: dict, step_id: str = None, parent_action_id: str = None) -> None:
+                """Recursively import action."""
+                action = ToolChainAction(
+                    step_id=step_id,
+                    parent_action_id=parent_action_id,
+                    branch=action_data["branch"],
+                    action_type=action_data.get("action_type", "tool_call"),
+                    target_service=action_data.get("target_service"),
+                    target_tool=action_data.get("target_tool"),
+                    argument_mappings=action_data.get("argument_mappings"),
+                    save_to_context=action_data.get("save_to_context"),
+                    message_template=action_data.get("message_template"),
+                    order=action_data.get("order", 0),
+                    execution_mode=action_data.get("execution_mode", "sequential"),
+                    ai_comment=action_data.get("ai_comment"),
+                    enabled=action_data.get("enabled", True),
+                )
+                db.add(action)
+                await db.flush()
+
+                # Import condition groups for this action
+                for cg_data in action_data.get("condition_groups", []):
+                    cg = import_condition_group(cg_data, action_id=action.id)
+                    await db.flush()
+                    for cond_data in cg_data.get("conditions", []):
+                        condition = ToolChainCondition(
+                            group_id=cg.id,
+                            operator=cond_data["operator"],
+                            field=cond_data.get("field"),
+                            value=cond_data.get("value"),
+                            order=cond_data.get("order", 0),
+                        )
+                        db.add(condition)
+
+                # Import child actions
+                for child_data in action_data.get("child_actions", []):
+                    await import_action(child_data, parent_action_id=action.id)
+
+            for chain_data in request.data["tool_chains"]:
+                try:
+                    existing = await db.execute(select(ToolChain).where(ToolChain.name == chain_data["name"]))
+                    existing_chain = existing.scalar_one_or_none()
+
+                    if existing_chain:
+                        if request.options.merge_mode:
+                            existing_chain.description = chain_data.get("description")
+                            existing_chain.color = chain_data.get("color", "#8b5cf6")
+                            existing_chain.priority = chain_data.get("priority", 0)
+                            existing_chain.enabled = chain_data.get("enabled", True)
+                            # Delete existing steps and recreate
+                            await db.execute(delete(ToolChainStep).where(ToolChainStep.chain_id == existing_chain.id))
+                            chain = existing_chain
+                            chain_count += 1
+                        else:
+                            warnings.append(f"Tool chain '{chain_data['name']}' already exists, skipped")
+                            continue
+                    else:
+                        chain = ToolChain(
+                            name=chain_data["name"],
+                            description=chain_data.get("description"),
+                            color=chain_data.get("color", "#8b5cf6"),
+                            priority=chain_data.get("priority", 0),
+                            enabled=chain_data.get("enabled", True),
+                        )
+                        db.add(chain)
+                        await db.flush()
+                        chain_count += 1
+
+                    # Import steps
+                    for step_data in chain_data.get("steps", []):
+                        step = ToolChainStep(
+                            chain_id=chain.id,
+                            order=step_data.get("order", 0),
+                            position_type=step_data.get("position_type", "middle"),
+                            source_service=step_data["source_service"],
+                            source_tool=step_data["source_tool"],
+                            ai_comment=step_data.get("ai_comment"),
+                            enabled=step_data.get("enabled", True),
+                        )
+                        db.add(step)
+                        await db.flush()
+                        step_count += 1
+
+                        # Import condition groups
+                        for cg_data in step_data.get("condition_groups", []):
+                            cg = import_condition_group(cg_data, step_id=step.id)
+                            await db.flush()
+                            for cond_data in cg_data.get("conditions", []):
+                                condition = ToolChainCondition(
+                                    group_id=cg.id,
+                                    operator=cond_data["operator"],
+                                    field=cond_data.get("field"),
+                                    value=cond_data.get("value"),
+                                    order=cond_data.get("order", 0),
+                                )
+                                db.add(condition)
+
+                        # Import actions
+                        for action_data in step_data.get("actions", []):
+                            await import_action(action_data, step_id=step.id)
+
+                except Exception as e:
+                    errors.append({"type": "tool_chain", "name": chain_data.get("name", "unknown"), "error": str(e)})
+
+            imported["tool_chains"] = chain_count
+            imported["tool_chain_steps"] = step_count
+
+        # Import global search configuration
+        if request.options.global_search and "global_search" in request.data:
+            count = 0
+            for gs_data in request.data["global_search"]:
+                try:
+                    if gs_data.get("service_name"):
+                        service_result = await db.execute(
+                            select(ServiceConfig).where(ServiceConfig.name == gs_data["service_name"])
+                        )
+                        service = service_result.scalar_one_or_none()
+
+                        if not service:
+                            warnings.append(f"Service '{gs_data['service_name']}' not found for global search config")
+                            continue
+
+                        existing = await db.execute(
+                            select(GlobalSearchConfig).where(GlobalSearchConfig.service_config_id == service.id)
+                        )
+                        existing_gsc = existing.scalar_one_or_none()
+
+                        if existing_gsc:
+                            existing_gsc.enabled = gs_data.get("enabled", True)
+                            existing_gsc.priority = gs_data.get("priority", 0)
+                            count += 1
+                        else:
+                            gsc = GlobalSearchConfig(
+                                service_config_id=service.id,
+                                enabled=gs_data.get("enabled", True),
+                                priority=gs_data.get("priority", 0),
+                            )
+                            db.add(gsc)
+                            count += 1
+                except Exception as e:
+                    errors.append(
+                        {"type": "global_search", "service": gs_data.get("service_name", "unknown"), "error": str(e)}
+                    )
+
+            imported["global_search"] = count
+
+        # Import alert configurations
+        if request.options.alerts and "alerts" in request.data:
+            count = 0
+            for alert_data in request.data["alerts"]:
+                try:
+                    existing = await db.execute(
+                        select(AlertConfiguration).where(AlertConfiguration.name == alert_data["name"])
+                    )
+                    existing_alert = existing.scalar_one_or_none()
+
+                    if existing_alert:
+                        if request.options.merge_mode:
+                            existing_alert.description = alert_data.get("description")
+                            existing_alert.enabled = alert_data.get("enabled", True)
+                            existing_alert.severity = alert_data.get("severity", "medium")
+                            existing_alert.metric_type = alert_data.get("metric_type", "cpu")
+                            existing_alert.threshold_operator = alert_data.get("threshold_operator", "gt")
+                            existing_alert.threshold_value = alert_data.get("threshold_value", 0)
+                            existing_alert.duration_seconds = alert_data.get("duration_seconds", 60)
+                            existing_alert.service_type = alert_data.get("service_type")
+                            existing_alert.notification_channels = alert_data.get("notification_channels", [])
+                            existing_alert.notification_config = alert_data.get("notification_config", {})
+                            existing_alert.cooldown_minutes = alert_data.get("cooldown_minutes", 15)
+                            existing_alert.tags = alert_data.get("tags", {})
+                            count += 1
+                        else:
+                            warnings.append(f"Alert '{alert_data['name']}' already exists, skipped")
+                    else:
+                        alert = AlertConfiguration(
+                            name=alert_data["name"],
+                            description=alert_data.get("description"),
+                            enabled=alert_data.get("enabled", True),
+                            severity=alert_data.get("severity", "medium"),
+                            metric_type=alert_data.get("metric_type", "cpu"),
+                            threshold_operator=alert_data.get("threshold_operator", "gt"),
+                            threshold_value=alert_data.get("threshold_value", 0),
+                            duration_seconds=alert_data.get("duration_seconds", 60),
+                            service_type=alert_data.get("service_type"),
+                            notification_channels=alert_data.get("notification_channels", []),
+                            notification_config=alert_data.get("notification_config", {}),
+                            cooldown_minutes=alert_data.get("cooldown_minutes", 15),
+                            tags=alert_data.get("tags", {}),
+                        )
+                        db.add(alert)
+                        count += 1
+                except Exception as e:
+                    errors.append({"type": "alert", "name": alert_data.get("name", "unknown"), "error": str(e)})
+
+            imported["alerts"] = count
+
         await db.commit()
 
         result = ImportResult(success=len(errors) == 0, imported=imported, errors=errors, warnings=warnings)
@@ -615,12 +1071,16 @@ async def import_configuration(request: ImportRequest, db: AsyncSession = Depend
 @router.get("/preview")
 async def preview_export(
     services: bool = True,
+    service_groups: bool = True,
     user_mappings: bool = True,
     groups: bool = True,
     site_config: bool = True,
     training_prompts: bool = True,
     prompt_templates: bool = True,
     training_workers: bool = True,
+    tool_chains: bool = True,
+    global_search: bool = True,
+    alerts: bool = True,
     db: AsyncSession = Depends(get_db_session),
 ) -> Dict[str, int]:
     """Preview what would be exported with the given options."""
@@ -629,6 +1089,13 @@ async def preview_export(
     if services:
         result = await db.execute(select(ServiceConfig))
         stats["services"] = len(result.scalars().all())
+
+    if service_groups:
+        result = await db.execute(select(ServiceGroup))
+        stats["service_groups"] = len(result.scalars().all())
+
+        result = await db.execute(select(ServiceGroupMembership))
+        stats["service_group_memberships"] = len(result.scalars().all())
 
     if user_mappings:
         result = await db.execute(select(UserMapping))
@@ -660,6 +1127,21 @@ async def preview_export(
         result = await db.execute(select(TrainingWorker))
         stats["training_workers"] = len(result.scalars().all())
 
+    if tool_chains:
+        result = await db.execute(select(ToolChain))
+        stats["tool_chains"] = len(result.scalars().all())
+
+        result = await db.execute(select(ToolChainStep))
+        stats["tool_chain_steps"] = len(result.scalars().all())
+
+    if global_search:
+        result = await db.execute(select(GlobalSearchConfig))
+        stats["global_search"] = len(result.scalars().all())
+
+    if alerts:
+        result = await db.execute(select(AlertConfiguration))
+        stats["alerts"] = len(result.scalars().all())
+
     return stats
 
 
@@ -682,26 +1164,53 @@ async def reset_all_data(db: AsyncSession = Depends(get_db_session)) -> ResetAll
         # Delete in order to respect foreign key constraints
         # Start with child tables first
 
-        # 1. Delete group memberships and permissions (depend on groups)
+        # 1. Delete tool chain data (most nested first)
+        result = await db.execute(delete(ToolChainCondition))
+        deleted["tool_chain_conditions"] = result.rowcount
+
+        result = await db.execute(delete(ToolChainConditionGroup))
+        deleted["tool_chain_condition_groups"] = result.rowcount
+
+        result = await db.execute(delete(ToolChainAction))
+        deleted["tool_chain_actions"] = result.rowcount
+
+        result = await db.execute(delete(ToolChainStep))
+        deleted["tool_chain_steps"] = result.rowcount
+
+        result = await db.execute(delete(ToolChain))
+        deleted["tool_chains"] = result.rowcount
+
+        # 2. Delete service group memberships and groups
+        result = await db.execute(delete(ServiceGroupMembership))
+        deleted["service_group_memberships"] = result.rowcount
+
+        result = await db.execute(delete(ServiceGroup))
+        deleted["service_groups"] = result.rowcount
+
+        # 3. Delete group memberships and permissions (depend on groups)
         result = await db.execute(delete(GroupMembership))
         deleted["group_memberships"] = result.rowcount
 
         result = await db.execute(delete(GroupToolPermission))
         deleted["group_permissions"] = result.rowcount
 
-        # 2. Delete groups
+        # 4. Delete groups
         result = await db.execute(delete(Group))
         deleted["groups"] = result.rowcount
 
-        # 3. Delete user mappings (depend on services)
+        # 5. Delete global search configs (depend on services)
+        result = await db.execute(delete(GlobalSearchConfig))
+        deleted["global_search"] = result.rowcount
+
+        # 6. Delete user mappings (depend on services)
         result = await db.execute(delete(UserMapping))
         deleted["user_mappings"] = result.rowcount
 
-        # 4. Delete services
+        # 7. Delete services
         result = await db.execute(delete(ServiceConfig))
         deleted["services"] = result.rowcount
 
-        # 5. Delete training data
+        # 8. Delete training data
         result = await db.execute(delete(TrainingPrompt))
         deleted["training_prompts"] = result.rowcount
 
@@ -711,7 +1220,11 @@ async def reset_all_data(db: AsyncSession = Depends(get_db_session)) -> ResetAll
         result = await db.execute(delete(TrainingWorker))
         deleted["training_workers"] = result.rowcount
 
-        # 6. Delete configuration settings
+        # 9. Delete alert configurations
+        result = await db.execute(delete(AlertConfiguration))
+        deleted["alerts"] = result.rowcount
+
+        # 10. Delete configuration settings
         result = await db.execute(delete(ConfigurationSetting))
         deleted["configuration_settings"] = result.rowcount
 

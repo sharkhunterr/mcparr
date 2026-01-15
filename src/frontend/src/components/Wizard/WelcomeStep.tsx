@@ -201,16 +201,20 @@ export default function WelcomeStep() {
           </div>
 
           {/* Features grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
             {[
               { emoji: '🔌', text: t('welcome.features.services') },
               { emoji: '👥', text: t('welcome.features.users') },
-              { emoji: '🛡️', text: t('welcome.features.permissions') },
+              { emoji: '🔗', text: t('welcome.features.chains') },
+              { emoji: '❓', text: t('welcome.features.help') },
               { emoji: '🤖', text: t('welcome.features.mcp') },
+              { emoji: '📊', text: t('welcome.features.dashboard') },
+              { emoji: '🧠', text: t('welcome.features.training') },
+              { emoji: '🛡️', text: t('welcome.features.permissions') },
             ].map((item, i) => (
-              <div key={i} className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-900/50 rounded-xl">
-                <span className="text-2xl">{item.emoji}</span>
-                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{item.text}</span>
+              <div key={i} className="flex items-center gap-2 p-3 bg-gray-50 dark:bg-gray-900/50 rounded-xl">
+                <span className="text-xl">{item.emoji}</span>
+                <span className="text-xs font-medium text-gray-700 dark:text-gray-300">{item.text}</span>
               </div>
             ))}
           </div>

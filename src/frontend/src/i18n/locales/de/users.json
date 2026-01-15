@@ -2,6 +2,10 @@
   "title": "Benutzer",
   "description": "Benutzer- und Zuordnungsverwaltung",
 
+  "help": {
+    "category": "Benutzer"
+  },
+
   "tabs": {
     "detector": {
       "label": "Automatisch",
@@ -24,6 +28,17 @@
   "detector": {
     "title": "Automatische Erkennung",
     "description": "Dienste scannen, um Zuordnungen zu erkennen",
+    "help": {
+      "title": "Automatische Erkennung",
+      "overview": "Übersicht",
+      "overviewContent": "Die automatische Erkennung scannt alle konfigurierten Dienste, um Benutzer mit ähnlichen Kennungen (E-Mail, Benutzername, ID) zu finden.",
+      "scan": "Scan starten",
+      "scanContent": "Klicken Sie auf die Schaltfläche Erkennen, um die Analyse zu starten. Das System vergleicht Benutzer über alle aktivierten Dienste und berechnet einen Konfidenzwert.",
+      "results": "Ergebnisse und Filter",
+      "resultsContent": "Ergebnisse sind nach Benutzer gruppiert und nach Konfidenzniveau sortiert (hoch, mittel, niedrig). Verwenden Sie Filter, um die Liste zu verfeinern.",
+      "create": "Zuordnungen erstellen",
+      "createContent": "Wählen Sie die gewünschten Vorschläge aus und klicken Sie auf Erstellen, um die entsprechenden Benutzerzuordnungen automatisch zu generieren."
+    },
     "detect": "Erkennen",
     "scanning": "Wird gescannt...",
     "servicesLabel": "Dienste ({{count}})",
@@ -47,13 +62,27 @@
     "useManual": "Erstellen Sie Zuordnungen manuell über den Tab \"Manuelle Zuordnung\".",
     "detectionErrors": "Erkennungsfehler",
     "selectOne": "Bitte wählen Sie mindestens einen Vorschlag aus, um Zuordnungen zu erstellen",
-    "createSuccess": "{{count}} Benutzerzuordnungen erfolgreich erstellt!"
+    "createSuccess": "{{count}} Benutzerzuordnungen erfolgreich erstellt!",
+    "userIdLabel": "ID",
+    "userLabel": "Benutzer",
+    "emailLabel": "E-Mail"
   },
 
   "creator": {
     "title": "Manuelle Zuordnung",
     "description": "Benutzerkonten über Dienste hinweg verknüpfen",
     "refresh": "Aktualisieren",
+    "help": {
+      "title": "Manuelle Zuordnung",
+      "overview": "Übersicht",
+      "overviewContent": "Die manuelle Zuordnung ermöglicht es Ihnen, Benutzerkonten über Ihre verschiedenen Dienste hinweg manuell zu verknüpfen. Dies ist nützlich, wenn die automatische Erkennung nicht funktioniert oder wenn Sie volle Kontrolle wünschen.",
+      "enumerate": "Benutzer aktualisieren",
+      "enumerateContent": "Klicken Sie auf die Schaltfläche Aktualisieren, um die Benutzerliste aus allen konfigurierten Diensten zu laden. Verwenden Sie die Suche, um nach Name oder E-Mail zu filtern, und das Dropdown-Menü, um nach Dienst zu filtern.",
+      "select": "Benutzerauswahl",
+      "selectContent": "Klicken Sie auf einen Benutzer, um ihn auszuwählen. Sie können mehrere Benutzer aus verschiedenen Diensten auswählen, um eine zentralisierte Zuordnung zu erstellen. Ausgewählte Benutzer erscheinen im oberen Bereich.",
+      "create": "Zuordnung erstellen",
+      "createContent": "Sobald Benutzer ausgewählt sind, klicken Sie auf Erstellen, um die Zuordnung zu generieren. Wenn mehrere Benutzernamen erkannt werden, können Sie auswählen, welcher als zentrale Kennung verwendet werden soll."
+    },
     "loading": "Benutzer werden geladen...",
     "selected": "Ausgewählt ({{count}})",
     "clear": "Leeren",
@@ -85,6 +114,17 @@
     "count_plural": "{{count}} Zuordnungen",
     "refresh": "Aktualisieren",
     "add": "Hinzufügen",
+    "help": {
+      "title": "Zuordnungsliste",
+      "overview": "Übersicht",
+      "overviewContent": "Diese Seite zeigt alle vorhandenen Benutzerzuordnungen an. Jede Karte stellt einen zentralen Benutzer mit seinen verknüpften Konten über verschiedene Dienste dar.",
+      "cards": "Benutzerkarten",
+      "cardsContent": "Jede Karte zeigt den Benutzernamen, die Anzahl aktiver Dienste und farbige Badges für jeden verbundenen Dienst. Fahren Sie über ein Badge, um Details zu sehen.",
+      "edit": "Bearbeitung und Verwaltung",
+      "editContent": "Klicken Sie auf das Stiftsymbol, um einen Benutzer zu bearbeiten: Namen ändern, neue Dienste hinzufügen oder bestehende Zuordnungen löschen.",
+      "sync": "Synchronisierung",
+      "syncContent": "Grüne Badges zeigen aktive Synchronisierung an. Sie können die Synchronisierung für jeden Dienst einzeln in den Details aktivieren/deaktivieren."
+    },
     "search": "Suchen...",
     "allStatus": "Alle Status",
     "statusActive": "Aktiv",

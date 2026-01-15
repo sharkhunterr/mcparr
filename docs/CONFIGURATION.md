@@ -19,7 +19,7 @@ LOG_LEVEL=INFO              # DEBUG | INFO | WARNING | ERROR
 
 # API Configuration
 API_HOST=0.0.0.0
-API_PORT=8002
+API_PORT=8000
 MCP_PORT=8001
 ```
 
@@ -176,17 +176,17 @@ Create `frontend/.env`:
 
 ```bash
 # Backend API URL
-VITE_API_URL=http://localhost:8002
+VITE_API_URL=http://localhost:8000
 
 # WebSocket URL for real-time updates
-VITE_WS_URL=ws://localhost:8002
+VITE_WS_URL=ws://localhost:8000
 ```
 
 For production with different hosts:
 
 ```bash
-VITE_API_URL=http://mcparr.yourdomain.com:8002
-VITE_WS_URL=ws://mcparr.yourdomain.com:8002
+VITE_API_URL=http://mcparr.yourdomain.com:8000
+VITE_WS_URL=ws://mcparr.yourdomain.com:8000
 ```
 
 ---
@@ -283,11 +283,116 @@ ALERT_WEBHOOK_URL=https://hooks.slack.com/services/xxx
 Some settings can be changed via the web interface without restart:
 
 - Service configurations (URLs, API keys)
+- **Service Groups** - organize services for Open WebUI endpoints
 - User mappings
 - Group permissions
 - Training prompts
+- **Tool Chains** - conditional workflows
+- **Global Search** - search across multiple services
+- **Alerts** - monitoring rules and thresholds
 
 Go to **Configuration** tab in the web interface.
+
+---
+
+## ⛓️ Tool Chains Configuration
+
+Tool chains allow you to create automated workflows with conditional logic.
+
+### Creating a Chain
+
+1. Go to **MCP** → **Chains** tab
+2. Click **New Chain**
+3. Add steps with:
+   - **Source Tool**: The trigger tool
+   - **Conditions**: IF logic (equals, contains, is_empty, etc.)
+   - **THEN Actions**: What to do when condition is true
+   - **ELSE Actions**: What to do when condition is false
+
+### Condition Operators
+
+| Operator | Description |
+|----------|-------------|
+| `eq` | Equals |
+| `ne` | Not equals |
+| `gt` | Greater than |
+| `lt` | Less than |
+| `contains` | String contains |
+| `is_empty` | Field is empty/null |
+| `is_not_empty` | Field has value |
+| `success` | Tool execution succeeded |
+| `failed` | Tool execution failed |
+| `regex` | Regular expression match |
+
+### Context Variables
+
+Pass data between chain steps using `save_to_context`:
+
+```json
+{
+  "save_to_context": {
+    "movie_id": "result.tmdbId",
+    "movie_title": "result.title"
+  }
+}
+```
+
+Use in next step's argument mappings:
+
+```json
+{
+  "argument_mappings": {
+    "mediaId": "{context.movie_id}"
+  }
+}
+```
+
+---
+
+## 🔍 Global Search Configuration
+
+Enable services for the `system_global_search` tool.
+
+### Via Web Interface
+
+1. Go to **MCP** → **Configuration** tab
+2. In **Global Search** section, toggle services on/off
+3. Set priority order for results
+
+### Categories
+
+| Category | Services |
+|----------|----------|
+| media | Overseerr, Radarr, Sonarr, Plex |
+| indexers | Jackett, Prowlarr |
+| books | Komga, Audiobookshelf |
+| wiki | Wiki.js |
+| support | Zammad |
+
+---
+
+## 🚨 Alert Configuration
+
+### Via Web Interface
+
+1. Go to **Monitoring** → **Alerts** tab
+2. Click **New Alert**
+3. Configure:
+   - **Name**: Alert identifier
+   - **Metric Type**: cpu, memory, disk, service_test_failed
+   - **Threshold**: Value and operator
+   - **Severity**: low, medium, high, critical
+   - **Cooldown**: Minutes between re-triggers
+
+### Metric Types
+
+| Type | Description |
+|------|-------------|
+| `cpu` | CPU usage percentage |
+| `memory` | Memory usage percentage |
+| `disk` | Disk usage percentage |
+| `service_test_failed` | Service health check failure |
+| `service_down` | Service unreachable |
 
 ---
 

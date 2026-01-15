@@ -3,6 +3,23 @@
   "subtitle": "Gateway für MCP-Tools (Model Context Protocol)",
   "refresh": "Aktualisieren",
 
+  "help": {
+    "pageTitle": "Hilfezentrum",
+    "pageSubtitle": "Dokumentation und Benutzerhandbücher",
+    "searchPlaceholder": "Hilfe durchsuchen...",
+    "noResults": "Keine Ergebnisse gefunden",
+    "selectTopic": "Wählen Sie ein Thema",
+    "selectTopicDescription": "Wählen Sie links ein Thema aus, um dessen detaillierten Inhalt anzuzeigen.",
+    "topics": "Themen",
+    "quickLinks": "Schnellzugriff",
+    "refresh": "Aktualisieren",
+    "knowledgeBase": "Wissensdatenbank",
+    "categories": {
+      "mcp": "MCP & Tools"
+    },
+    "backToList": "Zurück zur Liste"
+  },
+
   "tabs": {
     "stats": "Statistiken",
     "statsShort": "Stats",
@@ -16,6 +33,8 @@
     "config": "Konfiguration",
     "configShort": "Konfig.",
     "configFull": "Konfiguration",
+    "interactionsShort": "Ketten",
+    "interactionsFull": "Werkzeugketten",
     "toolGroups": "Tool-Gruppen",
     "settings": "Einstellungen"
   },
@@ -60,7 +79,18 @@
     "timeRange6h": "6h",
     "timeRange24h": "24h",
     "timeRange3d": "3T",
-    "timeRange7d": "7T"
+    "timeRange7d": "7T",
+    "help": {
+      "title": "MCP-Statistiken",
+      "overview": "Übersicht",
+      "overviewContent": "Die Registerkarte Statistiken zeigt ein umfassendes Dashboard der MCP-Aktivität. Sehen Sie Anfragen, Erfolgsraten, durchschnittliche Dauern und Trends über den ausgewählten Zeitraum.",
+      "cards": "Statistikkarten",
+      "cardsContent": "Die Karten oben zeigen wichtige Metriken: Gesamtanfragen, Erfolgsrate, durchschnittliche Dauer und Fehleranzahl. Pfeile zeigen den Trend im Vergleich zum vorherigen Zeitraum.",
+      "charts": "Diagramme",
+      "chartsContent": "Diagramme zeigen die Entwicklung der Anfragen im Zeitverlauf, Verteilung nach Status, nach Dienst und nach Benutzer. Fahren Sie über Elemente, um Details zu sehen.",
+      "timeRange": "Zeitraum",
+      "timeRangeContent": "Wählen Sie den Analysezeitraum: 1h, 6h, 24h, 3 Tage oder 7 Tage. Statistiken und Diagramme werden automatisch aktualisiert."
+    }
   },
 
   "history": {
@@ -73,6 +103,7 @@
       "user": "Benutzer",
       "timeRange": "Zeitraum",
       "allCategories": "Alle Kategorien",
+      "allServices": "Alle Dienste",
       "allStatuses": "Alle Status"
     },
     "totalRequests": "{{count}} Anfragen insgesamt",
@@ -85,7 +116,26 @@
       "user": "Benutzer"
     },
     "noRequests": "Keine Anfragen gefunden",
-    "loadMore": "Mehr laden"
+    "loadMore": "Mehr laden",
+    "chainTriggered": "Tool-Kette ausgelöst",
+    "suggestedArgs": "Vorgeschlagene Argumente",
+    "chainStart": "Kettenstart",
+    "chainMiddle": "Kettenschritt",
+    "chainEnd": "Kettenende",
+    "step": "Schritt",
+    "nextTools": "Nächste Tools",
+    "viewChain": "Kettenkonfiguration anzeigen",
+    "help": {
+      "title": "MCP-Anfragenverlauf",
+      "overview": "Übersicht",
+      "overviewContent": "Sehen Sie den Verlauf aller von der KI durchgeführten MCP-Anfragen. Jede Zeile stellt einen Tool-Aufruf mit seinem Status, seiner Dauer und dem betroffenen Benutzer dar.",
+      "filters": "Filter",
+      "filtersContent": "Filtern Sie Anfragen nach:\n• Dienst (Plex, Radarr, Sonarr...)\n• Status (abgeschlossen, fehlgeschlagen, laufend...)\n• Zeitraum (1h, 6h, 24h, 3T, 7T)",
+      "details": "Anfragedetails",
+      "detailsContent": "Klicken Sie auf eine Anfrage, um zu sehen:\n• Die gesendeten Eingabeparameter\n• Das zurückgegebene JSON-Ergebnis\n• Eventuelle Fehler",
+      "chains": "Tool-Ketten",
+      "chainsContent": "Das farbige Abzeichen zeigt an, ob die Anfrage Teil einer Tool-Kette ist. Klicken Sie darauf, um die Kettendetails und die folgenden vorgeschlagenen Tools zu sehen."
+    }
   },
 
   "tools": {
@@ -111,7 +161,22 @@
     "noTools": "Keine Tools verfügbar",
     "toolsAvailable": "{{count}} Tools verfügbar • {{services}} Dienste",
     "expandAll": "Alle aufklappen",
-    "collapseAll": "Alle zuklappen"
+    "collapseAll": "Alle zuklappen",
+    "nextTools": "Nächste Tools (Ketten)",
+    "chainCondition": "Bedingung",
+    "help": {
+      "title": "Über MCP-Tools",
+      "overview": "Übersicht",
+      "overviewContent": "Diese Seite listet alle verfügbaren MCP-Tools auf, organisiert nach Dienst (Plex, Radarr, Sonarr, usw.). Jedes Tool stellt eine Aktion dar, die die KI ausführen kann, um mit Ihren Diensten zu interagieren.",
+      "browse": "Tools durchsuchen",
+      "browseContent": "• Tools sind nach Dienst gruppiert\n• Klicken Sie auf einen Dienst, um seine Tools zu sehen\n• Jedes Tool zeigt seine Beschreibung und Parameter\n• Mit * markierte Parameter sind erforderlich",
+      "test": "Ein Tool testen",
+      "testContent": "Klicken Sie auf \"Testen\", um ein Tool manuell auszuführen:\n• Füllen Sie die erforderlichen Parameter aus\n• Sehen Sie das zurückgegebene JSON-Ergebnis\n• Nützlich, um die ordnungsgemäße Funktion zu überprüfen",
+      "groups": "Zugriffsgruppen",
+      "groupsContent": "Die farbigen Abzeichen unter jedem Tool zeigen die Benutzergruppen an, die Zugriff darauf haben. Nur Benutzer, die zu diesen Gruppen gehören, können das Tool verwenden.",
+      "mutations": "Mutationen",
+      "mutationsContent": "Mit \"Mutation\" markierte Tools ändern Daten (hinzufügen, löschen, bearbeiten). Verwenden Sie sie beim Testen mit Vorsicht."
+    }
   },
 
   "errors": {
@@ -141,8 +206,10 @@
   },
 
   "categories": {
+    "downloads": "Downloads",
+    "gaming": "Spiele",
+    "indexers": "Indexer",
     "media": "Medien",
-    "requests": "Anfragen",
     "support": "Support",
     "system": "System",
     "users": "Benutzer"
@@ -157,7 +224,17 @@
       "performanceTip": "Verwenden Sie separate Endpunkte für bessere Leistung.",
       "recommended": "Empfohlen",
       "copyUrl": "URL kopieren",
+      "copyFilter": "Filterliste kopieren",
+      "copyFilterTitle": "Funktionsliste für die Function Name Filter List in Open WebUI kopieren",
+      "tools": "Tools",
       "copied": "✓ Kopiert!"
+    },
+    "endpointsRef": {
+      "title": "Endpunkte Referenz",
+      "description": "URLs für manuelle Konfiguration in Open WebUI → Admin → Einstellungen → Tools.",
+      "allTools": "Alle Tools",
+      "byCategory": "Nach Kategorie",
+      "tip": "Tipp: Kategorie-Endpunkte für bessere LLM-Leistung verwenden."
     },
     "endpoints": {
       "all": {
@@ -188,17 +265,53 @@
       "comma": "(Komma)"
     },
     "autoConfig": {
-      "title": "Automatische Konfiguration",
-      "description": "Konfigurieren Sie Open WebUI automatisch mit MCParr-Tools mit einem Klick. Erfordert, dass der Open WebUI-Dienst mit einem Admin-API-Schlüssel konfiguriert ist.",
+      "title": "Automatische Open WebUI Konfiguration",
+      "description": "Konfigurieren Sie Open WebUI automatisch mit MCParr-Tools mit einem Klick.",
+      "notAvailable": "Open WebUI ist nicht konfiguriert",
+      "notAvailableDetail": "Um die automatische Konfiguration zu verwenden, konfigurieren Sie den Open WebUI-Dienst mit einem Admin-API-Schlüssel im Reiter Dienste.",
+      "selectCategories": "Tool-Gruppen zum Konfigurieren:",
+      "selectServices": "Dienste zum Konfigurieren:",
+      "errorNoService": "Kein Dienst ausgewählt",
+      "errorNoServiceDetail": "Bitte wählen Sie mindestens einen Dienst zum Konfigurieren aus",
+      "endpointMode": {
+        "label": "Endpunkt-Modus",
+        "group": "Nach Kategorie (empfohlen)",
+        "groupHelp": "Ein Tool-Server pro Kategorie (Medien, System, usw.) - Balance zwischen Leistung und Flexibilität",
+        "serviceGroup": "Nach benutzerdefinierter Gruppe",
+        "serviceGroupHelp": "Ein Tool-Server pro benutzerdefinierter Dienstgruppe - Verwenden Sie Ihre eigenen Gruppierungen aus Dienste → Gruppen",
+        "service": "Nach Dienst",
+        "serviceHelp": "Ein Tool-Server pro Dienst (Plex, Sonarr, usw.) - Maximale Flexibilität, mehr Verbindungen",
+        "all": "Alles zusammen",
+        "allHelp": "Ein Tool-Server mit allen Tools - Einfach, kann aber das Modell überlasten"
+      },
+      "selectServiceGroups": "Benutzerdefinierte Dienstgruppen zum Konfigurieren:",
+      "noServiceGroups": "Keine benutzerdefinierten Dienstgruppen",
+      "noServiceGroupsHint": "Erstellen Sie Dienstgruppen im Reiter Dienste → Gruppen",
+      "servicesInGroup": "Dienste",
+      "errorNoServiceGroup": "Keine Dienstgruppe ausgewählt",
+      "errorNoServiceGroupDetail": "Bitte wählen Sie mindestens eine benutzerdefinierte Dienstgruppe zum Konfigurieren aus",
+      "useFunctionFilters": "Function Name Filter Lists hinzufügen",
+      "useFunctionFiltersHelp": "Beschränkt die sichtbaren Tools für jede Gruppe",
       "urlPlaceholder": "https://mcparr.example.com (MCParr externe URL)",
       "button": "Open WebUI konfigurieren",
       "configuring": "Konfiguriere...",
       "errorNoUrl": "URL erforderlich",
       "errorNoUrlDetail": "Bitte geben Sie die externe MCParr-URL ein",
+      "errorNoCategory": "Keine Gruppe ausgewählt",
+      "errorNoCategoryDetail": "Bitte wählen Sie mindestens eine Gruppe zum Konfigurieren aus",
       "errorNetwork": "Verbindungsfehler",
       "successDetail": "{{groups}} Gruppen mit {{tools}} Tools konfiguriert",
-      "requirement": "Voraussetzung: Open WebUI muss im Reiter Dienste mit einem Admin-API-Schlüssel konfiguriert sein",
-      "manual": "manuell"
+      "requirement": "Voraussetzung: MCParr externe URL erreichbar von Open WebUI",
+      "manual": "manuell",
+      "groups": {
+        "media": "Medien (Plex/Tautulli)",
+        "books": "Bücher & Audio",
+        "download": "Downloads",
+        "games": "Spiele (RomM)",
+        "system": "System & Support",
+        "knowledge": "Wissen & KI",
+        "auth": "Authentifizierung (SSO)"
+      }
     },
     "openWebUISetup": {
       "title": "Open WebUI Setup - Funktionsfilter",
@@ -273,6 +386,19 @@
         "copy": "Kopieren",
         "copied": "✓"
       }
+    },
+    "help": {
+      "title": "MCP-Konfiguration",
+      "overview": "Übersicht",
+      "overviewContent": "Die Registerkarte Konfiguration ermöglicht die Verbindung von MCParr mit Ihren KI-Clients (Open WebUI, Claude Desktop). Konfigurieren Sie Endpunkte, kopieren Sie System-Prompts und testen Sie Verbindungen.",
+      "autoConfig": "Automatische Konfiguration",
+      "autoConfigContent": "Für Open WebUI verwenden Sie die automatische Konfiguration:\n• Wählen Sie den Endpunkt-Modus (nach Kategorie, Dienst oder alles zusammen)\n• Wählen Sie die zu konfigurierenden Gruppen oder Dienste\n• Geben Sie die externe MCParr-URL ein\n• Klicken Sie auf \"Open WebUI konfigurieren\"",
+      "endpoints": "Endpunkte",
+      "endpointsContent": "Endpunkte stellen MCP-Tools über OpenAPI bereit:\n• Alle Tools: /tools/openapi.json\n• Nach Kategorie: /tools/media/openapi.json, usw.\n\nVerwenden Sie kategoriebasierte Endpunkte für bessere Leistung.",
+      "systemPrompt": "System-Prompt",
+      "systemPromptContent": "Der System-Prompt wird automatisch basierend auf Ihren aktiven Diensten generiert. Kopieren Sie ihn in die Konfiguration Ihres KI-Clients, um das Modell bei der Verwendung der Tools anzuleiten.",
+      "otherConfigs": "Andere Konfigurationen",
+      "otherConfigsContent": "• API-Dokumentation: Zugriff auf interaktives Swagger (/docs)\n• Claude Desktop: MCP-stdio-Konfiguration für die Desktop-App"
     }
   },
 
@@ -364,6 +490,11 @@
         "service": "Deluge",
         "tool": "deluge_get_torrents"
       },
+      "torrentSearch": {
+        "content": "Einen Torrent nach Namen suchen",
+        "service": "Deluge",
+        "tool": "deluge_search_torrents"
+      },
       "movieDownload": {
         "content": "Einen FILM herunterladen/hinzufügen",
         "service": "Radarr",
@@ -452,10 +583,12 @@
     "romm": {
       "q1": "Welche Gaming-Plattformen sind verfügbar?",
       "a1": "Verwenden Sie das Tool romm_get_platforms",
-      "q2": "Was sind die neuesten Spiele, die zu RomM hinzugefügt wurden?",
-      "a2": "Verwenden Sie das Tool romm_get_roms mit limit=10",
+      "q2": "Was sind die neuesten hinzugefügten Spiele?",
+      "a2": "Verwenden Sie das Tool romm_get_recently_added",
       "q3": "Nach dem Spiel Mario suchen",
-      "a3": "Verwenden Sie das Tool romm_search_roms mit query=\"Mario\""
+      "a3": "Verwenden Sie das Tool romm_search_roms mit query=\"Mario\"",
+      "q4": "Zeige diese Woche hinzugefügte ROMs",
+      "a4": "Verwenden Sie das Tool romm_get_recently_added mit days=7"
     },
     "zammad": {
       "q1": "Ein Support-Ticket für ein Anmeldeproblem erstellen",
@@ -506,10 +639,178 @@
       "a3": "Verwenden Sie das Tool system_get_services",
       "q4": "Die Plex-Verbindung testen",
       "a4": "Verwenden Sie das Tool system_test_service mit service_name=\"Plex\"",
-      "q5": "Die neuesten Fehlerprotokolle anzeigen",
-      "a5": "Verwenden Sie das Tool system_get_logs mit level=\"error\"",
-      "q6": "Welche Warnungen sind aktiv?",
-      "a6": "Verwenden Sie das Tool system_get_alerts mit active_only=true"
+      "q5": "Alle Dienste testen",
+      "a5": "Verwenden Sie das Tool system_test_all_services",
+      "q6": "Die neuesten Fehlerprotokolle anzeigen",
+      "a6": "Verwenden Sie das Tool system_get_logs mit level=\"error\"",
+      "q7": "Welche Warnungen sind aktiv?",
+      "a7": "Verwenden Sie das Tool system_get_alerts mit active_only=true"
+    }
+  },
+
+  "toolChains": {
+    "list": {
+      "title": "Werkzeugketten",
+      "new": "Neu",
+      "refresh": "Aktualisieren",
+      "search": "Ketten suchen...",
+      "count": "{{count}} Kette(n)",
+      "stepCount": "{{count}} Schritt(e)",
+      "showDisabled": "Deaktivierte anzeigen",
+      "priority": "Priorität",
+      "disabled": "Deaktiviert",
+      "enable": "Aktivieren",
+      "disable": "Deaktivieren",
+      "delete": "Löschen",
+      "deleteConfirm": "Kette \"{{name}}\" löschen?",
+      "noChains": "Keine Werkzeugketten konfiguriert",
+      "noChainsFound": "Keine Ketten entsprechen Ihrer Suche",
+      "createFirst": "Erstellen Sie Ihre erste Kette"
+    },
+    "create": {
+      "title": "Werkzeugkette erstellen",
+      "name": "Name",
+      "namePlaceholder": "z.B. Suchen dann anfordern",
+      "description": "Beschreibung",
+      "descriptionPlaceholder": "Was diese Kette tut...",
+      "color": "Farbe",
+      "customColor": "Benutzerdefinierte Farbe",
+      "priority": "Priorität",
+      "priorityHelp": "Ketten mit höherer Priorität werden zuerst ausgewertet",
+      "stepsInfo": "Nach dem Erstellen der Kette können Sie Schritte mit Auslösebedingungen und Zieltools hinzufügen.",
+      "cancel": "Abbrechen",
+      "submit": "Erstellen"
+    },
+    "detail": {
+      "tabs": {
+        "info": "Info",
+        "steps": "Schritte"
+      },
+      "name": "Name",
+      "description": "Beschreibung",
+      "color": "Farbe",
+      "customColor": "Benutzerdefinierte Farbe",
+      "priority": "Priorität",
+      "priorityHelp": "Ketten mit höherer Priorität werden zuerst ausgewertet",
+      "save": "Speichern",
+      "stepsHelp": "Jeder Schritt definiert einen Auslöser (Quelltool + Bedingung) und auszuführende Zieltools",
+      "stepsHelpIfThenElse": "Jeder Schritt: WENN Bedingungen erfüllt DANN Aktionen ausführen, SONST alternative Aktionen ausführen",
+      "noSteps": "Keine Schritte konfiguriert",
+      "addStep": "Schritt hinzufügen",
+      "editStep": "Schritt bearbeiten",
+      "sourceTool": "Quelltool",
+      "trigger": "Auslöser",
+      "when": "Wenn",
+      "condition": "Bedingung",
+      "conditions": "Bedingungen",
+      "conditionFieldPlaceholder": "z.B. count, data.items.length",
+      "conditionValuePlaceholder": "Zu vergleichender Wert",
+      "ifConditions": "WENN (Bedingungen)",
+      "noConditions": "Keine Bedingungen",
+      "alwaysTrue": "immer wahr",
+      "thenBranch": "DANN (wenn wahr)",
+      "elseBranch": "SONST (wenn falsch)",
+      "then": "dann",
+      "else": "sonst",
+      "noActions": "Keine Aktionen",
+      "addCondition": "Bedingung hinzufügen",
+      "addAction": "Aktion hinzufügen",
+      "actionTypeToolCall": "Tool aufrufen",
+      "actionTypeMessage": "Nachricht anzeigen",
+      "messageTemplatePlaceholder": "Nachricht mit {result.field} oder {input.param} Platzhaltern...",
+      "actionCommentPlaceholder": "Warum diese Aktion...",
+      "emptyMessage": "(leere Nachricht)",
+      "positionType": "Schrittposition",
+      "positionMiddle": "Mitte (Kette fortsetzen)",
+      "positionEnd": "Ende (Endschritt)",
+      "endStep": "Ende",
+      "targets": "Ziel(e)",
+      "targetTools": "Zieltools",
+      "addTarget": "Ziel hinzufügen",
+      "targetCommentPlaceholder": "Warum dieses Tool aufrufen...",
+      "selectService": "Dienst auswählen",
+      "selectTool": "Tool auswählen",
+      "sequential": "Sequentiell",
+      "parallel": "Parallel",
+      "aiComment": "KI-Anleitung",
+      "stepCommentPlaceholder": "Wann/warum diesen Schritt auslösen...",
+      "cancel": "Abbrechen",
+      "add": "Hinzufügen",
+      "enable": "Aktivieren",
+      "disable": "Deaktivieren",
+      "deleteStepConfirm": "Diesen Schritt löschen?",
+      "deleteTargetConfirm": "Dieses Ziel löschen?",
+      "backToList": "Zurück zur Liste",
+      "selectChain": "Wählen Sie eine Kette, um Details anzuzeigen",
+      "help": {
+        "title": "Wie Tool-Ketten funktionieren",
+        "overview": "Übersicht",
+        "overviewContent": "Tool-Ketten ermöglichen die Automatisierung von Aktionssequenzen basierend auf MCP-Tool-Ergebnissen. Wenn ein Tool ausgeführt wird, werden seine Ergebnisse analysiert und Folgeaktionen können automatisch ausgelöst werden.",
+        "steps": "Schritte",
+        "stepsContent": "Jeder Schritt definiert:\n• Ein Auslöser-Tool (Quelle)\n• Bedingungen zur Auswertung des Ergebnisses\n• DANN-Aktionen (wenn Bedingungen wahr)\n• SONST-Aktionen (wenn Bedingungen falsch)",
+        "conditions": "Bedingungen",
+        "conditionsContent": "Bedingungen ermöglichen das Testen von Ergebnissen:\n• Gleich, ungleich, enthält...\n• Größer, kleiner (numerische Werte)\n• Leer, nicht leer\n• Tool-Erfolg oder -Fehler\n\nKombinieren Sie mit UND/ODER für komplexe Logik.",
+        "actions": "Aktionstypen",
+        "actionsContent": "• Tool aufrufen: führt ein anderes MCP-Tool aus\n• Nachricht: zeigt eine Nachricht für die KI an\n• Bedingung: verschachtelter WENN/DANN/SONST-Block",
+        "mappings": "Argument-Mappings",
+        "mappingsContent": "Übertragen Sie Werte zwischen Tools:\n• result.feld → verwendet das Ergebnis des vorherigen Tools\n• context.variable → verwendet eine gespeicherte Variable",
+        "context": "Kontextvariablen",
+        "contextContent": "Speichern Sie Werte für nachfolgende Schritte:\n• Konfigurieren Sie \"Im Kontext speichern\" für eine Aktion\n• Verwenden Sie {context.variable} in Nachrichten\n• Verwenden Sie context.variable in Mappings"
+      }
+    }
+  },
+
+  "globalSearch": {
+    "title": "Globale Suche",
+    "description": "Suche in allen aktivierten Diensten",
+    "config": "Konfiguration",
+    "configDescription": "Konfigurieren Sie, welche Dienste in der globalen Suche enthalten sind",
+    "enabledServices": "Aktivierte Dienste",
+    "noServices": "Keine Dienste mit Suchfunktion",
+    "noSearchableServices": "Keine durchsuchbaren Dienste konfiguriert",
+    "noSearchableServicesHint": "Konfigurieren Sie Dienste wie Overseerr, Radarr, Sonarr usw., um die globale Suche zu aktivieren",
+    "serviceEnabled": "Aktiviert",
+    "serviceDisabled": "Deaktiviert",
+    "enableAll": "Alle aktivieren",
+    "disableAll": "Alle deaktivieren",
+    "searchIn": "Suche in",
+    "priority": "Priorität",
+    "categories": {
+      "all": "Alle",
+      "media": "Medien",
+      "indexers": "Indexer",
+      "books": "Bücher",
+      "gaming": "Spiele",
+      "wiki": "Wiki",
+      "support": "Support"
+    },
+    "categoryDescriptions": {
+      "media": "Overseerr, Radarr, Sonarr, Plex",
+      "indexers": "Jackett, Prowlarr",
+      "books": "Komga, Audiobookshelf",
+      "gaming": "RoMM",
+      "wiki": "WikiJS",
+      "support": "Zammad"
+    },
+    "aiFeature": "KI-Funktion",
+    "aiFeatureHint": "Dieses Tool ist für KI-Assistenten über MCP verfügbar",
+    "toolName": "system_global_search",
+    "featureEnabled": "Globale Suche aktivieren",
+    "hideNotifications": "Info-Banner ausblenden",
+    "featureDisabledMessage": "Die globale Suche ist deaktiviert. Das Tool wird für KI-Assistenten nicht verfügbar sein.",
+    "infoBlock": {
+      "title": "Globale Suche Verfügbar",
+      "description": "Suchen Sie in allen Ihren Diensten mit einer einzigen Anfrage.",
+      "configure": "Konfigurieren"
+    },
+    "help": {
+      "title": "Globale Suche",
+      "overview": "Übersicht",
+      "overviewContent": "Die globale Suche ermöglicht es der KI, mit einer einzigen Anfrage in allen konfigurierten Diensten zu suchen. Die Ergebnisse werden nach Kategorie gruppiert (Medien, Bücher, Wiki usw.).",
+      "configuration": "Konfiguration",
+      "configurationContent": "Aktivieren oder deaktivieren Sie Dienste für die globale Suche. Nur aktivierte Dienste werden bei der Verwendung von system_global_search abgefragt.",
+      "usage": "Verwendung",
+      "usageContent": "Die KI kann dieses Tool verwenden, um Inhalte in Ihrem Homelab zu finden:\n• Nach einem Film in Overseerr, Radarr und Plex suchen\n• Bücher in Komga und Audiobookshelf finden\n• In der WikiJS-Dokumentation suchen\n• Support-Tickets in Zammad finden"
     }
   }
 }

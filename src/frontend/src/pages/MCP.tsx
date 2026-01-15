@@ -1,6 +1,10 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Bot, RefreshCw, BarChart3, History, Wrench, Settings, ChevronDown, ChevronRight, Play, X, Loader2, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { Bot, RefreshCw, BarChart3, History, Wrench, Settings, ChevronDown, ChevronRight, Play, X, Loader2, TrendingUp, TrendingDown, Minus, Link2, Workflow, ArrowRight, Square, CircleDot } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
+import { ToolChainManagement } from '../components/ToolChains';
+import { GlobalSearchConfig, GlobalSearchInfoBlock } from '../components/MCP';
+import { HelpTooltip } from '../components/common';
 import { api, getApiBaseUrl } from '../lib/api';
 import { getServiceColor, getServiceFromToolName } from '../lib/serviceColors';
 
@@ -437,6 +441,63 @@ const StatusDonutChart = ({ data, total }: { data: Record<string, number>; total
         })}
       </div>
     </div>
+  );
+};
+
+// Chain Badge - Shows chain info for requests that triggered next tools
+const ChainBadge = ({
+  request,
+  onChainClick,
+}: {
+  request: McpRequest;
+  onChainClick?: () => void;
+}) => {
+  const { t } = useTranslation('mcp');
+  const chainContext = request.output_result?.chain_context;
+  const nextTools = request.output_result?.next_tools_to_call;
+
+  if (!chainContext && (!nextTools || nextTools.length === 0)) return null;
+
+  const position = chainContext?.position || 'start';
+  const chains = chainContext?.chains || [];
+  const chainName = chains[0]?.name;
+  const chainColor = chains[0]?.color || '#8b5cf6';
+  const stepNumber = chainContext?.step_number;
+
+  // Position-specific styling
+  const positionIcons = {
+    start: <Play className="w-3 h-3" />,
+    middle: <CircleDot className="w-3 h-3" />,
+    end: <Square className="w-3 h-3" />,
+  };
+
+  const positionLabels = {
+    start: t('history.chainStart'),
+    middle: t('history.chainMiddle'),
+    end: t('history.chainEnd'),
+  };
+
+  return (
+    <button
+      onClick={(e) => {
+        e.stopPropagation();
+        onChainClick?.();
+      }}
+      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium transition-colors hover:opacity-80"
+      style={{
+        backgroundColor: `${chainColor}20`,
+        color: chainColor,
+      }}
+      title={`${positionLabels[position as keyof typeof positionLabels] || position}${stepNumber ? ` (${t('history.step')} ${stepNumber})` : ''} - ${chainName || t('history.chainTriggered')}`}
+    >
+      {positionIcons[position as keyof typeof positionIcons]}
+      {stepNumber && (
+        <>
+          <ArrowRight className="w-3 h-3" />
+          <span>{stepNumber}</span>
+        </>
+      )}
+    </button>
   );
 };
 
@@ -1330,6 +1391,42 @@ const ConfigurationTab = ({ tools }: { tools: McpToolsResponse | null }) => {
     errors?: string[];
   } | null>(null);
   const [mcparrExternalUrl, setMcparrExternalUrl] = useState('');
+  // Endpoint mode: 'all' = single endpoint, 'group' = per category, 'service' = per service, 'serviceGroup' = custom service groups
+  const [endpointMode, setEndpointMode] = useState<'all' | 'group' | 'service' | 'serviceGroup'>('group');
+  // Groups match backend OPENWEBUI_TOOL_GROUPS keys (for 'group' mode)
+  const [selectedGroups, setSelectedGroups] = useState<Record<string, boolean>>({
+    media: true,
+    books: true,
+    download: true,
+    games: true,
+    system: true,
+    knowledge: false,
+    auth: true,
+  });
+  // Services for 'service' mode
+  const [selectedServices, setSelectedServices] = useState<Record<string, boolean>>({
+    plex: true,
+    tautulli: true,
+    overseerr: true,
+    radarr: true,
+    sonarr: true,
+    prowlarr: true,
+    jackett: false,
+    deluge: true,
+    komga: true,
+    audiobookshelf: true,
+    romm: true,
+    system: true,
+    zammad: true,
+    openwebui: false,
+    wikijs: false,
+    authentik: true,
+  });
+  // Custom service groups for 'serviceGroup' mode
+  const [customServiceGroups, setCustomServiceGroups] = useState<Array<{ id: string; name: string; service_types: string[] }>>([]);
+  const [selectedServiceGroups, setSelectedServiceGroups] = useState<Record<string, boolean>>({});
+  const [serviceGroupsLoading, setServiceGroupsLoading] = useState(false);
+  const [useFunctionFilters, setUseFunctionFilters] = useState(true);
 
   useEffect(() => {
     const fetchStatus = async () => {
@@ -1350,6 +1447,32 @@ const ConfigurationTab = ({ tools }: { tools: McpToolsResponse | null }) => {
     const interval = setInterval(fetchStatus, 30000);
     return () => clearInterval(interval);
   }, []);
+
+  // Fetch custom service groups when mode changes to 'serviceGroup'
+  useEffect(() => {
+    if (endpointMode === 'serviceGroup') {
+      const fetchServiceGroups = async () => {
+        setServiceGroupsLoading(true);
+        try {
+          const response = await api.serviceGroups.list(true); // Only enabled groups
+          const groups = response.groups || [];
+          setCustomServiceGroups(groups);
+          // Initialize selection - all groups selected by default
+          const initialSelection: Record<string, boolean> = {};
+          groups.forEach((group: { id: string }) => {
+            initialSelection[group.id] = true;
+          });
+          setSelectedServiceGroups(initialSelection);
+        } catch (error) {
+          console.error('Failed to fetch service groups:', error);
+          setCustomServiceGroups([]);
+        } finally {
+          setServiceGroupsLoading(false);
+        }
+      };
+      fetchServiceGroups();
+    }
+  }, [endpointMode]);
 
   // Générer le prompt dynamiquement
   const systemPrompt = generateSystemPrompt(tools, serverStatus?.enabled_services || [], t);
@@ -1391,6 +1514,65 @@ const ConfigurationTab = ({ tools }: { tools: McpToolsResponse | null }) => {
       return;
     }
 
+    // Build request body based on endpoint mode
+    const requestBody: {
+      mcparr_external_url: string;
+      endpoint_mode: string;
+      use_function_filters: boolean;
+      groups?: string[];
+      services?: string[];
+      service_group_ids?: string[];
+    } = {
+      mcparr_external_url: mcparrExternalUrl.trim(),
+      endpoint_mode: endpointMode,
+      use_function_filters: useFunctionFilters,
+    };
+
+    if (endpointMode === 'group') {
+      const groupsToConfig = Object.entries(selectedGroups)
+        .filter(([, enabled]) => enabled)
+        .map(([group]) => group);
+
+      if (groupsToConfig.length === 0) {
+        setAutoConfigResult({
+          success: false,
+          message: t('config.autoConfig.errorNoCategory'),
+          errors: [t('config.autoConfig.errorNoCategoryDetail')],
+        });
+        return;
+      }
+      requestBody.groups = groupsToConfig;
+    } else if (endpointMode === 'service') {
+      const servicesToConfig = Object.entries(selectedServices)
+        .filter(([, enabled]) => enabled)
+        .map(([service]) => service);
+
+      if (servicesToConfig.length === 0) {
+        setAutoConfigResult({
+          success: false,
+          message: t('config.autoConfig.errorNoService'),
+          errors: [t('config.autoConfig.errorNoServiceDetail')],
+        });
+        return;
+      }
+      requestBody.services = servicesToConfig;
+    } else if (endpointMode === 'serviceGroup') {
+      const serviceGroupIds = Object.entries(selectedServiceGroups)
+        .filter(([, enabled]) => enabled)
+        .map(([groupId]) => groupId);
+
+      if (serviceGroupIds.length === 0) {
+        setAutoConfigResult({
+          success: false,
+          message: t('config.autoConfig.errorNoServiceGroup'),
+          errors: [t('config.autoConfig.errorNoServiceGroupDetail')],
+        });
+        return;
+      }
+      requestBody.service_group_ids = serviceGroupIds;
+    }
+    // For 'all' mode, no groups/services needed
+
     setAutoConfigLoading(true);
     setAutoConfigResult(null);
 
@@ -1400,11 +1582,7 @@ const ConfigurationTab = ({ tools }: { tools: McpToolsResponse | null }) => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          mcparr_external_url: mcparrExternalUrl.trim(),
-          // Backend automatically keeps non-MCParr connections
-          // and replaces only existing MCParr connections
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       const data = await response.json();
@@ -1420,396 +1598,386 @@ const ConfigurationTab = ({ tools }: { tools: McpToolsResponse | null }) => {
     }
   };
 
-  // OpenAPI endpoints configuration
-  const openApiEndpoints = [
-    {
-      id: 'all',
-      name: t('config.endpoints.all.name'),
-      path: '/tools/openapi.json',
-      description: t('config.endpoints.all.description'),
-      color: 'gray',
-      services: ['Tous'],
-      recommended: false,
-    },
-    {
-      id: 'system',
-      name: t('config.endpoints.system.name'),
-      path: '/tools/system/openapi.json',
-      description: t('config.endpoints.system.description'),
-      color: 'blue',
-      services: ['System', 'Zammad', 'Authentik'],
-      recommended: true,
-    },
-    {
-      id: 'media',
-      name: t('config.endpoints.media.name'),
-      path: '/tools/media/openapi.json',
-      description: t('config.endpoints.media.description'),
-      color: 'purple',
-      services: ['Plex', 'Tautulli', 'Overseerr', 'Komga', 'RomM', 'Audiobookshelf'],
-      recommended: true,
-    },
-    {
-      id: 'processing',
-      name: t('config.endpoints.processing.name'),
-      path: '/tools/processing/openapi.json',
-      description: t('config.endpoints.processing.description'),
-      color: 'orange',
-      services: ['Radarr', 'Sonarr', 'Prowlarr', 'Deluge'],
-      recommended: true,
-    },
-    {
-      id: 'knowledge',
-      name: t('config.endpoints.knowledge.name'),
-      path: '/tools/knowledge/openapi.json',
-      description: t('config.endpoints.knowledge.description'),
-      color: 'green',
-      services: ['Wiki.js', 'Open WebUI', 'Ollama'],
-      recommended: false,
-    },
-  ];
-
-  const colorClasses: Record<string, { bg: string; border: string; text: string; badge: string }> = {
-    blue: {
-      bg: 'bg-blue-50 dark:bg-blue-900/20',
-      border: 'border-blue-200 dark:border-blue-800',
-      text: 'text-blue-900 dark:text-blue-100',
-      badge: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
-    },
-    purple: {
-      bg: 'bg-purple-50 dark:bg-purple-900/20',
-      border: 'border-purple-200 dark:border-purple-800',
-      text: 'text-purple-900 dark:text-purple-100',
-      badge: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
-    },
-    orange: {
-      bg: 'bg-orange-50 dark:bg-orange-900/20',
-      border: 'border-orange-200 dark:border-orange-800',
-      text: 'text-orange-900 dark:text-orange-100',
-      badge: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200',
-    },
-    green: {
-      bg: 'bg-green-50 dark:bg-green-900/20',
-      border: 'border-green-200 dark:border-green-800',
-      text: 'text-green-900 dark:text-green-100',
-      badge: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
-    },
-    gray: {
-      bg: 'bg-gray-50 dark:bg-gray-800',
-      border: 'border-gray-200 dark:border-gray-700',
-      text: 'text-gray-900 dark:text-gray-100',
-      badge: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200',
-    },
-  };
+  // Check if Open WebUI service is configured
+  const isOpenWebUIConfigured = serverStatus?.enabled_services?.some(
+    (s) => s.toLowerCase() === 'openwebui' || s.toLowerCase() === 'open_webui'
+  ) ?? false;
 
   return (
     <div className="space-y-6">
-      {/* Open WebUI Tool Endpoints */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg p-4 sm:p-6 shadow">
-        <div className="flex items-center gap-2 mb-4">
-          <svg className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
-          </svg>
-          <h3 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white">
-            {t('config.openWebUI.title')}
-          </h3>
-        </div>
-
-        <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-4">
-          <span className="hidden sm:inline">{t('config.openWebUI.description')}</span>
-          <span className="sm:hidden">{t('config.openWebUI.descriptionMobile')}</span>
-          <br className="hidden sm:block" />
-          <span className="text-blue-600 dark:text-blue-400 block sm:inline mt-1 sm:mt-0">{t('config.openWebUI.performanceTip')}</span>
-        </p>
-
-        <div className="grid gap-3">
-          {openApiEndpoints.map((endpoint) => {
-            const colors = colorClasses[endpoint.color];
-            const fullUrl = `${backendUrl}${endpoint.path}`;
-
-            return (
-              <div
-                key={endpoint.id}
-                className={`${colors.bg} ${colors.border} border rounded-lg p-3 sm:p-4`}
-              >
-                {/* Mobile: Stack layout, Desktop: Side by side */}
-                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center flex-wrap gap-2 mb-1">
-                      <h4 className={`font-medium ${colors.text}`}>
-                        {endpoint.name}
-                      </h4>
-                      {endpoint.recommended && (
-                        <span className="px-1.5 py-0.5 text-xs bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 rounded">
-                          {t('config.openWebUI.recommended')}
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                      {endpoint.description}
-                    </p>
-                    <div className="flex flex-wrap gap-1">
-                      {endpoint.services.map(service => (
-                        <span
-                          key={service}
-                          className={`px-2 py-0.5 text-xs ${colors.badge} rounded-full`}
-                        >
-                          {service}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                  {/* Mobile: Full width row, Desktop: Column on right */}
-                  <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-2 pt-2 sm:pt-0 border-t sm:border-t-0 border-gray-200 dark:border-gray-600">
-                    <code className="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded font-mono truncate max-w-[200px] sm:max-w-none">
-                      {endpoint.path}
-                    </code>
-                    <button
-                      onClick={() => copyToClipboard(fullUrl, `endpoint-${endpoint.id}`)}
-                      className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors whitespace-nowrap ${
-                        copied === `endpoint-${endpoint.id}`
-                          ? 'bg-green-600 text-white'
-                          : 'bg-blue-600 hover:bg-blue-700 text-white'
-                      }`}
-                    >
-                      {copied === `endpoint-${endpoint.id}` ? t('config.openWebUI.copied') : t('config.openWebUI.copyUrl')}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Quick setup reminder */}
-        <div className="mt-4 p-2 sm:p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
-          <p className="text-xs sm:text-sm text-amber-800 dark:text-amber-200">
-            <strong>{t('config.quickSetup.title')}</strong> {t('config.quickSetup.auth')}
-            <span className="hidden sm:inline"> •</span><span className="sm:hidden">,</span>
-            {t('config.quickSetup.filter')} <code className="bg-amber-100 dark:bg-amber-900 px-1 rounded text-xs">,</code> <span className="text-amber-600 dark:text-amber-400">{t('config.quickSetup.comma')}</span>
-          </p>
-        </div>
-
-        {/* Important troubleshooting note */}
-        <details className="mt-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg group">
-          <summary className="p-3 sm:p-4 cursor-pointer list-none flex items-center gap-2 hover:bg-blue-100/50 dark:hover:bg-blue-900/30 rounded-lg">
-            <svg className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 dark:text-blue-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-            </svg>
-            <span className="font-medium text-sm sm:text-base text-blue-900 dark:text-blue-100">{t('config.troubleshooting.title')}</span>
-            <svg className="w-4 h-4 text-blue-400 transition-transform group-open:rotate-180 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-          </summary>
-          <div className="px-3 sm:px-4 pb-3 sm:pb-4 text-xs sm:text-sm text-blue-800 dark:text-blue-200 space-y-2">
-            <p>
-              {t('config.troubleshooting.description')}
-            </p>
-            <p><strong>{t('config.troubleshooting.solutionsTitle')}</strong></p>
-            <ul className="list-disc list-inside ml-1 sm:ml-2 space-y-1">
-              <li>{t('config.troubleshooting.solution1')}</li>
-              <li className="break-words">{t('config.troubleshooting.solution2')}</li>
-              <li>{t('config.troubleshooting.solution3')}</li>
-            </ul>
-          </div>
-        </details>
-      </div>
-
-      {/* Open WebUI Function Filters Setup */}
+      {/* Section 1: Auto-configuration for Open WebUI */}
       <div className="bg-white dark:bg-gray-800 rounded-lg p-4 sm:p-6 shadow">
         <div className="flex items-center gap-2 mb-4">
           <svg className="w-5 h-5 sm:w-6 sm:h-6 text-teal-600 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/>
+            <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/>
           </svg>
           <h3 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white">
-            {t('config.openWebUISetup.title')}
+            {t('config.autoConfig.title')}
           </h3>
+          <div className="flex-1" />
+          <HelpTooltip topicId="config" />
         </div>
 
-        <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-4">
-          {t('config.openWebUISetup.description')}
-        </p>
-
-        {/* Auto-configuration */}
-        <div className="mb-4 p-4 bg-gradient-to-r from-teal-50 to-cyan-50 dark:from-teal-900/20 dark:to-cyan-900/20 border border-teal-200 dark:border-teal-800 rounded-lg">
-          <div className="flex items-center gap-2 mb-3">
-            <svg className="w-5 h-5 text-teal-600" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/>
-            </svg>
-            <h4 className="font-medium text-teal-900 dark:text-teal-100">
-              {t('config.autoConfig.title')}
-            </h4>
+        {!isOpenWebUIConfigured ? (
+          /* Not available message */
+          <div className="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+            <p className="font-medium text-amber-800 dark:text-amber-200 mb-1">
+              {t('config.autoConfig.notAvailable')}
+            </p>
+            <p className="text-sm text-amber-600 dark:text-amber-400">
+              {t('config.autoConfig.notAvailableDetail')}
+            </p>
           </div>
-          <p className="text-xs sm:text-sm text-teal-700 dark:text-teal-300 mb-3">
-            {t('config.autoConfig.description')}
-          </p>
+        ) : (
+          /* Auto-configuration form */
+          <div className="space-y-4">
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+              {t('config.autoConfig.description')}
+            </p>
 
-          <div className="flex flex-col sm:flex-row gap-2 mb-3">
-            <input
-              type="url"
-              placeholder={t('config.autoConfig.urlPlaceholder')}
-              value={mcparrExternalUrl}
-              onChange={(e) => setMcparrExternalUrl(e.target.value)}
-              className="flex-1 px-3 py-2 text-sm border border-teal-300 dark:border-teal-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-            />
+            {/* 1. Endpoint mode select - FIRST */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                {t('config.autoConfig.endpointMode.label')}
+              </label>
+              <select
+                value={endpointMode}
+                onChange={(e) => setEndpointMode(e.target.value as 'all' | 'group' | 'service' | 'serviceGroup')}
+                className="w-full sm:w-auto px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+              >
+                <option value="group">{t('config.autoConfig.endpointMode.group')}</option>
+                <option value="serviceGroup">{t('config.autoConfig.endpointMode.serviceGroup')}</option>
+                <option value="service">{t('config.autoConfig.endpointMode.service')}</option>
+                <option value="all">{t('config.autoConfig.endpointMode.all')}</option>
+              </select>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                {t(`config.autoConfig.endpointMode.${endpointMode}Help`)}
+              </p>
+            </div>
+
+            {/* 2. Conditional selection based on mode */}
+            {endpointMode === 'group' && (
+              <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600">
+                <p className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  {t('config.autoConfig.selectCategories')}
+                </p>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {[
+                    { id: 'media', label: t('config.autoConfig.groups.media') },
+                    { id: 'books', label: t('config.autoConfig.groups.books') },
+                    { id: 'download', label: t('config.autoConfig.groups.download') },
+                    { id: 'games', label: t('config.autoConfig.groups.games') },
+                    { id: 'system', label: t('config.autoConfig.groups.system') },
+                    { id: 'knowledge', label: t('config.autoConfig.groups.knowledge') },
+                    { id: 'auth', label: t('config.autoConfig.groups.auth') },
+                  ].map((group) => (
+                    <label
+                      key={group.id}
+                      className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-colors ${
+                        selectedGroups[group.id]
+                          ? 'bg-teal-100 dark:bg-teal-900/30 border border-teal-300 dark:border-teal-700'
+                          : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700'
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedGroups[group.id]}
+                        onChange={(e) => setSelectedGroups(prev => ({
+                          ...prev,
+                          [group.id]: e.target.checked
+                        }))}
+                        className="w-4 h-4 text-teal-600 bg-gray-100 border-gray-300 rounded focus:ring-teal-500"
+                      />
+                      <span className={`text-xs font-medium ${
+                        selectedGroups[group.id] ? 'text-teal-800 dark:text-teal-200' : 'text-gray-600 dark:text-gray-400'
+                      }`}>
+                        {group.label}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {endpointMode === 'service' && (
+              <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600">
+                <p className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  {t('config.autoConfig.selectServices')}
+                </p>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {[
+                    { id: 'plex', label: 'Plex' },
+                    { id: 'tautulli', label: 'Tautulli' },
+                    { id: 'overseerr', label: 'Overseerr' },
+                    { id: 'radarr', label: 'Radarr' },
+                    { id: 'sonarr', label: 'Sonarr' },
+                    { id: 'prowlarr', label: 'Prowlarr' },
+                    { id: 'jackett', label: 'Jackett' },
+                    { id: 'deluge', label: 'Deluge' },
+                    { id: 'komga', label: 'Komga' },
+                    { id: 'audiobookshelf', label: 'Audiobookshelf' },
+                    { id: 'romm', label: 'RomM' },
+                    { id: 'system', label: 'System' },
+                    { id: 'zammad', label: 'Zammad' },
+                    { id: 'openwebui', label: 'Open WebUI' },
+                    { id: 'wikijs', label: 'Wiki.js' },
+                    { id: 'authentik', label: 'Authentik' },
+                  ].map((service) => (
+                    <label
+                      key={service.id}
+                      className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-colors ${
+                        selectedServices[service.id]
+                          ? 'bg-teal-100 dark:bg-teal-900/30 border border-teal-300 dark:border-teal-700'
+                          : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700'
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedServices[service.id]}
+                        onChange={(e) => setSelectedServices(prev => ({
+                          ...prev,
+                          [service.id]: e.target.checked
+                        }))}
+                        className="w-4 h-4 text-teal-600 bg-gray-100 border-gray-300 rounded focus:ring-teal-500"
+                      />
+                      <span className={`text-xs font-medium ${
+                        selectedServices[service.id] ? 'text-teal-800 dark:text-teal-200' : 'text-gray-600 dark:text-gray-400'
+                      }`}>
+                        {service.label}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {endpointMode === 'serviceGroup' && (
+              <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600">
+                <p className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  {t('config.autoConfig.selectServiceGroups')}
+                </p>
+                {serviceGroupsLoading ? (
+                  <div className="flex items-center justify-center py-4">
+                    <Loader2 className="w-5 h-5 animate-spin text-teal-600" />
+                    <span className="ml-2 text-sm text-gray-500">{t('common:loading')}</span>
+                  </div>
+                ) : customServiceGroups.length === 0 ? (
+                  <div className="text-center py-4">
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      {t('config.autoConfig.noServiceGroups')}
+                    </p>
+                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                      {t('config.autoConfig.noServiceGroupsHint')}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {customServiceGroups.map((group) => (
+                      <label
+                        key={group.id}
+                        className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-colors ${
+                          selectedServiceGroups[group.id]
+                            ? 'bg-teal-100 dark:bg-teal-900/30 border border-teal-300 dark:border-teal-700'
+                            : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectedServiceGroups[group.id] || false}
+                          onChange={(e) => setSelectedServiceGroups(prev => ({
+                            ...prev,
+                            [group.id]: e.target.checked
+                          }))}
+                          className="w-4 h-4 text-teal-600 bg-gray-100 border-gray-300 rounded focus:ring-teal-500"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <span className={`text-xs font-medium block truncate ${
+                            selectedServiceGroups[group.id] ? 'text-teal-800 dark:text-teal-200' : 'text-gray-600 dark:text-gray-400'
+                          }`}>
+                            {group.name}
+                          </span>
+                          <span className="text-[10px] text-gray-400 dark:text-gray-500">
+                            {group.service_types.length} {t('config.autoConfig.servicesInGroup')}
+                          </span>
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* 3. Function filters checkbox */}
+            <label className="flex items-start gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={useFunctionFilters}
+                onChange={(e) => setUseFunctionFilters(e.target.checked)}
+                className="w-4 h-4 mt-0.5 text-teal-600 bg-gray-100 border-gray-300 rounded focus:ring-teal-500"
+              />
+              <div>
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  {t('config.autoConfig.useFunctionFilters')}
+                </span>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  {t('config.autoConfig.useFunctionFiltersHelp')}
+                </p>
+              </div>
+            </label>
+
+            {/* 4. URL input + button */}
+            <div className="flex flex-col sm:flex-row gap-2">
+              <input
+                type="url"
+                placeholder={t('config.autoConfig.urlPlaceholder')}
+                value={mcparrExternalUrl}
+                onChange={(e) => setMcparrExternalUrl(e.target.value)}
+                className="flex-1 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+              />
+              <button
+                onClick={handleAutoConfigureOpenWebUI}
+                disabled={autoConfigLoading || (endpointMode === 'group' && Object.values(selectedGroups).every(v => !v)) || (endpointMode === 'service' && Object.values(selectedServices).every(v => !v)) || (endpointMode === 'serviceGroup' && Object.values(selectedServiceGroups).every(v => !v))}
+                className="px-4 py-2 text-sm font-medium text-white bg-teal-600 hover:bg-teal-700 disabled:bg-teal-400 disabled:cursor-not-allowed rounded-lg transition-colors flex items-center justify-center gap-2 whitespace-nowrap"
+              >
+                {autoConfigLoading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    {t('config.autoConfig.configuring')}
+                  </>
+                ) : (
+                  <>
+                    <Play className="w-4 h-4" />
+                    {t('config.autoConfig.button')}
+                  </>
+                )}
+              </button>
+            </div>
+
+            {/* Result message */}
+            {autoConfigResult && (
+              <div className={`p-3 rounded-lg ${
+                autoConfigResult.success
+                  ? 'bg-green-100 dark:bg-green-900/30 border border-green-300 dark:border-green-700'
+                  : 'bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700'
+              }`}>
+                <p className={`text-sm font-medium ${
+                  autoConfigResult.success ? 'text-green-800 dark:text-green-200' : 'text-red-800 dark:text-red-200'
+                }`}>
+                  {autoConfigResult.message}
+                </p>
+                {autoConfigResult.success && autoConfigResult.configured_groups && (
+                  <p className="text-xs text-green-600 dark:text-green-400 mt-1">
+                    {t('config.autoConfig.successDetail', {
+                      groups: autoConfigResult.configured_groups.length,
+                      tools: autoConfigResult.total_tools,
+                    })}
+                  </p>
+                )}
+                {autoConfigResult.errors && autoConfigResult.errors.length > 0 && (
+                  <ul className="text-xs text-red-600 dark:text-red-400 mt-1 list-disc list-inside">
+                    {autoConfigResult.errors.map((error, i) => (
+                      <li key={i}>{error}</li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
+
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              {t('config.autoConfig.requirement')}
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* Section 2: Compact Endpoints Reference */}
+      <details className="bg-white dark:bg-gray-800 rounded-lg shadow group">
+        <summary className="p-3 sm:p-4 cursor-pointer list-none flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+            <svg className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+            </svg>
+            <div className="min-w-0">
+              <h3 className="font-medium text-sm sm:text-base text-gray-900 dark:text-white">
+                {t('config.endpointsRef.title')}
+              </h3>
+              <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                {t('config.endpointsRef.description')}
+              </p>
+            </div>
+          </div>
+          <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 transition-transform group-open:rotate-180 flex-shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </summary>
+        <div className="p-3 sm:p-4 pt-0 border-t border-gray-100 dark:border-gray-700 space-y-3">
+          {/* All tools endpoint */}
+          <div className="flex items-center justify-between gap-2 p-2 bg-gray-50 dark:bg-gray-700 rounded-lg">
+            <div className="min-w-0">
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{t('config.endpointsRef.allTools')}</span>
+              <code className="ml-2 text-xs text-gray-500 dark:text-gray-400">/tools/openapi.json</code>
+            </div>
             <button
-              onClick={handleAutoConfigureOpenWebUI}
-              disabled={autoConfigLoading}
-              className="px-4 py-2 text-sm font-medium text-white bg-teal-600 hover:bg-teal-700 disabled:bg-teal-400 rounded-lg transition-colors flex items-center gap-2 whitespace-nowrap"
+              onClick={() => copyToClipboard(`${backendUrl}/tools/openapi.json`, 'endpoint-all')}
+              className={`px-2 py-1 text-xs font-medium rounded transition-colors ${
+                copied === 'endpoint-all' ? 'bg-green-600 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white'
+              }`}
             >
-              {autoConfigLoading ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  {t('config.autoConfig.configuring')}
-                </>
-              ) : (
-                <>
-                  <Play className="w-4 h-4" />
-                  {t('config.autoConfig.button')}
-                </>
-              )}
+              {copied === 'endpoint-all' ? t('config.openWebUI.copied') : t('config.openWebUI.copyUrl')}
             </button>
           </div>
 
-          {/* Result message */}
-          {autoConfigResult && (
-            <div className={`p-3 rounded-lg ${
-              autoConfigResult.success
-                ? 'bg-green-100 dark:bg-green-900/30 border border-green-300 dark:border-green-700'
-                : 'bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700'
-            }`}>
-              <p className={`text-sm font-medium ${
-                autoConfigResult.success ? 'text-green-800 dark:text-green-200' : 'text-red-800 dark:text-red-200'
-              }`}>
-                {autoConfigResult.message}
-              </p>
-              {autoConfigResult.success && autoConfigResult.configured_groups && (
-                <p className="text-xs text-green-600 dark:text-green-400 mt-1">
-                  {t('config.autoConfig.successDetail', {
-                    groups: autoConfigResult.configured_groups.length,
-                    tools: autoConfigResult.total_tools,
-                  })}
-                </p>
-              )}
-              {autoConfigResult.errors && autoConfigResult.errors.length > 0 && (
-                <ul className="text-xs text-red-600 dark:text-red-400 mt-1 list-disc list-inside">
-                  {autoConfigResult.errors.map((error, i) => (
-                    <li key={i}>{error}</li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          )}
-
-          <p className="text-xs text-teal-600 dark:text-teal-400 mt-2">
-            {t('config.autoConfig.requirement')}
-          </p>
-        </div>
-
-        {/* How to configure steps (manual) */}
-        <details className="mb-4 group">
-          <summary className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg cursor-pointer list-none flex items-center justify-between hover:bg-gray-100 dark:hover:bg-gray-600">
-            <p className="font-medium text-sm text-gray-900 dark:text-white">{t('config.openWebUISetup.howTo')} ({t('config.autoConfig.manual')})</p>
-            <svg className="w-4 h-4 text-gray-400 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-          </summary>
-          <div className="mt-2 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-            <ol className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 list-decimal list-inside space-y-1">
-              <li>{t('config.openWebUISetup.step1')}</li>
-              <li>{t('config.openWebUISetup.step2')}</li>
-              <li>{t('config.openWebUISetup.step3')}</li>
-              <li>{t('config.openWebUISetup.step4')}</li>
-            </ol>
-          </div>
-        </details>
-
-        {/* Filter groups */}
-        <div className="space-y-3">
-          {[
-            {
-              id: 'media',
-              tools: 'plex_get_active_sessions, plex_get_libraries, plex_get_media_details, plex_get_on_deck, plex_get_recently_added, plex_search_media, tautulli_get_activity, tautulli_get_history, tautulli_get_libraries, tautulli_get_recently_added, tautulli_get_server_info, tautulli_get_statistics, tautulli_get_top_movies, tautulli_get_top_music, tautulli_get_top_platforms, tautulli_get_top_tv_shows, tautulli_get_top_users, tautulli_get_user_stats, tautulli_get_users, tautulli_get_watch_stats_summary',
-              color: 'purple',
-            },
-            {
-              id: 'books',
-              tools: 'audiobookshelf_get_libraries, audiobookshelf_get_library_items, audiobookshelf_get_listening_stats, audiobookshelf_get_media_progress, audiobookshelf_get_statistics, audiobookshelf_get_users, audiobookshelf_search, komga_get_libraries, komga_get_statistics, komga_get_users, komga_search',
-              color: 'amber',
-            },
-            {
-              id: 'download',
-              tools: 'deluge_add_torrent, deluge_get_statistics, deluge_get_torrents, deluge_pause_torrent, deluge_remove_torrent, deluge_resume_torrent, jackett_get_indexers, jackett_get_statistics, jackett_search, jackett_test_all_indexers, jackett_test_indexer, overseerr_check_availability, overseerr_get_requests, overseerr_get_statistics, overseerr_get_trending, overseerr_get_users, overseerr_request_media, overseerr_search_media, prowlarr_get_applications, prowlarr_get_indexer_stats, prowlarr_get_indexers, prowlarr_get_statistics, prowlarr_search, prowlarr_test_all_indexers, prowlarr_test_indexer, radarr_get_calendar, radarr_get_indexers, radarr_get_movies, radarr_get_queue, radarr_get_statistics, radarr_search_movie, radarr_test_all_indexers, radarr_test_indexer, sonarr_get_calendar, sonarr_get_indexers, sonarr_get_queue, sonarr_get_series, sonarr_get_statistics, sonarr_search_series, sonarr_test_all_indexers, sonarr_test_indexer',
-              color: 'orange',
-            },
-            {
-              id: 'games',
-              tools: 'romm_get_collections, romm_get_platforms, romm_get_roms, romm_get_statistics, romm_get_users, romm_search_roms',
-              color: 'green',
-            },
-            {
-              id: 'system',
-              tools: 'system_get_alerts, system_get_health, system_get_logs, system_get_metrics, system_get_services, system_get_users, system_list_tools, system_test_service, zammad_add_comment, zammad_create_ticket, zammad_get_ticket_details, zammad_get_ticket_stats, zammad_get_tickets, zammad_search_tickets, zammad_update_ticket_status',
-              color: 'blue',
-            },
-            {
-              id: 'knowledge',
-              tools: 'openwebui_get_chats, openwebui_get_models, openwebui_get_statistics, openwebui_get_status, openwebui_get_users, openwebui_search_users, wikijs_create_page, wikijs_get_page, wikijs_get_page_tree, wikijs_get_pages, wikijs_get_statistics, wikijs_get_tags, wikijs_get_users, wikijs_search',
-              color: 'emerald',
-            },
-            {
-              id: 'auth',
-              tools: 'authentik_deactivate_user, authentik_get_applications, authentik_get_events, authentik_get_groups, authentik_get_server_info, authentik_get_statistics, authentik_get_user, authentik_get_users, authentik_search_users',
-              color: 'indigo',
-            },
-          ].map((group) => {
-            const toolCount = group.tools.split(',').length;
-            const colorClasses: Record<string, { bg: string; border: string; text: string }> = {
-              purple: { bg: 'bg-purple-50 dark:bg-purple-900/20', border: 'border-purple-200 dark:border-purple-800', text: 'text-purple-900 dark:text-purple-100' },
-              amber: { bg: 'bg-amber-50 dark:bg-amber-900/20', border: 'border-amber-200 dark:border-amber-800', text: 'text-amber-900 dark:text-amber-100' },
-              orange: { bg: 'bg-orange-50 dark:bg-orange-900/20', border: 'border-orange-200 dark:border-orange-800', text: 'text-orange-900 dark:text-orange-100' },
-              green: { bg: 'bg-green-50 dark:bg-green-900/20', border: 'border-green-200 dark:border-green-800', text: 'text-green-900 dark:text-green-100' },
-              blue: { bg: 'bg-blue-50 dark:bg-blue-900/20', border: 'border-blue-200 dark:border-blue-800', text: 'text-blue-900 dark:text-blue-100' },
-              emerald: { bg: 'bg-emerald-50 dark:bg-emerald-900/20', border: 'border-emerald-200 dark:border-emerald-800', text: 'text-emerald-900 dark:text-emerald-100' },
-              indigo: { bg: 'bg-indigo-50 dark:bg-indigo-900/20', border: 'border-indigo-200 dark:border-indigo-800', text: 'text-indigo-900 dark:text-indigo-100' },
-            };
-            const colors = colorClasses[group.color];
-
-            return (
-              <div key={group.id} className={`${colors.bg} ${colors.border} border rounded-lg p-3`}>
-                <div className="flex items-start justify-between gap-2 mb-2">
-                  <div>
-                    <h4 className={`font-medium ${colors.text}`}>
-                      {t(`config.openWebUISetup.groups.${group.id}.name`)}
-                    </h4>
-                    <p className="text-xs text-gray-600 dark:text-gray-400">
-                      {t(`config.openWebUISetup.groups.${group.id}.description`)}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
-                      {t('config.openWebUISetup.toolCount', { count: toolCount })}
-                    </span>
-                    <button
-                      onClick={() => copyToClipboard(group.tools, `filter-${group.id}`)}
-                      className={`px-2 py-1 text-xs font-medium rounded transition-colors whitespace-nowrap ${
-                        copied === `filter-${group.id}`
-                          ? 'bg-green-600 text-white'
-                          : 'bg-gray-600 hover:bg-gray-700 text-white'
-                      }`}
-                    >
-                      {copied === `filter-${group.id}` ? t('config.openWebUISetup.copied') : t('config.openWebUISetup.copyFilter')}
-                    </button>
-                  </div>
+          {/* Category endpoints */}
+          <div className="space-y-1">
+            <p className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">{t('config.endpointsRef.byCategory')}</p>
+            {[
+              { id: 'system', path: '/tools/system/openapi.json', color: 'blue' },
+              { id: 'media', path: '/tools/media/openapi.json', color: 'purple' },
+              { id: 'processing', path: '/tools/processing/openapi.json', color: 'orange' },
+              { id: 'knowledge', path: '/tools/knowledge/openapi.json', color: 'green' },
+            ].map((ep) => (
+              <div key={ep.id} className="flex items-center justify-between gap-2 p-2 bg-gray-50 dark:bg-gray-700 rounded">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className={`w-2 h-2 rounded-full bg-${ep.color}-500 flex-shrink-0`}></span>
+                  <span className="text-xs font-medium text-gray-700 dark:text-gray-300">{t(`config.endpoints.${ep.id}.name`)}</span>
+                  <code className="text-xs text-gray-500 dark:text-gray-400 truncate">{ep.path}</code>
                 </div>
-                <code className="block text-xs bg-gray-100 dark:bg-gray-800 p-2 rounded font-mono overflow-x-auto whitespace-pre-wrap break-all">
-                  {group.tools}
-                </code>
+                <button
+                  onClick={() => copyToClipboard(`${backendUrl}${ep.path}`, `endpoint-${ep.id}`)}
+                  className={`px-2 py-1 text-xs font-medium rounded transition-colors flex-shrink-0 ${
+                    copied === `endpoint-${ep.id}` ? 'bg-green-600 text-white' : 'bg-gray-600 hover:bg-gray-700 text-white'
+                  }`}
+                >
+                  {copied === `endpoint-${ep.id}` ? t('config.openWebUI.copied') : t('config.openWebUI.copyUrl')}
+                </button>
               </div>
-            );
-          })}
+            ))}
+          </div>
+
+          {/* Quick tip */}
+          <p className="text-xs text-blue-600 dark:text-blue-400">
+            {t('config.endpointsRef.tip')}
+          </p>
+
+          {/* Troubleshooting */}
+          <details className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+            <summary className="p-2 cursor-pointer list-none flex items-center gap-2 hover:bg-blue-100/50 dark:hover:bg-blue-900/30 rounded-lg text-sm">
+              <svg className="w-4 h-4 text-blue-600 dark:text-blue-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+              </svg>
+              <span className="font-medium text-blue-900 dark:text-blue-100">{t('config.troubleshooting.title')}</span>
+            </summary>
+            <div className="px-3 pb-3 text-xs text-blue-800 dark:text-blue-200 space-y-1">
+              <p>{t('config.troubleshooting.description')}</p>
+              <ul className="list-disc list-inside ml-1 space-y-0.5">
+                <li>{t('config.troubleshooting.solution1')}</li>
+                <li>{t('config.troubleshooting.solution2')}</li>
+                <li>{t('config.troubleshooting.solution3')}</li>
+              </ul>
+            </div>
+          </details>
         </div>
-      </div>
+      </details>
 
       {/* System Prompt - Collapsible */}
       <details className="bg-white dark:bg-gray-800 rounded-lg shadow group">
@@ -1947,13 +2115,18 @@ const ConfigurationTab = ({ tools }: { tools: McpToolsResponse | null }) => {
           </div>
         </div>
       </details>
+
+      {/* Global Search Configuration */}
+      <GlobalSearchConfig />
     </div>
   );
 };
 
 export default function MCP() {
   const { t } = useTranslation('mcp');
-  const [activeTab, setActiveTab] = useState<'overview' | 'history' | 'tools' | 'config'>('overview');
+  const [searchParams] = useSearchParams();
+  const initialTab = (searchParams.get('tab') as 'overview' | 'history' | 'tools' | 'interactions' | 'config') || 'overview';
+  const [activeTab, setActiveTab] = useState<'overview' | 'history' | 'tools' | 'interactions' | 'config'>(initialTab);
   const [stats, setStats] = useState<McpStats | null>(null);
   const [toolUsage, setToolUsage] = useState<McpToolUsage[]>([]);
   const [hourlyUsage, setHourlyUsage] = useState<McpHourlyUsage[]>([]);
@@ -1968,7 +2141,7 @@ export default function MCP() {
   const [selectedRequest, setSelectedRequest] = useState<McpRequest | null>(null);
   const [selectedToolToTest, setSelectedToolToTest] = useState<McpTool | null>(null);
   const [timeRange, setTimeRange] = useState(24);
-  const [categoryFilter, setCategoryFilter] = useState<string>('');
+  const [serviceFilter, setServiceFilter] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [expandedServices, setExpandedServices] = useState<Set<string>>(new Set());
 
@@ -1983,8 +2156,9 @@ export default function MCP() {
         api.mcp.userServiceStats(timeRange).catch(() => []),
         api.mcp.hourlyUsageByUser(timeRange).catch(() => []),
         api.mcp.requests.list({
-          limit: 50,
-          ...(categoryFilter && { category: categoryFilter }),
+          limit: timeRange > 24 ? 200 : 100,
+          start_time: new Date(Date.now() - timeRange * 60 * 60 * 1000).toISOString(),
+          ...(serviceFilter && { service: serviceFilter }),
           ...(statusFilter && { status: statusFilter }),
         }).catch(() => ({ items: [], total: 0 })),
         api.mcp.tools().catch(() => null),
@@ -2006,7 +2180,7 @@ export default function MCP() {
     } finally {
       setLoading(false);
     }
-  }, [timeRange, categoryFilter, statusFilter]);
+  }, [timeRange, serviceFilter, statusFilter]);
 
   useEffect(() => {
     fetchData();
@@ -2120,6 +2294,7 @@ export default function MCP() {
             { id: 'overview' as const, labelKey: 'statsShort', labelFullKey: 'statsFull', icon: BarChart3 },
             { id: 'history' as const, labelKey: 'historyShort', labelFullKey: 'historyFull', icon: History },
             { id: 'tools' as const, labelKey: 'toolsShort', labelFullKey: 'toolsFull', icon: Wrench },
+            { id: 'interactions' as const, labelKey: 'interactionsShort', labelFullKey: 'interactionsFull', icon: Link2 },
             { id: 'config' as const, labelKey: 'configShort', labelFullKey: 'configFull', icon: Settings },
           ].map((tab) => {
             const Icon = tab.icon;
@@ -2151,26 +2326,36 @@ export default function MCP() {
           {/* Overview Tab */}
           {activeTab === 'overview' && (
             <div className="space-y-6">
-              {/* Actions bar */}
-              <div className="flex gap-2">
-                <select
-                  value={timeRange}
-                  onChange={(e) => setTimeRange(Number(e.target.value))}
-                  className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                >
-                  <option value={1}>{t('stats.timeRange1h')}</option>
-                  <option value={6}>{t('stats.timeRange6h')}</option>
-                  <option value={24}>{t('stats.timeRange24h')}</option>
-                  <option value={72}>{t('stats.timeRange3d')}</option>
-                  <option value={168}>{t('stats.timeRange7d')}</option>
-                </select>
-                <button
-                  onClick={fetchData}
-                  className="px-3 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors flex items-center gap-2"
-                >
-                  <RefreshCw className="w-4 h-4" />
-                  <span className="hidden sm:inline">{t('refresh')}</span>
-                </button>
+              {/* Actions bar in card container */}
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-3 sm:p-4">
+                <div className="flex flex-row gap-2 sm:gap-3 items-center">
+                  {/* Refresh button - icon only on all screens */}
+                  <button
+                    onClick={fetchData}
+                    className="p-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 flex items-center transition-colors flex-shrink-0"
+                  >
+                    <RefreshCw className="w-4 h-4" />
+                  </button>
+
+                  {/* Time range filter */}
+                  <select
+                    value={timeRange}
+                    onChange={(e) => setTimeRange(Number(e.target.value))}
+                    className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white flex-shrink-0"
+                  >
+                    <option value={1}>{t('stats.timeRange1h')}</option>
+                    <option value={6}>{t('stats.timeRange6h')}</option>
+                    <option value={24}>{t('stats.timeRange24h')}</option>
+                    <option value={72}>{t('stats.timeRange3d')}</option>
+                    <option value={168}>{t('stats.timeRange7d')}</option>
+                  </select>
+
+                  {/* Spacer */}
+                  <div className="flex-1" />
+
+                  {/* Help button */}
+                  <HelpTooltip topicId="stats" />
+                </div>
               </div>
               {/* Stats Grid */}
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
@@ -2502,63 +2687,74 @@ export default function MCP() {
 
           {/* History Tab */}
           {activeTab === 'history' && (
-            <div className="space-y-4">
-              {/* Actions bar */}
-              <div className="flex gap-2">
-                <select
-                  value={timeRange}
-                  onChange={(e) => setTimeRange(Number(e.target.value))}
-                  className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                >
-                  <option value={1}>{t('stats.timeRange1h')}</option>
-                  <option value={6}>{t('stats.timeRange6h')}</option>
-                  <option value={24}>{t('stats.timeRange24h')}</option>
-                  <option value={72}>{t('stats.timeRange3d')}</option>
-                  <option value={168}>{t('stats.timeRange7d')}</option>
-                </select>
-                <button
-                  onClick={fetchData}
-                  className="px-3 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors flex items-center gap-2"
-                >
-                  <RefreshCw className="w-4 h-4" />
-                  <span className="hidden sm:inline">{t('refresh')}</span>
-                </button>
-              </div>
-              {/* Filters */}
-              <div className="flex flex-wrap gap-2 sm:gap-4 bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
-                <select
-                  value={categoryFilter}
-                  onChange={(e) => setCategoryFilter(e.target.value)}
-                  className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                >
-                  <option value="">{t('history.filters.allCategories')}</option>
-                  <option value="media">{t('categories.media')}</option>
-                  <option value="requests">{t('categories.requests')}</option>
-                  <option value="support">{t('categories.support')}</option>
-                  <option value="system">{t('categories.system')}</option>
-                  <option value="users">{t('categories.users')}</option>
-                </select>
-                <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                >
-                  <option value="">{t('history.filters.allStatuses')}</option>
-                  <option value="pending">{t('status.pending')}</option>
-                  <option value="processing">{t('status.processing')}</option>
-                  <option value="completed">{t('status.completed')}</option>
-                  <option value="failed">{t('status.failed')}</option>
-                </select>
-              </div>
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+              <div className="p-3 sm:p-4">
+                {/* Actions bar with filters - single row layout matching UserMappingList */}
+                <div className="flex flex-row gap-2 sm:gap-3 items-center mb-4">
+                  {/* Refresh button - icon only on all screens */}
+                  <button
+                    onClick={fetchData}
+                    className="p-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 flex items-center transition-colors flex-shrink-0"
+                  >
+                    <RefreshCw className="w-4 h-4" />
+                  </button>
+
+                  {/* Time range filter */}
+                  <select
+                    value={timeRange}
+                    onChange={(e) => setTimeRange(Number(e.target.value))}
+                    className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white flex-shrink-0"
+                  >
+                    <option value={1}>{t('stats.timeRange1h')}</option>
+                    <option value={6}>{t('stats.timeRange6h')}</option>
+                    <option value={24}>{t('stats.timeRange24h')}</option>
+                    <option value={72}>{t('stats.timeRange3d')}</option>
+                    <option value={168}>{t('stats.timeRange7d')}</option>
+                  </select>
+
+                  {/* Service filter */}
+                  <select
+                    value={serviceFilter}
+                    onChange={(e) => setServiceFilter(e.target.value)}
+                    className="hidden sm:block px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white flex-shrink-0"
+                  >
+                    <option value="">{t('history.filters.allServices')}</option>
+                    {Object.keys(toolsByService).map((service) => (
+                      <option key={service} value={service}>
+                        {service.charAt(0).toUpperCase() + service.slice(1)}
+                      </option>
+                    ))}
+                  </select>
+
+                  {/* Status filter */}
+                  <select
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    className="hidden sm:block px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white flex-shrink-0"
+                  >
+                    <option value="">{t('history.filters.allStatuses')}</option>
+                    <option value="pending">{t('status.pending')}</option>
+                    <option value="processing">{t('status.processing')}</option>
+                    <option value="completed">{t('status.completed')}</option>
+                    <option value="failed">{t('status.failed')}</option>
+                    <option value="cancelled">{t('status.cancelled')}</option>
+                  </select>
+
+                  {/* Spacer to push help to right */}
+                  <div className="flex-1" />
+
+                  {/* Help button */}
+                  <HelpTooltip topicId="history" />
+                </div>
 
               {/* Request List - Mobile: Card view, Desktop: Table view */}
               {/* Mobile Cards */}
-              <div className="sm:hidden space-y-3">
+              <div className="sm:hidden space-y-2">
                 {requests.length > 0 ? (
                   requests.map((request) => (
                     <div
                       key={request.id}
-                      className="bg-white dark:bg-gray-800 rounded-lg shadow p-4"
+                      className="p-3 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer"
                       onClick={() => setSelectedRequest(request)}
                     >
                       <div className="flex items-start justify-between mb-2">
@@ -2575,6 +2771,7 @@ export default function MCP() {
                       <div className="flex items-center gap-2 flex-wrap">
                         <ServiceBadge toolName={request.tool_name} />
                         {request.tool_category && <CategoryBadge category={request.tool_category} />}
+                        <ChainBadge request={request} onChainClick={() => setSelectedRequest(request)} />
                         {request.user_display_name && (
                           <span className="text-xs text-gray-500">{t('history.by')} {request.user_display_name}</span>
                         )}
@@ -2592,7 +2789,7 @@ export default function MCP() {
               </div>
 
               {/* Desktop Table */}
-              <div className="hidden sm:block bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
+              <div className="hidden sm:block overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                     <thead className="bg-gray-50 dark:bg-gray-700">
@@ -2602,6 +2799,9 @@ export default function MCP() {
                         </th>
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                           Service
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                          {t('tabs.interactionsShort')}
                         </th>
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                           User
@@ -2620,7 +2820,7 @@ export default function MCP() {
                         </th>
                       </tr>
                     </thead>
-                    <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                    <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                       {requests.length > 0 ? (
                         requests.map((request) => (
                           <tr key={request.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
@@ -2631,6 +2831,9 @@ export default function MCP() {
                             </td>
                             <td className="px-4 py-3 whitespace-nowrap">
                               <ServiceBadge toolName={request.tool_name} />
+                            </td>
+                            <td className="px-4 py-3 whitespace-nowrap">
+                              <ChainBadge request={request} onChainClick={() => setSelectedRequest(request)} />
                             </td>
                             <td className="px-4 py-3 whitespace-nowrap">
                               {request.user_id ? (
@@ -2662,7 +2865,7 @@ export default function MCP() {
                         ))
                       ) : (
                         <tr>
-                          <td colSpan={7} className="px-4 py-12 text-center text-gray-500 dark:text-gray-400">
+                          <td colSpan={8} className="px-4 py-12 text-center text-gray-500 dark:text-gray-400">
                             {t('history.noRequests')}
                           </td>
                         </tr>
@@ -2671,34 +2874,60 @@ export default function MCP() {
                   </table>
                 </div>
               </div>
+              </div>
             </div>
           )}
 
           {/* Tools Tab */}
           {activeTab === 'tools' && (
-            <div className="space-y-4">
-              {/* Controls */}
-              <div className="flex items-center justify-between bg-white dark:bg-gray-800 rounded-lg p-4 shadow">
-                <div className="text-sm text-gray-600 dark:text-gray-400">
-                  {t('tools.toolsAvailable', { count: tools?.total || 0, services: Object.keys(toolsByService).length })}
-                </div>
-                <div className="flex gap-2">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+              <div className="p-3 sm:p-4">
+                {/* Actions bar - single row layout matching History tab */}
+                <div className="flex flex-row gap-2 sm:gap-3 items-center mb-4">
+                  {/* Refresh button - icon only on all screens */}
+                  <button
+                    onClick={fetchData}
+                    className="p-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 flex items-center transition-colors flex-shrink-0"
+                  >
+                    <RefreshCw className="w-4 h-4" />
+                  </button>
+
+                  {/* Expand All button */}
                   <button
                     onClick={() => toggleAllServices(true)}
-                    className="px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
+                    className="flex px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 items-center gap-2 transition-colors flex-shrink-0"
                   >
                     {t('tools.expandAll')}
                   </button>
+
+                  {/* Collapse All button */}
                   <button
                     onClick={() => toggleAllServices(false)}
-                    className="px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
+                    className="flex px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 items-center gap-2 transition-colors flex-shrink-0"
                   >
                     {t('tools.collapseAll')}
                   </button>
+
+                  {/* Tools count info - visible on md+ */}
+                  <div className="text-sm text-gray-600 dark:text-gray-400 hidden md:block">
+                    {t('tools.toolsAvailable', { count: tools?.total || 0, services: Object.keys(toolsByService).length })}
+                  </div>
+
+                  {/* Spacer to push help to the right */}
+                  <div className="flex-1" />
+
+                  {/* Help button */}
+                  <HelpTooltip topicId="tools" />
                 </div>
-              </div>
+
+                {/* Global Search Info Block */}
+                <GlobalSearchInfoBlock
+                  onConfigure={() => setActiveTab('config')}
+                  className="mb-4"
+                />
 
               {/* Services List */}
+              <div className="space-y-3">
               {Object.keys(toolsByService).length > 0 ? (
                 Object.entries(toolsByService).map(([serviceName, serviceTools]) => {
                   const colors = getServiceColor(serviceName);
@@ -2708,7 +2937,7 @@ export default function MCP() {
                   return (
                     <div
                       key={serviceName}
-                      className={`rounded-lg shadow overflow-hidden border ${colors.border}`}
+                      className={`rounded-lg overflow-hidden border ${colors.border}`}
                     >
                       {/* Service Header - Clickable */}
                       <button
@@ -2820,6 +3049,15 @@ export default function MCP() {
               ) : (
                 <div className="text-center py-12 text-gray-500">{t('tools.noTools')}</div>
               )}
+              </div>
+              </div>
+            </div>
+          )}
+
+          {/* Interactions Tab (Tool Chains) */}
+          {activeTab === 'interactions' && (
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 h-[calc(100vh-280px)] min-h-[500px]">
+              <ToolChainManagement />
             </div>
           )}
 
@@ -2897,6 +3135,132 @@ export default function MCP() {
                     <pre className="bg-gray-50 dark:bg-gray-900 p-3 rounded-lg text-xs overflow-x-auto max-h-48">
                       {JSON.stringify(selectedRequest.output_result, null, 2)}
                     </pre>
+                  </div>
+                )}
+
+                {/* Tool Chain Info */}
+                {(selectedRequest.output_result?.chain_context ||
+                  (selectedRequest.output_result?.next_tools_to_call &&
+                   selectedRequest.output_result.next_tools_to_call.length > 0)) && (
+                  <div className="border-t dark:border-gray-700 pt-4">
+                    {/* Chain Header with badges */}
+                    {selectedRequest.output_result?.chain_context && (() => {
+                      const position = selectedRequest.output_result.chain_context.position || 'start';
+                      const sourceTool = selectedRequest.output_result.chain_context.source_tool;
+
+                      const positionConfig = {
+                        start: {
+                          icon: <Play className="w-3 h-3" />,
+                          label: t('history.chainStart'),
+                          bgClass: 'bg-green-100 dark:bg-green-900/30',
+                          textClass: 'text-green-700 dark:text-green-300',
+                        },
+                        middle: {
+                          icon: <CircleDot className="w-3 h-3" />,
+                          label: t('history.chainMiddle'),
+                          bgClass: 'bg-blue-100 dark:bg-blue-900/30',
+                          textClass: 'text-blue-700 dark:text-blue-300',
+                        },
+                        end: {
+                          icon: <Square className="w-3 h-3" />,
+                          label: t('history.chainEnd'),
+                          bgClass: 'bg-orange-100 dark:bg-orange-900/30',
+                          textClass: 'text-orange-700 dark:text-orange-300',
+                        },
+                      };
+
+                      const config = positionConfig[position as keyof typeof positionConfig] || positionConfig.start;
+
+                      return (
+                        <div className="flex items-center gap-2 mb-3 flex-wrap">
+                          {/* Position Badge */}
+                          <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${config.bgClass} ${config.textClass}`}>
+                            {config.icon}
+                            {config.label}
+                          </span>
+
+                          {/* Source Tool Badge (for middle/end positions) */}
+                          {(position === 'middle' || position === 'end') && sourceTool && (
+                            <span className="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-full text-xs">
+                              <ArrowRight className="w-3 h-3 rotate-180" />
+                              {sourceTool}
+                            </span>
+                          )}
+
+                          {/* Chain Links */}
+                          {selectedRequest.output_result.chain_context.chains?.map((chain: any) => (
+                            <a
+                              key={chain.id}
+                              href={`#chains`}
+                              onClick={(e) => {
+                                e.preventDefault();
+                                setSelectedRequest(null);
+                                setActiveTab('interactions');
+                              }}
+                              className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium transition-colors hover:opacity-80"
+                              style={{
+                                backgroundColor: `${chain.color || '#8b5cf6'}20`,
+                                color: chain.color || '#8b5cf6',
+                              }}
+                              title={t('history.viewChain')}
+                            >
+                              <Workflow className="w-3 h-3" />
+                              {chain.name}
+                              <Link2 className="w-3 h-3" />
+                            </a>
+                          ))}
+                        </div>
+                      );
+                    })()}
+
+                    {/* Next Tools */}
+                    {selectedRequest.output_result?.next_tools_to_call &&
+                     selectedRequest.output_result.next_tools_to_call.length > 0 && (() => {
+                      // Get color from chain_context (at root level)
+                      const chainColor = selectedRequest.output_result.chain_context?.chains?.[0]?.color || '#8b5cf6';
+
+                      return (
+                        <div className="space-y-2">
+                          <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                            {t('history.nextTools')}
+                          </p>
+                          <div className="space-y-2">
+                            {selectedRequest.output_result.next_tools_to_call.map((nextTool: any, index: number) => (
+                              <div
+                                key={index}
+                                className="flex items-center gap-2 p-2 rounded-lg"
+                                style={{ backgroundColor: `${chainColor}10` }}
+                              >
+                                <ArrowRight className="w-4 h-4 flex-shrink-0" style={{ color: chainColor }} />
+
+                                {/* Tool Badge */}
+                                <span
+                                  className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium"
+                                  style={{
+                                    backgroundColor: `${chainColor}20`,
+                                    color: chainColor,
+                                  }}
+                                >
+                                  {nextTool.tool}
+                                </span>
+
+                                {/* Service Badge */}
+                                <span className="text-xs px-2 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded">
+                                  {nextTool.service_name}
+                                </span>
+
+                                {/* Reason */}
+                                {nextTool.reason && (
+                                  <span className="text-xs text-gray-500 dark:text-gray-400 truncate flex-1" title={nextTool.reason}>
+                                    {nextTool.reason}
+                                  </span>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })()}
                   </div>
                 )}
 

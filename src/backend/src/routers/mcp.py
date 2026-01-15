@@ -1,7 +1,7 @@
 """MCP request history and analytics router."""
 
 from datetime import datetime
-from typing import Optional
+from typing import Any, Optional
 
 from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel
@@ -285,6 +285,7 @@ class McpHourlyUserUsageResponse(BaseModel):
 async def get_mcp_requests(
     tool_name: Optional[str] = Query(None, description="Filter by tool name"),
     category: Optional[str] = Query(None, description="Filter by tool category"),
+    service: Optional[str] = Query(None, description="Filter by service (tool name prefix)"),
     status: Optional[str] = Query(None, description="Filter by status"),
     start_time: Optional[datetime] = Query(None, description="Filter by start time"),
     end_time: Optional[datetime] = Query(None, description="Filter by end time"),
@@ -298,6 +299,7 @@ async def get_mcp_requests(
         session=session,
         tool_name=tool_name,
         category=category,
+        service=service,
         status=status,
         start_time=start_time,
         end_time=end_time,
@@ -585,6 +587,13 @@ class ToolTestResponse(BaseModel):
     result: Optional[dict] = None
     error: Optional[str] = None
     duration_ms: int
+    chain_context: Optional[dict[str, Any]] = None
+    next_tools_to_call: Optional[list[dict[str, Any]]] = None
+    chain_messages: Optional[list[dict[str, Any]]] = None
+    message_to_display: Optional[str] = None
+    ai_instruction: Optional[str] = None
+
+    model_config = {"exclude_none": True}
 
 
 @router.post("/tools/test", response_model=ToolTestResponse)
@@ -688,15 +697,37 @@ async def test_tool(
         tool_instance = tool_class(config)
 
         # Execute the tool
-        result = await tool_instance.execute(request.tool_name, request.arguments)
+        tool_result = await tool_instance.execute(request.tool_name, request.arguments)
 
         duration_ms = int((time.time() - start_time) * 1000)
 
+        # Enrich with tool chain suggestions
+        from src.services.tool_chain_service import enrich_tool_result_with_chains
+
+        # tool_result is already a dict with {success, result, error} structure
+        # If it's not, wrap it
+        if isinstance(tool_result, dict) and "success" in tool_result:
+            full_result = tool_result
+        else:
+            full_result = {
+                "success": True,
+                "result": tool_result,
+                "error": None,
+            }
+
+        enriched = await enrich_tool_result_with_chains(session, request.tool_name, full_result, request.arguments)
+
         return ToolTestResponse(
-            success=True,
+            success=full_result.get("success", True),
             tool_name=request.tool_name,
-            result=result,
+            result=full_result.get("result"),
+            error=full_result.get("error"),
             duration_ms=duration_ms,
+            chain_context=enriched.get("chain_context"),
+            next_tools_to_call=enriched.get("next_tools_to_call"),
+            chain_messages=enriched.get("chain_messages"),
+            message_to_display=enriched.get("message_to_display"),
+            ai_instruction=enriched.get("ai_instruction"),
         )
     except Exception as e:
         duration_ms = int((time.time() - start_time) * 1000)

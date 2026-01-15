@@ -3,6 +3,10 @@
   "subtitle": "Addestramento e ottimizzazione dei modelli IA",
   "refresh": "Aggiorna",
 
+  "help": {
+    "category": "Addestramento IA"
+  },
+
   "tabs": {
     "overview": "Panoramica",
     "overviewShort": "Statistiche",
@@ -100,7 +104,18 @@
     "promptsWillBeUsed": "{{count}} prompt verrà utilizzato per l'addestramento",
     "promptsWillBeUsed_plural": "{{count}} prompt verranno utilizzati per l'addestramento",
     "selectedOfTotalDisplayed": "{{selected}} selezionato / {{displayed}} visualizzato",
-    "selectedOfTotalDisplayed_plural": "{{selected}} selezionati / {{displayed}} visualizzati"
+    "selectedOfTotalDisplayed_plural": "{{selected}} selezionati / {{displayed}} visualizzati",
+    "help": {
+      "title": "Sessioni di Addestramento",
+      "overview": "Panoramica",
+      "overviewContent": "La scheda Sessioni consente di creare e gestire sessioni di addestramento di modelli IA. Ogni sessione addestra un modello base con i propri prompt personalizzati.",
+      "lifecycle": "Ciclo di vita",
+      "lifecycleContent": "Una sessione attraversa diverse fasi:\n• In attesa: configurazione completata, pronta per l'avvio\n• In esecuzione: addestramento attivo con avanzamento visibile\n• Completata: modello addestrato disponibile in Ollama\n• Fallita: errore durante l'addestramento (controllare i log)",
+      "actions": "Azioni disponibili",
+      "actionsContent": "Per ogni sessione:\n• Avvia: lancia l'addestramento su un worker GPU\n• Visualizza dettagli: metriche, iperparametri, avanzamento\n• Visualizza log: log dettagliati dell'addestramento\n• Duplica: crea una copia della sessione\n• Elimina: rimuove la sessione e i suoi dati",
+      "creation": "Creazione sessione",
+      "creationContent": "Per creare una sessione:\n1. Scegli un nome e un modello base\n2. Seleziona il metodo (Modelfile rapido o fine-tuning GPU)\n3. Configura gli iperparametri (epoche, batch size, learning rate)\n4. Seleziona i prompt di addestramento"
+    }
   },
 
   "prompts": {
@@ -128,6 +143,7 @@
     "noPrompts": "Nessun prompt di addestramento",
     "noPromptsFound": "Nessun prompt trovato",
     "noPromptsHint": "Aggiunga dei prompt per addestrare i Suoi modelli",
+    "perPage": "Per pagina",
     "addPrompt": "Aggiungi prompt",
     "createPrompt": "Crea prompt",
     "newPrompt": "Nuovo prompt di addestramento",
@@ -174,7 +190,18 @@
     "description": "Descrizione",
     "descriptionPlaceholder": "Descrizione del prompt",
     "importSuccess": "Prompt importati con successo",
-    "confirmResetAll": "Questa operazione eliminerà TUTTI i prompt esistenti e li sostituirà con i prompt predefiniti. Continuare?"
+    "confirmResetAll": "Questa operazione eliminerà TUTTI i prompt esistenti e li sostituirà con i prompt predefiniti. Continuare?",
+    "help": {
+      "title": "Prompt di Addestramento",
+      "overview": "Panoramica",
+      "overviewContent": "La scheda Prompt gestisce i dati di addestramento per i tuoi modelli IA. Ogni prompt è un esempio di conversazione che il modello impara a riprodurre.",
+      "structure": "Struttura del prompt",
+      "structureContent": "Un prompt contiene:\n• Input utente: domanda o richiesta\n• Output atteso: risposta ideale del modello\n• Tool Call (opzionale): chiamata dello strumento con argomenti\n• Tool Response: risultato dello strumento\n• Risposta finale: sintesi dei dati",
+      "management": "Gestione",
+      "managementContent": "Azioni disponibili:\n• Nuovo: crea un prompt manualmente\n• Reset: ricarica i prompt homelab predefiniti\n• Importa/Esporta: salva o ripristina come JSON\n• Valida: contrassegna un prompt come verificato",
+      "filtering": "Filtraggio",
+      "filteringContent": "Filtra i prompt per servizio (Plex, Radarr, Sonarr, ecc.) o cerca per testo. I badge indicano servizio, difficoltà e stato di validazione."
+    }
   },
 
   "models": {
@@ -205,7 +232,18 @@
     "confirmDelete": "È sicuro di voler eliminare questo modello?",
     "confirmQuestion": "Confermare?",
     "loadedInMemory": "Caricato in memoria",
-    "loaded": "Caricato"
+    "loaded": "Caricato",
+    "help": {
+      "title": "Modelli Ollama",
+      "overview": "Panoramica",
+      "overviewContent": "La scheda Modelli mostra tutti i modelli LLM installati sul server Ollama. È possibile vedere la loro dimensione, famiglia e stato di caricamento.",
+      "management": "Gestione modelli",
+      "managementContent": "Azioni disponibili per ogni modello:\n• Carica: carica il modello nella memoria GPU per l'uso immediato\n• Scarica: libera la memoria GPU occupata dal modello\n• Elimina: rimuove permanentemente il modello dal server",
+      "status": "Stati",
+      "statusContent": "Un modello può essere:\n• Caricato (verde): in memoria GPU, pronto all'uso\n• Non caricato: su disco, deve essere caricato prima dell'uso\n• Il badge indica se il modello è attualmente in memoria",
+      "info": "Informazioni",
+      "infoContent": "Per ogni modello:\n• Famiglia: tipo di modello (llama, mistral, etc.)\n• Parametri: numero di parametri (7B, 13B, etc.)\n• Quantizzazione: livello di compressione (Q4, Q8, etc.)\n• Dimensione: spazio su disco occupato"
+    }
   },
 
   "workers": {
@@ -278,7 +316,18 @@
     "failedToLoad": "Caricamento worker fallito",
     "failedToSave": "Salvataggio worker fallito",
     "failedToDelete": "Eliminazione worker fallita",
-    "testFailed": "Test fallito"
+    "testFailed": "Test fallito",
+    "help": {
+      "title": "Worker GPU di Addestramento",
+      "overview": "Panoramica",
+      "overviewContent": "La scheda Worker permette di gestire i worker GPU remoti utilizzati per il fine-tuning dei modelli LLM. Ogni worker esegue sessioni di addestramento sulla sua GPU.",
+      "configuration": "Configurazione",
+      "configurationContent": "Per aggiungere un worker:\n• Specificare l'URL del container Docker training-worker\n• Opzionalmente aggiungere una chiave API per l'autenticazione\n• Selezionare il server Ollama di destinazione per l'importazione del modello",
+      "status": "Stati del worker",
+      "statusContent": "Un worker può avere diversi stati:\n• Online: disponibile per l'addestramento\n• Addestramento: sessione in corso\n• Offline: non raggiungibile\n• Errore: problema di connessione",
+      "metrics": "Metriche",
+      "metricsContent": "Per ogni worker online:\n• Utilizzo CPU/RAM\n• Utilizzo GPU e VRAM\n• Temperatura e consumo energetico\n• Lavori completati e tempo totale di addestramento"
+    }
   },
 
   "status": {
@@ -372,7 +421,18 @@
     "health": "Salute",
     "utilization": "Utilizzo",
     "temp": "Temp",
-    "power": "Potenza"
+    "power": "Potenza",
+    "help": {
+      "title": "Statistiche Addestramento IA",
+      "overview": "Panoramica",
+      "overviewContent": "La scheda Statistiche mostra una dashboard in tempo reale dell'addestramento IA. Monitora le sessioni attive, le metriche di loss, l'avanzamento e lo stato dei worker GPU.",
+      "cards": "Schede statistiche",
+      "cardsContent": "Le schede mostrano metriche chiave:\n• Sessioni: totali e attive\n• Prompt: totali e validati\n• Tasso di successo: sessioni completate con successo\n• Worker: worker GPU online",
+      "activeSessions": "Sessioni attive",
+      "activeSessionsContent": "Visualizza l'avanzamento dell'addestramento in tempo reale:\n• Avanzamento (epoche, passi)\n• Metriche (loss, learning rate)\n• Utilizzo GPU (memoria, temperatura)\n• Pipeline delle fasi (preparazione, download, addestramento)",
+      "workers": "Worker e Ollama",
+      "workersContent": "Stato delle risorse di addestramento:\n• Worker GPU: disponibilità e carico\n• Server Ollama: modelli disponibili e in esecuzione\n• Stato della connessione WebSocket per aggiornamenti in tempo reale"
+    }
   },
 
   "logs": {

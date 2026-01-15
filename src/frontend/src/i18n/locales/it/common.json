@@ -7,7 +7,8 @@
     "training": "Addestramento IA",
     "mcp": "Gateway MCP",
     "monitoring": "Osservabilita",
-    "configuration": "Configurazione"
+    "configuration": "Configurazione",
+    "help": "Aiuto"
   },
   "actions": {
     "save": "Salva",

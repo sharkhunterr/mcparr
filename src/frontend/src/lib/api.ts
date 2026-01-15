@@ -549,31 +549,70 @@ export const api = {
     cancelTraining: (id: string) => apiClient.post(`/api/workers/${id}/training/cancel`),
   },
 
+  // Service Groups
+  serviceGroups: {
+    list: (enabled?: boolean) =>
+      apiClient.get('/api/service-groups/', { params: enabled !== undefined ? { enabled } : {} }),
+    get: (id: string) => apiClient.get(`/api/service-groups/${id}`),
+    create: (data: { name: string; description?: string; color?: string; priority?: number }) =>
+      apiClient.post('/api/service-groups/', data),
+    update: (id: string, data: { name?: string; description?: string; color?: string; priority?: number; enabled?: boolean }) =>
+      apiClient.put(`/api/service-groups/${id}`, data),
+    delete: (id: string) => apiClient.delete(`/api/service-groups/${id}`),
+    // Members (services)
+    members: {
+      list: (groupId: string) => apiClient.get(`/api/service-groups/${groupId}/members`),
+      add: (groupId: string, data: { service_type: string; enabled?: boolean }) =>
+        apiClient.post(`/api/service-groups/${groupId}/members`, data),
+      remove: (groupId: string, membershipId: string) =>
+        apiClient.delete(`/api/service-groups/${groupId}/members/${membershipId}`),
+      bulk: (groupId: string, data: { service_types: string[]; action: 'add' | 'remove' }) =>
+        apiClient.post(`/api/service-groups/${groupId}/members/bulk`, data),
+    },
+    // Available services
+    availableServices: () => apiClient.get('/api/service-groups/available-services'),
+  },
+
   // Backup/Restore
   backup: {
     preview: (options?: {
       services?: boolean;
+      service_groups?: boolean;
       user_mappings?: boolean;
       groups?: boolean;
       site_config?: boolean;
       training_prompts?: boolean;
+      training_workers?: boolean;
+      tool_chains?: boolean;
+      global_search?: boolean;
+      alerts?: boolean;
     }) => apiClient.get('/api/backup/preview', { params: options }),
     export: (options?: {
       services?: boolean;
+      service_groups?: boolean;
       user_mappings?: boolean;
       groups?: boolean;
       site_config?: boolean;
       training_prompts?: boolean;
+      training_workers?: boolean;
+      tool_chains?: boolean;
+      global_search?: boolean;
+      alerts?: boolean;
     }) => apiClient.post('/api/backup/export', options || {}),
     import: (data: {
       version: string;
       data: Record<string, any>;
       options?: {
         services?: boolean;
+        service_groups?: boolean;
         user_mappings?: boolean;
         groups?: boolean;
         site_config?: boolean;
         training_prompts?: boolean;
+        training_workers?: boolean;
+        tool_chains?: boolean;
+        global_search?: boolean;
+        alerts?: boolean;
         merge_mode?: boolean;
       };
     }) => apiClient.post('/api/backup/import', data),

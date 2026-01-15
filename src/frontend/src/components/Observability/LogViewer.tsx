@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Search, Download, RefreshCw, X, Filter } from 'lucide-react';
 import { api } from '../../lib/api';
 import LogExport from '../LogExport';
+import { HelpTooltip } from '../common';
 
 interface Service {
   id: string;
@@ -146,66 +147,38 @@ export const LogViewer: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Actions bar */}
-      <div className="flex gap-2">
-        <label className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg">
-          <input
-            type="checkbox"
-            checked={autoRefresh}
-            onChange={e => setAutoRefresh(e.target.checked)}
-            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-          />
-          <span className="hidden sm:inline">{t('autoRefresh')}</span>
-        </label>
-        <button
-          onClick={() => setShowExportModal(true)}
-          className="px-3 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-2"
-        >
-          <Download className="w-4 h-4" />
-          <span className="hidden sm:inline">{t('logs.export')}</span>
-        </button>
-        <button
-          onClick={() => { fetchLogs(); fetchStats(); }}
-          className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
-        >
-          <RefreshCw className="w-4 h-4" />
-          <span className="hidden sm:inline">{t('actions.refresh')}</span>
-        </button>
-      </div>
-
-      {/* Stats Cards */}
-      {stats && (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-2.5 sm:p-4 shadow">
-            <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 truncate">{t('logs.stats.total')}</div>
-            <div className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white">
-              {stats.total.toLocaleString()}
-            </div>
-          </div>
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-2.5 sm:p-4 shadow">
-            <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 truncate">{t('logs.stats.errorRate')}</div>
-            <div className="text-lg sm:text-2xl font-bold text-red-600 dark:text-red-400">
-              {stats.error_rate}%
-            </div>
-          </div>
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-2.5 sm:p-4 shadow">
-            <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 truncate">{t('logs.stats.errors')}</div>
-            <div className="text-lg sm:text-2xl font-bold text-red-600 dark:text-red-400">
-              {(stats.by_level?.error || 0) + (stats.by_level?.critical || 0)}
-            </div>
-          </div>
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-2.5 sm:p-4 shadow">
-            <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 truncate">{t('logs.stats.warnings')}</div>
-            <div className="text-lg sm:text-2xl font-bold text-yellow-600 dark:text-yellow-400">
-              {stats.by_level?.warning || 0}
-            </div>
-          </div>
+      {/* Actions bar with search and filters */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-3 sm:p-4 space-y-3">
+        {/* First row: Buttons and help */}
+        <div className="flex flex-row gap-2 sm:gap-3 items-center">
+          <button
+            onClick={() => { fetchLogs(); fetchStats(); }}
+            className="p-2 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+            title={t('actions.refresh')}
+          >
+            <RefreshCw className="w-5 h-5" />
+          </button>
+          <button
+            onClick={() => setShowExportModal(true)}
+            className="px-3 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-2"
+          >
+            <Download className="w-4 h-4" />
+            <span className="hidden sm:inline">{t('logs.export')}</span>
+          </button>
+          <label className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+            <input
+              type="checkbox"
+              checked={autoRefresh}
+              onChange={e => setAutoRefresh(e.target.checked)}
+              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+            />
+            <span className="hidden sm:inline">{t('autoRefresh')}</span>
+          </label>
+          <div className="flex-1" />
+          <HelpTooltip topicId="monitoringLogs" />
         </div>
-      )}
 
-      {/* Filters */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow space-y-3">
-        {/* Search row */}
+        {/* Second row: Search */}
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="flex-1 min-w-0 relative">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -227,7 +200,8 @@ export const LogViewer: React.FC = () => {
             </button>
           )}
         </div>
-        {/* Filter selects row */}
+
+        {/* Third row: Filter selects */}
         <div className="flex flex-wrap items-center gap-2">
           <Filter className="w-4 h-4 text-gray-400 hidden sm:block" />
           <select
@@ -266,6 +240,36 @@ export const LogViewer: React.FC = () => {
           </select>
         </div>
       </div>
+
+      {/* Stats Cards */}
+      {stats && (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-2.5 sm:p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+            <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 truncate">{t('logs.stats.total')}</div>
+            <div className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white">
+              {stats.total.toLocaleString()}
+            </div>
+          </div>
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-2.5 sm:p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+            <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 truncate">{t('logs.stats.errorRate')}</div>
+            <div className="text-lg sm:text-2xl font-bold text-red-600 dark:text-red-400">
+              {stats.error_rate}%
+            </div>
+          </div>
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-2.5 sm:p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+            <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 truncate">{t('logs.stats.errors')}</div>
+            <div className="text-lg sm:text-2xl font-bold text-red-600 dark:text-red-400">
+              {(stats.by_level?.error || 0) + (stats.by_level?.critical || 0)}
+            </div>
+          </div>
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-2.5 sm:p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+            <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 truncate">{t('logs.stats.warnings')}</div>
+            <div className="text-lg sm:text-2xl font-bold text-yellow-600 dark:text-yellow-400">
+              {stats.by_level?.warning || 0}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Log Table */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">

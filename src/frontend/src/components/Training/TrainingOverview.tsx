@@ -29,6 +29,7 @@ import {
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { api } from '../../lib/api';
+import { HelpTooltip } from '../common';
 
 // Types
 interface Worker {
@@ -701,18 +702,27 @@ export default function TrainingOverview({
 
   return (
     <div className="space-y-6">
-      {/* Actions bar */}
-      {onRefresh && (
-        <div className="flex">
-          <button
-            onClick={onRefresh}
-            className="px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-2"
-          >
-            <RefreshCw className="w-4 h-4" />
-            <span className="hidden sm:inline">{t('refresh')}</span>
-          </button>
+      {/* Actions bar in card container */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-3 sm:p-4">
+        <div className="flex flex-row gap-2 sm:gap-3 items-center">
+          {/* Refresh button - icon only */}
+          {onRefresh && (
+            <button
+              onClick={onRefresh}
+              className="p-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 flex items-center transition-colors flex-shrink-0"
+              title={t('refresh')}
+            >
+              <RefreshCw className="w-4 h-4" />
+            </button>
+          )}
+
+          {/* Spacer */}
+          <div className="flex-1" />
+
+          {/* Help button */}
+          <HelpTooltip topicId="trainingStats" />
         </div>
-      )}
+      </div>
       {/* Active Training Sessions */}
       {activeSessions.length > 0 && (
         <div>

@@ -12,22 +12,6 @@ class RadarrTools(BaseTool):
     def definitions(self) -> List[ToolDefinition]:
         return [
             ToolDefinition(
-                name="radarr_get_movies",
-                description="Get list of movies in Radarr library",
-                parameters=[
-                    ToolParameter(
-                        name="limit",
-                        description="Maximum number of movies to return",
-                        type="number",
-                        required=False,
-                        default=50,
-                    ),
-                ],
-                category="media",
-                is_mutation=False,
-                requires_service="radarr",
-            ),
-            ToolDefinition(
                 name="radarr_search_movie",
                 description="Search for a movie to add to Radarr",
                 parameters=[
@@ -36,6 +20,34 @@ class RadarrTools(BaseTool):
                         description="Movie title to search for",
                         type="string",
                         required=True,
+                    ),
+                    ToolParameter(
+                        name="limit",
+                        description="Maximum number of results to return",
+                        type="number",
+                        required=False,
+                        default=10,
+                    ),
+                ],
+                category="media",
+                is_mutation=False,
+                requires_service="radarr",
+            ),
+            ToolDefinition(
+                name="radarr_get_movie_status",
+                description="Get detailed status of a specific movie in Radarr library (monitored, has file, quality profile, etc.)",
+                parameters=[
+                    ToolParameter(
+                        name="title",
+                        description="Movie title to search for in Radarr library",
+                        type="string",
+                        required=True,
+                    ),
+                    ToolParameter(
+                        name="year",
+                        description="Release year (helps with disambiguation)",
+                        type="number",
+                        required=False,
                     ),
                 ],
                 category="media",
@@ -105,6 +117,21 @@ class RadarrTools(BaseTool):
                 is_mutation=False,
                 requires_service="radarr",
             ),
+            ToolDefinition(
+                name="radarr_get_releases",
+                description="Get available releases/torrents for a movie (manual search). Shows quality, language, seeders, size, and whether the release matches the profile.",
+                parameters=[
+                    ToolParameter(
+                        name="movie_id",
+                        description="Radarr movie ID (get from radarr_get_movie_status or radarr_search_movie)",
+                        type="number",
+                        required=True,
+                    ),
+                ],
+                category="media",
+                is_mutation=False,
+                requires_service="radarr",
+            ),
         ]
 
     async def execute(self, tool_name: str, arguments: dict) -> dict:
@@ -131,10 +158,10 @@ class RadarrTools(BaseTool):
             service_proxy = ServiceConfigProxy(self.service_config)
             adapter = RadarrAdapter(service_proxy)
 
-            if tool_name == "radarr_get_movies":
-                return await self._get_movies(adapter, arguments)
-            elif tool_name == "radarr_search_movie":
+            if tool_name == "radarr_search_movie":
                 return await self._search_movie(adapter, arguments)
+            elif tool_name == "radarr_get_movie_status":
+                return await self._get_movie_status(adapter, arguments)
             elif tool_name == "radarr_get_queue":
                 return await self._get_queue(adapter)
             elif tool_name == "radarr_get_calendar":
@@ -147,25 +174,40 @@ class RadarrTools(BaseTool):
                 return await self._test_indexer(adapter, arguments)
             elif tool_name == "radarr_test_all_indexers":
                 return await self._test_all_indexers(adapter)
+            elif tool_name == "radarr_get_releases":
+                return await self._get_releases(adapter, arguments)
             else:
                 return {"success": False, "error": f"Unknown tool: {tool_name}"}
 
         except Exception as e:
             return {"success": False, "error": str(e), "error_type": type(e).__name__}
 
-    async def _get_movies(self, adapter, arguments: dict) -> dict:
-        """Get movies from Radarr."""
-        limit = arguments.get("limit", 50)
-        movies = await adapter.get_movies(limit=limit)
-
-        return {"success": True, "result": {"count": len(movies), "movies": movies}}
-
     async def _search_movie(self, adapter, arguments: dict) -> dict:
         """Search for a movie."""
         query = arguments.get("query")
+        limit = int(arguments.get("limit", 10))
         results = await adapter.search_movie(query)
 
-        return {"success": True, "result": {"query": query, "count": len(results), "results": results}}
+        return {"success": True, "result": {"query": query, "count": len(results), "results": results[:limit]}}
+
+    async def _get_movie_status(self, adapter, arguments: dict) -> dict:
+        """Get detailed status of a movie in Radarr library."""
+        title = arguments.get("title")
+        year = arguments.get("year")
+
+        result = await adapter.get_movie_by_title(title, year)
+
+        if not result.get("found"):
+            return {
+                "success": True,
+                "result": {
+                    "found": False,
+                    "title": title,
+                    "message": result.get("message", f"Movie '{title}' not found in Radarr library"),
+                },
+            }
+
+        return {"success": True, "result": result}
 
     async def _get_queue(self, adapter) -> dict:
         """Get download queue."""
@@ -211,4 +253,17 @@ class RadarrTools(BaseTool):
     async def _test_all_indexers(self, adapter) -> dict:
         """Test all enabled indexers."""
         result = await adapter.test_all_indexers()
+        return {"success": True, "result": result}
+
+    async def _get_releases(self, adapter, arguments: dict) -> dict:
+        """Get available releases/torrents for a movie (manual search)."""
+        movie_id = arguments.get("movie_id")
+        if not movie_id:
+            return {"success": False, "error": "movie_id is required"}
+
+        result = await adapter.get_releases(int(movie_id))
+
+        if result.get("error"):
+            return {"success": False, "error": result.get("error")}
+
         return {"success": True, "result": result}

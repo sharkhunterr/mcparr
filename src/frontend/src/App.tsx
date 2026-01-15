@@ -9,6 +9,7 @@ import Configuration from './pages/Configuration';
 import Monitoring from './pages/Monitoring';
 import MCP from './pages/MCP';
 import Training from './pages/Training';
+import Help from './pages/Help';
 import Wizard from './components/Wizard';
 import { logger } from './lib/logger';
 import { ThemeProvider } from './contexts/ThemeContext';
@@ -40,6 +41,7 @@ function AppRoutes() {
         <Route path="/training" element={<Training />} />
         <Route path="/monitoring" element={<Monitoring />} />
         <Route path="/configuration" element={<Configuration />} />
+        <Route path="/help" element={<Help />} />
         <Route path="/wizard" element={<Wizard />} />
         <Route path="*" element={<div className="p-6">404 - Page Not Found</div>} />
       </Routes>

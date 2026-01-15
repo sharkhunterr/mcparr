@@ -1,12 +1,87 @@
 {
   "title": "Services",
+  "description": "Manage your homelab services and organize them into groups",
   "subtitle": "{{count}} configured service",
   "subtitle_plural": "{{count}} configured services",
+
+  "help": {
+    "category": "Services & Configuration",
+    "title": "Service Management",
+    "overview": "Overview",
+    "overviewContent": "This page allows you to configure and manage all your homelab services (Plex, Radarr, Sonarr, etc.). Each service represents an application accessible through the MCP API.",
+    "configure": "Configure a service",
+    "configureContent": "To add a service:\n• Click \"Add\"\n• Select the service type\n• Enter the base URL and port\n• Configure authentication (API key or credentials)\n• Optionally, set the external URL for remote access",
+    "test": "Test connections",
+    "testContent": "Verify that your services are correctly configured:\n• Individual \"Test\" button on each service\n• \"Test All\" button to check all active services\n• Tests verify DNS resolution, network connection, HTTP response, and authentication",
+    "status": "Service statuses",
+    "statusContent": "Status indicators show the state of each service:\n• Green (Online): service is accessible and functional\n• Red (Error): connection or authentication problem\n• Gray (Disabled): service manually disabled\n• Yellow (Unknown): never tested",
+    "groups": "Service groups",
+    "groupsContent": "Organize your services into custom groups:\n• Create thematic groups (Media, Downloads...)\n• Assign a color and priority\n• Use groups to filter exposed MCP tools"
+  },
+
+  "form": {
+    "addTitle": "Add a service",
+    "editTitle": "Edit service",
+    "basicInfo": "Basic information",
+    "serviceName": "Service name",
+    "serviceNamePlaceholder": "My Plex server",
+    "serviceType": "Service type",
+    "selectServiceType": "Select a service type",
+    "description": "Description",
+    "descriptionPlaceholder": "Optional service description",
+    "connection": "Connection",
+    "baseUrl": "Base URL",
+    "baseUrlHelp": "Internal URL to access the service",
+    "externalUrl": "External URL",
+    "externalUrlHelp": "Public URL for remote access (optional)",
+    "port": "Port",
+    "authentication": "Authentication",
+    "apiKey": "API Key",
+    "apiKeyHelp": "API key or authentication token",
+    "username": "Username",
+    "password": "Password",
+    "options": "Options",
+    "enabled": "Service enabled",
+    "healthCheck": "Health check",
+    "healthCheckEnabled": "Enable automatic checks",
+    "healthCheckInterval": "Interval (seconds)",
+    "cancel": "Cancel",
+    "save": "Save",
+    "saving": "Saving...",
+    "errors": {
+      "nameRequired": "Service name is required",
+      "typeRequired": "Service type is required",
+      "urlRequired": "Base URL is required",
+      "urlInvalid": "Invalid URL format",
+      "portInvalid": "Port must be a number between 1 and 65535",
+      "apiKeyRequired": "API key is required for this service type",
+      "usernameRequired": "Username is required for this service type",
+      "passwordRequired": "Password is required for this service type",
+      "intervalInvalid": "Interval must be a number"
+    }
+  },
+
+  "tabs": {
+    "services": {
+      "label": "Services",
+      "labelFull": "Configured Services"
+    },
+    "groups": {
+      "label": "Groups",
+      "labelFull": "Service Groups"
+    }
+  },
 
   "actions": {
     "testAll": "Test All",
     "testConnection": "Test connection",
     "toggleService": "Enable/Disable"
+  },
+
+  "globalSearchInfo": {
+    "title": "Global Search Available",
+    "description": "Search across all your services with a single AI query.",
+    "configure": "Configure"
   },
 
   "testModal": {
@@ -106,5 +181,76 @@
     "updateFailed": "Failed to update service",
     "deleteFailed": "Failed to delete service",
     "toggleFailed": "Failed to toggle service"
+  },
+
+  "serviceGroups": {
+    "title": "Service Groups",
+    "description": "Create custom groups to organize your services",
+    "help": {
+      "title": "Service Groups",
+      "overview": "Overview",
+      "overviewContent": "Service groups allow you to organize your services into custom categories. They are used to filter MCP tools exposed to the AI.",
+      "create": "Create a group",
+      "createContent": "To create a group:\n• Click \"New\"\n• Give the group a descriptive name\n• Add an optional description\n• Choose a color to identify it\n• Set a display priority",
+      "assign": "Assign services",
+      "assignContent": "After creating a group:\n• Select the group from the list\n• Go to the \"Services\" tab\n• Check the services to include\n• Changes are saved automatically",
+      "mcp": "Usage with MCP",
+      "mcpContent": "Service groups are used to:\n• Filter tools exposed in Open WebUI\n• Create specialized MCP endpoints per group\n• Limit access to certain tools based on context"
+    },
+    "management": {
+      "title": "Select a group",
+      "description": "Choose a service group from the list to view and manage its services."
+    },
+    "list": {
+      "title": "Service Groups",
+      "refresh": "Refresh",
+      "new": "New",
+      "search": "Search groups...",
+      "count": "{{count}} groups",
+      "services": "services",
+      "system": "System",
+      "disabled": "Disabled",
+      "showDisabled": "Show disabled",
+      "noGroups": "No service groups",
+      "noGroupsFound": "No groups found",
+      "createFirst": "Create your first group",
+      "enable": "Enable",
+      "disable": "Disable",
+      "delete": "Delete",
+      "cannotDeleteSystem": "System groups cannot be deleted",
+      "deleteConfirm": "Are you sure you want to delete \"{{name}}\"?"
+    },
+    "detail": {
+      "close": "Close",
+      "tabs": {
+        "info": "Info",
+        "services": "Services"
+      },
+      "name": "Name",
+      "description": "Description",
+      "color": "Color",
+      "priority": "Priority",
+      "priorityHelp": "Higher priority groups appear first",
+      "save": "Save",
+      "servicesHelp": "Select the services to include in this group",
+      "notConfigured": "Not configured"
+    },
+    "create": {
+      "title": "Create Service Group",
+      "name": "Name",
+      "namePlaceholder": "e.g., Media Services",
+      "description": "Description",
+      "descriptionPlaceholder": "Describe the purpose of this group...",
+      "color": "Color",
+      "priority": "Priority",
+      "cancel": "Cancel",
+      "submit": "Create Group"
+    },
+    "errors": {
+      "fetchFailed": "Failed to load service groups",
+      "createFailed": "Failed to create service group",
+      "updateFailed": "Failed to update service group",
+      "deleteFailed": "Failed to delete service group"
+    }
   }
 }

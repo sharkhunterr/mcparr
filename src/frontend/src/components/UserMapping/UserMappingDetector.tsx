@@ -9,6 +9,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { getApiBaseUrl } from '../../lib/api';
 import { getServiceColor } from '../../lib/serviceColors';
+import HelpTooltip from '../common/HelpTooltip';
 
 interface UserSuggestion {
   central_user_id: string;
@@ -264,19 +265,22 @@ const UserMappingDetector: FC<UserMappingDetectorProps> = ({
             </div>
           </div>
 
-          <button
-            onClick={startDetection}
-            disabled={detecting || availableServices.length < 2}
-            className="w-full sm:w-auto flex items-center justify-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
-            title={availableServices.length < 2 ? t('detector.needTwoServices') : t('detector.detect')}
-          >
-            {detecting ? (
-              <Activity className="w-4 h-4 animate-pulse" />
-            ) : (
-              <Search className="w-4 h-4" />
-            )}
-            <span>{detecting ? t('detector.scanning') : t('detector.detect')}</span>
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={startDetection}
+              disabled={detecting || availableServices.length < 2}
+              className="flex-1 sm:flex-none flex items-center justify-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
+              title={availableServices.length < 2 ? t('detector.needTwoServices') : t('detector.detect')}
+            >
+              {detecting ? (
+                <Activity className="w-4 h-4 animate-pulse" />
+              ) : (
+                <Search className="w-4 h-4" />
+              )}
+              <span>{detecting ? t('detector.scanning') : t('detector.detect')}</span>
+            </button>
+            <HelpTooltip topicId="userDetector" />
+          </div>
         </div>
       </div>
 
@@ -441,16 +445,16 @@ const UserMappingDetector: FC<UserMappingDetectorProps> = ({
                               </div>
                               <div className="grid grid-cols-3 gap-1 text-xs">
                                 <div>
-                                  <span className="text-gray-500">ID:</span>
-                                  <span className="ml-1 text-gray-800 font-mono">{String(userId).substring(0, 12)}{String(userId).length > 12 ? '...' : ''}</span>
+                                  <span className="text-gray-500">{t('detector.userIdLabel')}:</span>
+                                  <span className="ml-1 text-gray-800 dark:text-gray-200 font-mono">{String(userId).substring(0, 12)}{String(userId).length > 12 ? '...' : ''}</span>
                                 </div>
                                 <div>
-                                  <span className="text-gray-500">User:</span>
-                                  <span className="ml-1 text-gray-800">{username}</span>
+                                  <span className="text-gray-500">{t('detector.userLabel')}:</span>
+                                  <span className="ml-1 text-gray-800 dark:text-gray-200">{username}</span>
                                 </div>
                                 <div>
-                                  <span className="text-gray-500">Email:</span>
-                                  <span className="ml-1 text-gray-800">{email !== '-' ? email : <span className="text-gray-400">-</span>}</span>
+                                  <span className="text-gray-500">{t('detector.emailLabel')}:</span>
+                                  <span className="ml-1 text-gray-800 dark:text-gray-200">{email !== '-' ? email : <span className="text-gray-400">-</span>}</span>
                                 </div>
                               </div>
                             </div>

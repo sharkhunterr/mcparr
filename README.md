@@ -56,28 +56,36 @@ The result is a fully functional, well-documented homelab management platform th
 
 ## Features
 
-**Setup Wizard & Internationalization**
-- First-time setup wizard with feature overview
+**Setup Wizard & Configuration**
+- Interactive setup wizard with feature overview and help system
 - Multi-language support (FR, EN, DE, ES, IT)
-- Import/export complete configuration
+- Import/export complete configuration with selective options
 - One-click data reset with wizard restart option
+- **Auto-configuration for Open WebUI** - register all tools automatically
 
-**Unified Service Management**
-- Configure and control 15+ homelab services (Plex, Radarr, Sonarr, Overseerr, Prowlarr, etc.)
-- Centralized configuration and monitoring
-- Real-time health checks and status
+**Service Management**
+- Configure and control 15+ homelab services
+- **Service Groups** - organize services by category for Open WebUI endpoints
+- Real-time health checks with scheduled monitoring
+- Connection testing with detailed diagnostics
 
-**Real-time Observability**
+**MCP Tools & AI Integration**
+- 100+ MCP tools for AI-powered homelab automation
+- **Tool Chains** - create conditional workflows (IF/THEN/ELSE logic)
+- **Global Search** - search across all services simultaneously
+- Group-based tool permissions
+- Full Open WebUI compatibility
+
+**Observability & Alerts**
 - Live logs with WebSocket streaming
 - System metrics and performance monitoring
-- Alert management with customizable rules
+- **Alert rules** with customizable thresholds and notifications
 - Correlation IDs for request tracing
 
-**AI Training & Integration**
+**AI Training**
 - Custom Ollama model training with GPU support
 - Training progress tracking and session management
-- MCP server for AI-powered homelab automation
-- Open WebUI compatible tools
+- Prompt management with validation
 
 **User Management**
 - Automatic user mapping across services
@@ -85,16 +93,16 @@ The result is a fully functional, well-documented homelab management platform th
 - Group-based permissions for AI tools
 - Service-specific authentication
 
+**Contextual Help**
+- Integrated help tooltips on every page
+- Service-specific documentation
+- Best practices and troubleshooting tips
+
 **Developer Friendly**
 - Complete REST API with OpenAPI documentation
 - WebSocket endpoints for real-time updates
-- Comprehensive logging and observability
-- Prometheus-compatible metrics
-
-**Extensible Architecture**
-- Add new services via adapter pattern ([Integration Guide](docs/INTEGRATION_GUIDE.md))
-- Modular design for custom service integrations
-- Full i18n support for new features
+- Prometheus-compatible metrics at `/metrics`
+- Extensible adapter pattern for new services
 
 ## Architecture
 
@@ -265,12 +273,16 @@ On first access, an interactive wizard guides you through MCParr's features:
 
 - **Language Selection**: Choose your preferred language (FR, EN, DE, ES, IT)
 - **Import Backup**: Restore a previous configuration to skip manual setup
-- **Feature Tour**: Overview of each section (Services, Users, Groups, MCP, Training, Monitoring, Configuration)
-- **Quick Navigation**: Direct links to configure each feature
+- **Feature Tour**: Overview of each section including:
+  - Services & Service Groups
+  - Users & Group Management
+  - MCP Tools & Tool Chains
+  - AI Training
+  - Monitoring & Alerts
+  - Configuration & Backup
+- **Contextual Help**: Each step includes help tooltips with best practices
 
-The wizard is informational only - actual configuration is done in each dedicated page.
-
-**Skip or Reset**: Click "Skip" to access the interface directly. Reset the wizard anytime via Configuration → General.
+**Skip or Reset**: Click "Skip" to access the interface. Reset the wizard anytime via Configuration → Backup → Reset.
 
 ## Documentation
 
@@ -347,43 +359,42 @@ sequenceDiagram
 
 ### Quick Setup with Open WebUI
 
-**1. Install Open WebUI (if not already installed)**
+**1. Configure Open WebUI in MCParr**
 
-```bash
-docker run -d -p 3000:8080 \
-  -v open-webui:/app/backend/data \
-  --name open-webui \
-  ghcr.io/open-webui/open-webui:main
-```
+First, add Open WebUI as a service in MCParr (Services page) with an admin API key.
 
-**2. Add MCParr Tools to Open WebUI**
+**2. Auto-Configure (Recommended)**
+
+Go to **MCP** → **Configuration** tab and use the **Auto-Configuration** feature:
+- Select endpoint mode: **Group** (recommended), **Service Group**, **Service**, or **All**
+- Choose which categories/services to expose
+- Click **Configure** - MCParr will automatically register all tools in Open WebUI
+
+**3. Manual Setup (Alternative)**
 
 In Open WebUI:
 1. Go to **Settings** → **Admin Settings** → **Tools**
 2. Click **"+ Add Tool"**
-3. Configure the connection:
-   - **Type**: Select **"OpenAPI"**
-   - **URL**: `http://YOUR_MCPARR_HOST:8000` (replace with your MCParr IP/hostname)
-   - **OpenAPI Spec**: Select `/tools/openapi.json` from dropdown
-   - **Auth**: Select **"Session"**
-   - **Username**: Give it a descriptive name like "MCParr Homelab Tools"
-   - **Visibility**: Choose **"Public"** to share with all users
-4. Click **Save** to add the tools
+3. Configure:
+   - **Type**: OpenAPI
+   - **URL**: `http://YOUR_MCPARR_HOST:8000`
+   - **OpenAPI Spec**: `/tools/openapi.json`
+   - **Auth**: Session
+4. Click **Save**
 
 **Important Notes:**
 - Use `localhost` if Open WebUI is running on the same machine
 - Use `host.docker.internal` if Open WebUI is in Docker on macOS/Windows
-- On Linux with Docker, use your machine's IP address (e.g., `192.168.1.21`)
-- The port is `8000` (API port), not `8001` (MCP port)
+- On Linux with Docker, use your machine's IP address
 
-**3. Enable Tools in Chat**
+**4. Enable Tools in Chat**
 
 1. Start a new chat in Open WebUI
 2. Click the **tools icon** (wrench) in the chat input bar
 3. Enable the MCParr tools you want to use
 4. Start chatting! The AI can now control your homelab
 
-**4. Example Conversations**
+**5. Example Conversations**
 
 ```
 You: What movies do I have about space?
@@ -426,8 +437,17 @@ Once connected, AI assistants can:
 - **Create tickets** in Zammad
 - **Manage users** in Authentik
 - **Search documentation** in Wiki.js
-- **Interact with Ollama** for local AI models
+- **Global Search** - search across all enabled services at once
 - **Monitor system** health and metrics
+
+### Tool Chains
+
+Create automated workflows with conditional logic:
+- **IF/THEN/ELSE** - execute different actions based on tool results
+- **Context Variables** - pass data between chain steps
+- **Nested Conditions** - complex decision trees with AND/OR groups
+
+Example: When a movie search returns no results → automatically request it via Overseerr.
 
 See [MCP Integration Guide](docs/MCP.md) for complete tool documentation and advanced configuration.
 

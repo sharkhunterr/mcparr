@@ -107,6 +107,29 @@ class RommTools(BaseTool):
                 is_mutation=False,
                 requires_service="romm",
             ),
+            ToolDefinition(
+                name="romm_get_recently_added",
+                description="Get recently added ROMs sorted by date (newest first)",
+                parameters=[
+                    ToolParameter(
+                        name="limit",
+                        description="Maximum number of ROMs to return (default: 20)",
+                        type="number",
+                        required=False,
+                        default=20,
+                    ),
+                    ToolParameter(
+                        name="days",
+                        description="Number of days to look back (default: 30, use 0 for no limit)",
+                        type="number",
+                        required=False,
+                        default=30,
+                    ),
+                ],
+                category="gaming",
+                is_mutation=False,
+                requires_service="romm",
+            ),
         ]
 
     async def execute(self, tool_name: str, arguments: dict) -> dict:
@@ -147,6 +170,8 @@ class RommTools(BaseTool):
                 return await self._get_users(adapter)
             elif tool_name == "romm_get_statistics":
                 return await self._get_statistics(adapter)
+            elif tool_name == "romm_get_recently_added":
+                return await self._get_recently_added(adapter, arguments)
             else:
                 return {"success": False, "error": f"Unknown tool: {tool_name}"}
 
@@ -205,3 +230,20 @@ class RommTools(BaseTool):
         stats = await adapter.get_statistics()
 
         return {"success": True, "result": stats}
+
+    async def _get_recently_added(self, adapter, arguments: dict) -> dict:
+        """Get recently added ROMs."""
+        limit = int(arguments.get("limit", 20))
+        days = int(arguments.get("days", 30))
+
+        roms = await adapter.get_recently_added(limit=limit, days=days)
+
+        return {
+            "success": True,
+            "result": {
+                "count": len(roms),
+                "limit": limit,
+                "days": days,
+                "roms": roms,
+            },
+        }

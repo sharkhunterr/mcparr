@@ -2,6 +2,18 @@
   "title": "Gruppi",
   "description": "Gestione dei gruppi",
 
+  "help": {
+    "title": "Gestione gruppi",
+    "overview": "Panoramica",
+    "overviewContent": "I gruppi consentono di gestire l'accesso agli strumenti MCP per diversi utenti. Ogni gruppo definisce un insieme di permessi e può contenere più membri.",
+    "create": "Creazione di gruppi",
+    "createContent": "Crea un nuovo gruppo cliccando sul pulsante Nuovo. Definisci un nome, una descrizione, un colore e una priorità. La priorità determina l'ordine di risoluzione dei permessi.",
+    "members": "Gestione dei membri",
+    "membersContent": "Aggiungi o rimuovi utenti da un gruppo tramite la scheda Membri. Gli utenti ereditano automaticamente i permessi del gruppo.",
+    "permissions": "Permessi degli strumenti",
+    "permissionsContent": "Configura quali strumenti MCP sono accessibili per ogni gruppo tramite la scheda Strumenti. Attiva o disattiva gli strumenti singolarmente o in blocco."
+  },
+
   "list": {
     "title": "Gruppi",
     "new": "Nuovo",
@@ -53,9 +65,11 @@
       "title": "Strumenti MCP",
       "search": "Cerca...",
       "all": "Tutti",
+      "none": "Nessuno",
       "addAll": "Tutti",
       "removeAll": "Nessuno",
       "noTools": "Nessuno strumento disponibile",
+      "noToolsFound": "Nessuno strumento trovato",
       "noMatch": "Nessuno strumento corrisponde alla ricerca",
       "count": "{{enabled}}/{{total}}"
     }

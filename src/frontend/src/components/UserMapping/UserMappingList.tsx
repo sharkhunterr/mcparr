@@ -15,6 +15,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { getApiBaseUrl } from '../../lib/api';
 import { getServiceColor } from '../../lib/serviceColors';
+import HelpTooltip from '../common/HelpTooltip';
 
 interface UserMapping {
   id: string;
@@ -104,7 +105,7 @@ const UserMappingList: FC<UserMappingListProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [serviceFilter, setServiceFilter] = useState<string>('all');
+  const [serviceFilter] = useState<string>('all');
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(0);
   const [limit] = useState(1000); // Maximum limit to get all mappings
@@ -502,29 +503,30 @@ const UserMappingList: FC<UserMappingListProps> = ({
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
       <div className="p-3 sm:p-4">
-        {/* Actions bar */}
-        <div className="flex gap-2 mb-4">
+        {/* Actions bar with search and filters */}
+        <div className="flex flex-row gap-2 sm:gap-3 items-center mb-4">
+          {/* Refresh button - icon only on all screens */}
           <button
             onClick={fetchMappings}
             disabled={loading}
-            className="px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 flex items-center gap-2 transition-colors"
+            className="p-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 flex items-center transition-colors flex-shrink-0"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-            <span className="hidden sm:inline">{t('list.refresh')}</span>
           </button>
+
+          {/* Add button - text visible on all screens */}
           {onCreateMapping && (
             <button
               onClick={onCreateMapping}
-              className="px-3 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg flex items-center gap-2 transition-colors"
+              className="px-3 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg flex items-center gap-2 transition-colors flex-shrink-0"
             >
               <Plus className="w-4 h-4" />
-              <span className="hidden sm:inline">{t('list.add')}</span>
+              <span>{t('list.add')}</span>
             </button>
           )}
-        </div>
-        {/* Filters */}
-        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 mb-4">
-          <div className="relative flex-1">
+
+          {/* Search input */}
+          <div className="relative flex-1 min-w-0">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <input
               type="text"
@@ -535,10 +537,11 @@ const UserMappingList: FC<UserMappingListProps> = ({
             />
           </div>
 
+          {/* Status filter - desktop only */}
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="hidden sm:block px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent flex-shrink-0"
           >
             <option value="all">{t('list.allStatus')}</option>
             <option value="active">{t('list.statusActive')}</option>
@@ -547,12 +550,22 @@ const UserMappingList: FC<UserMappingListProps> = ({
             <option value="syncing">{t('list.statusSyncing')}</option>
           </select>
 
+          {/* Help button */}
+          <HelpTooltip topicId="userMappingList" />
+        </div>
+
+        {/* Mobile filters - second row */}
+        <div className="sm:hidden flex gap-2 mb-4">
           <select
-            value={serviceFilter}
-            onChange={(e) => setServiceFilter(e.target.value)}
-            className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="flex-1 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
-            <option value="all">{t('list.allServices')}</option>
+            <option value="all">{t('list.allStatus')}</option>
+            <option value="active">{t('list.statusActive')}</option>
+            <option value="pending">{t('list.statusPending')}</option>
+            <option value="failed">{t('list.statusFailed')}</option>
+            <option value="syncing">{t('list.statusSyncing')}</option>
           </select>
         </div>
 

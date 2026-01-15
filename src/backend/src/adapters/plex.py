@@ -297,10 +297,7 @@ class PlexAdapter(TokenAuthAdapter):
             if library_name:
                 libraries = await self.get_libraries()
                 # Exact match (case-insensitive)
-                library = next(
-                    (lib for lib in libraries if lib.get("title", "").lower() == library_name.lower()),
-                    None
-                )
+                library = next((lib for lib in libraries if lib.get("title", "").lower() == library_name.lower()), None)
                 if library:
                     response = await self._make_request(
                         "GET",
@@ -394,9 +391,7 @@ class PlexAdapter(TokenAuthAdapter):
             self.logger.warning(f"Failed to search content: {e}")
             return []
 
-    async def _search_single_query(
-        self, query: str, media_type: Optional[str], limit: int
-    ) -> List[Dict[str, Any]]:
+    async def _search_single_query(self, query: str, media_type: Optional[str], limit: int) -> List[Dict[str, Any]]:
         """Execute a single search query against Plex API."""
         params = {"query": query, "limit": str(limit)}
         if media_type:
@@ -447,14 +442,17 @@ class PlexAdapter(TokenAuthAdapter):
                             seen_keys.add(key)
                             all_word_results.append(item)
 
-                # Prioritize results that contain ALL search words in the title
+                # Count matching words for each result
                 def count_matching_words(item):
                     title = (item.get("title") or "").lower()
                     return sum(1 for w in words if w in title)
 
+                # Filter: only keep results that have at least one search word in title
+                filtered_results = [item for item in all_word_results if count_matching_words(item) > 0]
+
                 # Sort by number of matching words (descending)
-                all_word_results.sort(key=count_matching_words, reverse=True)
-                metadata = all_word_results
+                filtered_results.sort(key=count_matching_words, reverse=True)
+                metadata = filtered_results
 
             search_results = []
             for item in metadata[:limit]:  # Respect limit after merging

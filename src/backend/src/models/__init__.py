@@ -3,11 +3,25 @@
 from .alert_config import AlertConfiguration, AlertHistory
 from .base import AlertSeverity, Base, LogLevel, TimestampMixin, UUIDMixin
 from .configuration import ConfigurationSetting
+from .global_search import SEARCHABLE_SERVICES, GlobalSearchConfig
 from .group import Group, GroupMembership, GroupToolPermission
 from .log_entry import LogEntry
 from .mcp_request import McpRequest, McpRequestStatus, McpToolCategory
 from .service_config import ServiceConfig, ServiceHealthHistory, ServiceStatus, ServiceType
+from .service_group import ServiceGroup, ServiceGroupMembership
 from .system_metrics import SystemMetric
+from .tool_chain import (
+    ActionType,
+    ConditionGroupOperator,
+    ConditionOperator,
+    ExecutionMode,
+    StepPositionType,
+    ToolChain,
+    ToolChainAction,
+    ToolChainCondition,
+    ToolChainConditionGroup,
+    ToolChainStep,
+)
 from .training_prompt import (
     PromptCategory,
     PromptDifficulty,
@@ -46,6 +60,18 @@ __all__ = [
     "Group",
     "GroupMembership",
     "GroupToolPermission",
+    "ServiceGroup",
+    "ServiceGroupMembership",
+    "ToolChain",
+    "ToolChainStep",
+    "ToolChainConditionGroup",
+    "ToolChainCondition",
+    "ToolChainAction",
+    "ConditionOperator",
+    "ConditionGroupOperator",
+    "ActionType",
+    "ExecutionMode",
+    "StepPositionType",
     "TrainingSession",
     "TrainingStatus",
     "TrainingType",
@@ -59,4 +85,6 @@ __all__ = [
     "TrainingWorker",
     "WorkerStatus",
     "WorkerMetricsSnapshot",
+    "GlobalSearchConfig",
+    "SEARCHABLE_SERVICES",
 ]

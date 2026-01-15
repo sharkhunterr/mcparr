@@ -8,10 +8,10 @@ from typing import Any, Dict, List, Optional
 from sqlalchemy import select
 
 from ..database.connection import get_db_manager
-from ..models.service_config import ServiceConfig
 from ..models.alert_config import AlertConfiguration
-from .service_tester import ServiceTester
+from ..models.service_config import ServiceConfig
 from .alert_service import alert_service
+from .service_tester import ServiceTester
 
 logger = logging.getLogger(__name__)
 
@@ -143,19 +143,14 @@ class HealthCheckScheduler:
         finally:
             self._running = False
 
-    async def _check_service_alerts(
-        self,
-        session,
-        failed_services: List[ServiceConfig],
-        has_failures: bool
-    ) -> None:
+    async def _check_service_alerts(self, session, failed_services: List[ServiceConfig], has_failures: bool) -> None:
         """Check and trigger alerts for service test failures."""
         try:
             # Get all enabled alerts for service_test_failed metric type
             alert_result = await session.execute(
                 select(AlertConfiguration).where(
                     AlertConfiguration.enabled == True,
-                    AlertConfiguration.metric_type.in_(["service_test_failed", "service_down"])
+                    AlertConfiguration.metric_type.in_(["service_test_failed", "service_down"]),
                 )
             )
             alerts = list(alert_result.scalars().all())
@@ -185,7 +180,9 @@ class HealthCheckScheduler:
                         # Global alert - trigger if any service failed
                         if has_failures:
                             context = {"failed_services": failed_service_names}
-                            await alert_service.check_and_trigger_alert(session, alert_config, len(failed_services), context)
+                            await alert_service.check_and_trigger_alert(
+                                session, alert_config, len(failed_services), context
+                            )
                         elif alert_config.is_firing:
                             await alert_service.check_and_trigger_alert(session, alert_config, 0)
 

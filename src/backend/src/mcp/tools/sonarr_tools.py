@@ -12,15 +12,21 @@ class SonarrTools(BaseTool):
     def definitions(self) -> List[ToolDefinition]:
         return [
             ToolDefinition(
-                name="sonarr_get_series",
-                description="Get list of TV series in Sonarr library",
+                name="sonarr_search_series",
+                description="Search for a TV series to add to Sonarr. Returns match_score (0-100) and library status if already added.",
                 parameters=[
                     ToolParameter(
+                        name="query",
+                        description="TV series title to search for",
+                        type="string",
+                        required=True,
+                    ),
+                    ToolParameter(
                         name="limit",
-                        description="Maximum number of series to return",
+                        description="Maximum number of results to return",
                         type="number",
                         required=False,
-                        default=50,
+                        default=10,
                     ),
                 ],
                 category="media",
@@ -28,14 +34,41 @@ class SonarrTools(BaseTool):
                 requires_service="sonarr",
             ),
             ToolDefinition(
-                name="sonarr_search_series",
-                description="Search for a TV series to add to Sonarr",
+                name="sonarr_get_series_status",
+                description="Get detailed status of a specific TV series in Sonarr library (monitored, episodes, quality profile, etc.)",
                 parameters=[
                     ToolParameter(
-                        name="query",
-                        description="TV series title to search for",
+                        name="title",
+                        description="TV series title to search for in Sonarr library",
                         type="string",
                         required=True,
+                    ),
+                    ToolParameter(
+                        name="year",
+                        description="First air year (helps with disambiguation)",
+                        type="number",
+                        required=False,
+                    ),
+                ],
+                category="media",
+                is_mutation=False,
+                requires_service="sonarr",
+            ),
+            ToolDefinition(
+                name="sonarr_get_releases",
+                description="Get available releases/torrents for a TV series (manual search). Shows quality, language, seeders, size, and whether the release matches the profile.",
+                parameters=[
+                    ToolParameter(
+                        name="series_id",
+                        description="Sonarr series ID (get from sonarr_get_series_status or sonarr_search_series)",
+                        type="number",
+                        required=True,
+                    ),
+                    ToolParameter(
+                        name="season_number",
+                        description="Specific season number to search (optional, searches all if not specified)",
+                        type="number",
+                        required=False,
                     ),
                 ],
                 category="media",
@@ -131,10 +164,12 @@ class SonarrTools(BaseTool):
             service_proxy = ServiceConfigProxy(self.service_config)
             adapter = SonarrAdapter(service_proxy)
 
-            if tool_name == "sonarr_get_series":
-                return await self._get_series(adapter, arguments)
-            elif tool_name == "sonarr_search_series":
+            if tool_name == "sonarr_search_series":
                 return await self._search_series(adapter, arguments)
+            elif tool_name == "sonarr_get_series_status":
+                return await self._get_series_status(adapter, arguments)
+            elif tool_name == "sonarr_get_releases":
+                return await self._get_releases(adapter, arguments)
             elif tool_name == "sonarr_get_queue":
                 return await self._get_queue(adapter)
             elif tool_name == "sonarr_get_calendar":
@@ -153,19 +188,46 @@ class SonarrTools(BaseTool):
         except Exception as e:
             return {"success": False, "error": str(e), "error_type": type(e).__name__}
 
-    async def _get_series(self, adapter, arguments: dict) -> dict:
-        """Get series from Sonarr."""
-        limit = arguments.get("limit", 50)
-        series = await adapter.get_series(limit=limit)
-
-        return {"success": True, "result": {"count": len(series), "series": series}}
-
     async def _search_series(self, adapter, arguments: dict) -> dict:
         """Search for a series."""
         query = arguments.get("query")
+        limit = int(arguments.get("limit", 10))
         results = await adapter.search_series(query)
 
-        return {"success": True, "result": {"query": query, "count": len(results), "results": results}}
+        return {"success": True, "result": {"query": query, "count": len(results), "results": results[:limit]}}
+
+    async def _get_series_status(self, adapter, arguments: dict) -> dict:
+        """Get detailed status of a series in Sonarr library."""
+        title = arguments.get("title")
+        year = arguments.get("year")
+
+        result = await adapter.get_series_by_title(title, year)
+
+        if not result.get("found"):
+            return {
+                "success": True,
+                "result": {
+                    "found": False,
+                    "title": title,
+                    "message": result.get("message", f"Series '{title}' not found in Sonarr library"),
+                },
+            }
+
+        return {"success": True, "result": result}
+
+    async def _get_releases(self, adapter, arguments: dict) -> dict:
+        """Get available releases/torrents for a series (manual search)."""
+        series_id = arguments.get("series_id")
+        if not series_id:
+            return {"success": False, "error": "series_id is required"}
+
+        season_number = arguments.get("season_number")
+        result = await adapter.get_releases(int(series_id), season_number=season_number)
+
+        if result.get("error"):
+            return {"success": False, "error": result.get("error")}
+
+        return {"success": True, "result": result}
 
     async def _get_queue(self, adapter) -> dict:
         """Get download queue."""

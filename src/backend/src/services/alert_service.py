@@ -272,8 +272,7 @@ class AlertService:
 
         # Count unacknowledged alerts (for notification badge)
         active_query = select(func.count(AlertHistory.id)).where(
-            AlertHistory.is_resolved == False,
-            AlertHistory.acknowledged == False
+            AlertHistory.is_resolved == False, AlertHistory.acknowledged == False
         )
         active_count = await session.scalar(active_query) or 0
 
@@ -354,7 +353,7 @@ class AlertService:
                         services_str += f" (+{len(failed_services) - 3} more)"
                     return f"{len(failed_services)} services down: {services_str}"
             else:
-                return f"Service test failed"
+                return "Service test failed"
 
         # For metric-based alerts (CPU, memory, etc.)
         operator_symbols = {

@@ -123,6 +123,10 @@
         "label": "Dienste",
         "description": "Dienstkonfigurationen (Plex, Authentik, usw.)"
       },
+      "service_groups": {
+        "label": "Dienstgruppen",
+        "description": "Dienstgruppen für Open WebUI"
+      },
       "user_mappings": {
         "label": "Benutzerzuordnungen",
         "description": "Benutzerzuordnungen zwischen Diensten"
@@ -136,8 +140,24 @@
         "description": "Website-Einstellungen"
       },
       "training_prompts": {
-        "label": "KI-Training",
-        "description": "Trainings-Prompts und Daten"
+        "label": "Prompts",
+        "description": "KI-Trainings-Prompts"
+      },
+      "training_workers": {
+        "label": "Workers",
+        "description": "KI-Trainings-Workers"
+      },
+      "tool_chains": {
+        "label": "Ketten",
+        "description": "MCP-Werkzeugketten"
+      },
+      "global_search": {
+        "label": "Globale Suche",
+        "description": "Multi-Service-Suchkonfiguration"
+      },
+      "alerts": {
+        "label": "Alarme",
+        "description": "Monitoring-Alarmkonfigurationen"
       }
     },
     "reset": {
@@ -147,9 +167,14 @@
       "warningDescription": "Diese Aktion löscht dauerhaft alle Daten:",
       "warningItems": {
         "services": "Alle konfigurierten Dienste",
+        "serviceGroups": "Alle Dienstgruppen",
         "userMappings": "Alle Benutzerzuordnungen",
         "groups": "Alle Gruppen und Berechtigungen",
-        "training": "Alle Trainings-Prompts",
+        "training": "Alle Trainings-Prompts und Vorlagen",
+        "workers": "Alle Trainings-Workers",
+        "toolChains": "Alle Werkzeugketten",
+        "globalSearch": "Globale Suchkonfiguration",
+        "alerts": "Alle konfigurierten Alarme",
         "siteConfig": "Alle Website-Konfigurationen"
       },
       "warningFooter": "Diese Aktion kann nicht rückgängig gemacht werden. Stellen Sie sicher, dass Sie Ihre Daten bei Bedarf exportiert haben.",

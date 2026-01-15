@@ -9,10 +9,14 @@
     "or": "ou",
     "guideInfo": "Ce guide vous accompagne dans la configuration initiale. Vous pourrez modifier tous ces paramètres ultérieurement.",
     "features": {
-      "services": "Connexion à vos services",
-      "users": "Mapping utilisateurs",
-      "permissions": "Gestion des permissions",
-      "mcp": "Serveur MCP intégré"
+      "services": "Gestion des services",
+      "users": "Gestion des utilisateurs",
+      "chains": "Chaînes de réponse",
+      "help": "Aide intégrée",
+      "mcp": "Serveur MCP intégré",
+      "dashboard": "Dashboard & monitoring",
+      "training": "AI Training",
+      "permissions": "Gestion des permissions"
     },
     "import": {
       "selectFile": "Cliquer pour selectionner un fichier",
@@ -55,13 +59,15 @@
     "services": {
       "title": "Services Homelab",
       "subtitle": "Connectez vos applications",
-      "description": "Configurez les services de votre homelab que MCParr pourra contrôler : Plex, Radarr, Sonarr, Overseerr, Tautulli, etc. Pour chaque service, vous devrez fournir son URL et sa clé API ou ses identifiants.",
+      "description": "Configurez les services de votre homelab que MCParr pourra contrôler. Pour chaque service, renseignez son URL, sa clé API (ou nom d'utilisateur et mot de passe selon les services), et optionnellement une URL externe pour l'accès distant. Testez chaque service individuellement ou tous en même temps.",
       "linkText": "Configurer les services",
+      "tip": "Dans l'onglet Groupes de la page Services, vous pouvez créer des groupes de services (ex: Media avec Plex, Tautulli, Overseerr) qui seront utilisés comme endpoints tools pour Open WebUI.",
       "steps": [
         "Accédez à la page Services via le menu de navigation",
-        "Cliquez sur \"Ajouter un service\" et remplissez le formulaire",
-        "Testez la connexion pour vérifier la communication",
-        "Répétez pour tous vos services (recommandé : au moins 2)"
+        "Cliquez sur \"Ajouter un service\" et renseignez URL, clé API ou identifiants",
+        "Configurez l'URL externe si vous souhaitez accéder au service à distance",
+        "Testez la connexion (individuellement ou tous les services)",
+        "Créez des groupes de services dans l'onglet Groupes pour organiser vos endpoints"
       ]
     },
     "users": {
@@ -92,14 +98,27 @@
     "mcp": {
       "title": "Serveur MCP",
       "subtitle": "Model Context Protocol",
-      "description": "Le serveur MCP (Model Context Protocol) permet à votre IA d'interagir avec vos services homelab. C'est le pont entre l'assistant conversationnel et vos applications (Plex, Radarr, etc.).",
+      "description": "Le serveur MCP permet à votre IA d'interagir avec vos services homelab. Visualisez l'historique des appels, testez les outils directement depuis l'interface, configurez les tools dans Open WebUI, et gérez la recherche globale.",
       "linkText": "Voir la configuration MCP",
-      "tip": "Le serveur MCP s'exécute en arrière-plan et expose les outils que votre IA peut utiliser pour contrôler vos services.",
+      "tip": "Utilisez l'onglet Config pour configurer les tools directement dans Open WebUI (si le service est bien configuré) et pour paramétrer la recherche globale.",
       "steps": [
-        "Vérifiez que le serveur MCP est démarré et accessible",
-        "Consultez les outils MCP disponibles pour chaque service",
-        "Testez l'intégration avec votre client IA (Claude Desktop, etc.)",
-        "Configurez les permissions par groupe si nécessaire"
+        "Consultez l'historique des appels MCP dans l'onglet History",
+        "Testez les outils directement depuis l'onglet Tools",
+        "Configurez les tools pour Open WebUI dans l'onglet Config",
+        "Paramétrez la Recherche Globale pour chercher dans tous vos services"
+      ]
+    },
+    "chains": {
+      "title": "Chaînes de Tools",
+      "subtitle": "Automatisez vos workflows",
+      "description": "Les chaînes de tools permettent de créer des séquences d'actions automatisées. Cela allège la logique que le modèle IA doit gérer en définissant des réponses et enchaînements selon des configurations spécifiques.",
+      "linkText": "Gérer les chaînes",
+      "tip": "Une chaîne bien configurée permet au modèle IA de déléguer des workflows complexes tout en gardant un contrôle précis sur les étapes.",
+      "steps": [
+        "Accédez à la page MCP, onglet Chains",
+        "Créez une nouvelle chaîne avec les outils souhaités",
+        "Définissez les conditions de déclenchement et les paramètres",
+        "Configurez les réponses et enchaînements automatiques"
       ]
     },
     "training": {
@@ -140,6 +159,19 @@
         "Définissez le niveau de logs et l'actualisation automatique",
         "Exportez/importez votre configuration pour la sauvegarder"
       ]
+    },
+    "help": {
+      "title": "Système d'Aide",
+      "subtitle": "Documentation intégrée",
+      "description": "MCParr dispose d'un système d'aide intégré accessible sur chaque page via l'icône d'aide (?). La page Aide centralise toutes les aides disponibles du site pour une consultation rapide.",
+      "linkText": "Consulter l'Aide",
+      "tip": "Cliquez sur l'icône ? présente sur chaque page pour accéder à l'aide contextuelle de cette section.",
+      "steps": [
+        "Repérez l'icône d'aide (?) sur les différentes pages",
+        "Cliquez dessus pour afficher l'aide contextuelle",
+        "Accédez à la page Aide pour voir toutes les documentations",
+        "Utilisez la recherche pour trouver rapidement une information"
+      ]
     }
   },
   "navigation": {
@@ -151,11 +183,13 @@
     "stepLabels": {
       "services": "services",
       "users": "users",
-      "groups": "groups",
+      "groups": "groupes",
       "mcp": "mcp",
+      "chains": "chaînes",
       "training": "training",
       "monitoring": "monitoring",
-      "config": "config"
+      "config": "config",
+      "help": "aide"
     }
   }
 }

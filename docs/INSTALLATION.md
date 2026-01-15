@@ -61,7 +61,7 @@ Edit `.env` with your settings (see [Configuration Guide](CONFIGURATION.md)).
 alembic upgrade head
 
 # Start the server
-python -m uvicorn src.main:app --host 0.0.0.0 --port 8002 --reload
+python -m uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
 #### 3. Frontend Setup
@@ -80,8 +80,8 @@ cp .env.example .env
 
 Edit `.env`:
 ```bash
-VITE_API_URL=http://localhost:8002
-VITE_WS_URL=ws://localhost:8002
+VITE_API_URL=http://localhost:8000
+VITE_WS_URL=ws://localhost:8000
 ```
 
 ```bash
@@ -92,7 +92,7 @@ npm run dev
 #### 4. Access the Application
 
 - **Frontend**: http://localhost:5173
-- **API Docs**: http://localhost:8002/docs
+- **API Docs**: http://localhost:8000/docs
 - **MCP Server**: http://localhost:8001
 
 ---
@@ -126,26 +126,34 @@ docker-compose exec backend alembic upgrade head
 
 #### 4. Access the Application
 
-- **Frontend**: http://localhost:5173
-- **API**: http://localhost:8002
+- **Frontend**: http://localhost:3000
+- **API**: http://localhost:8000
 
 ---
 
 ## 🔧 Post-Installation
 
-### 1. Configure Services
+### 1. First-Time Setup Wizard
 
-1. Open the web interface at http://localhost:5173
-2. Go to **Services** tab
-3. Add your homelab services with their URLs and API keys
+On first access, an interactive wizard guides you through:
 
-### 2. Create User Mappings
+- **Language Selection**: Choose your preferred language
+- **Import Backup**: Restore a previous configuration
+- **Feature Tour**: Overview of all sections with help tips
+
+### 2. Configure Services
+
+1. Go to **Services** tab
+2. Add your homelab services with their URLs and API keys
+3. **Optional**: Create **Service Groups** to organize services for Open WebUI
+
+### 3. Create User Mappings
 
 1. Go to **Users** tab
 2. Map your users across different services
 3. Create groups with appropriate permissions
 
-### 3. Connect to Open WebUI
+### 4. Connect to Open WebUI
 
 Open WebUI is the primary interface for using MCParr with AI.
 
@@ -155,47 +163,49 @@ If you don't have Open WebUI yet:
 
 ```bash
 # Using Docker (recommended)
-docker run -d -p 3000:8080 \
+docker run -d -p 3001:8080 \
   -v open-webui:/app/backend/data \
   --name open-webui \
   ghcr.io/open-webui/open-webui:main
 ```
 
-Access Open WebUI at http://localhost:3000
+Access Open WebUI at http://localhost:3001
 
-#### Add MCParr Tools to Open WebUI
+#### Add Open WebUI to MCParr
 
-1. **Open Open WebUI** → **Settings** (gear icon)
-2. **Admin Settings** → **Tools** (or **Outils**)
-3. Click **"+ Add Tool"** or **"+ Nouvelle Connexion"**
-4. Configure the connection:
-   - **Type**: Select **"OpenAPI"** from the dropdown
-   - **URL**: Enter your MCParr backend URL:
-     - `http://localhost:8000` if running locally
-     - `http://host.docker.internal:8000` if Open WebUI is in Docker (macOS/Windows)
-     - `http://192.168.1.21:8000` (Linux Docker - use your machine's actual IP)
-     - `http://YOUR_SERVER_IP:8000` for remote access
-   - **OpenAPI Spec**: Select `/tools/openapi.json` from the dropdown
-   - **Auth**: Select **"Session"**
-   - **Headers**: Leave empty (optional additional headers in JSON format)
-   - **ID**: Leave empty (optional)
-   - **Username** (Nom d'utilisateur): Give it a descriptive name like "MCParr Homelab Tools"
-   - **Description**: Optional description like "Outils serveur Homelab"
-   - **Function Name Filter List**: Leave empty (optional tool filtering)
-   - **Visibility** (Visibilité): Choose **"Public"** to share with all users
-5. Click **Save** to add the tools
+1. Go to **Services** → **Add Service**
+2. Select **Open WebUI** as service type
+3. Enter URL and **admin API key**
+4. Test connection
 
-**Important:**
-- The port is **8000** (MCParr API port), not 8001 (MCP port)
-- On Linux with Docker, `host.docker.internal` doesn't work - use your machine's IP address
+#### Auto-Configure (Recommended)
+
+1. Go to **MCP** → **Configuration** tab
+2. Use the **Auto-Configuration** section
+3. Select endpoint mode:
+   - **Group**: One endpoint per service category (media, books, etc.)
+   - **Service Group**: One endpoint per custom service group
+   - **Service**: One endpoint per service
+   - **All**: Single endpoint with all tools
+4. Click **Configure** - tools are registered automatically in Open WebUI
+
+#### Manual Setup (Alternative)
+
+1. **Open Open WebUI** → **Settings** → **Admin Settings** → **Tools**
+2. Click **"+ Add Tool"**
+3. Configure:
+   - **Type**: OpenAPI
+   - **URL**: `http://YOUR_MCPARR_HOST:8000`
+   - **OpenAPI Spec**: `/tools/openapi.json`
+   - **Auth**: Session
+4. Click **Save**
 
 #### Enable Tools in Chat
 
 1. Start a **new chat** in Open WebUI
 2. Click the **tools icon** (wrench) in the chat input bar
-3. You'll see MCParr tools available to enable
-4. **Enable the tools** you want to use
-5. Start chatting! The AI can now control your homelab
+3. Enable the MCParr tools you want to use
+4. Start chatting!
 
 #### Example Chat Session
 
@@ -219,7 +229,13 @@ AI: [Uses get_system_status tool]
     ✅ Overseerr - 12 pending requests
 ```
 
-### 4. Connect Other AI Assistants (Optional)
+### 5. Optional: Configure Advanced Features
+
+- **Tool Chains**: Create automated workflows in **MCP** → **Chains**
+- **Global Search**: Enable services for cross-service search in **MCP** → **Configuration**
+- **Alerts**: Set up monitoring rules in **Monitoring** → **Alerts**
+
+### 6. Connect Other AI Assistants (Optional)
 
 See [MCP Integration Guide](MCP.md) for connecting to Claude Desktop or other AI assistants.
 
@@ -264,8 +280,9 @@ alembic upgrade head
 
 Check if ports are in use:
 ```bash
-lsof -i :8002  # Backend
-lsof -i :5173  # Frontend
+lsof -i :8000  # Backend
+lsof -i :3000  # Frontend (production)
+lsof -i :5173  # Frontend (dev)
 lsof -i :8001  # MCP Server
 ```
 

@@ -20,6 +20,10 @@ import {
   Search,
   ChevronDown,
   ChevronUp,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
   X,
   Zap,
   Activity,
@@ -35,6 +39,7 @@ import { useTrainingWebSocket, type TrainingMetrics } from '../hooks/useTraining
 import SessionDetailsModal from '../components/Training/SessionDetailsModal';
 import SessionLogsModal from '../components/Training/SessionLogsModal';
 import TrainingOverview from '../components/Training/TrainingOverview';
+import { HelpTooltip } from '../components/common';
 
 // Types
 interface OllamaModel {
@@ -346,14 +351,18 @@ const SessionsTab = ({
   return (
     <div className="space-y-4">
       {/* Actions bar */}
-      <div className="flex">
-        <button
-          onClick={onCreate}
-          className="px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-2"
-        >
-          <Plus className="w-4 h-4" />
-          <span className="hidden sm:inline">{t('sessions.newSession')}</span>
-        </button>
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-3 sm:p-4">
+        <div className="flex flex-row gap-2 sm:gap-3 items-center">
+          <button
+            onClick={onCreate}
+            className="px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            <span className="hidden sm:inline">{t('sessions.newSession')}</span>
+          </button>
+          <div className="flex-1" />
+          <HelpTooltip topicId="trainingSessions" />
+        </div>
       </div>
 
       {/* Sessions List */}
@@ -652,10 +661,11 @@ const ModelsTab = ({
 
   return (
     <div className="space-y-4">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
-        <div className="flex items-center gap-3">
-          <div className="relative flex-1 sm:w-64">
+      {/* Actions bar - card container */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-3 sm:p-4">
+        <div className="flex flex-row gap-2 sm:gap-3 items-center">
+          {/* Search */}
+          <div className="relative flex-1 sm:flex-none sm:w-64">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
               type="text"
@@ -665,13 +675,18 @@ const ModelsTab = ({
               className="w-full pl-9 pr-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500"
             />
           </div>
-        </div>
-        <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-          <Brain className="w-4 h-4" />
-          <span>{t('models.modelCountValue', { count: models.length })}</span>
-          <span className="text-gray-300 dark:text-gray-600">•</span>
-          <HardDrive className="w-4 h-4" />
-          <span>{totalSize.toFixed(1)} GB</span>
+          {/* Stats */}
+          <div className="hidden sm:flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+            <Brain className="w-4 h-4" />
+            <span>{t('models.modelCountValue', { count: models.length })}</span>
+            <span className="text-gray-300 dark:text-gray-600">•</span>
+            <HardDrive className="w-4 h-4" />
+            <span>{totalSize.toFixed(1)} GB</span>
+          </div>
+          {/* Spacer */}
+          <div className="flex-1 hidden sm:block" />
+          {/* Help */}
+          <HelpTooltip topicId="trainingModels" />
         </div>
       </div>
 
@@ -847,12 +862,42 @@ const PromptsTab = ({
   onEdit: (prompt: TrainingPrompt) => void;
 }) => {
   const [expandedPrompt, setExpandedPrompt] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
   const { t } = useTranslation('training');
 
-  // Filtrer les prompts par service côté client
-  const filteredPrompts = serviceFilter
-    ? prompts.filter(p => detectServices(p).includes(serviceFilter))
-    : prompts;
+  // Filtrer les prompts par service et par recherche
+  const filteredPrompts = prompts.filter(p => {
+    // Filtre par service
+    if (serviceFilter && !detectServices(p).includes(serviceFilter)) {
+      return false;
+    }
+    // Filtre par recherche
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      return (
+        p.name?.toLowerCase().includes(query) ||
+        p.user_input?.toLowerCase().includes(query) ||
+        p.expected_output?.toLowerCase().includes(query) ||
+        p.assistant_response?.toLowerCase().includes(query) ||
+        p.tags?.some(tag => tag.toLowerCase().includes(query))
+      );
+    }
+    return true;
+  });
+
+  // Pagination - auto-adjust page if current page is out of bounds
+  const totalPages = Math.max(1, Math.ceil(filteredPrompts.length / pageSize));
+  const effectivePage = Math.min(currentPage, totalPages);
+  const startIndex = (effectivePage - 1) * pageSize;
+  const endIndex = startIndex + pageSize;
+  const paginatedPrompts = filteredPrompts.slice(startIndex, endIndex);
+
+  // Sync currentPage if it's out of bounds (non-effect approach)
+  if (effectivePage !== currentPage && currentPage > 1) {
+    // Schedule the state update for next render to avoid cascading
+    Promise.resolve().then(() => setCurrentPage(effectivePage));
+  }
 
   // Compter les prompts par service
   const serviceCounts = prompts.reduce((acc, p) => {
@@ -863,12 +908,14 @@ const PromptsTab = ({
     return acc;
   }, {} as Record<string, number>);
 
+  const validatedCount = filteredPrompts.filter(p => p.is_validated).length;
+
   return (
     <div className="space-y-4">
-      {/* Filters */}
-      <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow space-y-3">
+      {/* Actions bar - card container */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-3 sm:p-4">
         {/* Search and filter row */}
-        <div className="flex flex-col sm:flex-row gap-3">
+        <div className="flex flex-col sm:flex-row gap-3 mb-3">
           <div className="flex-1 min-w-0 relative">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <input
@@ -876,24 +923,24 @@ const PromptsTab = ({
               placeholder={t('prompts.search')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              className="w-full pl-9 pr-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500"
             />
           </div>
           <select
             value={serviceFilter}
             onChange={(e) => setServiceFilter(e.target.value)}
-            className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
           >
             <option value="">{t('prompts.allServicesCount', { count: prompts.length })}</option>
-            <option value="plex">🎬 Plex ({serviceCounts['plex'] || 0})</option>
-            <option value="tautulli">📊 Tautulli ({serviceCounts['tautulli'] || 0})</option>
-            <option value="overseerr">🎯 Overseerr ({serviceCounts['overseerr'] || 0})</option>
-            <option value="radarr">🎥 Radarr ({serviceCounts['radarr'] || 0})</option>
-            <option value="sonarr">📺 Sonarr ({serviceCounts['sonarr'] || 0})</option>
-            <option value="prowlarr">🔍 Prowlarr ({serviceCounts['prowlarr'] || 0})</option>
-            <option value="jackett">🧥 Jackett ({serviceCounts['jackett'] || 0})</option>
-            <option value="system">⚙️ System ({serviceCounts['system'] || 0})</option>
-            <option value="zammad">🎫 Zammad ({serviceCounts['zammad'] || 0})</option>
+            <option value="plex">Plex ({serviceCounts['plex'] || 0})</option>
+            <option value="tautulli">Tautulli ({serviceCounts['tautulli'] || 0})</option>
+            <option value="overseerr">Overseerr ({serviceCounts['overseerr'] || 0})</option>
+            <option value="radarr">Radarr ({serviceCounts['radarr'] || 0})</option>
+            <option value="sonarr">Sonarr ({serviceCounts['sonarr'] || 0})</option>
+            <option value="prowlarr">Prowlarr ({serviceCounts['prowlarr'] || 0})</option>
+            <option value="jackett">Jackett ({serviceCounts['jackett'] || 0})</option>
+            <option value="system">System ({serviceCounts['system'] || 0})</option>
+            <option value="zammad">Zammad ({serviceCounts['zammad'] || 0})</option>
           </select>
         </div>
         {/* Actions row */}
@@ -922,159 +969,395 @@ const PromptsTab = ({
           </button>
           <button
             onClick={onCreate}
-            className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 text-sm ml-auto"
+            className="px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center gap-2 text-sm"
           >
             <Plus className="w-4 h-4" />
             <span className="hidden sm:inline">{t('prompts.new')}</span>
           </button>
+          {/* Spacer */}
+          <div className="flex-1" />
+          {/* Help */}
+          <HelpTooltip topicId="trainingPrompts" />
         </div>
       </div>
 
-      {/* Prompts List */}
+      {/* Prompts Table */}
       {loading ? (
         <div className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
         </div>
       ) : filteredPrompts.length > 0 ? (
-        <div className="space-y-3">
-          {filteredPrompts.map((prompt) => (
-            <div
-              key={prompt.id}
-              className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden"
-            >
-              <div
-                className="p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                onClick={() => setExpandedPrompt(expandedPrompt === prompt.id ? null : prompt.id)}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <h4 className="font-medium text-gray-900 dark:text-white truncate">
-                          {prompt.name}
-                        </h4>
-                        <ServiceBadge tags={prompt.tags} />
-                        <DifficultyBadge difficulty={prompt.difficulty} />
-                        {prompt.is_validated && (
-                          <CheckCircle className="w-4 h-4 text-green-500" />
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700">
+          {/* Mobile: Card list view */}
+          <div className="sm:hidden overflow-auto max-h-[calc(100vh-350px)]">
+            <div className="divide-y divide-gray-200 dark:divide-gray-700">
+              {paginatedPrompts.map((prompt) => (
+                <div key={prompt.id}>
+                  {/* Card header - clickable */}
+                  <div
+                    className="p-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                    onClick={() => setExpandedPrompt(expandedPrompt === prompt.id ? null : prompt.id)}
+                  >
+                    <div className="flex items-start gap-2">
+                      {/* Expand icon */}
+                      <div className="mt-0.5 flex-shrink-0">
+                        {expandedPrompt === prompt.id ? (
+                          <ChevronUp className="w-4 h-4 text-gray-400" />
+                        ) : (
+                          <ChevronDown className="w-4 h-4 text-gray-400" />
                         )}
                       </div>
-                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 truncate">
-                        {prompt.user_input.substring(0, 100)}...
-                      </p>
+                      {/* Content */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="font-medium text-sm text-gray-900 dark:text-white truncate">
+                            {prompt.name}
+                          </span>
+                          {prompt.is_validated && (
+                            <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                          )}
+                        </div>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">
+                          {prompt.user_input}
+                        </p>
+                        {/* Tags and difficulty on mobile */}
+                        <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                          <ServiceBadge tags={prompt.tags} />
+                          <DifficultyBadge difficulty={prompt.difficulty} />
+                        </div>
+                      </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-gray-400">
-                      {t('prompts.timesUsedCount', { count: prompt.times_used })}
-                    </span>
-                    {expandedPrompt === prompt.id ? (
-                      <ChevronUp className="w-5 h-5 text-gray-400" />
-                    ) : (
-                      <ChevronDown className="w-5 h-5 text-gray-400" />
-                    )}
-                  </div>
+                  {/* Expanded content */}
+                  {expandedPrompt === prompt.id && (
+                    <div className="px-3 pb-3 bg-gray-50 dark:bg-gray-900/30">
+                      <div className="space-y-3 pl-6">
+                        {prompt.system_prompt && (
+                          <div>
+                            <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+                              {t('prompts.systemPrompt')}
+                            </p>
+                            <pre className="text-xs bg-white dark:bg-gray-800 p-2 rounded overflow-x-auto whitespace-pre-wrap max-h-24 border border-gray-200 dark:border-gray-700">
+                              {prompt.system_prompt}
+                            </pre>
+                          </div>
+                        )}
+                        <div>
+                          <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+                            {t('prompts.userInput')}
+                          </p>
+                          <pre className="text-xs bg-white dark:bg-gray-800 p-2 rounded overflow-x-auto whitespace-pre-wrap max-h-24 border border-gray-200 dark:border-gray-700">
+                            {prompt.user_input}
+                          </pre>
+                        </div>
+                        {prompt.tool_call && (
+                          <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded border border-blue-200 dark:border-blue-800">
+                            <p className="text-xs font-semibold text-blue-700 dark:text-blue-300 mb-1">{t('prompts.toolCall')}</p>
+                            <pre className="text-xs bg-white dark:bg-gray-900 p-1.5 rounded overflow-x-auto max-h-20">
+                              {JSON.stringify(prompt.tool_call, null, 2)}
+                            </pre>
+                          </div>
+                        )}
+                        {prompt.tool_response && (
+                          <div className="p-2 bg-green-50 dark:bg-green-900/20 rounded border border-green-200 dark:border-green-800">
+                            <p className="text-xs font-semibold text-green-700 dark:text-green-300 mb-1">{t('prompts.toolResponse')}</p>
+                            <pre className="text-xs bg-white dark:bg-gray-900 p-1.5 rounded overflow-x-auto max-h-20">
+                              {JSON.stringify(prompt.tool_response, null, 2)}
+                            </pre>
+                          </div>
+                        )}
+                        {prompt.assistant_response ? (
+                          <div className="p-2 bg-purple-50 dark:bg-purple-900/20 rounded border border-purple-200 dark:border-purple-800">
+                            <p className="text-xs font-semibold text-purple-700 dark:text-purple-300 mb-1">{t('prompts.assistantResponse')}</p>
+                            <pre className="text-xs bg-white dark:bg-gray-900 p-1.5 rounded overflow-x-auto whitespace-pre-wrap max-h-24">
+                              {prompt.assistant_response}
+                            </pre>
+                          </div>
+                        ) : (
+                          <div>
+                            <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+                              {t('prompts.expectedOutput')}
+                            </p>
+                            <pre className="text-xs bg-white dark:bg-gray-800 p-2 rounded overflow-x-auto whitespace-pre-wrap max-h-24 border border-gray-200 dark:border-gray-700">
+                              {prompt.expected_output}
+                            </pre>
+                          </div>
+                        )}
+                        {/* Actions */}
+                        <div className="flex flex-wrap gap-2 pt-1">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onEdit(prompt);
+                            }}
+                            className="px-2.5 py-1 bg-purple-600 text-white text-xs rounded hover:bg-purple-700 flex items-center gap-1"
+                          >
+                            <Edit className="w-3 h-3" />
+                            {t('prompts.edit')}
+                          </button>
+                          {!prompt.is_validated && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onValidate(prompt.id);
+                              }}
+                              className="px-2.5 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700 flex items-center gap-1"
+                            >
+                              <CheckCircle className="w-3 h-3" />
+                              {t('prompts.validate')}
+                            </button>
+                          )}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onDelete(prompt.id);
+                            }}
+                            className="px-2.5 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700 flex items-center gap-1"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                            {t('prompts.delete')}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              </div>
-
-              {/* Expanded details */}
-              {expandedPrompt === prompt.id && (
-                <div className="px-4 pb-4 border-t border-gray-200 dark:border-gray-700 space-y-4">
-                  {prompt.system_prompt && (
-                    <div className="mt-4">
-                      <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
-                        {t('prompts.systemPrompt')}
-                      </p>
-                      <pre className="text-sm bg-gray-50 dark:bg-gray-900 p-3 rounded-lg overflow-x-auto whitespace-pre-wrap">
-                        {prompt.system_prompt}
-                      </pre>
-                    </div>
-                  )}
-
-                  <div>
-                    <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
-                      {t('prompts.userInput')}
-                    </p>
-                    <pre className="text-sm bg-gray-50 dark:bg-gray-900 p-3 rounded-lg overflow-x-auto whitespace-pre-wrap">
-                      {prompt.user_input}
-                    </pre>
-                  </div>
-
-                  {/* Tool calling display */}
-                  {prompt.tool_call && (
-                    <div className="space-y-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                      <p className="text-xs font-semibold text-blue-700 dark:text-blue-300">{t('prompts.toolCall')}</p>
-                      <pre className="text-sm bg-white dark:bg-gray-900 p-2 rounded overflow-x-auto">
-                        {JSON.stringify(prompt.tool_call, null, 2)}
-                      </pre>
-                    </div>
-                  )}
-
-                  {prompt.tool_response && (
-                    <div className="space-y-2 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
-                      <p className="text-xs font-semibold text-green-700 dark:text-green-300">{t('prompts.toolResponse')}</p>
-                      <pre className="text-sm bg-white dark:bg-gray-900 p-2 rounded overflow-x-auto max-h-32">
-                        {JSON.stringify(prompt.tool_response, null, 2)}
-                      </pre>
-                    </div>
-                  )}
-
-                  {prompt.assistant_response ? (
-                    <div className="space-y-2 p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
-                      <p className="text-xs font-semibold text-purple-700 dark:text-purple-300">{t('prompts.assistantResponse')}</p>
-                      <pre className="text-sm bg-white dark:bg-gray-900 p-2 rounded overflow-x-auto whitespace-pre-wrap max-h-48">
-                        {prompt.assistant_response}
-                      </pre>
-                    </div>
-                  ) : (
-                    <div>
-                      <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
-                        {t('prompts.expectedOutput')}
-                      </p>
-                      <pre className="text-sm bg-gray-50 dark:bg-gray-900 p-3 rounded-lg overflow-x-auto whitespace-pre-wrap max-h-48">
-                        {prompt.expected_output}
-                      </pre>
-                    </div>
-                  )}
-
-                  <div className="flex gap-2">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onEdit(prompt);
-                      }}
-                      className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 flex items-center gap-1"
-                    >
-                      <Edit className="w-3.5 h-3.5" />
-                      {t('prompts.edit')}
-                    </button>
-                    {!prompt.is_validated && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onValidate(prompt.id);
-                        }}
-                        className="px-3 py-1.5 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 flex items-center gap-1"
-                      >
-                        <CheckCircle className="w-3.5 h-3.5" />
-                        {t('prompts.validate')}
-                      </button>
-                    )}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onDelete(prompt.id);
-                      }}
-                      className="px-3 py-1.5 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 flex items-center gap-1"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                      {t('prompts.delete')}
-                    </button>
-                  </div>
-                </div>
-              )}
+              ))}
             </div>
-          ))}
+          </div>
+
+          {/* Desktop: Table view */}
+          <div className="hidden sm:block overflow-auto max-h-[calc(100vh-350px)]">
+            <table className="w-full">
+              <thead className="bg-gray-50 dark:bg-gray-900/50 sticky top-0 z-10">
+                <tr>
+                  <th className="px-3 py-2.5 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider w-8"></th>
+                  <th className="px-3 py-2.5 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    {t('prompts.title')}
+                  </th>
+                  <th className="px-3 py-2.5 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden md:table-cell">
+                    {t('prompts.tags')}
+                  </th>
+                  <th className="px-3 py-2.5 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    {t('prompts.difficulty')}
+                  </th>
+                  <th className="px-3 py-2.5 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden lg:table-cell">
+                    {t('prompts.timesUsed')}
+                  </th>
+                  <th className="px-3 py-2.5 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider w-16">
+                    <CheckCircle className="w-4 h-4 mx-auto text-gray-400" />
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                {paginatedPrompts.map((prompt) => (
+                  <React.Fragment key={prompt.id}>
+                    {/* Main row */}
+                    <tr
+                      className="hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer transition-colors"
+                      onClick={() => setExpandedPrompt(expandedPrompt === prompt.id ? null : prompt.id)}
+                    >
+                      <td className="px-3 py-2.5">
+                        {expandedPrompt === prompt.id ? (
+                          <ChevronUp className="w-4 h-4 text-gray-400" />
+                        ) : (
+                          <ChevronDown className="w-4 h-4 text-gray-400" />
+                        )}
+                      </td>
+                      <td className="px-3 py-2.5">
+                        <div className="flex flex-col">
+                          <span className="font-medium text-sm text-gray-900 dark:text-white truncate max-w-xs">
+                            {prompt.name}
+                          </span>
+                          <span className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-xs">
+                            {prompt.user_input.substring(0, 50)}...
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-3 py-2.5 hidden md:table-cell">
+                        <div className="flex flex-wrap gap-1">
+                          <ServiceBadge tags={prompt.tags} />
+                        </div>
+                      </td>
+                      <td className="px-3 py-2.5">
+                        <DifficultyBadge difficulty={prompt.difficulty} />
+                      </td>
+                      <td className="px-3 py-2.5 text-center hidden lg:table-cell">
+                        <span className="text-sm text-gray-600 dark:text-gray-400">{prompt.times_used}</span>
+                      </td>
+                      <td className="px-3 py-2.5 text-center">
+                        {prompt.is_validated ? (
+                          <CheckCircle className="w-4 h-4 text-green-500 mx-auto" />
+                        ) : (
+                          <span className="w-4 h-4 block mx-auto text-gray-300 dark:text-gray-600">—</span>
+                        )}
+                      </td>
+                    </tr>
+                    {/* Expanded details row */}
+                    {expandedPrompt === prompt.id && (
+                      <tr className="bg-gray-50 dark:bg-gray-900/30">
+                        <td colSpan={6} className="px-3 py-3">
+                          <div className="space-y-4">
+                            {prompt.system_prompt && (
+                              <div>
+                                <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+                                  {t('prompts.systemPrompt')}
+                                </p>
+                                <pre className="text-sm bg-white dark:bg-gray-800 p-3 rounded-lg overflow-x-auto whitespace-pre-wrap max-h-32 border border-gray-200 dark:border-gray-700">
+                                  {prompt.system_prompt}
+                                </pre>
+                              </div>
+                            )}
+
+                            <div>
+                              <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+                                {t('prompts.userInput')}
+                              </p>
+                              <pre className="text-sm bg-white dark:bg-gray-800 p-3 rounded-lg overflow-x-auto whitespace-pre-wrap max-h-32 border border-gray-200 dark:border-gray-700">
+                                {prompt.user_input}
+                              </pre>
+                            </div>
+
+                            {/* Tool calling display */}
+                            {prompt.tool_call && (
+                              <div className="space-y-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                                <p className="text-xs font-semibold text-blue-700 dark:text-blue-300">{t('prompts.toolCall')}</p>
+                                <pre className="text-sm bg-white dark:bg-gray-900 p-2 rounded overflow-x-auto max-h-24">
+                                  {JSON.stringify(prompt.tool_call, null, 2)}
+                                </pre>
+                              </div>
+                            )}
+
+                            {prompt.tool_response && (
+                              <div className="space-y-2 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                                <p className="text-xs font-semibold text-green-700 dark:text-green-300">{t('prompts.toolResponse')}</p>
+                                <pre className="text-sm bg-white dark:bg-gray-900 p-2 rounded overflow-x-auto max-h-24">
+                                  {JSON.stringify(prompt.tool_response, null, 2)}
+                                </pre>
+                              </div>
+                            )}
+
+                            {prompt.assistant_response ? (
+                              <div className="space-y-2 p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
+                                <p className="text-xs font-semibold text-purple-700 dark:text-purple-300">{t('prompts.assistantResponse')}</p>
+                                <pre className="text-sm bg-white dark:bg-gray-900 p-2 rounded overflow-x-auto whitespace-pre-wrap max-h-32">
+                                  {prompt.assistant_response}
+                                </pre>
+                              </div>
+                            ) : (
+                              <div>
+                                <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+                                  {t('prompts.expectedOutput')}
+                                </p>
+                                <pre className="text-sm bg-white dark:bg-gray-800 p-3 rounded-lg overflow-x-auto whitespace-pre-wrap max-h-32 border border-gray-200 dark:border-gray-700">
+                                  {prompt.expected_output}
+                                </pre>
+                              </div>
+                            )}
+
+                            {/* Actions */}
+                            <div className="flex gap-2 pt-2">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onEdit(prompt);
+                                }}
+                                className="px-3 py-1.5 bg-purple-600 text-white text-sm rounded-lg hover:bg-purple-700 flex items-center gap-1"
+                              >
+                                <Edit className="w-3.5 h-3.5" />
+                                {t('prompts.edit')}
+                              </button>
+                              {!prompt.is_validated && (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    onValidate(prompt.id);
+                                  }}
+                                  className="px-3 py-1.5 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 flex items-center gap-1"
+                                >
+                                  <CheckCircle className="w-3.5 h-3.5" />
+                                  {t('prompts.validate')}
+                                </button>
+                              )}
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onDelete(prompt.id);
+                                }}
+                                className="px-3 py-1.5 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 flex items-center gap-1"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                                {t('prompts.delete')}
+                              </button>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Pagination */}
+          <div className="px-3 py-2.5 border-t border-gray-200 dark:border-gray-700 flex flex-wrap items-center justify-between gap-2">
+            {/* Info */}
+            <div className="flex items-center gap-2 sm:gap-4 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+              <span>
+                {startIndex + 1}-{Math.min(endIndex, filteredPrompts.length)} / {filteredPrompts.length}
+                <span className="hidden sm:inline"> ({validatedCount} {t('prompts.validated')})</span>
+              </span>
+              <select
+                value={pageSize}
+                onChange={(e) => setPageSize(Number(e.target.value))}
+                className="px-1.5 py-0.5 text-xs sm:text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              >
+                <option value={25}>25</option>
+                <option value={50}>50</option>
+                <option value={100}>100</option>
+              </select>
+            </div>
+
+            {/* Navigation */}
+            <div className="flex items-center gap-0.5">
+              <button
+                onClick={() => setCurrentPage(1)}
+                disabled={currentPage === 1}
+                className="p-1.5 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 disabled:opacity-30 disabled:cursor-not-allowed"
+                title="First"
+              >
+                <ChevronsLeft className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="p-1.5 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 disabled:opacity-30 disabled:cursor-not-allowed"
+                title="Previous"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <span className="px-2 py-0.5 text-xs sm:text-sm text-gray-700 dark:text-gray-300">
+                {currentPage}/{totalPages}
+              </span>
+              <button
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="p-1.5 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 disabled:opacity-30 disabled:cursor-not-allowed"
+                title="Next"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => setCurrentPage(totalPages)}
+                disabled={currentPage === totalPages}
+                className="p-1.5 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 disabled:opacity-30 disabled:cursor-not-allowed"
+                title="Last"
+              >
+                <ChevronsRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
         </div>
       ) : (
         <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg shadow">

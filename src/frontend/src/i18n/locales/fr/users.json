@@ -2,6 +2,10 @@
   "title": "Utilisateurs",
   "description": "Gestion des mappings utilisateurs",
 
+  "help": {
+    "category": "Utilisateurs"
+  },
+
   "tabs": {
     "detector": {
       "label": "Auto",
@@ -24,6 +28,17 @@
   "detector": {
     "title": "Détection automatique",
     "description": "Scanner les services pour détecter les mappings",
+    "help": {
+      "title": "Détection automatique",
+      "overview": "Vue d'ensemble",
+      "overviewContent": "La détection automatique scanne tous vos services configurés pour trouver des utilisateurs avec des identifiants similaires (email, nom d'utilisateur, ID).",
+      "scan": "Lancement du scan",
+      "scanContent": "Cliquez sur le bouton Détecter pour lancer l'analyse. Le système compare les utilisateurs entre tous les services activés et calcule un score de confiance.",
+      "results": "Résultats et filtres",
+      "resultsContent": "Les résultats sont groupés par utilisateur et classés par niveau de confiance (haute, moyenne, basse). Utilisez les filtres pour affiner la liste.",
+      "create": "Création des mappings",
+      "createContent": "Sélectionnez les suggestions souhaitées et cliquez sur Créer pour générer automatiquement les mappings utilisateurs correspondants."
+    },
     "detect": "Détecter",
     "scanning": "Scan...",
     "servicesLabel": "Services ({{count}})",
@@ -47,13 +62,27 @@
     "useManual": "Créez des mappings manuellement via l'onglet \"Manual Mapping\".",
     "detectionErrors": "Erreurs de détection",
     "selectOne": "Veuillez sélectionner au moins une suggestion pour créer des mappings",
-    "createSuccess": "{{count}} mapping créés avec succès !"
+    "createSuccess": "{{count}} mapping créés avec succès !",
+    "userIdLabel": "ID",
+    "userLabel": "Utilisateur",
+    "emailLabel": "Email"
   },
 
   "creator": {
     "title": "Mapping manuel",
     "description": "Lier les comptes utilisateurs entre services",
     "refresh": "Actualiser",
+    "help": {
+      "title": "Mapping manuel",
+      "overview": "Vue d'ensemble",
+      "overviewContent": "Le mapping manuel vous permet de lier manuellement des comptes utilisateurs entre vos différents services. C'est utile quand la détection automatique ne fonctionne pas ou quand vous souhaitez un contrôle total.",
+      "enumerate": "Actualisation des utilisateurs",
+      "enumerateContent": "Cliquez sur le bouton Actualiser pour charger la liste des utilisateurs de tous vos services configurés. Utilisez la recherche pour filtrer par nom ou email, et le menu déroulant pour filtrer par service.",
+      "select": "Sélection des utilisateurs",
+      "selectContent": "Cliquez sur un utilisateur pour le sélectionner. Vous pouvez sélectionner plusieurs utilisateurs de différents services pour créer un mapping centralisé. Les utilisateurs sélectionnés apparaissent dans le panneau en haut.",
+      "create": "Création du mapping",
+      "createContent": "Une fois les utilisateurs sélectionnés, cliquez sur Créer pour générer le mapping. Si plusieurs noms d'utilisateur sont détectés, vous pourrez choisir lequel utiliser comme identifiant central."
+    },
     "loading": "Chargement des utilisateurs...",
     "selected": "Sélectionnés ({{count}})",
     "clear": "Effacer",
@@ -85,6 +114,17 @@
     "count_plural": "{{count}} mappings",
     "refresh": "Actualiser",
     "add": "Ajouter",
+    "help": {
+      "title": "Liste des mappings",
+      "overview": "Vue d'ensemble",
+      "overviewContent": "Cette page affiche tous les mappings utilisateurs existants. Chaque carte represente un utilisateur central avec ses comptes lies sur differents services.",
+      "cards": "Cartes utilisateurs",
+      "cardsContent": "Chaque carte montre le nom de l'utilisateur, le nombre de services actifs et des badges colores pour chaque service connecte. Survolez un badge pour voir les details.",
+      "edit": "Edition et gestion",
+      "editContent": "Cliquez sur l'icone crayon pour editer un utilisateur : modifier son nom, ajouter de nouveaux services ou supprimer des mappings existants.",
+      "sync": "Synchronisation",
+      "syncContent": "Les badges verts indiquent une synchronisation active. Vous pouvez activer/desactiver la synchronisation pour chaque service individuellement dans les details."
+    },
     "search": "Rechercher...",
     "allStatus": "Tous statuts",
     "statusActive": "Actif",
@@ -166,5 +206,24 @@
     "enumerateFailed": "Échec de l'énumération des utilisateurs",
     "detectFailed": "Échec de la détection",
     "syncFailed": "Échec de la synchronisation"
+  },
+
+  "time": {
+    "never": "Jamais",
+    "justNow": "À l'instant",
+    "minutesAgo": "il y a {{count}}m",
+    "hoursAgo": "il y a {{count}}h",
+    "daysAgo": "il y a {{count}}j"
+  },
+
+  "matching": {
+    "sameId": "🎯 Même ID",
+    "sameUsername": "👤 Même nom d'utilisateur",
+    "sameEmail": "📧 Même email",
+    "sameDisplayName": "🏷️ Même nom d'affichage",
+    "usernameFriendlyMatch": "🔗 Correspondance nom d'utilisateur/nom",
+    "usernameFuzzy": "👤 Nom d'utilisateur similaire",
+    "emailFuzzy": "📧 Email similaire",
+    "nameFuzzy": "🏷️ Nom similaire"
   }
 }

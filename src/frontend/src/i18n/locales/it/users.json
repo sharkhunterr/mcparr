@@ -2,6 +2,10 @@
   "title": "Utenti",
   "description": "Gestione utenti e mappature",
 
+  "help": {
+    "category": "Utenti"
+  },
+
   "tabs": {
     "detector": {
       "label": "Auto",
@@ -24,6 +28,17 @@
   "detector": {
     "title": "Rilevamento automatico",
     "description": "Scansiona i servizi per rilevare le mappature",
+    "help": {
+      "title": "Rilevamento automatico",
+      "overview": "Panoramica",
+      "overviewContent": "Il rilevamento automatico scansiona tutti i servizi configurati per trovare utenti con identificatori simili (email, nome utente, ID).",
+      "scan": "Avvio della scansione",
+      "scanContent": "Fai clic sul pulsante Rileva per avviare l'analisi. Il sistema confronta gli utenti tra tutti i servizi abilitati e calcola un punteggio di affidabilità.",
+      "results": "Risultati e filtri",
+      "resultsContent": "I risultati sono raggruppati per utente e ordinati per livello di affidabilità (alta, media, bassa). Usa i filtri per affinare l'elenco.",
+      "create": "Creazione delle mappature",
+      "createContent": "Seleziona i suggerimenti desiderati e fai clic su Crea per generare automaticamente le mappature utente corrispondenti."
+    },
     "detect": "Rileva",
     "scanning": "Scansione...",
     "servicesLabel": "Servizi ({{count}})",
@@ -47,13 +62,27 @@
     "useManual": "Crei le mappature manualmente tramite la scheda \"Mappatura manuale\".",
     "detectionErrors": "Errori di rilevamento",
     "selectOne": "Selezioni almeno un suggerimento per creare le mappature",
-    "createSuccess": "Create con successo {{count}} mappature utenti!"
+    "createSuccess": "Create con successo {{count}} mappature utenti!",
+    "userIdLabel": "ID",
+    "userLabel": "Utente",
+    "emailLabel": "Email"
   },
 
   "creator": {
     "title": "Mappatura manuale",
     "description": "Collega gli account utente tra i servizi",
     "refresh": "Aggiorna",
+    "help": {
+      "title": "Mappatura manuale",
+      "overview": "Panoramica",
+      "overviewContent": "La mappatura manuale consente di collegare manualmente gli account utente tra i diversi servizi. Questo è utile quando il rilevamento automatico non funziona o quando si desidera il controllo completo.",
+      "enumerate": "Aggiornamento utenti",
+      "enumerateContent": "Fare clic sul pulsante Aggiorna per caricare l'elenco degli utenti da tutti i servizi configurati. Utilizzare la ricerca per filtrare per nome o email e il menu a discesa per filtrare per servizio.",
+      "select": "Selezione utenti",
+      "selectContent": "Fare clic su un utente per selezionarlo. È possibile selezionare più utenti da servizi diversi per creare una mappatura centralizzata. Gli utenti selezionati appaiono nel pannello in alto.",
+      "create": "Creazione della mappatura",
+      "createContent": "Una volta selezionati gli utenti, fare clic su Crea per generare la mappatura. Se vengono rilevati più nomi utente, è possibile scegliere quale utilizzare come identificatore centrale."
+    },
     "loading": "Caricamento utenti...",
     "selected": "Selezionati ({{count}})",
     "clear": "Cancella",
@@ -85,6 +114,17 @@
     "count_plural": "{{count}} mappature",
     "refresh": "Aggiorna",
     "add": "Aggiungi",
+    "help": {
+      "title": "Elenco mappature",
+      "overview": "Panoramica",
+      "overviewContent": "Questa pagina visualizza tutte le mappature utenti esistenti. Ogni scheda rappresenta un utente centrale con i suoi account collegati su diversi servizi.",
+      "cards": "Schede utente",
+      "cardsContent": "Ogni scheda mostra il nome utente, il numero di servizi attivi e badge colorati per ogni servizio connesso. Passa il mouse su un badge per vedere i dettagli.",
+      "edit": "Modifica e gestione",
+      "editContent": "Fai clic sull'icona della matita per modificare un utente: modificare il nome, aggiungere nuovi servizi o eliminare mappature esistenti.",
+      "sync": "Sincronizzazione",
+      "syncContent": "I badge verdi indicano una sincronizzazione attiva. Puoi attivare/disattivare la sincronizzazione per ogni servizio individualmente nei dettagli."
+    },
     "search": "Cerca...",
     "allStatus": "Tutti gli stati",
     "statusActive": "Attivo",

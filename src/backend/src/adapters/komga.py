@@ -234,9 +234,7 @@ class KomgaAdapter(TokenAuthAdapter):
             self.logger.error(f"Failed to get books: {e}")
             return []
 
-    async def search(
-        self, query: str, library_id: Optional[str] = None, limit: int = 20
-    ) -> Dict[str, Any]:
+    async def search(self, query: str, library_id: Optional[str] = None, limit: int = 20) -> Dict[str, Any]:
         """Search for series and books.
 
         Args:

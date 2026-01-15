@@ -142,28 +142,231 @@ class RadarrAdapter(TokenAuthAdapter):
             self.logger.error(f"Failed to get movies: {e}")
             return []
 
+    async def get_movie_by_title(self, title: str, year: int = None) -> Dict[str, Any]:
+        """Get a specific movie from Radarr library by title.
+
+        Searches for a movie in the local Radarr library (not TMDB lookup).
+        Returns detailed status information about the movie.
+        """
+        try:
+            response = await self._make_request("GET", "/api/v3/movie")
+            movies = response.json()
+
+            # Normalize search title
+            search_title = title.lower().strip()
+
+            # Score and find best match
+            best_match = None
+            best_score = 0
+
+            for movie in movies:
+                movie_title = (movie.get("title") or "").lower()
+                movie_year = movie.get("year")
+
+                score = 0
+                # Exact match
+                if movie_title == search_title:
+                    score = 100
+                # Title contains search term
+                elif search_title in movie_title:
+                    score = 50
+                # Search term contains title
+                elif movie_title in search_title:
+                    score = 40
+
+                # Year bonus if provided and matches
+                if year and movie_year == year:
+                    score += 30
+                elif year and movie_year and abs(movie_year - year) <= 1:
+                    score += 10
+
+                if score > best_score:
+                    best_score = score
+                    best_match = movie
+
+            if not best_match or best_score < 40:
+                return {"found": False, "message": f"Movie '{title}' not found in Radarr library"}
+
+            # Get quality profile name
+            quality_profile_id = best_match.get("qualityProfileId")
+            quality_profile_name = None
+            try:
+                profiles_response = await self._make_request("GET", "/api/v3/qualityprofile")
+                profiles = profiles_response.json()
+                for profile in profiles:
+                    if profile.get("id") == quality_profile_id:
+                        quality_profile_name = profile.get("name")
+                        break
+            except Exception:
+                pass
+
+            return {
+                "found": True,
+                "id": best_match.get("id"),
+                "title": best_match.get("title"),
+                "year": best_match.get("year"),
+                "tmdb_id": best_match.get("tmdbId"),
+                "imdb_id": best_match.get("imdbId"),
+                "has_file": best_match.get("hasFile", False),
+                "monitored": best_match.get("monitored", False),
+                "status": best_match.get("status"),  # released, announced, inCinemas
+                "is_available": best_match.get("isAvailable", False),
+                "quality_profile": quality_profile_name,
+                "quality_profile_id": quality_profile_id,
+                "path": best_match.get("path"),
+                "size_on_disk": best_match.get("sizeOnDisk", 0),
+                "added": best_match.get("added"),
+                "movie_file": {
+                    "quality": best_match.get("movieFile", {}).get("quality", {}).get("quality", {}).get("name")
+                    if best_match.get("movieFile")
+                    else None,
+                    "size": best_match.get("movieFile", {}).get("size") if best_match.get("movieFile") else None,
+                    "date_added": best_match.get("movieFile", {}).get("dateAdded")
+                    if best_match.get("movieFile")
+                    else None,
+                },
+                "url": self._get_movie_url(best_match.get("id")),
+            }
+        except Exception as e:
+            self.logger.error(f"Failed to get movie by title '{title}': {e}")
+            return {"found": False, "error": str(e)}
+
     async def search_movie(self, query: str) -> List[Dict[str, Any]]:
-        """Search for movies to add."""
+        """Search for movies to add (TMDB lookup).
+
+        Returns search results with title match score and local library status.
+        """
         try:
             response = await self._make_request("GET", "/api/v3/movie/lookup", params={"term": query})
             results = response.json()
 
-            return [
-                {
-                    "title": movie.get("title"),
+            # Normalize query for matching
+            query_lower = query.lower().strip()
+
+            search_results = []
+            for movie in results[:20]:
+                title = movie.get("title") or ""
+                title_lower = title.lower()
+
+                # Calculate title match score (0-100)
+                if title_lower == query_lower:
+                    match_score = 100
+                elif query_lower in title_lower:
+                    # Query is contained in title
+                    match_score = 70 + (30 * len(query_lower) / len(title_lower))
+                elif title_lower in query_lower:
+                    # Title is contained in query
+                    match_score = 50 + (20 * len(title_lower) / len(query_lower))
+                else:
+                    # Partial word matching
+                    query_words = set(query_lower.split())
+                    title_words = set(title_lower.split())
+                    common_words = query_words & title_words
+                    if common_words:
+                        match_score = 30 + (40 * len(common_words) / max(len(query_words), len(title_words)))
+                    else:
+                        match_score = 10
+
+                # Round to integer
+                match_score = int(match_score)
+
+                # Check if in library (has local Radarr ID)
+                radarr_id = movie.get("id")
+                in_library = radarr_id is not None
+
+                result = {
+                    "title": title,
                     "year": movie.get("year"),
                     "tmdb_id": movie.get("tmdbId"),
                     "imdb_id": movie.get("imdbId"),
                     "overview": movie.get("overview", "")[:200],
-                    "in_library": movie.get("id") is not None,
+                    "match_score": match_score,
+                    "in_library": in_library,
                     "tmdb_url": self._get_tmdb_url(movie.get("tmdbId")),
                     "imdb_url": self._get_imdb_url(movie.get("imdbId")),
                 }
-                for movie in results[:20]
-            ]
+
+                # If in library, add local status
+                if in_library:
+                    result["radarr_id"] = radarr_id
+                    result["has_file"] = movie.get("hasFile", False)
+                    result["monitored"] = movie.get("monitored", False)
+                    result["status"] = movie.get("status")
+                    result["url"] = self._get_movie_url(radarr_id)
+
+                search_results.append(result)
+
+            # Sort by match score descending
+            search_results.sort(key=lambda x: x["match_score"], reverse=True)
+
+            return search_results
         except Exception as e:
             self.logger.error(f"Failed to search movies: {e}")
             return []
+
+    async def get_releases(self, movie_id: int) -> Dict[str, Any]:
+        """Get available releases/torrents for a movie (manual search).
+
+        Returns list of available releases from indexers with quality, language,
+        seeders, size, and compatibility info.
+        """
+        try:
+            response = await self._make_request("GET", "/api/v3/release", params={"movieId": movie_id})
+            releases = response.json()
+
+            # Get quality profiles for reference
+            quality_profiles = {}
+            try:
+                profiles_response = await self._make_request("GET", "/api/v3/qualityprofile")
+                for profile in profiles_response.json():
+                    quality_profiles[profile.get("id")] = profile.get("name")
+            except Exception:
+                pass
+
+            formatted_releases = []
+            for release in releases[:50]:  # Limit to 50 releases
+                quality = release.get("quality", {}).get("quality", {})
+                languages = release.get("languages", [])
+
+                # Get rejection reasons if any
+                rejections = release.get("rejections", [])
+
+                formatted_releases.append(
+                    {
+                        "title": release.get("title"),
+                        "indexer": release.get("indexer"),
+                        "quality": quality.get("name"),
+                        "quality_source": quality.get("source"),
+                        "resolution": quality.get("resolution"),
+                        "languages": [lang.get("name") for lang in languages if lang.get("name")],
+                        "size_bytes": release.get("size", 0),
+                        "size_gb": round(release.get("size", 0) / (1024**3), 2),
+                        "seeders": release.get("seeders"),
+                        "leechers": release.get("leechers"),
+                        "age_days": release.get("ageMinutes", 0) // 1440 if release.get("ageMinutes") else None,
+                        "approved": release.get("approved", False),
+                        "download_allowed": release.get("downloadAllowed", False),
+                        "rejections": rejections[:3] if rejections else None,  # Limit rejection reasons
+                        "custom_format_score": release.get("customFormatScore"),
+                        "guid": release.get("guid"),
+                    }
+                )
+
+            # Summary stats
+            approved_count = sum(1 for r in formatted_releases if r["approved"])
+            total_seeders = sum(r.get("seeders") or 0 for r in formatted_releases)
+
+            return {
+                "movie_id": movie_id,
+                "total_releases": len(formatted_releases),
+                "approved_releases": approved_count,
+                "rejected_releases": len(formatted_releases) - approved_count,
+                "total_seeders": total_seeders,
+                "releases": formatted_releases,
+            }
+        except Exception as e:
+            self.logger.error(f"Failed to get releases for movie {movie_id}: {e}")
+            return {"movie_id": movie_id, "total_releases": 0, "releases": [], "error": str(e)}
 
     async def get_queue(self) -> List[Dict[str, Any]]:
         """Get download queue."""
@@ -310,8 +513,7 @@ class RadarrAdapter(TokenAuthAdapter):
         indexers = await self.get_indexers()
         # Filter enabled indexers - check both 'enable' (v3) and 'enableRss'/'enableAutomaticSearch' fields
         enabled_indexers = [
-            i for i in indexers
-            if i.get("enable") or i.get("enableRss") or i.get("enableAutomaticSearch")
+            i for i in indexers if i.get("enable") or i.get("enableRss") or i.get("enableAutomaticSearch")
         ]
 
         # If no enabled indexers but we have indexers, test all of them

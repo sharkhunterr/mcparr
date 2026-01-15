@@ -214,19 +214,20 @@ const CentralizedUserDashboard: FC<CentralizedUserDashboardProps> = ({
 
           {selectedUser && (
             <div className="flex items-center gap-2">
+              {/* Refresh button - icon only on all screens */}
               <button
                 onClick={() => fetchCentralizedUser(selectedUser, true)}
                 disabled={loading}
-                className="flex items-center space-x-2 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 transition-colors"
+                className="p-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 flex items-center transition-colors flex-shrink-0"
               >
                 <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-                <span className="hidden sm:inline">{t('centralized.refresh')}</span>
               </button>
 
+              {/* Sync button - text visible on all screens */}
               <button
                 onClick={() => syncUserMetadata(selectedUser)}
                 disabled={syncing}
-                className="flex items-center space-x-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-green-600 text-white text-xs sm:text-sm rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors"
+                className="flex items-center gap-2 px-3 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors"
               >
                 <Database className={`w-4 h-4 ${syncing ? 'animate-pulse' : ''}`} />
                 <span>{syncing ? t('centralized.syncing') : t('centralized.sync')}</span>

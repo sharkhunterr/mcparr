@@ -23,6 +23,10 @@ import {
   CheckCircle,
   Loader2,
   FolderArchive,
+  Layers,
+  Link2,
+  Search,
+  Bot,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../contexts/ThemeContext';
@@ -35,10 +39,15 @@ type TabId = 'appearance' | 'general' | 'logs' | 'notifications' | 'dashboard' |
 
 interface ExportOptions {
   services: boolean;
+  service_groups: boolean;
   user_mappings: boolean;
   groups: boolean;
   site_config: boolean;
   training_prompts: boolean;
+  training_workers: boolean;
+  tool_chains: boolean;
+  global_search: boolean;
+  alerts: boolean;
 }
 
 interface ImportOptions extends ExportOptions {
@@ -47,12 +56,19 @@ interface ImportOptions extends ExportOptions {
 
 interface PreviewStats {
   services?: number;
+  service_groups?: number;
+  service_group_memberships?: number;
   user_mappings?: number;
   groups?: number;
   group_memberships?: number;
   group_permissions?: number;
   site_config?: number;
   training_prompts?: number;
+  training_workers?: number;
+  tool_chains?: number;
+  tool_chain_steps?: number;
+  global_search?: number;
+  alerts?: number;
 }
 
 const logLevelValues: LogLevel[] = ['debug', 'info', 'warning', 'error', 'critical'];
@@ -111,26 +127,41 @@ export default function Configuration() {
 
   const backupCategories = [
     { key: 'services' as const, label: t('backup.categories.services.label'), icon: Server, description: t('backup.categories.services.description') },
+    { key: 'service_groups' as const, label: t('backup.categories.service_groups.label'), icon: Layers, description: t('backup.categories.service_groups.description') },
     { key: 'user_mappings' as const, label: t('backup.categories.user_mappings.label'), icon: Users, description: t('backup.categories.user_mappings.description') },
     { key: 'groups' as const, label: t('backup.categories.groups.label'), icon: Shield, description: t('backup.categories.groups.description') },
     { key: 'site_config' as const, label: t('backup.categories.site_config.label'), icon: Wrench, description: t('backup.categories.site_config.description') },
     { key: 'training_prompts' as const, label: t('backup.categories.training_prompts.label'), icon: Brain, description: t('backup.categories.training_prompts.description') },
+    { key: 'training_workers' as const, label: t('backup.categories.training_workers.label'), icon: Bot, description: t('backup.categories.training_workers.description') },
+    { key: 'tool_chains' as const, label: t('backup.categories.tool_chains.label'), icon: Link2, description: t('backup.categories.tool_chains.description') },
+    { key: 'global_search' as const, label: t('backup.categories.global_search.label'), icon: Search, description: t('backup.categories.global_search.description') },
+    { key: 'alerts' as const, label: t('backup.categories.alerts.label'), icon: AlertCircle, description: t('backup.categories.alerts.description') },
   ];
 
   // Backup states
   const [exportOptions, setExportOptions] = useState<ExportOptions>({
     services: true,
+    service_groups: true,
     user_mappings: true,
     groups: true,
     site_config: true,
     training_prompts: true,
+    training_workers: true,
+    tool_chains: true,
+    global_search: true,
+    alerts: true,
   });
   const [importOptions, setImportOptions] = useState<ImportOptions>({
     services: true,
+    service_groups: true,
     user_mappings: true,
     groups: true,
     site_config: true,
     training_prompts: true,
+    training_workers: true,
+    tool_chains: true,
+    global_search: true,
+    alerts: true,
     merge_mode: false,
   });
   const [previewStats, setPreviewStats] = useState<PreviewStats>({});
@@ -787,9 +818,14 @@ export default function Configuration() {
           </p>
           <ul className="text-xs text-red-700 dark:text-red-300 mt-2 space-y-1 ml-4">
             <li>• {t('backup.reset.warningItems.services')}</li>
+            <li>• {t('backup.reset.warningItems.serviceGroups')}</li>
             <li>• {t('backup.reset.warningItems.userMappings')}</li>
             <li>• {t('backup.reset.warningItems.groups')}</li>
             <li>• {t('backup.reset.warningItems.training')}</li>
+            <li>• {t('backup.reset.warningItems.workers')}</li>
+            <li>• {t('backup.reset.warningItems.toolChains')}</li>
+            <li>• {t('backup.reset.warningItems.globalSearch')}</li>
+            <li>• {t('backup.reset.warningItems.alerts')}</li>
             <li>• {t('backup.reset.warningItems.siteConfig')}</li>
           </ul>
           <p className="text-xs text-red-700 dark:text-red-300 mt-2 font-medium">

@@ -3,6 +3,10 @@
   "subtitle": "AI model training and fine-tuning",
   "refresh": "Refresh",
 
+  "help": {
+    "category": "AI Training"
+  },
+
   "tabs": {
     "overview": "Overview",
     "overviewShort": "Stats",
@@ -100,7 +104,18 @@
     "promptsWillBeUsed": "{{count}} prompt will be used for training",
     "promptsWillBeUsed_plural": "{{count}} prompts will be used for training",
     "selectedOfTotalDisplayed": "{{selected}} selected / {{displayed}} displayed",
-    "selectedOfTotalDisplayed_plural": "{{selected}} selected / {{displayed}} displayed"
+    "selectedOfTotalDisplayed_plural": "{{selected}} selected / {{displayed}} displayed",
+    "help": {
+      "title": "Training Sessions",
+      "overview": "Overview",
+      "overviewContent": "The Sessions tab allows you to create and manage AI model training sessions. Each session trains a base model with your custom prompts.",
+      "lifecycle": "Lifecycle",
+      "lifecycleContent": "A session goes through several phases:\n• Pending: configuration complete, ready to start\n• Running: active training with visible progress\n• Completed: trained model available in Ollama\n• Failed: error during training (check logs)",
+      "actions": "Available Actions",
+      "actionsContent": "For each session:\n• Start: launches training on a GPU worker\n• View details: metrics, hyperparameters, progress\n• View logs: detailed training logs\n• Duplicate: creates a copy of the session\n• Delete: removes the session and its data",
+      "creation": "Session Creation",
+      "creationContent": "To create a session:\n1. Choose a name and base model\n2. Select the method (quick Modelfile or GPU fine-tuning)\n3. Configure hyperparameters (epochs, batch size, learning rate)\n4. Select training prompts"
+    }
   },
 
   "prompts": {
@@ -128,6 +143,7 @@
     "noPrompts": "No training prompts",
     "noPromptsFound": "No prompts found",
     "noPromptsHint": "Add prompts to train your models",
+    "perPage": "Per page",
     "addPrompt": "Add prompt",
     "createPrompt": "Create prompt",
     "newPrompt": "New training prompt",
@@ -174,7 +190,18 @@
     "description": "Description",
     "descriptionPlaceholder": "Prompt description",
     "importSuccess": "Prompts imported successfully",
-    "confirmResetAll": "This will delete ALL existing prompts and replace them with the default prompts. Continue?"
+    "confirmResetAll": "This will delete ALL existing prompts and replace them with the default prompts. Continue?",
+    "help": {
+      "title": "Training Prompts",
+      "overview": "Overview",
+      "overviewContent": "The Prompts tab manages training data for your AI models. Each prompt is a conversation example that the model learns to reproduce.",
+      "structure": "Prompt Structure",
+      "structureContent": "A prompt contains:\n• User input: question or request\n• Expected output: ideal model response\n• Tool Call (optional): tool invocation with arguments\n• Tool Response: tool result\n• Final response: data synthesis",
+      "management": "Management",
+      "managementContent": "Available actions:\n• New: create a prompt manually\n• Reset: reload default homelab prompts\n• Import/Export: backup or restore as JSON\n• Validate: mark a prompt as verified",
+      "filtering": "Filtering",
+      "filteringContent": "Filter prompts by service (Plex, Radarr, Sonarr, etc.) or search by text. Badges indicate service, difficulty and validation status."
+    }
   },
 
   "models": {
@@ -205,7 +232,18 @@
     "confirmDelete": "Are you sure you want to delete this model?",
     "confirmQuestion": "Confirm?",
     "loadedInMemory": "Loaded in memory",
-    "loaded": "Loaded"
+    "loaded": "Loaded",
+    "help": {
+      "title": "Ollama Models",
+      "overview": "Overview",
+      "overviewContent": "The Models tab displays all LLM models installed on your Ollama server. You can see their size, family and loading status.",
+      "management": "Model Management",
+      "managementContent": "Available actions for each model:\n• Load: loads the model into GPU memory for immediate use\n• Unload: frees GPU memory occupied by the model\n• Delete: permanently removes the model from the server",
+      "status": "Statuses",
+      "statusContent": "A model can be:\n• Loaded (green): in GPU memory, ready for use\n• Not loaded: on disk, must be loaded before use\n• The badge indicates if the model is currently in memory",
+      "info": "Information",
+      "infoContent": "For each model:\n• Family: model type (llama, mistral, etc.)\n• Parameters: number of parameters (7B, 13B, etc.)\n• Quantization: compression level (Q4, Q8, etc.)\n• Size: disk space used"
+    }
   },
 
   "workers": {
@@ -278,7 +316,18 @@
     "failedToLoad": "Failed to load workers",
     "failedToSave": "Failed to save worker",
     "failedToDelete": "Failed to delete worker",
-    "testFailed": "Test failed"
+    "testFailed": "Test failed",
+    "help": {
+      "title": "GPU Training Workers",
+      "overview": "Overview",
+      "overviewContent": "The Workers tab allows you to manage remote GPU workers used for LLM model fine-tuning. Each worker runs training sessions on its GPU.",
+      "configuration": "Configuration",
+      "configurationContent": "To add a worker:\n• Specify the training-worker Docker container URL\n• Optionally add an API key for authentication\n• Select the destination Ollama server for model import",
+      "status": "Worker States",
+      "statusContent": "A worker can have several states:\n• Online: available for training\n• Training: session in progress\n• Offline: unreachable\n• Error: connection issue",
+      "metrics": "Metrics",
+      "metricsContent": "For each online worker:\n• CPU/RAM usage\n• GPU and VRAM usage\n• Temperature and power consumption\n• Completed jobs and total training time"
+    }
   },
 
   "status": {
@@ -372,7 +421,18 @@
     "health": "Health",
     "utilization": "Utilization",
     "temp": "Temp",
-    "power": "Power"
+    "power": "Power",
+    "help": {
+      "title": "AI Training Statistics",
+      "overview": "Overview",
+      "overviewContent": "The Statistics tab displays a real-time dashboard of AI training. Monitor active sessions, loss metrics, progress, and GPU worker status.",
+      "cards": "Statistics Cards",
+      "cardsContent": "Cards display key metrics:\n• Sessions: total and active\n• Prompts: total and validated\n• Success rate: successfully completed sessions\n• Workers: online GPU workers",
+      "activeSessions": "Active Sessions",
+      "activeSessionsContent": "View real-time training progress:\n• Progress (epochs, steps)\n• Metrics (loss, learning rate)\n• GPU usage (memory, temperature)\n• Phase pipeline (preparing, downloading, training)",
+      "workers": "Workers and Ollama",
+      "workersContent": "Training resources status:\n• GPU Workers: availability and load\n• Ollama Server: available and running models\n• WebSocket connection status for real-time updates"
+    }
   },
 
   "logs": {

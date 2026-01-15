@@ -148,6 +148,16 @@ def create_app() -> FastAPI:
 
     app.include_router(groups.router, tags=["Groups"])
 
+    # Service Groups router
+    from src.routers import service_groups
+
+    app.include_router(service_groups.router, tags=["Service Groups"])
+
+    # Tool Chains router
+    from src.routers import tool_chains
+
+    app.include_router(tool_chains.router, tags=["Tool Chains"])
+
     # Observability routers
     from src.routers import alerts, logs
 
@@ -178,6 +188,11 @@ def create_app() -> FastAPI:
     from src.routers import backup
 
     app.include_router(backup.router, tags=["Backup"])
+
+    # Global Search configuration router
+    from src.routers import global_search
+
+    app.include_router(global_search.router, tags=["Global Search"])
 
     # WebSocket endpoints
     from src.websocket.logs import websocket_logs_endpoint

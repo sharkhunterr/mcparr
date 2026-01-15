@@ -123,6 +123,10 @@
         "label": "Servicios",
         "description": "Configuraciones de servicios (Plex, Authentik, etc.)"
       },
+      "service_groups": {
+        "label": "Grupos de servicios",
+        "description": "Grupos de servicios para Open WebUI"
+      },
       "user_mappings": {
         "label": "Asignaciones de usuarios",
         "description": "Asignaciones de usuarios entre servicios"
@@ -136,8 +140,24 @@
         "description": "Ajustes del sitio"
       },
       "training_prompts": {
-        "label": "Entrenamiento IA",
-        "description": "Prompts y datos de entrenamiento"
+        "label": "Prompts",
+        "description": "Prompts de entrenamiento IA"
+      },
+      "training_workers": {
+        "label": "Workers",
+        "description": "Workers de entrenamiento IA"
+      },
+      "tool_chains": {
+        "label": "Cadenas",
+        "description": "Cadenas de herramientas MCP"
+      },
+      "global_search": {
+        "label": "Búsqueda global",
+        "description": "Configuración de búsqueda multi-servicio"
+      },
+      "alerts": {
+        "label": "Alertas",
+        "description": "Configuraciones de alertas de monitoreo"
       }
     },
     "reset": {
@@ -147,9 +167,14 @@
       "warningDescription": "Esta acción eliminará permanentemente todos los datos:",
       "warningItems": {
         "services": "Todos los servicios configurados",
+        "serviceGroups": "Todos los grupos de servicios",
         "userMappings": "Todas las asignaciones de usuarios",
         "groups": "Todos los grupos y permisos",
-        "training": "Todos los prompts de entrenamiento",
+        "training": "Todos los prompts y plantillas de entrenamiento",
+        "workers": "Todos los workers de entrenamiento",
+        "toolChains": "Todas las cadenas de herramientas",
+        "globalSearch": "Configuración de búsqueda global",
+        "alerts": "Todas las alertas configuradas",
         "siteConfig": "Toda la configuración del sitio"
       },
       "warningFooter": "Esta acción no se puede deshacer. Asegúrese de haber exportado sus datos si es necesario.",

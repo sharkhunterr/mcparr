@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { RefreshCw, Plus } from 'lucide-react';
 import { api } from '../../lib/api';
 import { WorkerCard } from './WorkerCard';
 import { WorkerForm } from './WorkerForm';
+import { HelpTooltip } from '../common';
 
 interface Worker {
   id: string;
@@ -110,25 +112,25 @@ export function WorkerList() {
   return (
     <div>
       {/* Actions bar */}
-      <div className="flex gap-2 mb-6">
-        <button
-          onClick={handleRefreshAll}
-          className="px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-          </svg>
-          <span className="hidden sm:inline">{t('workers.refreshAll')}</span>
-        </button>
-        <button
-          onClick={() => setShowForm(true)}
-          className="px-3 py-2 text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 rounded-lg flex items-center gap-2"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
-          <span className="hidden sm:inline">{t('workers.addWorker')}</span>
-        </button>
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-3 sm:p-4 mb-6">
+        <div className="flex flex-row gap-2 sm:gap-3 items-center">
+          <button
+            onClick={handleRefreshAll}
+            className="p-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 flex items-center transition-colors flex-shrink-0"
+            title={t('workers.refreshAll')}
+          >
+            <RefreshCw className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => setShowForm(true)}
+            className="px-3 py-2 text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 rounded-lg flex items-center gap-2 transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            <span className="hidden sm:inline">{t('workers.addWorker')}</span>
+          </button>
+          <div className="flex-1" />
+          <HelpTooltip topicId="trainingWorkers" />
+        </div>
       </div>
 
       {/* Workers Grid */}

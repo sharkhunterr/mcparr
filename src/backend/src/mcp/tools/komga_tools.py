@@ -131,10 +131,7 @@ class KomgaTools(BaseTool):
             raise ValueError("No libraries found in Komga")
 
         # Case-insensitive match
-        library = next(
-            (lib for lib in libraries if lib.get("name", "").lower() == library_name.lower()),
-            None
-        )
+        library = next((lib for lib in libraries if lib.get("name", "").lower() == library_name.lower()), None)
         if not library:
             available = ", ".join(lib.get("name", "") for lib in libraries)
             raise ValueError(f"Library '{library_name}' not found. Available libraries: {available}")

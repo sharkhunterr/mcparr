@@ -28,6 +28,13 @@ class OverseerrTools(BaseTool):
                         required=False,
                         enum=["movie", "tv"],
                     ),
+                    ToolParameter(
+                        name="limit",
+                        description="Maximum number of results to return",
+                        type="number",
+                        required=False,
+                        default=10,
+                    ),
                 ],
                 category="requests",
                 is_mutation=False,
@@ -201,6 +208,7 @@ class OverseerrTools(BaseTool):
 
         query = arguments.get("query")
         media_type_str = arguments.get("media_type")
+        limit = int(arguments.get("limit", 10))
 
         # Convert string to MediaType enum if provided
         media_type = None
@@ -227,13 +235,14 @@ class OverseerrTools(BaseTool):
                         if item.get("overview") and len(item.get("overview", "")) > 200
                         else item.get("overview"),
                         "tmdb_id": item.get("id"),
-                        "status": item.get("mediaInfo", {}).get("status") if item.get("mediaInfo") else "not_requested",
+                        "status": item.get("media_info", {}).get("status")
+                        if item.get("media_info")
+                        else "not_requested",
                         "url": adapter._get_media_url(
-                            "movie" if item.get("mediaType") == "movie" else "tv",
-                            item.get("id")
+                            "movie" if item.get("mediaType") == "movie" else "tv", item.get("id")
                         ),
                     }
-                    for item in results[:10]
+                    for item in results[:limit]
                 ],
             },
         }
@@ -289,7 +298,7 @@ class OverseerrTools(BaseTool):
         tmdb_id = media.get("id")
 
         # Check if already available or requested
-        media_info = media.get("mediaInfo")
+        media_info = media.get("media_info")
         if media_info:
             status = media_info.get("status")
             if status == 5:  # Available
@@ -334,10 +343,9 @@ class OverseerrTools(BaseTool):
                         if item.get("overview") and len(item.get("overview", "")) > 150
                         else item.get("overview"),
                         "tmdb_id": item.get("id"),
-                        "available": item.get("mediaInfo", {}).get("status") == 5 if item.get("mediaInfo") else False,
+                        "available": item.get("media_info", {}).get("status") == 5 if item.get("media_info") else False,
                         "url": adapter._get_media_url(
-                            "movie" if item.get("mediaType") == "movie" else "tv",
-                            item.get("id")
+                            "movie" if item.get("mediaType") == "movie" else "tv", item.get("id")
                         ),
                     }
                     for item in items
@@ -395,7 +403,7 @@ class OverseerrTools(BaseTool):
         sorted_results = sorted(results, key=score_result, reverse=True)
         media = sorted_results[0]
 
-        media_info = media.get("mediaInfo")
+        media_info = media.get("media_info")
 
         status_map = {
             1: "unknown",

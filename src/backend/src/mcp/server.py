@@ -168,18 +168,42 @@ class MCPServer:
         end_time = datetime.utcnow()
         duration_ms = int((end_time - start_time).total_seconds() * 1000)
 
-        # Log the result
+        # Enrich result with tool chain suggestions
+        enriched_result = result.copy()
+        if self.db_session_factory and result.get("success", False):
+            try:
+                from src.services.tool_chain_service import enrich_tool_result_with_chains
+
+                async with self.db_session_factory() as session:
+                    enriched_result = await enrich_tool_result_with_chains(
+                        session, tool_name, result, arguments, session_id=self._session_id
+                    )
+            except Exception as e:
+                print(f"Failed to enrich result with chains: {e}", file=sys.stderr)
+
+        # Log the result (with enriched data)
         if self.db_session_factory and request_id:
             await self._log_request_complete(
                 request_id=request_id,
-                result=result,
+                result=enriched_result,
                 duration_ms=duration_ms,
             )
 
         # Format response according to MCP spec
         if result.get("success", False):
+            # Include chain info in the response
+            response_data = enriched_result.get("result", {})
+            if enriched_result.get("chain_context"):
+                response_data["chain_context"] = enriched_result["chain_context"]
+            if enriched_result.get("next_tools_to_call"):
+                response_data["next_tools_to_call"] = enriched_result["next_tools_to_call"]
+            if enriched_result.get("message_to_display"):
+                response_data["message_to_display"] = enriched_result["message_to_display"]
+            if enriched_result.get("ai_instruction"):
+                response_data["ai_instruction"] = enriched_result["ai_instruction"]
+
             return {
-                "content": [{"type": "text", "text": json.dumps(result.get("result", {}), indent=2, default=str)}],
+                "content": [{"type": "text", "text": json.dumps(response_data, indent=2, default=str)}],
                 "isError": False,
             }
         else:

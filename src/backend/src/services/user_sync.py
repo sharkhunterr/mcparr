@@ -43,7 +43,7 @@ class UserSyncService:
         logger.info("Starting user synchronization across all services")
 
         # Get all user mappings that need syncing
-        query = select(UserMapping).where(UserMapping.sync_enabled is True)
+        query = select(UserMapping).where(UserMapping.sync_enabled == True)
 
         if service_type:
             query = query.join(ServiceConfig).where(ServiceConfig.service_type == ServiceType(service_type))
@@ -320,7 +320,7 @@ class UserSyncService:
         result = await db.execute(
             select(UserMapping)
             .where(UserMapping.central_user_id == central_user_id)
-            .where(UserMapping.sync_enabled is True)
+            .where(UserMapping.sync_enabled == True)
         )
         mappings = result.scalars().all()
 

@@ -1,12 +1,85 @@
 {
   "title": "Servizi",
+  "description": "Gestisci i tuoi servizi homelab e organizzali in gruppi",
   "subtitle": "{{count}} servizio configurato",
   "subtitle_plural": "{{count}} servizi configurati",
+
+  "help": {
+    "category": "Servizi e Configurazione",
+    "title": "Gestione dei servizi",
+    "overview": "Panoramica",
+    "overviewContent": "Questa pagina ti permette di configurare e gestire tutti i tuoi servizi homelab (Plex, Radarr, Sonarr, ecc.). Ogni servizio rappresenta un'applicazione accessibile tramite l'API MCP.",
+    "configure": "Configurare un servizio",
+    "configureContent": "Per aggiungere un servizio:\n• Clicca su \"Aggiungi\"\n• Seleziona il tipo di servizio\n• Inserisci l'URL di base e la porta\n• Configura l'autenticazione (chiave API o credenziali)\n• Opzionalmente, imposta l'URL esterno per l'accesso remoto",
+    "test": "Testare le connessioni",
+    "testContent": "Verifica che i tuoi servizi siano configurati correttamente:\n• Pulsante \"Testa\" individuale su ogni servizio\n• Pulsante \"Testa tutti\" per verificare tutti i servizi attivi\n• I test verificano risoluzione DNS, connessione di rete, risposta HTTP e autenticazione",
+    "status": "Stati dei servizi",
+    "statusContent": "Gli indicatori di stato mostrano lo stato di ogni servizio:\n• Verde (Online): servizio accessibile e funzionante\n• Rosso (Errore): problema di connessione o autenticazione\n• Grigio (Disabilitato): servizio disabilitato manualmente\n• Giallo (Sconosciuto): mai testato"
+  },
+
+  "form": {
+    "addTitle": "Aggiungi un servizio",
+    "editTitle": "Modifica servizio",
+    "basicInfo": "Informazioni di base",
+    "serviceName": "Nome del servizio",
+    "serviceNamePlaceholder": "Il mio server Plex",
+    "serviceType": "Tipo di servizio",
+    "selectServiceType": "Seleziona un tipo di servizio",
+    "description": "Descrizione",
+    "descriptionPlaceholder": "Descrizione opzionale del servizio",
+    "connection": "Connessione",
+    "baseUrl": "URL di base",
+    "baseUrlHelp": "URL interno per accedere al servizio",
+    "externalUrl": "URL esterno",
+    "externalUrlHelp": "URL pubblico per accesso remoto (opzionale)",
+    "port": "Porta",
+    "authentication": "Autenticazione",
+    "apiKey": "Chiave API",
+    "apiKeyHelp": "Chiave API o token di autenticazione",
+    "username": "Nome utente",
+    "password": "Password",
+    "options": "Opzioni",
+    "enabled": "Servizio abilitato",
+    "healthCheck": "Controllo stato",
+    "healthCheckEnabled": "Abilita controlli automatici",
+    "healthCheckInterval": "Intervallo (secondi)",
+    "cancel": "Annulla",
+    "save": "Salva",
+    "saving": "Salvataggio...",
+    "errors": {
+      "nameRequired": "Il nome del servizio è obbligatorio",
+      "typeRequired": "Il tipo di servizio è obbligatorio",
+      "urlRequired": "L'URL di base è obbligatorio",
+      "urlInvalid": "Formato URL non valido",
+      "portInvalid": "La porta deve essere un numero tra 1 e 65535",
+      "apiKeyRequired": "La chiave API è obbligatoria per questo tipo di servizio",
+      "usernameRequired": "Il nome utente è obbligatorio per questo tipo di servizio",
+      "passwordRequired": "La password è obbligatoria per questo tipo di servizio",
+      "intervalInvalid": "L'intervallo deve essere un numero"
+    }
+  },
+
+  "tabs": {
+    "services": {
+      "label": "Servizi",
+      "labelFull": "Servizi configurati"
+    },
+    "groups": {
+      "label": "Gruppi",
+      "labelFull": "Gruppi di servizi"
+    }
+  },
 
   "actions": {
     "testAll": "Testa tutti",
     "testConnection": "Testa connessione",
     "toggleService": "Abilita/Disabilita"
+  },
+
+  "globalSearchInfo": {
+    "title": "Ricerca Globale Disponibile",
+    "description": "Cerca in tutti i tuoi servizi con una singola query IA.",
+    "configure": "Configura"
   },
 
   "testModal": {
@@ -106,5 +179,76 @@
     "updateFailed": "Impossibile aggiornare il servizio",
     "deleteFailed": "Impossibile eliminare il servizio",
     "toggleFailed": "Impossibile cambiare lo stato del servizio"
+  },
+
+  "serviceGroups": {
+    "title": "Gruppi di servizi",
+    "description": "Crea gruppi personalizzati per organizzare i tuoi servizi",
+    "help": {
+      "title": "Gruppi di servizi",
+      "overview": "Panoramica",
+      "overviewContent": "I gruppi di servizi ti permettono di organizzare i tuoi servizi in categorie personalizzate. Sono utilizzati per filtrare gli strumenti MCP esposti all'IA.",
+      "create": "Creare un gruppo",
+      "createContent": "Per creare un gruppo:\n• Clicca su \"Nuovo\"\n• Dai al gruppo un nome descrittivo\n• Aggiungi una descrizione opzionale\n• Scegli un colore per identificarlo\n• Imposta una priorità di visualizzazione",
+      "assign": "Assegnare servizi",
+      "assignContent": "Dopo aver creato un gruppo:\n• Seleziona il gruppo dalla lista\n• Vai alla scheda \"Servizi\"\n• Seleziona i servizi da includere\n• Le modifiche vengono salvate automaticamente",
+      "mcp": "Utilizzo con MCP",
+      "mcpContent": "I gruppi di servizi sono utilizzati per:\n• Filtrare gli strumenti esposti in Open WebUI\n• Creare endpoint MCP specializzati per gruppo\n• Limitare l'accesso a determinati strumenti in base al contesto"
+    },
+    "management": {
+      "title": "Seleziona un gruppo",
+      "description": "Scegli un gruppo di servizi dalla lista per visualizzare e gestire i suoi servizi."
+    },
+    "list": {
+      "title": "Gruppi di servizi",
+      "refresh": "Aggiorna",
+      "new": "Nuovo",
+      "search": "Cerca gruppi...",
+      "count": "{{count}} gruppi",
+      "services": "servizi",
+      "system": "Sistema",
+      "disabled": "Disabilitato",
+      "showDisabled": "Mostra disabilitati",
+      "noGroups": "Nessun gruppo di servizi",
+      "noGroupsFound": "Nessun gruppo trovato",
+      "createFirst": "Crea il tuo primo gruppo",
+      "enable": "Abilita",
+      "disable": "Disabilita",
+      "delete": "Elimina",
+      "cannotDeleteSystem": "I gruppi di sistema non possono essere eliminati",
+      "deleteConfirm": "Sei sicuro di voler eliminare \"{{name}}\"?"
+    },
+    "detail": {
+      "close": "Chiudi",
+      "tabs": {
+        "info": "Info",
+        "services": "Servizi"
+      },
+      "name": "Nome",
+      "description": "Descrizione",
+      "color": "Colore",
+      "priority": "Priorità",
+      "priorityHelp": "I gruppi con priorità più alta appaiono per primi",
+      "save": "Salva",
+      "servicesHelp": "Seleziona i servizi da includere in questo gruppo",
+      "notConfigured": "Non configurato"
+    },
+    "create": {
+      "title": "Crea gruppo di servizi",
+      "name": "Nome",
+      "namePlaceholder": "es: Servizi multimediali",
+      "description": "Descrizione",
+      "descriptionPlaceholder": "Descrivi lo scopo di questo gruppo...",
+      "color": "Colore",
+      "priority": "Priorità",
+      "cancel": "Annulla",
+      "submit": "Crea gruppo"
+    },
+    "errors": {
+      "fetchFailed": "Impossibile caricare i gruppi di servizi",
+      "createFailed": "Impossibile creare il gruppo di servizi",
+      "updateFailed": "Impossibile aggiornare il gruppo di servizi",
+      "deleteFailed": "Impossibile eliminare il gruppo di servizi"
+    }
   }
 }

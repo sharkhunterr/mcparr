@@ -5,13 +5,13 @@ Complete API documentation for MCParr AI Gateway.
 ## 📍 Base URL
 
 ```
-http://localhost:8002
+http://localhost:8000
 ```
 
 ## 📖 Interactive Documentation
 
-- **Swagger UI**: http://localhost:8002/docs
-- **ReDoc**: http://localhost:8002/redoc
+- **Swagger UI**: http://localhost:8000/docs
+- **ReDoc**: http://localhost:8000/redoc
 
 ---
 
@@ -314,10 +314,14 @@ Content-Type: application/json
 
 {
   "services": true,
+  "service_groups": true,
   "user_mappings": true,
   "groups": true,
   "training_prompts": true,
   "training_workers": true,
+  "tool_chains": true,
+  "global_search": true,
+  "alerts": true,
   "site_config": true
 }
 ```
@@ -349,11 +353,145 @@ GET /api/backup/preview
 ```json
 {
   "services": 10,
+  "service_groups": 3,
   "user_mappings": 5,
   "groups": 3,
   "training_prompts": 50,
-  "training_workers": 1
+  "training_workers": 1,
+  "tool_chains": 2,
+  "global_search": 5,
+  "alerts": 3
 }
+```
+
+---
+
+## 🔗 Service Groups
+
+### List Service Groups
+
+```http
+GET /api/service-groups
+```
+
+### Create Service Group
+
+```http
+POST /api/service-groups
+Content-Type: application/json
+
+{
+  "name": "Media Services",
+  "description": "All media-related services",
+  "color": "#6366f1",
+  "memberships": [
+    {"service_type": "plex"},
+    {"service_type": "overseerr"},
+    {"service_type": "radarr"}
+  ]
+}
+```
+
+---
+
+## ⛓️ Tool Chains
+
+### List Tool Chains
+
+```http
+GET /api/tool-chains
+```
+
+### Create Tool Chain
+
+```http
+POST /api/tool-chains
+Content-Type: application/json
+
+{
+  "name": "Auto-Request Missing Movies",
+  "description": "Request movies automatically when not found",
+  "enabled": true,
+  "steps": [
+    {
+      "source_service": "plex",
+      "source_tool": "plex_search",
+      "condition_groups": [
+        {
+          "operator": "and",
+          "conditions": [
+            {"operator": "is_empty", "field": "result.results"}
+          ]
+        }
+      ],
+      "then_actions": [
+        {
+          "branch": "then",
+          "action_type": "tool_call",
+          "target_service": "overseerr",
+          "target_tool": "overseerr_request_media"
+        }
+      ]
+    }
+  ]
+}
+```
+
+---
+
+## 🔍 Global Search
+
+### Search Configuration
+
+```http
+GET /api/global-search/config
+```
+
+### Execute Global Search
+
+Use the MCP tool `system_global_search`:
+
+```http
+POST /tools/system_global_search
+Content-Type: application/json
+
+{
+  "query": "Inception",
+  "categories": "media",
+  "limit": 5
+}
+```
+
+---
+
+## 🚨 Alerts
+
+### List Alert Configurations
+
+```http
+GET /api/alerts
+```
+
+### Create Alert
+
+```http
+POST /api/alerts
+Content-Type: application/json
+
+{
+  "name": "High CPU Alert",
+  "metric_type": "cpu",
+  "threshold_operator": "gt",
+  "threshold_value": 90,
+  "severity": "high",
+  "enabled": true
+}
+```
+
+### Get Alert History
+
+```http
+GET /api/alerts/history
 ```
 
 ---
@@ -363,7 +501,7 @@ GET /api/backup/preview
 ### System Metrics (Real-time)
 
 ```javascript
-const ws = new WebSocket('ws://localhost:8002/ws/system');
+const ws = new WebSocket('ws://localhost:8000/ws/system');
 
 ws.onmessage = (event) => {
   const metrics = JSON.parse(event.data);
@@ -375,7 +513,7 @@ ws.onmessage = (event) => {
 ### Training Progress (Real-time)
 
 ```javascript
-const ws = new WebSocket('ws://localhost:8002/ws/training/SESSION_ID');
+const ws = new WebSocket('ws://localhost:8000/ws/training/SESSION_ID');
 
 ws.onmessage = (event) => {
   const progress = JSON.parse(event.data);
@@ -387,7 +525,7 @@ ws.onmessage = (event) => {
 ### Logs (Real-time)
 
 ```javascript
-const ws = new WebSocket('ws://localhost:8002/ws/logs');
+const ws = new WebSocket('ws://localhost:8000/ws/logs');
 
 ws.onmessage = (event) => {
   const log = JSON.parse(event.data);

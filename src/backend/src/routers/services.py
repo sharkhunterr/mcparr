@@ -115,9 +115,9 @@ async def test_service_connection(service_id: str, db: AsyncSession = Depends(ge
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Service not found")
 
     # Import the service tester
-    from ..services.service_tester import ServiceTester
-    from ..services.alert_service import alert_service
     from ..models.alert_config import AlertConfiguration
+    from ..services.alert_service import alert_service
+    from ..services.service_tester import ServiceTester
 
     # Test the connection using the appropriate adapter
     test_result = await ServiceTester.test_service_connection(service, db)
@@ -150,6 +150,7 @@ async def test_service_connection(service_id: str, db: AsyncSession = Depends(ge
     except Exception as e:
         # Don't fail the test response if alert check fails
         import logging
+
         logging.getLogger(__name__).error(f"Error checking alerts: {e}")
 
     return ServiceTestResult(

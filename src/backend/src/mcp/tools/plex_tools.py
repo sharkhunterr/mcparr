@@ -285,13 +285,15 @@ class PlexTools(BaseTool):
             if item.get("duration"):
                 progress = round((item.get("viewOffset", 0) / item.get("duration")) * 100)
 
-            result_items.append({
-                "title": title,
-                "type": item_type,
-                "year": year,
-                "progress_percent": progress,
-                "url": item.get("url"),
-            })
+            result_items.append(
+                {
+                    "title": title,
+                    "type": item_type,
+                    "year": year,
+                    "progress_percent": progress,
+                    "url": item.get("url"),
+                }
+            )
 
         return {
             "success": True,
