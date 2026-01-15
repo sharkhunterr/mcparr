@@ -5,9 +5,11 @@ import ServicesInfoStep from './ServicesInfoStep';
 import UsersInfoStep from './UsersInfoStep';
 import GroupsInfoStep from './GroupsInfoStep';
 import McpInfoStep from './McpInfoStep';
+import ChainsInfoStep from './ChainsInfoStep';
 import TrainingInfoStep from './TrainingInfoStep';
 import MonitoringInfoStep from './MonitoringInfoStep';
 import ConfigInfoStep from './ConfigInfoStep';
+import HelpInfoStep from './HelpInfoStep';
 import CompleteStep from './CompleteStep';
 
 export default function Wizard() {
@@ -26,12 +28,16 @@ export default function Wizard() {
         return <GroupsInfoStep />;
       case 'mcp':
         return <McpInfoStep />;
+      case 'chains':
+        return <ChainsInfoStep />;
       case 'training':
         return <TrainingInfoStep />;
       case 'monitoring':
         return <MonitoringInfoStep />;
       case 'config':
         return <ConfigInfoStep />;
+      case 'help':
+        return <HelpInfoStep />;
       case 'complete':
         return <CompleteStep />;
       default:
@@ -40,7 +46,7 @@ export default function Wizard() {
   };
 
   // Get current step index for progress indicator
-  const steps = ['services', 'users', 'groups', 'mcp', 'training', 'monitoring', 'config'];
+  const steps = ['services', 'users', 'groups', 'mcp', 'chains', 'training', 'monitoring', 'config', 'help'];
   const currentIndex = steps.indexOf(state.currentStep);
   const showProgress = currentIndex >= 0;
 

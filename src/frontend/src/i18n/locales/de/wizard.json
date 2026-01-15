@@ -2,17 +2,21 @@
   "welcome": {
     "title": "Willkommen bei MCParr",
     "subtitle": "Ihr KI-Gateway zur Steuerung Ihres Homelabs",
-    "description": "MCParr zentralisiert die Steuerung all Ihrer Homelab-Dienste über eine KI-gestützte Konversationsschnittstelle.",
+    "description": "MCParr zentralisiert die Steuerung aller Ihrer Homelab-Dienste über eine KI-gestützte Konversationsschnittstelle.",
     "skipGuide": "Anleitung überspringen",
     "startConfiguration": "Konfiguration starten",
     "importConfiguration": "Konfiguration importieren",
     "or": "oder",
-    "guideInfo": "Diese Anleitung führt Sie durch die Ersteinrichtung. Sie können alle diese Einstellungen später ändern.",
+    "guideInfo": "Diese Anleitung führt Sie durch die Ersteinrichtung. Sie können alle Einstellungen später ändern.",
     "features": {
-      "services": "Mit Ihren Diensten verbinden",
-      "users": "Benutzerzuordnung",
-      "permissions": "Berechtigungsverwaltung",
-      "mcp": "Integrierter MCP-Server"
+      "services": "Dienstverwaltung",
+      "users": "Benutzerverwaltung",
+      "chains": "Antwortketten",
+      "help": "Integrierte Hilfe",
+      "mcp": "Integrierter MCP-Server",
+      "dashboard": "Dashboard & Monitoring",
+      "training": "KI-Training",
+      "permissions": "Berechtigungsverwaltung"
     },
     "import": {
       "selectFile": "Klicken Sie, um eine Datei auszuwählen",
@@ -20,9 +24,9 @@
       "version": "Version",
       "unknownDate": "Unbekanntes Datum",
       "mergeMode": "Zusammenführungsmodus",
-      "mergeDescription": "Mit vorhandenen zusammenführen",
+      "mergeDescription": "Mit vorhandenem zusammenführen",
       "importButton": "Konfiguration importieren",
-      "importing": "Wird importiert...",
+      "importing": "Importieren...",
       "success": "Import erfolgreich! Weiter zum nächsten Schritt...",
       "failed": "Import mit Fehlern abgeschlossen",
       "errors": "Fehler",
@@ -45,45 +49,47 @@
     "guideInfo": "Sie können diese Anleitung jederzeit aufrufen über",
     "guideLocation": "Konfiguration → Allgemein → Anleitung zurücksetzen",
     "steps": {
-      "configureServices": "Ihre Dienste konfigurieren",
-      "mapUsers": "Ihre Benutzer zuordnen",
-      "createGroups": "Gruppen erstellen",
-      "testAI": "Die KI-Schnittstelle testen"
+      "configureServices": "Konfigurieren Sie Ihre Dienste",
+      "mapUsers": "Ordnen Sie Ihre Benutzer zu",
+      "createGroups": "Erstellen Sie Gruppen",
+      "testAI": "Testen Sie die KI-Schnittstelle"
     }
   },
   "steps": {
     "services": {
       "title": "Homelab-Dienste",
-      "subtitle": "Ihre Anwendungen verbinden",
-      "description": "Konfigurieren Sie die Homelab-Dienste, die MCParr steuern wird: Plex, Radarr, Sonarr, Overseerr, Tautulli usw. Für jeden Dienst müssen Sie dessen URL und API-Schlüssel oder Anmeldedaten angeben.",
+      "subtitle": "Verbinden Sie Ihre Anwendungen",
+      "description": "Konfigurieren Sie die Homelab-Dienste, die MCParr steuern soll. Geben Sie für jeden Dienst die URL, den API-Schlüssel (oder Benutzername und Passwort je nach Dienst) und optional eine externe URL für den Fernzugriff ein. Testen Sie jeden Dienst einzeln oder alle auf einmal.",
       "linkText": "Dienste konfigurieren",
+      "tip": "Im Tab Gruppen der Seite Dienste können Sie Dienstgruppen erstellen (z.B. Media mit Plex, Tautulli, Overseerr), die als Tool-Endpunkte für Open WebUI verwendet werden.",
       "steps": [
-        "Rufen Sie die Dienste-Seite über das Navigationsmenü auf",
-        "Klicken Sie auf \"Dienst hinzufügen\" und füllen Sie das Formular aus",
-        "Testen Sie die Verbindung, um die Kommunikation zu überprüfen",
-        "Wiederholen Sie dies für alle Ihre Dienste (empfohlen: mindestens 2)"
+        "Greifen Sie über das Navigationsmenü auf die Seite Dienste zu",
+        "Klicken Sie auf \"Dienst hinzufügen\" und geben Sie URL, API-Schlüssel oder Anmeldedaten ein",
+        "Konfigurieren Sie die externe URL, wenn Sie den Dienst aus der Ferne nutzen möchten",
+        "Testen Sie die Verbindung (einzeln oder alle Dienste)",
+        "Erstellen Sie Dienstgruppen im Tab Gruppen, um Ihre Endpunkte zu organisieren"
       ]
     },
     "users": {
       "title": "Benutzerzuordnung",
-      "subtitle": "Ihre Konten über Dienste hinweg verknüpfen",
-      "description": "Die Benutzerzuordnung ermöglicht es MCParr zu wissen, welches Konto in Plex demselben Benutzer in Overseerr, Radarr usw. entspricht. Dies ermöglicht Berechtigungsverwaltung und Zugriff auf MCP-Tools.",
+      "subtitle": "Verknüpfen Sie Ihre Konten über Dienste hinweg",
+      "description": "Die Benutzerzuordnung ermöglicht MCParr zu wissen, welches Konto in Plex demselben Benutzer in Overseerr, Radarr usw. entspricht. Dies ermöglicht die Berechtigungsverwaltung und den Zugriff auf MCP-Tools.",
       "linkText": "Benutzer zuordnen",
       "tip": "Die automatische Erkennung funktioniert am besten mit mindestens 2 konfigurierten Diensten, die Benutzer haben.",
       "steps": [
-        "Rufen Sie die Benutzer-Seite über das Menü auf",
-        "Verwenden Sie den Tab \"Automatische Erkennung\", um Ihre Dienste zu scannen",
+        "Greifen Sie über das Menü auf die Seite Benutzer zu",
+        "Verwenden Sie den Tab \"Auto Detection\", um Ihre Dienste zu scannen",
         "Validieren Sie Vorschläge oder erstellen Sie manuelle Zuordnungen"
       ]
     },
     "groups": {
       "title": "Gruppen & Berechtigungen",
-      "subtitle": "Zugriff auf MCP-Tools kontrollieren",
-      "description": "Gruppen definieren, welche MCP-Tools (Model Context Protocol) für Ihre Benutzer zugänglich sind. Beispielsweise könnte eine 'Admin'-Gruppe Zugriff auf alle Tools haben, während eine 'Benutzer'-Gruppe nur Zugriff auf schreibgeschützte Tools hätte.",
+      "subtitle": "Kontrollieren Sie den Zugriff auf MCP-Tools",
+      "description": "Gruppen definieren, welche MCP (Model Context Protocol) Tools Ihren Benutzern zugänglich sind. Zum Beispiel könnte eine 'Admin'-Gruppe Zugriff auf alle Tools haben, während eine 'Benutzer'-Gruppe nur Zugriff auf schreibgeschützte Tools hätte.",
       "linkText": "Gruppen verwalten",
-      "tip": "MCP-Tools ermöglichen der KI die Interaktion mit Ihren Diensten. Berechtigungen steuern, was jede Gruppe tun kann.",
+      "tip": "MCP-Tools ermöglichen der KI die Interaktion mit Ihren Diensten. Berechtigungen kontrollieren, was jede Gruppe tun kann.",
       "steps": [
-        "Rufen Sie die Gruppen-Seite über das Menü auf",
+        "Greifen Sie über das Menü auf die Seite Gruppen zu",
         "Erstellen Sie Gruppen (Admin, Benutzer, Familie...) mit \"Gruppe erstellen\"",
         "Weisen Sie jeder Gruppe MCP-Berechtigungen zu",
         "Weisen Sie Ihre Benutzer den entsprechenden Gruppen zu"
@@ -92,53 +98,79 @@
     "mcp": {
       "title": "MCP-Server",
       "subtitle": "Model Context Protocol",
-      "description": "Der MCP-Server (Model Context Protocol) ermöglicht Ihrer KI die Interaktion mit Ihren Homelab-Diensten. Er ist die Brücke zwischen dem Konversationsassistenten und Ihren Anwendungen (Plex, Radarr usw.).",
+      "description": "Der MCP-Server ermöglicht Ihrer KI die Interaktion mit Ihren Homelab-Diensten. Zeigen Sie den Aufrufverlauf an, testen Sie Tools direkt über die Oberfläche, konfigurieren Sie Tools in Open WebUI und verwalten Sie die globale Suche.",
       "linkText": "MCP-Konfiguration anzeigen",
-      "tip": "Der MCP-Server läuft im Hintergrund und stellt die Tools bereit, die Ihre KI zur Steuerung Ihrer Dienste verwenden kann.",
+      "tip": "Verwenden Sie den Tab Konfiguration, um Tools direkt in Open WebUI zu konfigurieren (wenn der Dienst richtig konfiguriert ist) und um die globale Suche einzurichten.",
       "steps": [
-        "Überprüfen Sie, ob der MCP-Server gestartet und erreichbar ist",
-        "Prüfen Sie die verfügbaren MCP-Tools für jeden Dienst",
-        "Testen Sie die Integration mit Ihrem KI-Client (Claude Desktop usw.)",
-        "Konfigurieren Sie bei Bedarf die Gruppenberechtigungen"
+        "Zeigen Sie den MCP-Aufrufverlauf im Tab Verlauf an",
+        "Testen Sie Tools direkt im Tab Tools",
+        "Konfigurieren Sie Tools für Open WebUI im Tab Konfiguration",
+        "Richten Sie die globale Suche ein, um in allen Ihren Diensten zu suchen"
+      ]
+    },
+    "chains": {
+      "title": "Tool-Ketten",
+      "subtitle": "Automatisieren Sie Ihre Workflows",
+      "description": "Tool-Ketten ermöglichen es Ihnen, automatisierte Aktionssequenzen zu erstellen. Dies erleichtert die Logik, die das KI-Modell verarbeiten muss, indem Antworten und Sequenzen basierend auf spezifischen Konfigurationen definiert werden.",
+      "linkText": "Ketten verwalten",
+      "tip": "Eine gut konfigurierte Kette ermöglicht es dem KI-Modell, komplexe Workflows zu delegieren und dabei eine präzise Kontrolle über die Schritte zu behalten.",
+      "steps": [
+        "Greifen Sie auf die MCP-Seite, Tab Ketten zu",
+        "Erstellen Sie eine neue Kette mit den gewünschten Tools",
+        "Definieren Sie Auslösebedingungen und Parameter",
+        "Konfigurieren Sie automatische Antworten und Sequenzen"
       ]
     },
     "training": {
       "title": "KI-Training",
-      "subtitle": "Ihren Assistenten anpassen",
-      "description": "Das Trainingsmodul ermöglicht es Ihnen, Ihren KI-Assistenten basierend auf Ihren Präferenzen und Ihrer Nutzung zu trainieren und anzupassen. Erstellen Sie benutzerdefinierte Prompts und verfeinern Sie das Verhalten der KI.",
-      "linkText": "Training aufrufen",
+      "subtitle": "Passen Sie Ihren Assistenten an",
+      "description": "Das Trainingsmodul ermöglicht es Ihnen, Ihren KI-Assistenten basierend auf Ihren Vorlieben und Ihrer Nutzung zu trainieren und anzupassen. Erstellen Sie benutzerdefinierte Prompts und optimieren Sie das Verhalten der KI.",
+      "linkText": "Zum Training",
       "tip": "Benutzerdefinierte Prompts ermöglichen es Ihnen, das Verhalten der KI an Ihre spezifischen Bedürfnisse und Ihren Interaktionsstil anzupassen.",
       "steps": [
-        "Aktuelle System-Prompts überprüfen",
-        "Eigene benutzerdefinierte Prompts für spezifische Aufgaben erstellen",
-        "KI-Antworten testen und verfeinern",
-        "Verlauf und Trainingsbeispiele verwalten"
+        "Überprüfen Sie aktuelle System-Prompts",
+        "Erstellen Sie Ihre eigenen benutzerdefinierten Prompts für spezifische Aufgaben",
+        "Testen und verfeinern Sie KI-Antworten",
+        "Verwalten Sie Verlauf und Trainingsbeispiele"
       ]
     },
     "monitoring": {
-      "title": "Überwachung",
-      "subtitle": "Ihr System überwachen",
-      "description": "Die Überwachung ermöglicht es Ihnen, den Status Ihrer Dienste, die Systemleistung und den Verlauf der KI-Interaktionen in Echtzeit zu verfolgen. Erkennen Sie Probleme schnell und optimieren Sie Ihre Infrastruktur.",
-      "linkText": "Überwachung anzeigen",
-      "tip": "Proaktive Überwachung hilft Ihnen, Probleme zu identifizieren und zu beheben, bevor sie Ihre Benutzer beeinträchtigen.",
+      "title": "Monitoring",
+      "subtitle": "Überwachen Sie Ihr System",
+      "description": "Monitoring ermöglicht es Ihnen, den Status Ihrer Dienste, die Systemleistung und den KI-Interaktionsverlauf in Echtzeit zu verfolgen. Erkennen Sie schnell Probleme und optimieren Sie Ihre Infrastruktur.",
+      "linkText": "Monitoring anzeigen",
+      "tip": "Proaktives Monitoring hilft Ihnen, Probleme zu identifizieren und zu beheben, bevor sie Ihre Benutzer beeinträchtigen.",
       "steps": [
-        "Das Echtzeit-Überwachungs-Dashboard prüfen",
-        "Den Gesundheitsstatus jedes Dienstes überprüfen",
-        "Leistungsmetriken analysieren (CPU, RAM, Netzwerk)",
-        "Warnungen konfigurieren, um über Probleme benachrichtigt zu werden"
+        "Überprüfen Sie das Echtzeit-Monitoring-Dashboard",
+        "Überprüfen Sie den Gesundheitsstatus jedes Dienstes",
+        "Analysieren Sie Leistungsmetriken (CPU, RAM, Netzwerk)",
+        "Konfigurieren Sie Benachrichtigungen bei Problemen"
       ]
     },
     "config": {
       "title": "Konfiguration",
-      "subtitle": "MCParr anpassen",
-      "description": "Die Konfigurationsseite zentralisiert alle Anwendungseinstellungen: Erscheinungsbild, Benachrichtigungen, Protokolle, Dashboard und Sicherung. Passen Sie MCParr an Ihre Präferenzen an und exportieren Sie Ihre Konfiguration.",
+      "subtitle": "Passen Sie MCParr an",
+      "description": "Die Konfigurationsseite zentralisiert alle Anwendungseinstellungen: Erscheinungsbild, Benachrichtigungen, Logs, Dashboard und Backup. Passen Sie MCParr an Ihre Vorlieben an und exportieren Sie Ihre Konfiguration.",
       "linkText": "Konfiguration öffnen",
       "tip": "Denken Sie daran, Ihre Konfiguration regelmäßig zu exportieren, damit Sie sie bei Bedarf leicht wiederherstellen können.",
       "steps": [
-        "Das Design anpassen (hell, dunkel, System)",
-        "Benachrichtigungen und Warnungen konfigurieren",
-        "Protokollebene und automatische Aktualisierung einstellen",
-        "Ihre Konfiguration zur Sicherung exportieren/importieren"
+        "Passen Sie das Theme an (hell, dunkel, System)",
+        "Konfigurieren Sie Benachrichtigungen und Warnungen",
+        "Legen Sie Log-Level und automatische Aktualisierung fest",
+        "Exportieren/importieren Sie Ihre Konfiguration zur Sicherung"
+      ]
+    },
+    "help": {
+      "title": "Hilfesystem",
+      "subtitle": "Integrierte Dokumentation",
+      "description": "MCParr verfügt über ein integriertes Hilfesystem, das auf jeder Seite über das Hilfesymbol (?) zugänglich ist. Die Hilfeseite zentralisiert alle verfügbare Dokumentation für schnellen Zugriff.",
+      "linkText": "Hilfe anzeigen",
+      "tip": "Klicken Sie auf das ?-Symbol auf jeder Seite, um kontextbezogene Hilfe für diesen Bereich zu erhalten.",
+      "steps": [
+        "Suchen Sie das Hilfesymbol (?) auf verschiedenen Seiten",
+        "Klicken Sie darauf, um kontextbezogene Hilfe anzuzeigen",
+        "Greifen Sie auf die Hilfeseite zu, um alle Dokumentationen zu sehen",
+        "Verwenden Sie die Suche, um schnell Informationen zu finden"
       ]
     }
   },
@@ -153,9 +185,11 @@
       "users": "Benutzer",
       "groups": "Gruppen",
       "mcp": "MCP",
+      "chains": "Ketten",
       "training": "Training",
-      "monitoring": "Überwachung",
-      "config": "Konfiguration"
+      "monitoring": "Monitoring",
+      "config": "Konfiguration",
+      "help": "Hilfe"
     }
   }
 }

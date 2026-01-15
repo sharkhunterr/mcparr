@@ -9,10 +9,14 @@
     "or": "or",
     "guideInfo": "This guide walks you through the initial setup. You can modify all these settings later.",
     "features": {
-      "services": "Connect to your services",
-      "users": "User mapping",
-      "permissions": "Permission management",
-      "mcp": "Integrated MCP server"
+      "services": "Service management",
+      "users": "User management",
+      "chains": "Response chains",
+      "help": "Built-in help",
+      "mcp": "Integrated MCP server",
+      "dashboard": "Dashboard & monitoring",
+      "training": "AI Training",
+      "permissions": "Permission management"
     },
     "import": {
       "selectFile": "Click to select a file",
@@ -55,13 +59,15 @@
     "services": {
       "title": "Homelab Services",
       "subtitle": "Connect your applications",
-      "description": "Configure the homelab services that MCParr will control: Plex, Radarr, Sonarr, Overseerr, Tautulli, etc. For each service, you'll need to provide its URL and API key or credentials.",
+      "description": "Configure the homelab services that MCParr will control. For each service, enter its URL, API key (or username and password depending on the service), and optionally an external URL for remote access. Test each service individually or all at once.",
       "linkText": "Configure services",
+      "tip": "In the Groups tab of the Services page, you can create service groups (e.g., Media with Plex, Tautulli, Overseerr) that will be used as tool endpoints for Open WebUI.",
       "steps": [
         "Access the Services page via the navigation menu",
-        "Click \"Add a service\" and fill in the form",
-        "Test the connection to verify communication",
-        "Repeat for all your services (recommended: at least 2)"
+        "Click \"Add a service\" and enter URL, API key or credentials",
+        "Configure the external URL if you want to access the service remotely",
+        "Test the connection (individually or all services)",
+        "Create service groups in the Groups tab to organize your endpoints"
       ]
     },
     "users": {
@@ -92,14 +98,27 @@
     "mcp": {
       "title": "MCP Server",
       "subtitle": "Model Context Protocol",
-      "description": "The MCP (Model Context Protocol) server allows your AI to interact with your homelab services. It's the bridge between the conversational assistant and your applications (Plex, Radarr, etc.).",
+      "description": "The MCP server allows your AI to interact with your homelab services. View call history, test tools directly from the interface, configure tools in Open WebUI, and manage global search.",
       "linkText": "View MCP configuration",
-      "tip": "The MCP server runs in the background and exposes the tools your AI can use to control your services.",
+      "tip": "Use the Config tab to configure tools directly in Open WebUI (if the service is properly configured) and to set up global search.",
       "steps": [
-        "Verify that the MCP server is started and accessible",
-        "Review the available MCP tools for each service",
-        "Test integration with your AI client (Claude Desktop, etc.)",
-        "Configure group permissions if needed"
+        "View MCP call history in the History tab",
+        "Test tools directly from the Tools tab",
+        "Configure tools for Open WebUI in the Config tab",
+        "Set up Global Search to search across all your services"
+      ]
+    },
+    "chains": {
+      "title": "Tool Chains",
+      "subtitle": "Automate your workflows",
+      "description": "Tool chains allow you to create automated action sequences. This lightens the logic the AI model needs to handle by defining responses and sequences based on specific configurations.",
+      "linkText": "Manage chains",
+      "tip": "A well-configured chain allows the AI model to delegate complex workflows while maintaining precise control over the steps.",
+      "steps": [
+        "Access the MCP page, Chains tab",
+        "Create a new chain with the desired tools",
+        "Define trigger conditions and parameters",
+        "Configure automatic responses and sequences"
       ]
     },
     "training": {
@@ -140,6 +159,19 @@
         "Set log level and auto-refresh",
         "Export/import your configuration to back it up"
       ]
+    },
+    "help": {
+      "title": "Help System",
+      "subtitle": "Built-in documentation",
+      "description": "MCParr has a built-in help system accessible on each page via the help icon (?). The Help page centralizes all available site documentation for quick reference.",
+      "linkText": "View Help",
+      "tip": "Click the ? icon on each page to access contextual help for that section.",
+      "steps": [
+        "Look for the help icon (?) on different pages",
+        "Click it to display contextual help",
+        "Access the Help page to see all documentation",
+        "Use search to quickly find information"
+      ]
     }
   },
   "navigation": {
@@ -153,9 +185,11 @@
       "users": "users",
       "groups": "groups",
       "mcp": "mcp",
+      "chains": "chains",
       "training": "training",
       "monitoring": "monitoring",
-      "config": "config"
+      "config": "config",
+      "help": "help"
     }
   }
 }
