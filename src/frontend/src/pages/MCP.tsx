@@ -1,7 +1,9 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Bot, RefreshCw, BarChart3, History, Wrench, Settings, ChevronDown, ChevronRight, Play, X, Loader2, TrendingUp, TrendingDown, Minus, Link2, Workflow, ArrowRight, Square, CircleDot } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
 import { ToolChainManagement } from '../components/ToolChains';
+import { GlobalSearchConfig, GlobalSearchInfoBlock } from '../components/MCP';
 import { HelpTooltip } from '../components/common';
 import { api, getApiBaseUrl } from '../lib/api';
 import { getServiceColor, getServiceFromToolName } from '../lib/serviceColors';
@@ -2113,13 +2115,18 @@ const ConfigurationTab = ({ tools }: { tools: McpToolsResponse | null }) => {
           </div>
         </div>
       </details>
+
+      {/* Global Search Configuration */}
+      <GlobalSearchConfig />
     </div>
   );
 };
 
 export default function MCP() {
   const { t } = useTranslation('mcp');
-  const [activeTab, setActiveTab] = useState<'overview' | 'history' | 'tools' | 'interactions' | 'config'>('overview');
+  const [searchParams] = useSearchParams();
+  const initialTab = (searchParams.get('tab') as 'overview' | 'history' | 'tools' | 'interactions' | 'config') || 'overview';
+  const [activeTab, setActiveTab] = useState<'overview' | 'history' | 'tools' | 'interactions' | 'config'>(initialTab);
   const [stats, setStats] = useState<McpStats | null>(null);
   const [toolUsage, setToolUsage] = useState<McpToolUsage[]>([]);
   const [hourlyUsage, setHourlyUsage] = useState<McpHourlyUsage[]>([]);
@@ -2912,6 +2919,12 @@ export default function MCP() {
                   {/* Help button */}
                   <HelpTooltip topicId="tools" />
                 </div>
+
+                {/* Global Search Info Block */}
+                <GlobalSearchInfoBlock
+                  onConfigure={() => setActiveTab('config')}
+                  className="mb-4"
+                />
 
               {/* Services List */}
               <div className="space-y-3">

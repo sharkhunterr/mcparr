@@ -758,5 +758,59 @@
         "contextContent": "Salva valori per i passi successivi:\n• Configura \"Salva nel contesto\" su un'azione\n• Usa {context.variabile} nei messaggi\n• Usa context.variabile nei mapping"
       }
     }
+  },
+
+  "globalSearch": {
+    "title": "Ricerca Globale",
+    "description": "Cerca in tutti i servizi abilitati",
+    "config": "Configurazione",
+    "configDescription": "Configura quali servizi sono inclusi nella ricerca globale",
+    "enabledServices": "Servizi abilitati",
+    "noServices": "Nessun servizio con capacità di ricerca",
+    "noSearchableServices": "Nessun servizio di ricerca configurato",
+    "noSearchableServicesHint": "Configura servizi come Overseerr, Radarr, Sonarr, ecc. per abilitare la ricerca globale",
+    "serviceEnabled": "Abilitato",
+    "serviceDisabled": "Disabilitato",
+    "enableAll": "Abilita tutti",
+    "disableAll": "Disabilita tutti",
+    "searchIn": "Cerca in",
+    "priority": "Priorità",
+    "categories": {
+      "all": "Tutti",
+      "media": "Media",
+      "indexers": "Indexer",
+      "books": "Libri",
+      "gaming": "Giochi",
+      "wiki": "Wiki",
+      "support": "Supporto"
+    },
+    "categoryDescriptions": {
+      "media": "Overseerr, Radarr, Sonarr, Plex",
+      "indexers": "Jackett, Prowlarr",
+      "books": "Komga, Audiobookshelf",
+      "gaming": "RoMM",
+      "wiki": "WikiJS",
+      "support": "Zammad"
+    },
+    "aiFeature": "Funzionalità IA",
+    "aiFeatureHint": "Questo strumento è disponibile per gli assistenti IA tramite MCP",
+    "toolName": "system_global_search",
+    "featureEnabled": "Attiva Ricerca Globale",
+    "hideNotifications": "Nascondi banner info",
+    "featureDisabledMessage": "La Ricerca Globale è disattivata. Lo strumento non sarà disponibile per gli assistenti IA.",
+    "infoBlock": {
+      "title": "Ricerca Globale Disponibile",
+      "description": "Cerca in tutti i tuoi servizi con una singola query.",
+      "configure": "Configura"
+    },
+    "help": {
+      "title": "Ricerca Globale",
+      "overview": "Panoramica",
+      "overviewContent": "La ricerca globale permette all'IA di cercare in tutti i servizi configurati con una singola query. I risultati sono raggruppati per categoria (media, libri, wiki, ecc.).",
+      "configuration": "Configurazione",
+      "configurationContent": "Abilita o disabilita i servizi per la ricerca globale. Solo i servizi abilitati verranno interrogati quando si usa system_global_search.",
+      "usage": "Utilizzo",
+      "usageContent": "L'IA può usare questo strumento per trovare contenuti nel tuo homelab:\n• Cercare un film in Overseerr, Radarr e Plex\n• Trovare libri in Komga e Audiobookshelf\n• Cercare nella documentazione WikiJS\n• Trovare ticket di supporto in Zammad"
+    }
   }
 }

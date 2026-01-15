@@ -49,6 +49,13 @@ class JackettTools(BaseTool):
                         type="string",
                         required=False,
                     ),
+                    ToolParameter(
+                        name="limit",
+                        description="Maximum number of results to return",
+                        type="number",
+                        required=False,
+                        default=50,
+                    ),
                 ],
                 category="indexers",
                 is_mutation=False,
@@ -142,6 +149,7 @@ class JackettTools(BaseTool):
         query = arguments.get("query")
         indexers_str = arguments.get("indexers")
         categories_str = arguments.get("categories")
+        limit = int(arguments.get("limit", 50))
 
         indexers = None
         if indexers_str:
@@ -153,7 +161,7 @@ class JackettTools(BaseTool):
 
         results = await adapter.search(query, indexers=indexers, categories=categories)
 
-        return {"success": True, "result": {"query": query, "count": len(results), "results": results}}
+        return {"success": True, "result": {"query": query, "count": len(results), "results": results[:limit]}}
 
     async def _test_indexer(self, adapter, arguments: dict) -> dict:
         """Test a specific indexer."""

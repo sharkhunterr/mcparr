@@ -781,5 +781,59 @@
         "contextContent": "Save values for later steps:\n• Configure \"Save to Context\" on an action\n• Use {context.variable} in messages\n• Use context.variable in mappings"
       }
     }
+  },
+
+  "globalSearch": {
+    "title": "Global Search",
+    "description": "Search across all enabled services",
+    "config": "Configuration",
+    "configDescription": "Configure which services are included in global search",
+    "enabledServices": "Enabled services",
+    "noServices": "No services with search capability",
+    "noSearchableServices": "No searchable services configured",
+    "noSearchableServicesHint": "Configure services like Overseerr, Radarr, Sonarr, etc. to enable global search",
+    "serviceEnabled": "Enabled",
+    "serviceDisabled": "Disabled",
+    "enableAll": "Enable all",
+    "disableAll": "Disable all",
+    "searchIn": "Search in",
+    "priority": "Priority",
+    "categories": {
+      "all": "All",
+      "media": "Media",
+      "indexers": "Indexers",
+      "books": "Books",
+      "gaming": "Gaming",
+      "wiki": "Wiki",
+      "support": "Support"
+    },
+    "categoryDescriptions": {
+      "media": "Overseerr, Radarr, Sonarr, Plex",
+      "indexers": "Jackett, Prowlarr",
+      "books": "Komga, Audiobookshelf",
+      "gaming": "RoMM",
+      "wiki": "WikiJS",
+      "support": "Zammad"
+    },
+    "aiFeature": "AI Feature",
+    "aiFeatureHint": "This tool is available to AI assistants via MCP",
+    "toolName": "system_global_search",
+    "featureEnabled": "Enable Global Search",
+    "hideNotifications": "Hide info banners",
+    "featureDisabledMessage": "Global Search is disabled. The tool will not be available to AI assistants.",
+    "infoBlock": {
+      "title": "Global Search Available",
+      "description": "Search across all your services with a single query.",
+      "configure": "Configure"
+    },
+    "help": {
+      "title": "Global Search",
+      "overview": "Overview",
+      "overviewContent": "Global Search allows the AI to search across all your configured services with a single query. Results are grouped by category (media, books, wiki, etc.).",
+      "configuration": "Configuration",
+      "configurationContent": "Enable or disable services for global search. Only enabled services will be queried when using system_global_search.",
+      "usage": "Usage",
+      "usageContent": "The AI can use this tool to find content across your homelab:\n• Search for a movie in Overseerr, Radarr, and Plex\n• Find books in Komga and Audiobookshelf\n• Search documentation in WikiJS\n• Find support tickets in Zammad"
+    }
   }
 }

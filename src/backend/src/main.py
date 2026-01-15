@@ -189,6 +189,11 @@ def create_app() -> FastAPI:
 
     app.include_router(backup.router, tags=["Backup"])
 
+    # Global Search configuration router
+    from src.routers import global_search
+
+    app.include_router(global_search.router, tags=["Global Search"])
+
     # WebSocket endpoints
     from src.websocket.logs import websocket_logs_endpoint
     from src.websocket.system import handle_system_websocket

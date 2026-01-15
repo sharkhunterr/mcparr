@@ -76,6 +76,12 @@
     "toggleService": "Aktivieren/Deaktivieren"
   },
 
+  "globalSearchInfo": {
+    "title": "Globale Suche Verfügbar",
+    "description": "Suchen Sie in allen Ihren Diensten mit einer einzigen KI-Anfrage.",
+    "configure": "Konfigurieren"
+  },
+
   "testModal": {
     "title": "Verbindung testen",
     "connectionTest": "Verbindungstest",

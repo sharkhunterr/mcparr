@@ -758,5 +758,59 @@
         "contextContent": "Speichern Sie Werte für nachfolgende Schritte:\n• Konfigurieren Sie \"Im Kontext speichern\" für eine Aktion\n• Verwenden Sie {context.variable} in Nachrichten\n• Verwenden Sie context.variable in Mappings"
       }
     }
+  },
+
+  "globalSearch": {
+    "title": "Globale Suche",
+    "description": "Suche in allen aktivierten Diensten",
+    "config": "Konfiguration",
+    "configDescription": "Konfigurieren Sie, welche Dienste in der globalen Suche enthalten sind",
+    "enabledServices": "Aktivierte Dienste",
+    "noServices": "Keine Dienste mit Suchfunktion",
+    "noSearchableServices": "Keine durchsuchbaren Dienste konfiguriert",
+    "noSearchableServicesHint": "Konfigurieren Sie Dienste wie Overseerr, Radarr, Sonarr usw., um die globale Suche zu aktivieren",
+    "serviceEnabled": "Aktiviert",
+    "serviceDisabled": "Deaktiviert",
+    "enableAll": "Alle aktivieren",
+    "disableAll": "Alle deaktivieren",
+    "searchIn": "Suche in",
+    "priority": "Priorität",
+    "categories": {
+      "all": "Alle",
+      "media": "Medien",
+      "indexers": "Indexer",
+      "books": "Bücher",
+      "gaming": "Spiele",
+      "wiki": "Wiki",
+      "support": "Support"
+    },
+    "categoryDescriptions": {
+      "media": "Overseerr, Radarr, Sonarr, Plex",
+      "indexers": "Jackett, Prowlarr",
+      "books": "Komga, Audiobookshelf",
+      "gaming": "RoMM",
+      "wiki": "WikiJS",
+      "support": "Zammad"
+    },
+    "aiFeature": "KI-Funktion",
+    "aiFeatureHint": "Dieses Tool ist für KI-Assistenten über MCP verfügbar",
+    "toolName": "system_global_search",
+    "featureEnabled": "Globale Suche aktivieren",
+    "hideNotifications": "Info-Banner ausblenden",
+    "featureDisabledMessage": "Die globale Suche ist deaktiviert. Das Tool wird für KI-Assistenten nicht verfügbar sein.",
+    "infoBlock": {
+      "title": "Globale Suche Verfügbar",
+      "description": "Suchen Sie in allen Ihren Diensten mit einer einzigen Anfrage.",
+      "configure": "Konfigurieren"
+    },
+    "help": {
+      "title": "Globale Suche",
+      "overview": "Übersicht",
+      "overviewContent": "Die globale Suche ermöglicht es der KI, mit einer einzigen Anfrage in allen konfigurierten Diensten zu suchen. Die Ergebnisse werden nach Kategorie gruppiert (Medien, Bücher, Wiki usw.).",
+      "configuration": "Konfiguration",
+      "configurationContent": "Aktivieren oder deaktivieren Sie Dienste für die globale Suche. Nur aktivierte Dienste werden bei der Verwendung von system_global_search abgefragt.",
+      "usage": "Verwendung",
+      "usageContent": "Die KI kann dieses Tool verwenden, um Inhalte in Ihrem Homelab zu finden:\n• Nach einem Film in Overseerr, Radarr und Plex suchen\n• Bücher in Komga und Audiobookshelf finden\n• In der WikiJS-Dokumentation suchen\n• Support-Tickets in Zammad finden"
+    }
   }
 }

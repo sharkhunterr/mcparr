@@ -3,6 +3,7 @@
 from .alert_config import AlertConfiguration, AlertHistory
 from .base import AlertSeverity, Base, LogLevel, TimestampMixin, UUIDMixin
 from .configuration import ConfigurationSetting
+from .global_search import GlobalSearchConfig, SEARCHABLE_SERVICES
 from .group import Group, GroupMembership, GroupToolPermission
 from .service_group import ServiceGroup, ServiceGroupMembership
 from .tool_chain import (
@@ -84,4 +85,6 @@ __all__ = [
     "TrainingWorker",
     "WorkerStatus",
     "WorkerMetricsSnapshot",
+    "GlobalSearchConfig",
+    "SEARCHABLE_SERVICES",
 ]

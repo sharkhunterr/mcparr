@@ -21,6 +21,13 @@ class RadarrTools(BaseTool):
                         type="string",
                         required=True,
                     ),
+                    ToolParameter(
+                        name="limit",
+                        description="Maximum number of results to return",
+                        type="number",
+                        required=False,
+                        default=10,
+                    ),
                 ],
                 category="media",
                 is_mutation=False,
@@ -178,9 +185,10 @@ class RadarrTools(BaseTool):
     async def _search_movie(self, adapter, arguments: dict) -> dict:
         """Search for a movie."""
         query = arguments.get("query")
+        limit = int(arguments.get("limit", 10))
         results = await adapter.search_movie(query)
 
-        return {"success": True, "result": {"query": query, "count": len(results), "results": results}}
+        return {"success": True, "result": {"query": query, "count": len(results), "results": results[:limit]}}
 
     async def _get_movie_status(self, adapter, arguments: dict) -> dict:
         """Get detailed status of a movie in Radarr library."""

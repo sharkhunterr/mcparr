@@ -21,6 +21,13 @@ class SonarrTools(BaseTool):
                         type="string",
                         required=True,
                     ),
+                    ToolParameter(
+                        name="limit",
+                        description="Maximum number of results to return",
+                        type="number",
+                        required=False,
+                        default=10,
+                    ),
                 ],
                 category="media",
                 is_mutation=False,
@@ -184,9 +191,10 @@ class SonarrTools(BaseTool):
     async def _search_series(self, adapter, arguments: dict) -> dict:
         """Search for a series."""
         query = arguments.get("query")
+        limit = int(arguments.get("limit", 10))
         results = await adapter.search_series(query)
 
-        return {"success": True, "result": {"query": query, "count": len(results), "results": results}}
+        return {"success": True, "result": {"query": query, "count": len(results), "results": results[:limit]}}
 
     async def _get_series_status(self, adapter, arguments: dict) -> dict:
         """Get detailed status of a series in Sonarr library."""

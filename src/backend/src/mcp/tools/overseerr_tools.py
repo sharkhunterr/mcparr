@@ -28,6 +28,13 @@ class OverseerrTools(BaseTool):
                         required=False,
                         enum=["movie", "tv"],
                     ),
+                    ToolParameter(
+                        name="limit",
+                        description="Maximum number of results to return",
+                        type="number",
+                        required=False,
+                        default=10,
+                    ),
                 ],
                 category="requests",
                 is_mutation=False,
@@ -201,6 +208,7 @@ class OverseerrTools(BaseTool):
 
         query = arguments.get("query")
         media_type_str = arguments.get("media_type")
+        limit = int(arguments.get("limit", 10))
 
         # Convert string to MediaType enum if provided
         media_type = None
@@ -233,7 +241,7 @@ class OverseerrTools(BaseTool):
                             item.get("id")
                         ),
                     }
-                    for item in results[:10]
+                    for item in results[:limit]
                 ],
             },
         }

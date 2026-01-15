@@ -76,6 +76,12 @@
     "toggleService": "Abilita/Disabilita"
   },
 
+  "globalSearchInfo": {
+    "title": "Ricerca Globale Disponibile",
+    "description": "Cerca in tutti i tuoi servizi con una singola query IA.",
+    "configure": "Configura"
+  },
+
   "testModal": {
     "title": "Testa connessione",
     "connectionTest": "Test di connessione",

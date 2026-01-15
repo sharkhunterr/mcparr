@@ -22,6 +22,7 @@ import { useTranslation } from 'react-i18next';
 import ServiceForm from '../ServiceForm';
 import ServiceTestModal from '../ServiceTestModal';
 import { HelpTooltip } from '../common';
+import { GlobalSearchInfoBlock } from '../MCP';
 import { getApiBaseUrl } from '../../lib/api';
 import { getServiceColor } from '../../lib/serviceColors';
 
@@ -349,6 +350,9 @@ const ServiceList: React.FC = () => {
           {/* Help button */}
           <HelpTooltip topicId="services" />
         </div>
+
+        {/* Global Search Info Block */}
+        <GlobalSearchInfoBlock className="mt-4" />
       </div>
 
       {error && (

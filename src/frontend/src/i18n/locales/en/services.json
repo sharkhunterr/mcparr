@@ -78,6 +78,12 @@
     "toggleService": "Enable/Disable"
   },
 
+  "globalSearchInfo": {
+    "title": "Global Search Available",
+    "description": "Search across all your services with a single AI query.",
+    "configure": "Configure"
+  },
+
   "testModal": {
     "title": "Test Connection",
     "connectionTest": "Connection Test",
