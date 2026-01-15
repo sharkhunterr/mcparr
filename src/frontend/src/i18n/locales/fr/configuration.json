@@ -126,6 +126,10 @@
         "label": "Services",
         "description": "Configurations des services (Plex, Authentik, etc.)"
       },
+      "service_groups": {
+        "label": "Groupes de services",
+        "description": "Groupes de services pour Open WebUI"
+      },
       "user_mappings": {
         "label": "User Mappings",
         "description": "Mappings utilisateurs entre services"
@@ -139,8 +143,24 @@
         "description": "Parametres du site"
       },
       "training_prompts": {
-        "label": "AI Training",
-        "description": "Prompts et donnees d'entrainement"
+        "label": "Prompts",
+        "description": "Prompts d'entrainement IA"
+      },
+      "training_workers": {
+        "label": "Workers",
+        "description": "Workers d'entrainement IA"
+      },
+      "tool_chains": {
+        "label": "Chaines",
+        "description": "Chaines d'outils MCP"
+      },
+      "global_search": {
+        "label": "Recherche globale",
+        "description": "Configuration recherche multi-services"
+      },
+      "alerts": {
+        "label": "Alertes",
+        "description": "Configurations des alertes monitoring"
       }
     },
     "reset": {
@@ -150,9 +170,14 @@
       "warningDescription": "Cette action supprimera definitivement toutes les donnees :",
       "warningItems": {
         "services": "Tous les services configures",
+        "serviceGroups": "Tous les groupes de services",
         "userMappings": "Tous les mappings utilisateurs",
         "groups": "Tous les groupes et permissions",
-        "training": "Tous les prompts d'entrainement",
+        "training": "Tous les prompts et templates d'entrainement",
+        "workers": "Tous les workers d'entrainement",
+        "toolChains": "Toutes les chaines d'outils",
+        "globalSearch": "Configuration de recherche globale",
+        "alerts": "Toutes les alertes configurees",
         "siteConfig": "Toute la configuration du site"
       },
       "warningFooter": "Cette action ne peut pas etre annulee. Assurez-vous d'avoir exporte vos donnees si necessaire.",

@@ -123,6 +123,10 @@
         "label": "Servizi",
         "description": "Configurazioni dei servizi (Plex, Authentik, ecc.)"
       },
+      "service_groups": {
+        "label": "Gruppi di servizi",
+        "description": "Gruppi di servizi per Open WebUI"
+      },
       "user_mappings": {
         "label": "Mappature utenti",
         "description": "Mappature utenti tra i servizi"
@@ -136,8 +140,24 @@
         "description": "Impostazioni del sito"
       },
       "training_prompts": {
-        "label": "Addestramento IA",
-        "description": "Prompt e dati di addestramento"
+        "label": "Prompts",
+        "description": "Prompt di addestramento IA"
+      },
+      "training_workers": {
+        "label": "Workers",
+        "description": "Worker di addestramento IA"
+      },
+      "tool_chains": {
+        "label": "Catene",
+        "description": "Catene di strumenti MCP"
+      },
+      "global_search": {
+        "label": "Ricerca globale",
+        "description": "Configurazione ricerca multi-servizio"
+      },
+      "alerts": {
+        "label": "Avvisi",
+        "description": "Configurazioni avvisi di monitoraggio"
       }
     },
     "reset": {
@@ -147,9 +167,14 @@
       "warningDescription": "Questa azione eliminera permanentemente tutti i dati:",
       "warningItems": {
         "services": "Tutti i servizi configurati",
+        "serviceGroups": "Tutti i gruppi di servizi",
         "userMappings": "Tutte le mappature utenti",
         "groups": "Tutti i gruppi e i permessi",
-        "training": "Tutti i prompt di addestramento",
+        "training": "Tutti i prompt e modelli di addestramento",
+        "workers": "Tutti i worker di addestramento",
+        "toolChains": "Tutte le catene di strumenti",
+        "globalSearch": "Configurazione ricerca globale",
+        "alerts": "Tutti gli avvisi configurati",
         "siteConfig": "Tutta la configurazione del sito"
       },
       "warningFooter": "Questa azione non puo essere annullata. Assicurarsi di aver esportato i dati se necessario.",

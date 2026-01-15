@@ -126,6 +126,10 @@
         "label": "Services",
         "description": "Service configurations (Plex, Authentik, etc.)"
       },
+      "service_groups": {
+        "label": "Service groups",
+        "description": "Service groups for Open WebUI"
+      },
       "user_mappings": {
         "label": "User Mappings",
         "description": "User mappings between services"
@@ -139,8 +143,24 @@
         "description": "Site settings"
       },
       "training_prompts": {
-        "label": "AI Training",
-        "description": "Training prompts and data"
+        "label": "Prompts",
+        "description": "AI training prompts"
+      },
+      "training_workers": {
+        "label": "Workers",
+        "description": "AI training workers"
+      },
+      "tool_chains": {
+        "label": "Chains",
+        "description": "MCP tool chains"
+      },
+      "global_search": {
+        "label": "Global search",
+        "description": "Multi-service search configuration"
+      },
+      "alerts": {
+        "label": "Alerts",
+        "description": "Monitoring alert configurations"
       }
     },
     "reset": {
@@ -150,9 +170,14 @@
       "warningDescription": "This action will permanently delete all data:",
       "warningItems": {
         "services": "All configured services",
+        "serviceGroups": "All service groups",
         "userMappings": "All user mappings",
         "groups": "All groups and permissions",
-        "training": "All training prompts",
+        "training": "All training prompts and templates",
+        "workers": "All training workers",
+        "toolChains": "All tool chains",
+        "globalSearch": "Global search configuration",
+        "alerts": "All configured alerts",
         "siteConfig": "All site configuration"
       },
       "warningFooter": "This action cannot be undone. Make sure you have exported your data if necessary.",

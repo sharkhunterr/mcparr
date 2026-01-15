@@ -577,27 +577,42 @@ export const api = {
   backup: {
     preview: (options?: {
       services?: boolean;
+      service_groups?: boolean;
       user_mappings?: boolean;
       groups?: boolean;
       site_config?: boolean;
       training_prompts?: boolean;
+      training_workers?: boolean;
+      tool_chains?: boolean;
+      global_search?: boolean;
+      alerts?: boolean;
     }) => apiClient.get('/api/backup/preview', { params: options }),
     export: (options?: {
       services?: boolean;
+      service_groups?: boolean;
       user_mappings?: boolean;
       groups?: boolean;
       site_config?: boolean;
       training_prompts?: boolean;
+      training_workers?: boolean;
+      tool_chains?: boolean;
+      global_search?: boolean;
+      alerts?: boolean;
     }) => apiClient.post('/api/backup/export', options || {}),
     import: (data: {
       version: string;
       data: Record<string, any>;
       options?: {
         services?: boolean;
+        service_groups?: boolean;
         user_mappings?: boolean;
         groups?: boolean;
         site_config?: boolean;
         training_prompts?: boolean;
+        training_workers?: boolean;
+        tool_chains?: boolean;
+        global_search?: boolean;
+        alerts?: boolean;
         merge_mode?: boolean;
       };
     }) => apiClient.post('/api/backup/import', data),
