@@ -386,6 +386,19 @@
         "copy": "Copier",
         "copied": "✓"
       }
+    },
+    "help": {
+      "title": "Configuration MCP",
+      "overview": "Vue d'ensemble",
+      "overviewContent": "L'onglet Configuration permet de connecter MCParr à vos clients IA (Open WebUI, Claude Desktop). Configurez les endpoints, copiez les prompts système et testez les connexions.",
+      "autoConfig": "Configuration automatique",
+      "autoConfigContent": "Pour Open WebUI, utilisez la configuration automatique :\n• Choisissez le mode d'endpoint (par catégorie, service, ou tout ensemble)\n• Sélectionnez les groupes ou services à configurer\n• Entrez l'URL externe de MCParr\n• Cliquez sur \"Configurer Open WebUI\"",
+      "endpoints": "Endpoints",
+      "endpointsContent": "Les endpoints exposent les outils MCP via OpenAPI :\n• Tous les outils : /tools/openapi.json\n• Par catégorie : /tools/media/openapi.json, etc.\n\nUtilisez les endpoints par catégorie pour de meilleures performances.",
+      "systemPrompt": "Prompt système",
+      "systemPromptContent": "Le prompt système est généré automatiquement selon vos services actifs. Copiez-le dans la configuration de votre client IA pour guider le modèle dans l'utilisation des outils.",
+      "otherConfigs": "Autres configurations",
+      "otherConfigsContent": "• Documentation API : accédez au Swagger interactif (/docs)\n• Claude Desktop : configuration MCP stdio pour l'app desktop"
     }
   },
 

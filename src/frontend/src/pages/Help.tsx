@@ -16,6 +16,7 @@ import {
   Users,
   Shield,
   BarChart3,
+  Settings,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { helpCategories, type HelpTopic } from '../lib/helpContent';
@@ -35,6 +36,7 @@ const iconMap: Record<string, React.ElementType> = {
   Shield,
   Search,
   BarChart3,
+  Settings,
 };
 
 // Color mapping for topics
@@ -77,30 +79,36 @@ const topicColors: Record<string, { bg: string; text: string; border: string; ic
     border: 'border-orange-200 dark:border-orange-800',
     iconBg: 'bg-orange-100 dark:bg-orange-900/40',
   },
-  // MCP category - emerald (MCP color)
+  // MCP category - teal (MCP color)
   stats: {
-    bg: 'bg-emerald-50 dark:bg-emerald-900/20',
-    text: 'text-emerald-700 dark:text-emerald-300',
-    border: 'border-emerald-200 dark:border-emerald-800',
-    iconBg: 'bg-emerald-100 dark:bg-emerald-900/40',
+    bg: 'bg-teal-50 dark:bg-teal-900/20',
+    text: 'text-teal-700 dark:text-teal-300',
+    border: 'border-teal-200 dark:border-teal-800',
+    iconBg: 'bg-teal-100 dark:bg-teal-900/40',
   },
   tools: {
-    bg: 'bg-emerald-50 dark:bg-emerald-900/20',
-    text: 'text-emerald-700 dark:text-emerald-300',
-    border: 'border-emerald-200 dark:border-emerald-800',
-    iconBg: 'bg-emerald-100 dark:bg-emerald-900/40',
+    bg: 'bg-teal-50 dark:bg-teal-900/20',
+    text: 'text-teal-700 dark:text-teal-300',
+    border: 'border-teal-200 dark:border-teal-800',
+    iconBg: 'bg-teal-100 dark:bg-teal-900/40',
   },
   history: {
-    bg: 'bg-emerald-50 dark:bg-emerald-900/20',
-    text: 'text-emerald-700 dark:text-emerald-300',
-    border: 'border-emerald-200 dark:border-emerald-800',
-    iconBg: 'bg-emerald-100 dark:bg-emerald-900/40',
+    bg: 'bg-teal-50 dark:bg-teal-900/20',
+    text: 'text-teal-700 dark:text-teal-300',
+    border: 'border-teal-200 dark:border-teal-800',
+    iconBg: 'bg-teal-100 dark:bg-teal-900/40',
   },
   toolChains: {
-    bg: 'bg-emerald-50 dark:bg-emerald-900/20',
-    text: 'text-emerald-700 dark:text-emerald-300',
-    border: 'border-emerald-200 dark:border-emerald-800',
-    iconBg: 'bg-emerald-100 dark:bg-emerald-900/40',
+    bg: 'bg-teal-50 dark:bg-teal-900/20',
+    text: 'text-teal-700 dark:text-teal-300',
+    border: 'border-teal-200 dark:border-teal-800',
+    iconBg: 'bg-teal-100 dark:bg-teal-900/40',
+  },
+  config: {
+    bg: 'bg-teal-50 dark:bg-teal-900/20',
+    text: 'text-teal-700 dark:text-teal-300',
+    border: 'border-teal-200 dark:border-teal-800',
+    iconBg: 'bg-teal-100 dark:bg-teal-900/40',
   },
 };
 

@@ -1612,6 +1612,8 @@ const ConfigurationTab = ({ tools }: { tools: McpToolsResponse | null }) => {
           <h3 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white">
             {t('config.autoConfig.title')}
           </h3>
+          <div className="flex-1" />
+          <HelpTooltip topicId="config" />
         </div>
 
         {!isOpenWebUIConfigured ? (

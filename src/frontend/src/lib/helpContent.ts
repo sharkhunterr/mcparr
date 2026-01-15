@@ -172,6 +172,19 @@ export const helpCategories: HelpCategory[] = [
           { titleKey: 'toolChains.detail.help.context', contentKey: 'toolChains.detail.help.contextContent' },
         ],
       },
+      {
+        id: 'config',
+        titleKey: 'config.help.title',
+        descriptionKey: 'config.help.overviewContent',
+        icon: 'Settings',
+        sections: [
+          { titleKey: 'config.help.overview', contentKey: 'config.help.overviewContent' },
+          { titleKey: 'config.help.autoConfig', contentKey: 'config.help.autoConfigContent' },
+          { titleKey: 'config.help.endpoints', contentKey: 'config.help.endpointsContent' },
+          { titleKey: 'config.help.systemPrompt', contentKey: 'config.help.systemPromptContent' },
+          { titleKey: 'config.help.otherConfigs', contentKey: 'config.help.otherConfigsContent' },
+        ],
+      },
     ],
   },
 ];

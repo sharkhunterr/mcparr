@@ -386,6 +386,19 @@
         "copy": "Copy",
         "copied": "✓"
       }
+    },
+    "help": {
+      "title": "MCP Configuration",
+      "overview": "Overview",
+      "overviewContent": "The Configuration tab allows you to connect MCParr to your AI clients (Open WebUI, Claude Desktop). Configure endpoints, copy system prompts, and test connections.",
+      "autoConfig": "Automatic Configuration",
+      "autoConfigContent": "For Open WebUI, use automatic configuration:\n• Choose the endpoint mode (by category, service, or all together)\n• Select the groups or services to configure\n• Enter MCParr's external URL\n• Click \"Configure Open WebUI\"",
+      "endpoints": "Endpoints",
+      "endpointsContent": "Endpoints expose MCP tools via OpenAPI:\n• All tools: /tools/openapi.json\n• By category: /tools/media/openapi.json, etc.\n\nUse category endpoints for better performance.",
+      "systemPrompt": "System Prompt",
+      "systemPromptContent": "The system prompt is automatically generated based on your active services. Copy it to your AI client's configuration to guide the model in using the tools.",
+      "otherConfigs": "Other Configurations",
+      "otherConfigsContent": "• API Documentation: access interactive Swagger (/docs)\n• Claude Desktop: MCP stdio configuration for the desktop app"
     }
   },
 
