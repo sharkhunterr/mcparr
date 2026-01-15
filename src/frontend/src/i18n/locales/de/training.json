@@ -3,6 +3,10 @@
   "subtitle": "KI-Modelltraining und Feinabstimmung",
   "refresh": "Aktualisieren",
 
+  "help": {
+    "category": "KI-Training"
+  },
+
   "tabs": {
     "overview": "Übersicht",
     "overviewShort": "Stats",
@@ -100,7 +104,18 @@
     "promptsWillBeUsed": "{{count}} Prompt wird für das Training verwendet",
     "promptsWillBeUsed_plural": "{{count}} Prompts werden für das Training verwendet",
     "selectedOfTotalDisplayed": "{{selected}} ausgewählt / {{displayed}} angezeigt",
-    "selectedOfTotalDisplayed_plural": "{{selected}} ausgewählt / {{displayed}} angezeigt"
+    "selectedOfTotalDisplayed_plural": "{{selected}} ausgewählt / {{displayed}} angezeigt",
+    "help": {
+      "title": "Trainingssitzungen",
+      "overview": "Übersicht",
+      "overviewContent": "Die Registerkarte Sitzungen ermöglicht die Erstellung und Verwaltung von KI-Modell-Trainingssitzungen. Jede Sitzung trainiert ein Basismodell mit Ihren benutzerdefinierten Prompts.",
+      "lifecycle": "Lebenszyklus",
+      "lifecycleContent": "Eine Sitzung durchläuft mehrere Phasen:\n• Ausstehend: Konfiguration abgeschlossen, startbereit\n• Läuft: aktives Training mit sichtbarem Fortschritt\n• Abgeschlossen: trainiertes Modell in Ollama verfügbar\n• Fehlgeschlagen: Fehler während des Trainings (Protokolle prüfen)",
+      "actions": "Verfügbare Aktionen",
+      "actionsContent": "Für jede Sitzung:\n• Starten: startet das Training auf einem GPU-Worker\n• Details anzeigen: Metriken, Hyperparameter, Fortschritt\n• Protokolle anzeigen: detaillierte Trainingsprotokolle\n• Duplizieren: erstellt eine Kopie der Sitzung\n• Löschen: entfernt die Sitzung und ihre Daten",
+      "creation": "Sitzungserstellung",
+      "creationContent": "Um eine Sitzung zu erstellen:\n1. Wählen Sie einen Namen und ein Basismodell\n2. Wählen Sie die Methode (schnelles Modelfile oder GPU-Fine-Tuning)\n3. Konfigurieren Sie Hyperparameter (Epochen, Batch Size, Learning Rate)\n4. Wählen Sie Trainings-Prompts aus"
+    }
   },
 
   "prompts": {
@@ -205,7 +220,18 @@
     "confirmDelete": "Möchten Sie dieses Modell wirklich löschen?",
     "confirmQuestion": "Bestätigen?",
     "loadedInMemory": "Im Speicher geladen",
-    "loaded": "Geladen"
+    "loaded": "Geladen",
+    "help": {
+      "title": "Ollama-Modelle",
+      "overview": "Übersicht",
+      "overviewContent": "Die Registerkarte Modelle zeigt alle auf Ihrem Ollama-Server installierten LLM-Modelle an. Sie können deren Größe, Familie und Ladestatus einsehen.",
+      "management": "Modellverwaltung",
+      "managementContent": "Verfügbare Aktionen für jedes Modell:\n• Laden: lädt das Modell in den GPU-Speicher zur sofortigen Nutzung\n• Entladen: gibt den vom Modell belegten GPU-Speicher frei\n• Löschen: entfernt das Modell dauerhaft vom Server",
+      "status": "Status",
+      "statusContent": "Ein Modell kann sein:\n• Geladen (grün): im GPU-Speicher, einsatzbereit\n• Nicht geladen: auf Festplatte, muss vor der Nutzung geladen werden\n• Das Badge zeigt an, ob das Modell derzeit im Speicher ist",
+      "info": "Informationen",
+      "infoContent": "Für jedes Modell:\n• Familie: Modelltyp (llama, mistral, etc.)\n• Parameter: Anzahl der Parameter (7B, 13B, etc.)\n• Quantisierung: Komprimierungsstufe (Q4, Q8, etc.)\n• Größe: belegter Speicherplatz"
+    }
   },
 
   "workers": {
@@ -278,7 +304,18 @@
     "failedToLoad": "Fehler beim Laden der Worker",
     "failedToSave": "Fehler beim Speichern des Workers",
     "failedToDelete": "Fehler beim Löschen des Workers",
-    "testFailed": "Test fehlgeschlagen"
+    "testFailed": "Test fehlgeschlagen",
+    "help": {
+      "title": "GPU-Trainings-Worker",
+      "overview": "Übersicht",
+      "overviewContent": "Die Registerkarte Worker ermöglicht die Verwaltung von Remote-GPU-Workern für das Fine-Tuning von LLM-Modellen. Jeder Worker führt Trainingssitzungen auf seiner GPU aus.",
+      "configuration": "Konfiguration",
+      "configurationContent": "Um einen Worker hinzuzufügen:\n• Geben Sie die URL des training-worker Docker-Containers an\n• Optional einen API-Schlüssel für die Authentifizierung hinzufügen\n• Wählen Sie den Ziel-Ollama-Server für den Modellimport",
+      "status": "Worker-Status",
+      "statusContent": "Ein Worker kann verschiedene Status haben:\n• Online: verfügbar für Training\n• Training: Sitzung läuft\n• Offline: nicht erreichbar\n• Fehler: Verbindungsproblem",
+      "metrics": "Metriken",
+      "metricsContent": "Für jeden Online-Worker:\n• CPU/RAM-Auslastung\n• GPU- und VRAM-Auslastung\n• Temperatur und Stromverbrauch\n• Abgeschlossene Jobs und Gesamttrainingszeit"
+    }
   },
 
   "status": {
@@ -372,7 +409,18 @@
     "health": "Zustand",
     "utilization": "Auslastung",
     "temp": "Temp.",
-    "power": "Leistung"
+    "power": "Leistung",
+    "help": {
+      "title": "KI-Training Statistiken",
+      "overview": "Übersicht",
+      "overviewContent": "Die Registerkarte Statistiken zeigt ein Echtzeit-Dashboard des KI-Trainings. Überwachen Sie aktive Sitzungen, Loss-Metriken, Fortschritt und GPU-Worker-Status.",
+      "cards": "Statistik-Karten",
+      "cardsContent": "Karten zeigen wichtige Metriken:\n• Sitzungen: gesamt und aktiv\n• Prompts: gesamt und validiert\n• Erfolgsrate: erfolgreich abgeschlossene Sitzungen\n• Worker: online GPU-Worker",
+      "activeSessions": "Aktive Sitzungen",
+      "activeSessionsContent": "Echtzeit-Trainingsfortschritt anzeigen:\n• Fortschritt (Epochen, Schritte)\n• Metriken (Loss, Learning Rate)\n• GPU-Auslastung (Speicher, Temperatur)\n• Phasenpipeline (Vorbereitung, Download, Training)",
+      "workers": "Worker und Ollama",
+      "workersContent": "Status der Trainingsressourcen:\n• GPU-Worker: Verfügbarkeit und Auslastung\n• Ollama-Server: verfügbare und laufende Modelle\n• WebSocket-Verbindungsstatus für Echtzeit-Updates"
+    }
   },
 
   "logs": {

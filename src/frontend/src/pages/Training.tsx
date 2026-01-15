@@ -35,6 +35,7 @@ import { useTrainingWebSocket, type TrainingMetrics } from '../hooks/useTraining
 import SessionDetailsModal from '../components/Training/SessionDetailsModal';
 import SessionLogsModal from '../components/Training/SessionLogsModal';
 import TrainingOverview from '../components/Training/TrainingOverview';
+import { HelpTooltip } from '../components/common';
 
 // Types
 interface OllamaModel {
@@ -346,14 +347,18 @@ const SessionsTab = ({
   return (
     <div className="space-y-4">
       {/* Actions bar */}
-      <div className="flex">
-        <button
-          onClick={onCreate}
-          className="px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-2"
-        >
-          <Plus className="w-4 h-4" />
-          <span className="hidden sm:inline">{t('sessions.newSession')}</span>
-        </button>
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-3 sm:p-4">
+        <div className="flex flex-row gap-2 sm:gap-3 items-center">
+          <button
+            onClick={onCreate}
+            className="px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            <span className="hidden sm:inline">{t('sessions.newSession')}</span>
+          </button>
+          <div className="flex-1" />
+          <HelpTooltip topicId="trainingSessions" />
+        </div>
       </div>
 
       {/* Sessions List */}
@@ -652,10 +657,11 @@ const ModelsTab = ({
 
   return (
     <div className="space-y-4">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
-        <div className="flex items-center gap-3">
-          <div className="relative flex-1 sm:w-64">
+      {/* Actions bar - card container */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-3 sm:p-4">
+        <div className="flex flex-row gap-2 sm:gap-3 items-center">
+          {/* Search */}
+          <div className="relative flex-1 sm:flex-none sm:w-64">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
               type="text"
@@ -665,13 +671,18 @@ const ModelsTab = ({
               className="w-full pl-9 pr-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500"
             />
           </div>
-        </div>
-        <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-          <Brain className="w-4 h-4" />
-          <span>{t('models.modelCountValue', { count: models.length })}</span>
-          <span className="text-gray-300 dark:text-gray-600">•</span>
-          <HardDrive className="w-4 h-4" />
-          <span>{totalSize.toFixed(1)} GB</span>
+          {/* Stats */}
+          <div className="hidden sm:flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+            <Brain className="w-4 h-4" />
+            <span>{t('models.modelCountValue', { count: models.length })}</span>
+            <span className="text-gray-300 dark:text-gray-600">•</span>
+            <HardDrive className="w-4 h-4" />
+            <span>{totalSize.toFixed(1)} GB</span>
+          </div>
+          {/* Spacer */}
+          <div className="flex-1 hidden sm:block" />
+          {/* Help */}
+          <HelpTooltip topicId="trainingModels" />
         </div>
       </div>
 

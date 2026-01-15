@@ -124,7 +124,18 @@
     "chainEnd": "Fin de cadena",
     "step": "Paso",
     "nextTools": "Herramientas siguientes",
-    "viewChain": "Ver configuración de la cadena"
+    "viewChain": "Ver configuración de la cadena",
+    "help": {
+      "title": "Historial de solicitudes MCP",
+      "overview": "Descripción general",
+      "overviewContent": "Consulte el historial de todas las solicitudes MCP realizadas por la IA. Cada línea representa una llamada de herramienta con su estado, duración y usuario afectado.",
+      "filters": "Filtros",
+      "filtersContent": "Filtre las solicitudes por:\n• Servicio (Plex, Radarr, Sonarr...)\n• Estado (completado, fallido, en curso...)\n• Período (1h, 6h, 24h, 3d, 7d)",
+      "details": "Detalles de una solicitud",
+      "detailsContent": "Haga clic en una solicitud para ver:\n• Los parámetros de entrada enviados\n• El resultado JSON devuelto\n• Los errores eventuales",
+      "chains": "Cadenas de herramientas",
+      "chainsContent": "La insignia de color indica si la solicitud forma parte de una cadena de herramientas. Haga clic en ella para ver los detalles de la cadena y las herramientas sugeridas a continuación."
+    }
   },
 
   "tools": {
@@ -152,7 +163,20 @@
     "expandAll": "Expandir todo",
     "collapseAll": "Contraer todo",
     "nextTools": "Siguientes herramientas (Cadenas)",
-    "chainCondition": "Condición"
+    "chainCondition": "Condición",
+    "help": {
+      "title": "Acerca de las herramientas MCP",
+      "overview": "Descripción general",
+      "overviewContent": "Esta página lista todas las herramientas MCP disponibles, organizadas por servicio (Plex, Radarr, Sonarr, etc.). Cada herramienta representa una acción que la IA puede ejecutar para interactuar con sus servicios.",
+      "browse": "Explorar herramientas",
+      "browseContent": "• Las herramientas están agrupadas por servicio\n• Haga clic en un servicio para ver sus herramientas\n• Cada herramienta muestra su descripción y parámetros\n• Los parámetros marcados con * son obligatorios",
+      "test": "Probar una herramienta",
+      "testContent": "Haga clic en \"Probar\" para ejecutar una herramienta manualmente:\n• Complete los parámetros requeridos\n• Visualice el resultado JSON devuelto\n• Útil para verificar el funcionamiento correcto",
+      "groups": "Grupos de acceso",
+      "groupsContent": "Las insignias de colores debajo de cada herramienta indican los grupos de usuarios que tienen acceso. Solo los usuarios que pertenecen a estos grupos pueden usar la herramienta.",
+      "mutations": "Mutaciones",
+      "mutationsContent": "Las herramientas marcadas como \"Mutación\" modifican datos (agregar, eliminar, modificar). Úselas con precaución durante las pruebas."
+    }
   },
 
   "errors": {
@@ -362,6 +386,19 @@
         "copy": "Copiar",
         "copied": "Copiado"
       }
+    },
+    "help": {
+      "title": "Configuración MCP",
+      "overview": "Descripción general",
+      "overviewContent": "La pestaña Configuración permite conectar MCParr a sus clientes de IA (Open WebUI, Claude Desktop). Configure los endpoints, copie los prompts del sistema y pruebe las conexiones.",
+      "autoConfig": "Configuración automática",
+      "autoConfigContent": "Para Open WebUI, use la configuración automática:\n• Elija el modo de endpoint (por categoría, servicio, o todos juntos)\n• Seleccione los grupos o servicios a configurar\n• Ingrese la URL externa de MCParr\n• Haga clic en \"Configurar Open WebUI\"",
+      "endpoints": "Endpoints",
+      "endpointsContent": "Los endpoints exponen las herramientas MCP a través de OpenAPI:\n• Todas las herramientas: /tools/openapi.json\n• Por categoría: /tools/media/openapi.json, etc.\n\nUse endpoints por categoría para un mejor rendimiento.",
+      "systemPrompt": "Prompt del sistema",
+      "systemPromptContent": "El prompt del sistema se genera automáticamente según sus servicios activos. Cópielo en la configuración de su cliente de IA para guiar al modelo en el uso de las herramientas.",
+      "otherConfigs": "Otras configuraciones",
+      "otherConfigsContent": "• Documentación API: acceda al Swagger interactivo (/docs)\n• Claude Desktop: configuración MCP stdio para la aplicación de escritorio"
     }
   },
 
@@ -704,7 +741,22 @@
       "deleteStepConfirm": "¿Eliminar este paso?",
       "deleteTargetConfirm": "¿Eliminar este objetivo?",
       "backToList": "Volver a la lista",
-      "selectChain": "Seleccione una cadena para ver detalles"
+      "selectChain": "Seleccione una cadena para ver detalles",
+      "help": {
+        "title": "Cómo funcionan las cadenas de herramientas",
+        "overview": "Descripción general",
+        "overviewContent": "Las cadenas de herramientas permiten automatizar secuencias de acciones basadas en los resultados de las herramientas MCP. Cuando se ejecuta una herramienta, sus resultados se analizan y se pueden activar acciones de seguimiento automáticamente.",
+        "steps": "Pasos",
+        "stepsContent": "Cada paso define:\n• Una herramienta disparadora (fuente)\n• Condiciones a evaluar sobre el resultado\n• Acciones ENTONCES (si las condiciones son verdaderas)\n• Acciones SI NO (si las condiciones son falsas)",
+        "conditions": "Condiciones",
+        "conditionsContent": "Las condiciones permiten probar los resultados:\n• Igual, diferente, contiene...\n• Mayor, menor (valores numéricos)\n• Vacío, no vacío\n• Éxito o fallo de la herramienta\n\nCombine con Y/O para lógicas complejas.",
+        "actions": "Tipos de acciones",
+        "actionsContent": "• Llamar a una herramienta: ejecuta otra herramienta MCP\n• Mensaje: muestra un mensaje a la IA\n• Condicional: bloque SI/ENTONCES/SI NO anidado",
+        "mappings": "Mapeos de argumentos",
+        "mappingsContent": "Transfiera valores entre herramientas:\n• result.campo → usa el resultado de la herramienta anterior\n• context.variable → usa una variable guardada",
+        "context": "Variables de contexto",
+        "contextContent": "Guarde valores para los pasos siguientes:\n• Configure \"Guardar en el contexto\" en una acción\n• Use {context.variable} en los mensajes\n• Use context.variable en los mapeos"
+      }
     }
   }
 }

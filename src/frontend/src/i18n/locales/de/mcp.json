@@ -124,7 +124,18 @@
     "chainEnd": "Kettenende",
     "step": "Schritt",
     "nextTools": "Nächste Tools",
-    "viewChain": "Kettenkonfiguration anzeigen"
+    "viewChain": "Kettenkonfiguration anzeigen",
+    "help": {
+      "title": "MCP-Anfragenverlauf",
+      "overview": "Übersicht",
+      "overviewContent": "Sehen Sie den Verlauf aller von der KI durchgeführten MCP-Anfragen. Jede Zeile stellt einen Tool-Aufruf mit seinem Status, seiner Dauer und dem betroffenen Benutzer dar.",
+      "filters": "Filter",
+      "filtersContent": "Filtern Sie Anfragen nach:\n• Dienst (Plex, Radarr, Sonarr...)\n• Status (abgeschlossen, fehlgeschlagen, laufend...)\n• Zeitraum (1h, 6h, 24h, 3T, 7T)",
+      "details": "Anfragedetails",
+      "detailsContent": "Klicken Sie auf eine Anfrage, um zu sehen:\n• Die gesendeten Eingabeparameter\n• Das zurückgegebene JSON-Ergebnis\n• Eventuelle Fehler",
+      "chains": "Tool-Ketten",
+      "chainsContent": "Das farbige Abzeichen zeigt an, ob die Anfrage Teil einer Tool-Kette ist. Klicken Sie darauf, um die Kettendetails und die folgenden vorgeschlagenen Tools zu sehen."
+    }
   },
 
   "tools": {
@@ -152,7 +163,20 @@
     "expandAll": "Alle aufklappen",
     "collapseAll": "Alle zuklappen",
     "nextTools": "Nächste Tools (Ketten)",
-    "chainCondition": "Bedingung"
+    "chainCondition": "Bedingung",
+    "help": {
+      "title": "Über MCP-Tools",
+      "overview": "Übersicht",
+      "overviewContent": "Diese Seite listet alle verfügbaren MCP-Tools auf, organisiert nach Dienst (Plex, Radarr, Sonarr, usw.). Jedes Tool stellt eine Aktion dar, die die KI ausführen kann, um mit Ihren Diensten zu interagieren.",
+      "browse": "Tools durchsuchen",
+      "browseContent": "• Tools sind nach Dienst gruppiert\n• Klicken Sie auf einen Dienst, um seine Tools zu sehen\n• Jedes Tool zeigt seine Beschreibung und Parameter\n• Mit * markierte Parameter sind erforderlich",
+      "test": "Ein Tool testen",
+      "testContent": "Klicken Sie auf \"Testen\", um ein Tool manuell auszuführen:\n• Füllen Sie die erforderlichen Parameter aus\n• Sehen Sie das zurückgegebene JSON-Ergebnis\n• Nützlich, um die ordnungsgemäße Funktion zu überprüfen",
+      "groups": "Zugriffsgruppen",
+      "groupsContent": "Die farbigen Abzeichen unter jedem Tool zeigen die Benutzergruppen an, die Zugriff darauf haben. Nur Benutzer, die zu diesen Gruppen gehören, können das Tool verwenden.",
+      "mutations": "Mutationen",
+      "mutationsContent": "Mit \"Mutation\" markierte Tools ändern Daten (hinzufügen, löschen, bearbeiten). Verwenden Sie sie beim Testen mit Vorsicht."
+    }
   },
 
   "errors": {
@@ -362,6 +386,19 @@
         "copy": "Kopieren",
         "copied": "✓"
       }
+    },
+    "help": {
+      "title": "MCP-Konfiguration",
+      "overview": "Übersicht",
+      "overviewContent": "Die Registerkarte Konfiguration ermöglicht die Verbindung von MCParr mit Ihren KI-Clients (Open WebUI, Claude Desktop). Konfigurieren Sie Endpunkte, kopieren Sie System-Prompts und testen Sie Verbindungen.",
+      "autoConfig": "Automatische Konfiguration",
+      "autoConfigContent": "Für Open WebUI verwenden Sie die automatische Konfiguration:\n• Wählen Sie den Endpunkt-Modus (nach Kategorie, Dienst oder alles zusammen)\n• Wählen Sie die zu konfigurierenden Gruppen oder Dienste\n• Geben Sie die externe MCParr-URL ein\n• Klicken Sie auf \"Open WebUI konfigurieren\"",
+      "endpoints": "Endpunkte",
+      "endpointsContent": "Endpunkte stellen MCP-Tools über OpenAPI bereit:\n• Alle Tools: /tools/openapi.json\n• Nach Kategorie: /tools/media/openapi.json, usw.\n\nVerwenden Sie kategoriebasierte Endpunkte für bessere Leistung.",
+      "systemPrompt": "System-Prompt",
+      "systemPromptContent": "Der System-Prompt wird automatisch basierend auf Ihren aktiven Diensten generiert. Kopieren Sie ihn in die Konfiguration Ihres KI-Clients, um das Modell bei der Verwendung der Tools anzuleiten.",
+      "otherConfigs": "Andere Konfigurationen",
+      "otherConfigsContent": "• API-Dokumentation: Zugriff auf interaktives Swagger (/docs)\n• Claude Desktop: MCP-stdio-Konfiguration für die Desktop-App"
     }
   },
 
@@ -704,7 +741,22 @@
       "deleteStepConfirm": "Diesen Schritt löschen?",
       "deleteTargetConfirm": "Dieses Ziel löschen?",
       "backToList": "Zurück zur Liste",
-      "selectChain": "Wählen Sie eine Kette, um Details anzuzeigen"
+      "selectChain": "Wählen Sie eine Kette, um Details anzuzeigen",
+      "help": {
+        "title": "Wie Tool-Ketten funktionieren",
+        "overview": "Übersicht",
+        "overviewContent": "Tool-Ketten ermöglichen die Automatisierung von Aktionssequenzen basierend auf MCP-Tool-Ergebnissen. Wenn ein Tool ausgeführt wird, werden seine Ergebnisse analysiert und Folgeaktionen können automatisch ausgelöst werden.",
+        "steps": "Schritte",
+        "stepsContent": "Jeder Schritt definiert:\n• Ein Auslöser-Tool (Quelle)\n• Bedingungen zur Auswertung des Ergebnisses\n• DANN-Aktionen (wenn Bedingungen wahr)\n• SONST-Aktionen (wenn Bedingungen falsch)",
+        "conditions": "Bedingungen",
+        "conditionsContent": "Bedingungen ermöglichen das Testen von Ergebnissen:\n• Gleich, ungleich, enthält...\n• Größer, kleiner (numerische Werte)\n• Leer, nicht leer\n• Tool-Erfolg oder -Fehler\n\nKombinieren Sie mit UND/ODER für komplexe Logik.",
+        "actions": "Aktionstypen",
+        "actionsContent": "• Tool aufrufen: führt ein anderes MCP-Tool aus\n• Nachricht: zeigt eine Nachricht für die KI an\n• Bedingung: verschachtelter WENN/DANN/SONST-Block",
+        "mappings": "Argument-Mappings",
+        "mappingsContent": "Übertragen Sie Werte zwischen Tools:\n• result.feld → verwendet das Ergebnis des vorherigen Tools\n• context.variable → verwendet eine gespeicherte Variable",
+        "context": "Kontextvariablen",
+        "contextContent": "Speichern Sie Werte für nachfolgende Schritte:\n• Konfigurieren Sie \"Im Kontext speichern\" für eine Aktion\n• Verwenden Sie {context.variable} in Nachrichten\n• Verwenden Sie context.variable in Mappings"
+      }
     }
   }
 }

@@ -187,6 +187,61 @@ export const helpCategories: HelpCategory[] = [
       },
     ],
   },
+  {
+    id: 'training',
+    titleKey: 'training:help.category',
+    icon: 'Brain',
+    topics: [
+      {
+        id: 'trainingStats',
+        titleKey: 'training:overview.help.title',
+        descriptionKey: 'training:overview.help.overviewContent',
+        icon: 'BarChart3',
+        sections: [
+          { titleKey: 'training:overview.help.overview', contentKey: 'training:overview.help.overviewContent' },
+          { titleKey: 'training:overview.help.cards', contentKey: 'training:overview.help.cardsContent' },
+          { titleKey: 'training:overview.help.activeSessions', contentKey: 'training:overview.help.activeSessionsContent' },
+          { titleKey: 'training:overview.help.workers', contentKey: 'training:overview.help.workersContent' },
+        ],
+      },
+      {
+        id: 'trainingSessions',
+        titleKey: 'training:sessions.help.title',
+        descriptionKey: 'training:sessions.help.overviewContent',
+        icon: 'History',
+        sections: [
+          { titleKey: 'training:sessions.help.overview', contentKey: 'training:sessions.help.overviewContent' },
+          { titleKey: 'training:sessions.help.lifecycle', contentKey: 'training:sessions.help.lifecycleContent' },
+          { titleKey: 'training:sessions.help.actions', contentKey: 'training:sessions.help.actionsContent' },
+          { titleKey: 'training:sessions.help.creation', contentKey: 'training:sessions.help.creationContent' },
+        ],
+      },
+      {
+        id: 'trainingWorkers',
+        titleKey: 'training:workers.help.title',
+        descriptionKey: 'training:workers.help.overviewContent',
+        icon: 'Cpu',
+        sections: [
+          { titleKey: 'training:workers.help.overview', contentKey: 'training:workers.help.overviewContent' },
+          { titleKey: 'training:workers.help.configuration', contentKey: 'training:workers.help.configurationContent' },
+          { titleKey: 'training:workers.help.status', contentKey: 'training:workers.help.statusContent' },
+          { titleKey: 'training:workers.help.metrics', contentKey: 'training:workers.help.metricsContent' },
+        ],
+      },
+      {
+        id: 'trainingModels',
+        titleKey: 'training:models.help.title',
+        descriptionKey: 'training:models.help.overviewContent',
+        icon: 'Brain',
+        sections: [
+          { titleKey: 'training:models.help.overview', contentKey: 'training:models.help.overviewContent' },
+          { titleKey: 'training:models.help.management', contentKey: 'training:models.help.managementContent' },
+          { titleKey: 'training:models.help.status', contentKey: 'training:models.help.statusContent' },
+          { titleKey: 'training:models.help.info', contentKey: 'training:models.help.infoContent' },
+        ],
+      },
+    ],
+  },
 ];
 
 /**

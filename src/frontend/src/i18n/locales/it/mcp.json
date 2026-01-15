@@ -124,7 +124,18 @@
     "chainEnd": "Fine catena",
     "step": "Passo",
     "nextTools": "Strumenti successivi",
-    "viewChain": "Visualizza configurazione catena"
+    "viewChain": "Visualizza configurazione catena",
+    "help": {
+      "title": "Cronologia richieste MCP",
+      "overview": "Panoramica",
+      "overviewContent": "Consulta la cronologia di tutte le richieste MCP effettuate dall'IA. Ogni riga rappresenta una chiamata di strumento con il suo stato, durata e utente coinvolto.",
+      "filters": "Filtri",
+      "filtersContent": "Filtra le richieste per:\n• Servizio (Plex, Radarr, Sonarr...)\n• Stato (completato, fallito, in corso...)\n• Periodo (1h, 6h, 24h, 3g, 7g)",
+      "details": "Dettagli di una richiesta",
+      "detailsContent": "Clicca su una richiesta per vedere:\n• I parametri di input inviati\n• Il risultato JSON restituito\n• Gli eventuali errori",
+      "chains": "Catene di strumenti",
+      "chainsContent": "Il badge colorato indica se la richiesta fa parte di una catena di strumenti. Cliccalo per vedere i dettagli della catena e gli strumenti suggeriti a seguire."
+    }
   },
 
   "tools": {
@@ -152,7 +163,20 @@
     "expandAll": "Espandi tutto",
     "collapseAll": "Comprimi tutto",
     "nextTools": "Strumenti successivi (Catene)",
-    "chainCondition": "Condizione"
+    "chainCondition": "Condizione",
+    "help": {
+      "title": "Informazioni sugli strumenti MCP",
+      "overview": "Panoramica",
+      "overviewContent": "Questa pagina elenca tutti gli strumenti MCP disponibili, organizzati per servizio (Plex, Radarr, Sonarr, ecc.). Ogni strumento rappresenta un'azione che l'IA può eseguire per interagire con i tuoi servizi.",
+      "browse": "Sfoglia strumenti",
+      "browseContent": "• Gli strumenti sono raggruppati per servizio\n• Clicca su un servizio per vedere i suoi strumenti\n• Ogni strumento mostra la sua descrizione e parametri\n• I parametri contrassegnati con * sono obbligatori",
+      "test": "Testare uno strumento",
+      "testContent": "Clicca su \"Test\" per eseguire uno strumento manualmente:\n• Compila i parametri richiesti\n• Visualizza il risultato JSON restituito\n• Utile per verificare il corretto funzionamento",
+      "groups": "Gruppi di accesso",
+      "groupsContent": "I badge colorati sotto ogni strumento indicano i gruppi di utenti che hanno accesso. Solo gli utenti appartenenti a questi gruppi possono utilizzare lo strumento.",
+      "mutations": "Mutazioni",
+      "mutationsContent": "Gli strumenti contrassegnati come \"Mutazione\" modificano dati (aggiunta, eliminazione, modifica). Usali con cautela durante i test."
+    }
   },
 
   "errors": {
@@ -362,6 +386,19 @@
         "copy": "Copia",
         "copied": "Copiato"
       }
+    },
+    "help": {
+      "title": "Configurazione MCP",
+      "overview": "Panoramica",
+      "overviewContent": "La scheda Configurazione consente di connettere MCParr ai tuoi client IA (Open WebUI, Claude Desktop). Configura gli endpoint, copia i prompt di sistema e testa le connessioni.",
+      "autoConfig": "Configurazione automatica",
+      "autoConfigContent": "Per Open WebUI, usa la configurazione automatica:\n• Scegli la modalità endpoint (per categoria, servizio o tutti insieme)\n• Seleziona i gruppi o servizi da configurare\n• Inserisci l'URL esterno di MCParr\n• Clicca su \"Configura Open WebUI\"",
+      "endpoints": "Endpoint",
+      "endpointsContent": "Gli endpoint espongono gli strumenti MCP tramite OpenAPI:\n• Tutti gli strumenti: /tools/openapi.json\n• Per categoria: /tools/media/openapi.json, ecc.\n\nUsa gli endpoint per categoria per prestazioni migliori.",
+      "systemPrompt": "Prompt di sistema",
+      "systemPromptContent": "Il prompt di sistema viene generato automaticamente in base ai tuoi servizi attivi. Copialo nella configurazione del tuo client IA per guidare il modello nell'uso degli strumenti.",
+      "otherConfigs": "Altre configurazioni",
+      "otherConfigsContent": "• Documentazione API: accedi allo Swagger interattivo (/docs)\n• Claude Desktop: configurazione MCP stdio per l'app desktop"
     }
   },
 
@@ -704,7 +741,22 @@
       "deleteStepConfirm": "Eliminare questo passo?",
       "deleteTargetConfirm": "Eliminare questo obiettivo?",
       "backToList": "Torna alla lista",
-      "selectChain": "Seleziona una catena per vedere i dettagli"
+      "selectChain": "Seleziona una catena per vedere i dettagli",
+      "help": {
+        "title": "Come funzionano le catene di strumenti",
+        "overview": "Panoramica",
+        "overviewContent": "Le catene di strumenti permettono di automatizzare sequenze di azioni basate sui risultati degli strumenti MCP. Quando uno strumento viene eseguito, i suoi risultati vengono analizzati e azioni successive possono essere attivate automaticamente.",
+        "steps": "Passi",
+        "stepsContent": "Ogni passo definisce:\n• Uno strumento trigger (sorgente)\n• Condizioni da valutare sul risultato\n• Azioni ALLORA (se le condizioni sono vere)\n• Azioni ALTRIMENTI (se le condizioni sono false)",
+        "conditions": "Condizioni",
+        "conditionsContent": "Le condizioni permettono di testare i risultati:\n• Uguale, diverso, contiene...\n• Maggiore, minore (valori numerici)\n• Vuoto, non vuoto\n• Successo o fallimento dello strumento\n\nCombina con E/O per logiche complesse.",
+        "actions": "Tipi di azioni",
+        "actionsContent": "• Chiamare uno strumento: esegue un altro strumento MCP\n• Messaggio: mostra un messaggio all'IA\n• Condizionale: blocco SE/ALLORA/ALTRIMENTI annidato",
+        "mappings": "Mapping degli argomenti",
+        "mappingsContent": "Trasferisci valori tra strumenti:\n• result.campo → usa il risultato dello strumento precedente\n• context.variabile → usa una variabile salvata",
+        "context": "Variabili di contesto",
+        "contextContent": "Salva valori per i passi successivi:\n• Configura \"Salva nel contesto\" su un'azione\n• Usa {context.variabile} nei messaggi\n• Usa context.variabile nei mapping"
+      }
     }
   }
 }

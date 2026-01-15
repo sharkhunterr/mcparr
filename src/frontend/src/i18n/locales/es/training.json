@@ -3,6 +3,10 @@
   "subtitle": "Entrenamiento y ajuste fino de modelos de IA",
   "refresh": "Actualizar",
 
+  "help": {
+    "category": "Entrenamiento IA"
+  },
+
   "tabs": {
     "overview": "Resumen",
     "overviewShort": "Estadísticas",
@@ -100,7 +104,18 @@
     "promptsWillBeUsed": "{{count}} prompt será utilizado para el entrenamiento",
     "promptsWillBeUsed_plural": "{{count}} prompts serán utilizados para el entrenamiento",
     "selectedOfTotalDisplayed": "{{selected}} seleccionado / {{displayed}} mostrado",
-    "selectedOfTotalDisplayed_plural": "{{selected}} seleccionados / {{displayed}} mostrados"
+    "selectedOfTotalDisplayed_plural": "{{selected}} seleccionados / {{displayed}} mostrados",
+    "help": {
+      "title": "Sesiones de Entrenamiento",
+      "overview": "Resumen",
+      "overviewContent": "La pestaña Sesiones permite crear y gestionar sesiones de entrenamiento de modelos de IA. Cada sesión entrena un modelo base con sus prompts personalizados.",
+      "lifecycle": "Ciclo de vida",
+      "lifecycleContent": "Una sesión pasa por varias fases:\n• Pendiente: configuración completada, lista para iniciar\n• En ejecución: entrenamiento activo con progreso visible\n• Completada: modelo entrenado disponible en Ollama\n• Fallida: error durante el entrenamiento (consulte los registros)",
+      "actions": "Acciones disponibles",
+      "actionsContent": "Para cada sesión:\n• Iniciar: lanza el entrenamiento en un worker GPU\n• Ver detalles: métricas, hiperparámetros, progreso\n• Ver registros: registros detallados del entrenamiento\n• Duplicar: crea una copia de la sesión\n• Eliminar: elimina la sesión y sus datos",
+      "creation": "Creación de sesión",
+      "creationContent": "Para crear una sesión:\n1. Elija un nombre y modelo base\n2. Seleccione el método (Modelfile rápido o fine-tuning GPU)\n3. Configure los hiperparámetros (epochs, batch size, learning rate)\n4. Seleccione los prompts de entrenamiento"
+    }
   },
 
   "prompts": {
@@ -205,7 +220,18 @@
     "confirmDelete": "¿Está seguro de que desea eliminar este modelo?",
     "confirmQuestion": "¿Confirmar?",
     "loadedInMemory": "Cargado en memoria",
-    "loaded": "Cargado"
+    "loaded": "Cargado",
+    "help": {
+      "title": "Modelos Ollama",
+      "overview": "Descripción general",
+      "overviewContent": "La pestaña Modelos muestra todos los modelos LLM instalados en su servidor Ollama. Puede ver su tamaño, familia y estado de carga.",
+      "management": "Gestión de modelos",
+      "managementContent": "Acciones disponibles para cada modelo:\n• Cargar: carga el modelo en la memoria GPU para uso inmediato\n• Descargar: libera la memoria GPU ocupada por el modelo\n• Eliminar: elimina permanentemente el modelo del servidor",
+      "status": "Estados",
+      "statusContent": "Un modelo puede estar:\n• Cargado (verde): en memoria GPU, listo para usar\n• No cargado: en disco, debe cargarse antes de usar\n• La insignia indica si el modelo está actualmente en memoria",
+      "info": "Información",
+      "infoContent": "Para cada modelo:\n• Familia: tipo de modelo (llama, mistral, etc.)\n• Parámetros: número de parámetros (7B, 13B, etc.)\n• Cuantización: nivel de compresión (Q4, Q8, etc.)\n• Tamaño: espacio en disco utilizado"
+    }
   },
 
   "workers": {
@@ -278,7 +304,18 @@
     "failedToLoad": "Error al cargar los workers",
     "failedToSave": "Error al guardar el worker",
     "failedToDelete": "Error al eliminar el worker",
-    "testFailed": "Prueba fallida"
+    "testFailed": "Prueba fallida",
+    "help": {
+      "title": "Workers GPU de Entrenamiento",
+      "overview": "Descripción general",
+      "overviewContent": "La pestaña Workers permite gestionar workers GPU remotos utilizados para el ajuste fino de modelos LLM. Cada worker ejecuta sesiones de entrenamiento en su GPU.",
+      "configuration": "Configuración",
+      "configurationContent": "Para añadir un worker:\n• Especifique la URL del contenedor Docker training-worker\n• Opcionalmente añada una clave API para autenticación\n• Seleccione el servidor Ollama de destino para la importación del modelo",
+      "status": "Estados del worker",
+      "statusContent": "Un worker puede tener varios estados:\n• En línea: disponible para entrenamiento\n• Entrenando: sesión en curso\n• Sin conexión: no accesible\n• Error: problema de conexión",
+      "metrics": "Métricas",
+      "metricsContent": "Para cada worker en línea:\n• Uso de CPU/RAM\n• Uso de GPU y VRAM\n• Temperatura y consumo de energía\n• Trabajos completados y tiempo total de entrenamiento"
+    }
   },
 
   "status": {
@@ -372,7 +409,18 @@
     "health": "Salud",
     "utilization": "Utilización",
     "temp": "Temp",
-    "power": "Potencia"
+    "power": "Potencia",
+    "help": {
+      "title": "Estadísticas de Entrenamiento IA",
+      "overview": "Resumen",
+      "overviewContent": "La pestaña Estadísticas muestra un panel de control en tiempo real del entrenamiento de IA. Supervise las sesiones activas, las métricas de loss, el progreso y el estado de los workers GPU.",
+      "cards": "Tarjetas de estadísticas",
+      "cardsContent": "Las tarjetas muestran métricas clave:\n• Sesiones: total y activas\n• Prompts: total y validados\n• Tasa de éxito: sesiones completadas con éxito\n• Workers: workers GPU en línea",
+      "activeSessions": "Sesiones activas",
+      "activeSessionsContent": "Ver el progreso del entrenamiento en tiempo real:\n• Progreso (epochs, steps)\n• Métricas (loss, learning rate)\n• Uso de GPU (memoria, temperatura)\n• Pipeline de fases (preparación, descarga, entrenamiento)",
+      "workers": "Workers y Ollama",
+      "workersContent": "Estado de los recursos de entrenamiento:\n• Workers GPU: disponibilidad y carga\n• Servidor Ollama: modelos disponibles y en ejecución\n• Estado de conexión WebSocket para actualizaciones en tiempo real"
+    }
   },
 
   "logs": {

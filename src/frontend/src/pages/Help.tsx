@@ -17,6 +17,7 @@ import {
   Shield,
   BarChart3,
   Settings,
+  Brain,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { helpCategories, type HelpTopic } from '../lib/helpContent';
@@ -37,6 +38,7 @@ const iconMap: Record<string, React.ElementType> = {
   Search,
   BarChart3,
   Settings,
+  Brain,
 };
 
 // Color mapping for topics
@@ -110,6 +112,31 @@ const topicColors: Record<string, { bg: string; text: string; border: string; ic
     border: 'border-teal-200 dark:border-teal-800',
     iconBg: 'bg-teal-100 dark:bg-teal-900/40',
   },
+  // Training category - purple
+  trainingStats: {
+    bg: 'bg-purple-50 dark:bg-purple-900/20',
+    text: 'text-purple-700 dark:text-purple-300',
+    border: 'border-purple-200 dark:border-purple-800',
+    iconBg: 'bg-purple-100 dark:bg-purple-900/40',
+  },
+  trainingSessions: {
+    bg: 'bg-purple-50 dark:bg-purple-900/20',
+    text: 'text-purple-700 dark:text-purple-300',
+    border: 'border-purple-200 dark:border-purple-800',
+    iconBg: 'bg-purple-100 dark:bg-purple-900/40',
+  },
+  trainingWorkers: {
+    bg: 'bg-purple-50 dark:bg-purple-900/20',
+    text: 'text-purple-700 dark:text-purple-300',
+    border: 'border-purple-200 dark:border-purple-800',
+    iconBg: 'bg-purple-100 dark:bg-purple-900/40',
+  },
+  trainingModels: {
+    bg: 'bg-purple-50 dark:bg-purple-900/20',
+    text: 'text-purple-700 dark:text-purple-300',
+    border: 'border-purple-200 dark:border-purple-800',
+    iconBg: 'bg-purple-100 dark:bg-purple-900/40',
+  },
 };
 
 const defaultColors = {
@@ -121,7 +148,7 @@ const defaultColors = {
 
 const Help = () => {
   // Support multiple namespaces for translations (mcp, services, users, and groups)
-  const { t } = useTranslation(['mcp', 'services', 'users', 'groups']);
+  const { t } = useTranslation(['mcp', 'services', 'users', 'groups', 'training']);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTopic, setSelectedTopic] = useState<HelpTopic | null>(null);
 
