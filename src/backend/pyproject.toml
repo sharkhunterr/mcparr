@@ -61,6 +61,7 @@ select = [
 ignore = [
     "B008",  # Do not perform function calls in argument defaults (FastAPI pattern with Depends)
     "E501",  # Line too long - many tool descriptions are intentionally long for AI context
+    "E712",  # Comparison to True/False - required for SQLAlchemy column comparisons (Column.enabled == True)
 ]
 
 [tool.mypy]

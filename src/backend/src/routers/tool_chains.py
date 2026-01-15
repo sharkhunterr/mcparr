@@ -1791,8 +1791,8 @@ async def lookup_steps_for_tool(
             and_(
                 ToolChainStep.source_service == service_type,
                 ToolChainStep.source_tool == tool_name,
-                ToolChainStep.enabled is True,
-                ToolChain.enabled is True,
+                ToolChainStep.enabled == True,
+                ToolChain.enabled == True,
             )
         )
         .order_by(ToolChain.priority.desc(), ToolChainStep.order)

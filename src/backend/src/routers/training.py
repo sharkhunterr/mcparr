@@ -1183,7 +1183,7 @@ async def start_training_session(
         # Try to find any Ollama service
         service_result = await session.execute(
             select(ServiceConfig)
-            .where(ServiceConfig.service_type == ServiceType.OLLAMA, ServiceConfig.enabled is True)
+            .where(ServiceConfig.service_type == ServiceType.OLLAMA, ServiceConfig.enabled == True)
             .limit(1)
         )
         service = service_result.scalar_one_or_none()
@@ -1851,7 +1851,7 @@ async def export_training_prompts(
     session: AsyncSession = Depends(get_db_session),
 ):
     """Export training prompts for download."""
-    query = select(TrainingPrompt).where(TrainingPrompt.enabled is True)
+    query = select(TrainingPrompt).where(TrainingPrompt.enabled == True)
 
     if category:
         query = query.where(TrainingPrompt.category == category)
@@ -1990,7 +1990,7 @@ async def get_training_stats(session: AsyncSession = Depends(get_db_session)):
     total_prompts = total_prompts.scalar() or 0
 
     validated_prompts = await session.execute(
-        select(func.count(TrainingPrompt.id)).where(TrainingPrompt.is_validated is True)
+        select(func.count(TrainingPrompt.id)).where(TrainingPrompt.is_validated == True)
     )
     validated_prompts = validated_prompts.scalar() or 0
 

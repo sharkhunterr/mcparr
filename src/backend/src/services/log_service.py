@@ -190,7 +190,7 @@ class LogService:
         """Remove resolved alert history older than specified days."""
         cutoff_date = datetime.utcnow() - timedelta(days=days)
         delete_query = delete(AlertHistory).where(
-            AlertHistory.is_resolved is True, AlertHistory.resolved_at < cutoff_date
+            AlertHistory.is_resolved == True, AlertHistory.resolved_at < cutoff_date
         )
         result = await session.execute(delete_query)
         await session.commit()

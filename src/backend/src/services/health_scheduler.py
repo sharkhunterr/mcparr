@@ -113,7 +113,7 @@ class HealthCheckScheduler:
             db_manager = get_db_manager()
             async with db_manager.session_factory() as session:
                 # Get all enabled services
-                result = await session.execute(select(ServiceConfig).where(ServiceConfig.enabled is True))
+                result = await session.execute(select(ServiceConfig).where(ServiceConfig.enabled == True))
                 services = result.scalars().all()
 
                 success_count = 0
@@ -149,7 +149,7 @@ class HealthCheckScheduler:
             # Get all enabled alerts for service_test_failed metric type
             alert_result = await session.execute(
                 select(AlertConfiguration).where(
-                    AlertConfiguration.enabled is True,
+                    AlertConfiguration.enabled == True,
                     AlertConfiguration.metric_type.in_(["service_test_failed", "service_down"]),
                 )
             )

@@ -7,12 +7,17 @@ Complete guide for using the MCParr AI Gateway web interface and connecting to O
 - [Getting Started](#getting-started)
 - [Dashboard](#dashboard)
 - [Services Management](#services-management)
+- [Service Groups](#service-groups)
 - [User Management](#user-management)
 - [MCP Server](#mcp-server)
+- [Tool Chains](#tool-chains)
+- [Global Search](#global-search)
 - [AI Training](#ai-training)
 - [Monitoring](#monitoring)
+- [Alerts](#alerts)
 - [Configuration](#configuration)
 - [Open WebUI Integration](#open-webui-integration)
+- [Help System](#help-system)
 
 ---
 
@@ -119,6 +124,36 @@ To add a service:
 
 ---
 
+## Service Groups
+
+Service Groups allow you to organize services for easier management and Open WebUI auto-configuration.
+
+### Creating a Service Group
+
+1. Go to **Services** → **Groups** tab
+2. Click **+ New Group**
+3. Fill in the form:
+   - **Name**: Descriptive name (e.g., "Media Tools", "Download Managers")
+   - **Description**: Optional description
+   - **Color**: Select a color for visual identification
+4. Select services to include in the group
+5. Click **Save**
+
+### Use Cases
+
+- **Organize by function**: Media, Downloads, Books, Utilities
+- **Organize by access level**: Admin Tools, User Tools, Guest Tools
+- **Auto-configuration**: Create one Open WebUI endpoint per group
+
+### Using Groups in Auto-Configuration
+
+When auto-configuring Open WebUI with **Service Group** mode:
+- One OpenAPI endpoint is created per service group
+- Each endpoint contains only tools from services in that group
+- Useful for giving different users access to different tool sets
+
+---
+
 ## User Management
 
 ### Automatic User Detection
@@ -220,6 +255,114 @@ Usage breakdown showing which services are being accessed via MCP tools (empty w
 - Identify most popular tools
 - Detect unusual patterns
 - Optimize tool performance
+
+---
+
+## Tool Chains
+
+Tool Chains allow you to create automated workflows with conditional logic (IF/THEN/ELSE).
+
+### Creating a Tool Chain
+
+1. Go to **MCP** → **Chains** tab
+2. Click **+ New Chain**
+3. Configure the chain:
+   - **Name**: Descriptive name
+   - **Description**: What this chain does
+   - **Trigger Tool**: The tool that starts the chain
+4. Add chain steps with conditions and actions
+
+### Chain Step Configuration
+
+Each step includes:
+- **Source Tool**: Tool to execute
+- **Condition**: IF logic to evaluate
+- **THEN Action**: Tool to execute if condition is true
+- **ELSE Action**: Tool to execute if condition is false
+
+### Condition Operators
+
+| Operator | Description | Example |
+|----------|-------------|---------|
+| `eq` | Equals | `result.count eq 0` |
+| `ne` | Not equals | `result.status ne "error"` |
+| `contains` | String contains | `result.title contains "Star"` |
+| `is_empty` | Field is empty/null | `result.items is_empty` |
+| `is_not_empty` | Field has value | `result.data is_not_empty` |
+| `success` | Tool succeeded | `success` |
+| `failed` | Tool failed | `failed` |
+| `regex` | Regex match | `result.name regex "^test.*"` |
+
+### Context Variables
+
+Pass data between chain steps using context:
+
+```json
+{
+  "save_to_context": {
+    "movie_id": "result.tmdbId"
+  }
+}
+```
+
+Use in subsequent steps:
+```json
+{
+  "argument_mappings": {
+    "mediaId": "{context.movie_id}"
+  }
+}
+```
+
+### Example: Smart Media Request
+
+```
+Chain: Request if not in library
+├── Step 1: plex_search(query)
+│   └── Condition: result.items is_empty
+│       ├── THEN: overseerr_search_media(query)
+│       │   └── save_to_context: tmdb_id
+│       └── ELSE: return "Already in library"
+├── Step 2: overseerr_request_movie({context.tmdb_id})
+└── Return: "Movie requested successfully"
+```
+
+---
+
+## Global Search
+
+Global Search allows you to search across all enabled services simultaneously using the `system_global_search` MCP tool.
+
+### Configuration
+
+1. Go to **MCP** → **Configuration** tab
+2. Find the **Global Search** section
+3. Toggle services on/off for inclusion in global search
+4. Set priority order (determines result ordering)
+
+### Searchable Services
+
+| Category | Services | Content Type |
+|----------|----------|--------------|
+| **Media** | Overseerr, Radarr, Sonarr, Plex | Movies, TV shows |
+| **Indexers** | Jackett, Prowlarr | Torrent results |
+| **Books** | Komga, Audiobookshelf | Comics, audiobooks |
+| **Wiki** | Wiki.js | Wiki pages |
+| **Support** | Zammad | Support tickets |
+
+### Using Global Search
+
+In Open WebUI or via MCP:
+```
+User: Search for "Inception" everywhere
+AI: [Uses system_global_search tool]
+    Found results across 4 services:
+
+    📺 Plex: "Inception" (2010) - In library
+    🎬 Overseerr: Available to request
+    🔍 Jackett: 15 torrent results
+    📚 Wiki.js: 2 wiki pages about Inception
+```
 
 ---
 
@@ -544,6 +687,59 @@ Configure and monitor system alerts.
 
 ---
 
+## Alerts
+
+### Creating Alert Rules
+
+1. Go to **Monitoring** → **Alerts** tab
+2. Click **Configurations** tab
+3. Click **+ Create Alert**
+4. Configure the alert:
+   - **Name**: Descriptive name
+   - **Metric Type**: What to monitor
+   - **Threshold**: Value and operator
+   - **Severity**: low, medium, high, critical
+   - **Cooldown**: Minutes between re-triggers
+   - **Service** (optional): Specific service to monitor
+
+### Metric Types
+
+| Metric | Description | Example Threshold |
+|--------|-------------|-------------------|
+| `cpu` | CPU usage percentage | > 80% |
+| `memory` | Memory usage percentage | > 85% |
+| `disk` | Disk usage percentage | > 90% |
+| `service_test_failed` | Service health check failure | = 1 |
+| `service_down` | Service unreachable | = 1 |
+
+### Alert States
+
+- **Normal**: Metric within threshold
+- **Firing**: Threshold exceeded, alert triggered
+- **Resolved**: Was firing, now back to normal
+
+### Notifications
+
+Configure notification channels in **Configuration** → **Alerts**:
+
+**Email Notifications:**
+- SMTP server settings
+- From/To addresses
+- Subject template
+
+**Webhook Notifications:**
+- URL endpoint (e.g., Slack, Discord)
+- Custom payload template
+
+### Alert History
+
+View all triggered alerts in the **History** tab:
+- When triggered and resolved
+- Duration of alert
+- Metric values at trigger time
+
+---
+
 ## Configuration
 
 ### Appearance
@@ -813,12 +1009,24 @@ AI: [Uses radarr and sonarr status tools]
 - ✅ Use descriptive names to differentiate multiple instances
 - ✅ Enable health check monitoring for critical services
 - ✅ Review test results to troubleshoot connectivity issues
+- ✅ Use **Service Groups** to organize related services
 
 ### User Management
 - ✅ Use auto-detection to quickly map users across services
 - ✅ Create groups with meaningful names (Admin, Family, Guest)
 - ✅ Assign least-privilege permissions (only needed tools)
 - ✅ Review group permissions regularly
+
+### Tool Chains
+- ✅ Start with simple chains before building complex workflows
+- ✅ Use context variables to pass data between steps
+- ✅ Test chains with edge cases (empty results, errors)
+- ✅ Document chain logic for future reference
+
+### Global Search
+- ✅ Enable only frequently used services for faster results
+- ✅ Set priority order based on your usage patterns
+- ✅ Use category filters for targeted searches
 
 ### AI Training
 - ✅ Start with **Modelfile (rapide)** for quick testing
@@ -827,19 +1035,20 @@ AI: [Uses radarr and sonarr status tools]
 - ✅ Export prompts regularly as backup
 - ✅ Monitor training loss curves for quality
 
-### Monitoring
+### Monitoring & Alerts
 - ✅ Enable auto-refresh (10s) for real-time monitoring
 - ✅ Create alert rules for critical thresholds
 - ✅ Review logs regularly to identify patterns
 - ✅ Export logs for long-term analysis
 - ✅ Set up error rate alerts
+- ✅ Configure webhook notifications for Slack/Discord
 
 ### Open WebUI Integration
+- ✅ Use **Auto-Configure** for quick setup
 - ✅ Set visibility to "Public" for team access
 - ✅ Enable only needed tools to reduce clutter
 - ✅ Test each tool individually before deployment
-- ✅ Use descriptive username for clarity
-- ✅ Document custom configurations
+- ✅ Use **Service Group** mode for organized tool access
 
 ### Configuration
 - ✅ Backup configuration before major changes
@@ -847,6 +1056,7 @@ AI: [Uses radarr and sonarr status tools]
 - ✅ Enable backend logging for debugging
 - ✅ Set appropriate log levels (Info for production)
 - ✅ Export configuration periodically
+- ✅ Use the **Help** button when exploring new features
 
 ---
 
@@ -941,6 +1151,49 @@ AI: [Uses radarr and sonarr status tools]
   - `5`: Training IA
   - `6`: Monitoring
   - `7`: Configuration
+
+---
+
+## Help System
+
+MCParr includes an integrated help system accessible throughout the interface.
+
+### Accessing Help
+
+Look for the **? Help** button in the top-right corner of most pages. Click it to open contextual help for the current section.
+
+### Help Panel Features
+
+- **Overview**: What this section does
+- **Quick Start**: Step-by-step getting started guide
+- **Features**: Key capabilities explained
+- **Tips**: Best practices and recommendations
+- **FAQ**: Common questions and answers
+
+### Available Help Topics
+
+| Section | Help Topics |
+|---------|-------------|
+| Dashboard | System overview, metrics explanation |
+| Services | Adding services, testing connections |
+| Service Groups | Organizing services, auto-configuration |
+| Users | Auto-detection, group management |
+| MCP | Tool statistics, endpoint modes |
+| Tool Chains | Creating workflows, conditions |
+| Global Search | Configuration, searchable services |
+| AI Training | Sessions, workers, models, prompts |
+| Monitoring | Metrics, logs, alerts |
+| Configuration | Settings, backup/restore |
+
+### First-Time Wizard
+
+On first launch, MCParr displays a setup wizard:
+
+1. **Language Selection**: Choose interface language (EN, FR, DE, ES, IT)
+2. **Import Backup**: Optionally restore a previous configuration
+3. **Feature Tour**: Interactive overview of all sections
+
+The wizard can be re-accessed from **Configuration** → **General** → **Reset Wizard**.
 
 ---
 

@@ -223,7 +223,7 @@ class SystemTools(BaseTool):
 
             # Get enabled services
             async with async_session_maker() as session:
-                result = await session.execute(select(ServiceConfig).where(ServiceConfig.enabled is True))
+                result = await session.execute(select(ServiceConfig).where(ServiceConfig.enabled == True))
                 services = result.scalars().all()
                 enabled_services = [
                     (s.service_type.value if hasattr(s.service_type, "value") else str(s.service_type)).lower()
@@ -334,7 +334,7 @@ class SystemTools(BaseTool):
             from src.models.service_config import ServiceConfig
 
             async with async_session_maker() as session:
-                result = await session.execute(select(ServiceConfig).where(ServiceConfig.enabled is True))
+                result = await session.execute(select(ServiceConfig).where(ServiceConfig.enabled == True))
                 services = result.scalars().all()
                 for svc in services:
                     status = svc.status.value if hasattr(svc.status, "value") else str(svc.status)
@@ -540,7 +540,7 @@ class SystemTools(BaseTool):
             # First, get all enabled services
             async with async_session_maker() as session:
                 result = await session.execute(
-                    select(ServiceConfig).where(ServiceConfig.enabled is True).order_by(ServiceConfig.name)
+                    select(ServiceConfig).where(ServiceConfig.enabled == True).order_by(ServiceConfig.name)
                 )
                 services = result.scalars().all()
 
@@ -826,7 +826,7 @@ class SystemTools(BaseTool):
             # Get enabled services and their global search configs
             async with async_session_maker() as session:
                 # Get all enabled services
-                services_result = await session.execute(select(ServiceConfig).where(ServiceConfig.enabled is True))
+                services_result = await session.execute(select(ServiceConfig).where(ServiceConfig.enabled == True))
                 services = services_result.scalars().all()
 
                 # Get global search configs

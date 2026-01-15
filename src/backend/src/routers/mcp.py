@@ -43,7 +43,7 @@ async def get_user_display_names(session: AsyncSession, user_ids: list[str]) -> 
 
     # Find Open WebUI service
     openwebui_result = await session.execute(
-        select(ServiceConfig).where(ServiceConfig.service_type == "openwebui", ServiceConfig.enabled is True)
+        select(ServiceConfig).where(ServiceConfig.service_type == "openwebui", ServiceConfig.enabled == True)
     )
     openwebui_service = openwebui_result.scalar_one_or_none()
 
@@ -55,7 +55,7 @@ async def get_user_display_names(session: AsyncSession, user_ids: list[str]) -> 
         select(UserMapping).where(
             UserMapping.service_config_id == str(openwebui_service.id),
             UserMapping.service_email.in_(valid_user_ids),
-            UserMapping.enabled is True,
+            UserMapping.enabled == True,
         )
     )
     openwebui_mappings = mapping_result.scalars().all()
@@ -68,7 +68,7 @@ async def get_user_display_names(session: AsyncSession, user_ids: list[str]) -> 
 
     # Get all mappings for these users to find the best display name
     all_mappings_result = await session.execute(
-        select(UserMapping).where(UserMapping.central_user_id.in_(central_user_ids), UserMapping.enabled is True)
+        select(UserMapping).where(UserMapping.central_user_id.in_(central_user_ids), UserMapping.enabled == True)
     )
     all_mappings = all_mappings_result.scalars().all()
 
@@ -136,7 +136,7 @@ async def get_mcp_server_status(
     from src.models import ServiceConfig
 
     # Get enabled services from database
-    result = await session.execute(select(ServiceConfig).where(ServiceConfig.enabled is True))
+    result = await session.execute(select(ServiceConfig).where(ServiceConfig.enabled == True))
     enabled_services = result.scalars().all()
     enabled_service_types = [s.service_type.lower() for s in enabled_services]
 
@@ -504,7 +504,7 @@ async def get_available_tools(
     from src.models import ServiceConfig
 
     # Get enabled services from database
-    result = await session.execute(select(ServiceConfig).where(ServiceConfig.enabled is True))
+    result = await session.execute(select(ServiceConfig).where(ServiceConfig.enabled == True))
     enabled_services = result.scalars().all()
     enabled_service_types = {s.service_type.lower() for s in enabled_services}
 
@@ -627,7 +627,7 @@ async def test_tool(
     start_time = time.time()
 
     # Get enabled services from database
-    result = await session.execute(select(ServiceConfig).where(ServiceConfig.enabled is True))
+    result = await session.execute(select(ServiceConfig).where(ServiceConfig.enabled == True))
     enabled_services = result.scalars().all()
 
     # Build service configs dict

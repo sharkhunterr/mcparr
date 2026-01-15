@@ -45,25 +45,37 @@ MCParr exposes tools via:
 
 Open WebUI is the primary use case for MCParr. It uses the **OpenAPI** endpoint to integrate tools.
 
-**Step 1: Add MCParr Tools to Open WebUI**
+**Step 1: Add Open WebUI Service to MCParr**
 
-1. Go to **Open WebUI** → **Settings** → **Admin Settings** → **Tools** (or **Outils**)
-2. Click **"+ Add Tool"** or **"+ Nouvelle Connexion"**
-3. Configure the connection:
+1. Go to **Services** → **Add Service**
+2. Select **Open WebUI** as service type
+3. Enter URL and **admin API key**
+4. Test connection
+
+**Step 2: Auto-Configure (Recommended)**
+
+1. Go to **MCP** → **Configuration** tab
+2. Use the **Auto-Configuration** section
+3. Select endpoint mode:
+   - **Group**: One endpoint per service category (media, books, download, etc.)
+   - **Service Group**: One endpoint per custom service group
+   - **Service**: One endpoint per service
+   - **All**: Single endpoint with all tools
+4. Choose categories/services to include
+5. Click **Configure** - tools are registered automatically!
+
+**Step 3: Manual Setup (Alternative)**
+
+1. Go to **Open WebUI** → **Settings** → **Admin Settings** → **Tools**
+2. Click **"+ Add Tool"**
+3. Configure:
    - **Type**: Select **"OpenAPI"**
-   - **URL**: `http://YOUR_MCPARR_HOST:8000` (API port, not MCP port)
-   - **OpenAPI Spec**: Select `/tools/openapi.json` from dropdown
+   - **URL**: `http://YOUR_MCPARR_HOST:8000`
+   - **OpenAPI Spec**: `/tools/openapi.json`
    - **Auth**: Select **"Session"**
-   - **Username**: "MCParr Homelab Tools"
-   - **Description**: "Outils serveur Homelab"
-   - **Visibility**: "Public" (to share with all users)
 4. Click **Save**
 
-**Important:**
-- Use port **8000** (API/OpenAPI endpoint), NOT port 8001 (MCP endpoint)
-- For Docker: `host.docker.internal:8000` (macOS/Windows) or your IP like `192.168.1.21:8000` (Linux)
-
-**Step 2: Enable Tools in Chat**
+**Step 4: Enable Tools in Chat**
 
 1. Start a new chat in Open WebUI
 2. Click the **Tools** icon (wrench) in the chat input
@@ -185,27 +197,50 @@ Add a TV series to Sonarr.
 
 ### System Tools
 
-#### 📊 get_system_status
+#### 📊 system_get_health
 Get overall system health.
 
 ```json
 {
-  "name": "get_system_status",
+  "name": "system_get_health",
   "parameters": {}
 }
 ```
 
-#### 🔍 get_service_status
+#### 🔍 system_get_service_status
 Check a specific service status.
 
 ```json
 {
-  "name": "get_service_status",
+  "name": "system_get_service_status",
   "parameters": {
     "service_name": "plex"
   }
 }
 ```
+
+#### 🔎 system_global_search
+Search across all enabled services simultaneously.
+
+```json
+{
+  "name": "system_global_search",
+  "parameters": {
+    "query": "Inception",
+    "categories": "media",  // optional: all, media, indexers, books, wiki, support
+    "limit": 5  // optional: max results per service
+  }
+}
+```
+
+**Supported Categories:**
+| Category | Services |
+|----------|----------|
+| media | Overseerr, Radarr, Sonarr, Plex |
+| indexers | Jackett, Prowlarr |
+| books | Komga, Audiobookshelf |
+| wiki | Wiki.js |
+| support | Zammad |
 
 ## 🔐 Permissions
 
@@ -259,6 +294,113 @@ Example group configuration:
 1. Calls `plex_search` with genre filter
 2. Returns: "Found 45 sci-fi movies including Interstellar, The Matrix..."
 
+## ⛓️ Tool Chains
+
+Tool chains allow you to create automated workflows with conditional logic (IF/THEN/ELSE).
+
+### Creating a Chain
+
+1. Go to **MCP** → **Chains** tab
+2. Click **New Chain**
+3. Add steps with:
+   - **Source Tool**: The trigger tool
+   - **Conditions**: IF logic (equals, contains, is_empty, etc.)
+   - **THEN Actions**: What to do when condition is true
+   - **ELSE Actions**: What to do when condition is false
+
+### Example Chain: Smart Media Request
+
+```
+IF plex_search("Inception") returns empty
+  THEN overseerr_request_movie(tmdb_id=27205)
+  ELSE return "Movie already in library"
+```
+
+### Condition Operators
+
+| Operator | Description |
+|----------|-------------|
+| `eq` | Equals |
+| `ne` | Not equals |
+| `contains` | String contains |
+| `is_empty` | Field is empty/null |
+| `success` | Tool execution succeeded |
+| `failed` | Tool execution failed |
+| `regex` | Regular expression match |
+
+### Context Variables
+
+Pass data between chain steps:
+
+```json
+{
+  "save_to_context": {
+    "movie_id": "result.tmdbId",
+    "movie_title": "result.title"
+  }
+}
+```
+
+Use in next step:
+
+```json
+{
+  "argument_mappings": {
+    "mediaId": "{context.movie_id}"
+  }
+}
+```
+
+---
+
+## 🔎 Global Search Configuration
+
+Configure which services are included in the `system_global_search` tool.
+
+### Via Web Interface
+
+1. Go to **MCP** → **Configuration** tab
+2. In **Global Search** section, toggle services on/off
+3. Set priority order for search results
+
+### Searchable Services
+
+| Service | Search Tool | Content Type |
+|---------|-------------|--------------|
+| Overseerr | `overseerr_search_media` | Movies & TV (TMDB) |
+| Radarr | `radarr_search_movie` | Movies in library |
+| Sonarr | `sonarr_search_series` | TV series in library |
+| Plex | `plex_search` | All media content |
+| Jackett | `jackett_search` | Torrent indexers |
+| Prowlarr | `prowlarr_search` | Torrent indexers |
+| Komga | `komga_search` | Comics/Manga |
+| Audiobookshelf | `audiobookshelf_search` | Audiobooks/Podcasts |
+| Wiki.js | `wikijs_search` | Wiki pages |
+| Zammad | `zammad_search_tickets` | Support tickets |
+
+---
+
+## 📦 Service Groups
+
+Service Groups allow you to organize services for Open WebUI auto-configuration.
+
+### Creating Service Groups
+
+1. Go to **Services** → **Groups** tab
+2. Click **New Group**
+3. Name your group (e.g., "Media Services", "Download Tools")
+4. Select services to include
+5. Save the group
+
+### Using in Auto-Configuration
+
+When using **Service Group** mode in auto-configuration:
+- One OpenAPI endpoint is created per service group
+- Each endpoint contains only tools from that group
+- Useful for organizing tools by function or access level
+
+---
+
 ## 🔄 Real-time Updates
 
 MCParr can push real-time updates to the AI assistant:
@@ -266,6 +408,8 @@ MCParr can push real-time updates to the AI assistant:
 - **Training progress**: When fine-tuning models
 - **Service alerts**: When services go down
 - **Request updates**: When media becomes available
+
+---
 
 ## 🛠️ Custom Tools
 

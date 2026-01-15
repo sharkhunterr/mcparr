@@ -66,7 +66,7 @@ class AlertService:
         query = select(AlertConfiguration)
 
         if enabled_only:
-            query = query.where(AlertConfiguration.enabled is True)
+            query = query.where(AlertConfiguration.enabled == True)
         if service_id:
             query = query.where(AlertConfiguration.service_id == service_id)
         if severity:
@@ -253,7 +253,7 @@ class AlertService:
 
     async def get_active_alerts(self, session: AsyncSession) -> List[AlertHistory]:
         """Get all currently active (unresolved) alerts."""
-        query = select(AlertHistory).where(AlertHistory.is_resolved is False).order_by(AlertHistory.triggered_at.desc())
+        query = select(AlertHistory).where(AlertHistory.is_resolved == False).order_by(AlertHistory.triggered_at.desc())
         result = await session.execute(query)
         return list(result.scalars().all())
 
@@ -272,7 +272,7 @@ class AlertService:
 
         # Count unacknowledged alerts (for notification badge)
         active_query = select(func.count(AlertHistory.id)).where(
-            AlertHistory.is_resolved is False, AlertHistory.acknowledged is False
+            AlertHistory.is_resolved == False, AlertHistory.acknowledged == False
         )
         active_count = await session.scalar(active_query) or 0
 
@@ -283,7 +283,7 @@ class AlertService:
         # Mean time to resolution
         resolved_query = select(AlertHistory).where(
             AlertHistory.triggered_at >= cutoff,
-            AlertHistory.is_resolved is True,
+            AlertHistory.is_resolved == True,
             AlertHistory.resolved_at.isnot(None),
         )
         resolved_result = await session.execute(resolved_query)

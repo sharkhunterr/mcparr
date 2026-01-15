@@ -643,8 +643,8 @@ async def get_matching_steps(
     conditions = [
         ToolChainStep.source_service == service_type,
         ToolChainStep.source_tool == tool_name,
-        ToolChainStep.enabled is True,
-        ToolChain.enabled is True,
+        ToolChainStep.enabled == True,
+        ToolChain.enabled == True,
     ]
 
     if only_first_step:
@@ -805,7 +805,7 @@ async def get_tool_chain_position(
             and_(
                 ToolChainAction.target_service == service_type,
                 ToolChainAction.target_tool == tool_name,
-                ToolChainAction.enabled is True,
+                ToolChainAction.enabled == True,
             )
         )
     )
@@ -851,7 +851,7 @@ async def get_tool_chain_position(
                 ToolChainStep.chain_id == chain.id,
                 ToolChainStep.source_service == service_type,
                 ToolChainStep.source_tool == tool_name,
-                ToolChainStep.enabled is True,
+                ToolChainStep.enabled == True,
             )
         )
         source_step_result = await session.execute(source_step_query)
