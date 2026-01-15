@@ -6,8 +6,6 @@ import {
   Loader2,
   Server,
   Info,
-  Plus,
-  Trash2,
   Check
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -38,7 +36,6 @@ const PRESET_COLORS = [
 const ServiceGroupDetail: FC<ServiceGroupDetailProps> = ({ group, onClose, onUpdated }) => {
   const { t } = useTranslation('services');
   const [activeTab, setActiveTab] = useState<TabType>('info');
-  const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 

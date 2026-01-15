@@ -62,7 +62,10 @@
     "useManual": "Create mappings manually via the \"Manual Mapping\" tab.",
     "detectionErrors": "Detection errors",
     "selectOne": "Please select at least one suggestion to create mappings",
-    "createSuccess": "Successfully created {{count}} user mappings!"
+    "createSuccess": "Successfully created {{count}} user mappings!",
+    "userIdLabel": "ID",
+    "userLabel": "User",
+    "emailLabel": "Email"
   },
 
   "creator": {

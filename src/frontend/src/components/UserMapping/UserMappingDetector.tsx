@@ -445,16 +445,16 @@ const UserMappingDetector: FC<UserMappingDetectorProps> = ({
                               </div>
                               <div className="grid grid-cols-3 gap-1 text-xs">
                                 <div>
-                                  <span className="text-gray-500">ID:</span>
-                                  <span className="ml-1 text-gray-800 font-mono">{String(userId).substring(0, 12)}{String(userId).length > 12 ? '...' : ''}</span>
+                                  <span className="text-gray-500">{t('detector.userIdLabel')}:</span>
+                                  <span className="ml-1 text-gray-800 dark:text-gray-200 font-mono">{String(userId).substring(0, 12)}{String(userId).length > 12 ? '...' : ''}</span>
                                 </div>
                                 <div>
-                                  <span className="text-gray-500">User:</span>
-                                  <span className="ml-1 text-gray-800">{username}</span>
+                                  <span className="text-gray-500">{t('detector.userLabel')}:</span>
+                                  <span className="ml-1 text-gray-800 dark:text-gray-200">{username}</span>
                                 </div>
                                 <div>
-                                  <span className="text-gray-500">Email:</span>
-                                  <span className="ml-1 text-gray-800">{email !== '-' ? email : <span className="text-gray-400">-</span>}</span>
+                                  <span className="text-gray-500">{t('detector.emailLabel')}:</span>
+                                  <span className="ml-1 text-gray-800 dark:text-gray-200">{email !== '-' ? email : <span className="text-gray-400">-</span>}</span>
                                 </div>
                               </div>
                             </div>

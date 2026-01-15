@@ -62,7 +62,10 @@
     "useManual": "Crei le mappature manualmente tramite la scheda \"Mappatura manuale\".",
     "detectionErrors": "Errori di rilevamento",
     "selectOne": "Selezioni almeno un suggerimento per creare le mappature",
-    "createSuccess": "Create con successo {{count}} mappature utenti!"
+    "createSuccess": "Create con successo {{count}} mappature utenti!",
+    "userIdLabel": "ID",
+    "userLabel": "Utente",
+    "emailLabel": "Email"
   },
 
   "creator": {

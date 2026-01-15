@@ -62,7 +62,10 @@
     "useManual": "Erstellen Sie Zuordnungen manuell über den Tab \"Manuelle Zuordnung\".",
     "detectionErrors": "Erkennungsfehler",
     "selectOne": "Bitte wählen Sie mindestens einen Vorschlag aus, um Zuordnungen zu erstellen",
-    "createSuccess": "{{count}} Benutzerzuordnungen erfolgreich erstellt!"
+    "createSuccess": "{{count}} Benutzerzuordnungen erfolgreich erstellt!",
+    "userIdLabel": "ID",
+    "userLabel": "Benutzer",
+    "emailLabel": "E-Mail"
   },
 
   "creator": {

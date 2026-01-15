@@ -3,15 +3,31 @@
 import os
 from typing import AsyncGenerator
 
+from sqlalchemy import event
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
     async_sessionmaker,
     create_async_engine,
 )
+from sqlalchemy.pool import StaticPool
 
 # Import all models to register them with Base.metadata
 from src.models.base import Base
+
+
+def _configure_sqlite_connection(dbapi_connection, connection_record):
+    """Configure SQLite connection for better concurrency."""
+    cursor = dbapi_connection.cursor()
+    # Enable WAL mode for better concurrency (readers don't block writers)
+    cursor.execute("PRAGMA journal_mode=WAL")
+    # Wait up to 30 seconds when database is locked
+    cursor.execute("PRAGMA busy_timeout=30000")
+    # Synchronous mode - NORMAL is a good balance between safety and speed
+    cursor.execute("PRAGMA synchronous=NORMAL")
+    # Enable foreign keys
+    cursor.execute("PRAGMA foreign_keys=ON")
+    cursor.close()
 
 
 class DatabaseManager:
@@ -19,11 +35,32 @@ class DatabaseManager:
 
     def __init__(self, database_url: str):
         self.database_url = database_url
+        self.is_sqlite = database_url.startswith("sqlite")
+
+        # SQLite-specific configuration
+        engine_kwargs = {
+            "echo": os.getenv("DEBUG", "false").lower() == "true",
+        }
+
+        if self.is_sqlite:
+            # For SQLite with aiosqlite, use StaticPool to share connection
+            # and avoid "database is locked" errors
+            engine_kwargs["poolclass"] = StaticPool
+            engine_kwargs["connect_args"] = {"check_same_thread": False}
+        else:
+            # For other databases, use standard pool settings
+            engine_kwargs["pool_pre_ping"] = True
+
         self.engine: AsyncEngine = create_async_engine(
             database_url,
-            echo=os.getenv("DEBUG", "false").lower() == "true",
-            pool_pre_ping=True,
+            **engine_kwargs,
         )
+
+        # Register SQLite pragma configuration
+        if self.is_sqlite:
+            event.listen(
+                self.engine.sync_engine, "connect", _configure_sqlite_connection
+            )
         self.session_factory = async_sessionmaker(
             bind=self.engine,
             class_=AsyncSession,

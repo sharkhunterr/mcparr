@@ -62,7 +62,10 @@
     "useManual": "Cree asignaciones manualmente a través de la pestaña \"Asignación manual\".",
     "detectionErrors": "Errores de detección",
     "selectOne": "Por favor seleccione al menos una sugerencia para crear asignaciones",
-    "createSuccess": "¡Se crearon exitosamente {{count}} asignaciones de usuarios!"
+    "createSuccess": "¡Se crearon exitosamente {{count}} asignaciones de usuarios!",
+    "userIdLabel": "ID",
+    "userLabel": "Usuario",
+    "emailLabel": "Correo"
   },
 
   "creator": {

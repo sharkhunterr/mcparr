@@ -62,7 +62,10 @@
     "useManual": "Créez des mappings manuellement via l'onglet \"Manual Mapping\".",
     "detectionErrors": "Erreurs de détection",
     "selectOne": "Veuillez sélectionner au moins une suggestion pour créer des mappings",
-    "createSuccess": "{{count}} mapping créés avec succès !"
+    "createSuccess": "{{count}} mapping créés avec succès !",
+    "userIdLabel": "ID",
+    "userLabel": "Utilisateur",
+    "emailLabel": "Email"
   },
 
   "creator": {
@@ -203,5 +206,24 @@
     "enumerateFailed": "Échec de l'énumération des utilisateurs",
     "detectFailed": "Échec de la détection",
     "syncFailed": "Échec de la synchronisation"
+  },
+
+  "time": {
+    "never": "Jamais",
+    "justNow": "À l'instant",
+    "minutesAgo": "il y a {{count}}m",
+    "hoursAgo": "il y a {{count}}h",
+    "daysAgo": "il y a {{count}}j"
+  },
+
+  "matching": {
+    "sameId": "🎯 Même ID",
+    "sameUsername": "👤 Même nom d'utilisateur",
+    "sameEmail": "📧 Même email",
+    "sameDisplayName": "🏷️ Même nom d'affichage",
+    "usernameFriendlyMatch": "🔗 Correspondance nom d'utilisateur/nom",
+    "usernameFuzzy": "👤 Nom d'utilisateur similaire",
+    "emailFuzzy": "📧 Email similaire",
+    "nameFuzzy": "🏷️ Nom similaire"
   }
 }
