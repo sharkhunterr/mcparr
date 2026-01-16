@@ -678,10 +678,16 @@ async def execute_tool_with_logging(
         mcp_request.ai_model = request.headers.get("X-AI-Model")
 
     session.add(mcp_request)
-    await session.flush()  # Get the ID
 
-    # Mark as started
-    mcp_request.mark_started()
+    try:
+        await session.flush()  # Get the ID
+        # Mark as started
+        mcp_request.mark_started()
+    except Exception as e:
+        # If flush fails, rollback and continue without logging
+        await session.rollback()
+        logger.warning(f"[MCP] Failed to create request log for {tool_name}: {e}")
+        mcp_request = None  # Don't try to update it later
 
     try:
         # Get registry and execute
@@ -697,22 +703,34 @@ async def execute_tool_with_logging(
             tool_name,
             result,
             arguments,
-            session_id=mcp_request.session_id,
-            user_id=mcp_request.user_id,
+            session_id=mcp_request.session_id if mcp_request else None,
+            user_id=mcp_request.user_id if mcp_request else None,
         )
 
         # Mark as completed (now includes next_tools_to_call if any)
-        if result.get("success"):
-            mcp_request.mark_completed(result)
-        else:
-            mcp_request.mark_failed(result.get("error", "Unknown error"), result.get("error_type", "ToolError"))
+        if mcp_request:
+            if result.get("success"):
+                mcp_request.mark_completed(result)
+            else:
+                mcp_request.mark_failed(result.get("error", "Unknown error"), result.get("error_type", "ToolError"))
+            try:
+                await session.commit()
+            except Exception as commit_err:
+                logger.warning(f"[MCP] Failed to commit request log: {commit_err}")
+                await session.rollback()
 
-        await session.commit()
         return result
 
     except Exception as e:
-        mcp_request.mark_failed(str(e), type(e).__name__)
-        await session.commit()
+        if mcp_request:
+            try:
+                await session.rollback()
+                mcp_request.mark_failed(str(e), type(e).__name__)
+                session.add(mcp_request)
+                await session.commit()
+            except Exception as log_err:
+                logger.warning(f"[MCP] Failed to log error for {tool_name}: {log_err}")
+                await session.rollback()
         raise
 
 
