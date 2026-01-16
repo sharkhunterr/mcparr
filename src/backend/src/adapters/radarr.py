@@ -534,3 +534,193 @@ class RadarrAdapter(TokenAuthAdapter):
             "total_indexers": len(indexers),
             "results": results,
         }
+
+    def _calculate_fuzzy_match_score(self, query: str, target: str) -> int:
+        """Calculate fuzzy match score between two strings (0-100).
+
+        Uses word-based and substring matching for better results.
+        """
+        if not query or not target:
+            return 0
+
+        query_lower = query.lower().strip()
+        target_lower = target.lower().strip()
+
+        # Exact match
+        if query_lower == target_lower:
+            return 100
+
+        # Target starts with query
+        if target_lower.startswith(query_lower):
+            return 95
+
+        # Query starts with target (useful for abbreviated titles)
+        if query_lower.startswith(target_lower):
+            return 90
+
+        # Query is contained in target
+        if query_lower in target_lower:
+            base_score = 75
+            length_ratio = len(query_lower) / len(target_lower)
+            return min(89, int(base_score + length_ratio * 14))
+
+        # Target is contained in query
+        if target_lower in query_lower:
+            base_score = 65
+            length_ratio = len(target_lower) / len(query_lower)
+            return min(79, int(base_score + length_ratio * 14))
+
+        # Word-based matching
+        # Remove common words and punctuation for better matching
+        import re
+
+        def clean_words(text: str) -> set:
+            text = re.sub(r"[^\w\s]", " ", text)
+            stop_words = {"the", "a", "an", "and", "or", "of", "to", "in", "for", "on", "with", "at", "by", "is", "it"}
+            return {w for w in text.lower().split() if w and w not in stop_words}
+
+        query_words = clean_words(query_lower)
+        target_words = clean_words(target_lower)
+
+        if query_words and target_words:
+            common_words = query_words & target_words
+            if common_words:
+                # Calculate overlap ratio
+                total_words = len(query_words | target_words)
+                overlap_ratio = len(common_words) / total_words
+                return int(30 + overlap_ratio * 49)
+
+        # Very low score for no meaningful match
+        return 10
+
+    async def check_queue_match(self, title: str = None, movie_id: int = None, tmdb_id: int = None) -> Dict[str, Any]:
+        """Check if a movie is in the download queue with fuzzy title matching.
+
+        Args:
+            title: Movie title to search for (fuzzy match)
+            movie_id: Radarr movie ID (exact match)
+            tmdb_id: TMDB ID (exact match)
+
+        Returns detailed queue item info including match score, download progress,
+        client, and status.
+        """
+        try:
+            # Get detailed queue with movie info
+            response = await self._make_request(
+                "GET",
+                "/api/v3/queue",
+                params={"includeMovie": "true", "pageSize": 500},
+            )
+            data = response.json()
+            records = data.get("records", [])
+
+            if not records:
+                return {
+                    "found": False,
+                    "message": "Download queue is empty",
+                    "queue_count": 0,
+                }
+
+            matches = []
+
+            for item in records:
+                movie = item.get("movie", {})
+                item_movie_id = movie.get("id")
+                item_tmdb_id = movie.get("tmdbId")
+                item_title = movie.get("title", "")
+                item_year = movie.get("year")
+
+                match_score = 0
+                match_type = None
+
+                # Check exact ID matches first
+                if movie_id and item_movie_id == movie_id:
+                    match_score = 100
+                    match_type = "movie_id"
+                elif tmdb_id and item_tmdb_id == tmdb_id:
+                    match_score = 100
+                    match_type = "tmdb_id"
+                elif title:
+                    # Fuzzy title matching
+                    match_score = self._calculate_fuzzy_match_score(title, item_title)
+                    match_type = "title"
+
+                if match_score >= 30:  # Minimum threshold for inclusion
+                    # Calculate progress
+                    size = item.get("size", 0)
+                    size_left = item.get("sizeleft", 0)
+                    progress = ((size - size_left) / size * 100) if size > 0 else 0
+
+                    # Get status message
+                    status = item.get("status", "unknown")
+                    tracked_status = item.get("trackedDownloadStatus", "")
+                    status_messages = item.get("statusMessages", [])
+
+                    # Extract any error/warning messages
+                    messages = []
+                    for msg in status_messages:
+                        if isinstance(msg, dict):
+                            messages.extend(msg.get("messages", []))
+                        elif isinstance(msg, str):
+                            messages.append(msg)
+
+                    matches.append(
+                        {
+                            "match_score": match_score,
+                            "match_type": match_type,
+                            "queue_id": item.get("id"),
+                            "movie": {
+                                "id": item_movie_id,
+                                "tmdb_id": item_tmdb_id,
+                                "title": item_title,
+                                "year": item_year,
+                                "url": self._get_movie_url(item_movie_id),
+                                "tmdb_url": self._get_tmdb_url(item_tmdb_id),
+                            },
+                            "download": {
+                                "title": item.get("title"),  # Release/torrent name
+                                "status": status,
+                                "tracked_status": tracked_status,
+                                "progress_percent": round(progress, 1),
+                                "size_bytes": size,
+                                "size_left_bytes": size_left,
+                                "size_gb": round(size / (1024**3), 2) if size else 0,
+                                "download_client": item.get("downloadClient"),
+                                "indexer": item.get("indexer"),
+                                "protocol": item.get("protocol"),
+                                "estimated_completion": item.get("estimatedCompletionTime"),
+                                "added": item.get("added"),
+                                "messages": messages if messages else None,
+                            },
+                            "quality": {
+                                "name": item.get("quality", {}).get("quality", {}).get("name"),
+                                "source": item.get("quality", {}).get("quality", {}).get("source"),
+                                "resolution": item.get("quality", {}).get("quality", {}).get("resolution"),
+                            },
+                        }
+                    )
+
+            # Sort by match score descending
+            matches.sort(key=lambda x: x["match_score"], reverse=True)
+
+            if not matches:
+                search_term = title or f"movie_id:{movie_id}" or f"tmdb_id:{tmdb_id}"
+                return {
+                    "found": False,
+                    "message": f"No matching item found in queue for '{search_term}'",
+                    "queue_count": len(records),
+                }
+
+            # Return best match and all matches above threshold
+            best_match = matches[0]
+            return {
+                "found": True,
+                "best_match": best_match,
+                "all_matches": matches[:10],  # Limit to top 10
+                "total_matches": len(matches),
+                "queue_count": len(records),
+            }
+
+        except Exception as e:
+            self.logger.error(f"Failed to check queue match: {e}")
+            return {"found": False, "error": str(e)}

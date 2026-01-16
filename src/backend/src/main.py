@@ -59,6 +59,17 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     db_manager = init_database()
     await db_manager.create_tables()
 
+    # Cleanup orphan tool permissions (tools that no longer exist)
+    try:
+        from src.services.tool_sync_service import cleanup_orphan_tools
+
+        async with db_manager.session_factory() as session:
+            deleted_count, orphan_tools = await cleanup_orphan_tools(session)
+            if deleted_count > 0:
+                print(f"🧹 Cleaned up {deleted_count} orphan tool permissions: {sorted(orphan_tools)}")
+    except Exception as e:
+        print(f"⚠️ Failed to cleanup orphan tools: {e}")
+
     print(f"🚀 MCParr AI Gateway started on port {settings.api_port}")
     print("📊 Web UI: http://localhost:3000")
     print(f"🔗 API Docs: http://localhost:{settings.api_port}/docs")

@@ -195,6 +195,109 @@ Add a TV series to Sonarr.
 }
 ```
 
+### Queue Match Tools
+
+#### 🎥 radarr_check_queue_match
+Check if a movie is currently downloading in Radarr queue with fuzzy title matching. Returns detailed download status including progress, download client, file name, quality, and estimated completion.
+
+```json
+{
+  "name": "radarr_check_queue_match",
+  "parameters": {
+    "title": "Inception"  // Fuzzy match by title
+    // OR
+    "movie_id": 123,      // Exact match by Radarr ID
+    // OR
+    "tmdb_id": 27205      // Exact match by TMDB ID
+  }
+}
+```
+
+**Response Example:**
+```json
+{
+  "found": true,
+  "best_match": {
+    "match_score": 100,
+    "match_type": "title",
+    "movie": {
+      "id": 123,
+      "title": "Inception",
+      "year": 2010,
+      "tmdb_id": 27205
+    },
+    "download": {
+      "title": "Inception.2010.1080p.BluRay.x264",
+      "status": "downloading",
+      "progress_percent": 45.5,
+      "size_gb": 12.5,
+      "download_client": "qBittorrent",
+      "estimated_completion": "2025-01-16T15:30:00Z"
+    },
+    "quality": {
+      "name": "Bluray-1080p",
+      "resolution": 1080
+    }
+  },
+  "queue_count": 5
+}
+```
+
+#### 📺 sonarr_check_queue_match
+Check if a TV series/episode is currently downloading in Sonarr queue with fuzzy title matching. Returns detailed download status including progress, download client, file name, quality, episode info, and estimated completion.
+
+```json
+{
+  "name": "sonarr_check_queue_match",
+  "parameters": {
+    "title": "Breaking Bad",  // Fuzzy match by title
+    // OR
+    "series_id": 456,         // Exact match by Sonarr ID
+    // OR
+    "tvdb_id": 81189,         // Exact match by TVDB ID
+    // Optional filters:
+    "season": 5,              // Filter to specific season
+    "episode": 16             // Filter to specific episode
+  }
+}
+```
+
+**Response Example:**
+```json
+{
+  "found": true,
+  "best_match": {
+    "match_score": 100,
+    "match_type": "title",
+    "series": {
+      "id": 456,
+      "title": "Breaking Bad",
+      "year": 2008,
+      "tvdb_id": 81189
+    },
+    "episode": {
+      "title": "Felina",
+      "season": 5,
+      "episode": 16,
+      "episode_code": "S05E16"
+    },
+    "download": {
+      "title": "Breaking.Bad.S05E16.1080p.BluRay.x264",
+      "status": "downloading",
+      "progress_percent": 78.2,
+      "size_gb": 3.2,
+      "download_client": "qBittorrent"
+    },
+    "quality": {
+      "name": "Bluray-1080p",
+      "resolution": 1080
+    }
+  },
+  "total_matches": 3,
+  "queue_count": 12
+}
+```
+
 ### System Tools
 
 #### 📊 system_get_health

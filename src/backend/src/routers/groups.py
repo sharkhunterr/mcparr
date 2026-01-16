@@ -37,8 +37,18 @@ router = APIRouter(prefix="/api/groups", tags=["groups"])
 
 @router.get("/available-tools", response_model=dict)
 async def get_available_tools(db: AsyncSession = Depends(get_db)):
-    """Get all available tools from registered services for permission assignment."""
+    """Get all available tools from registered services for permission assignment.
+
+    Also automatically cleans up any orphan tool permissions (tools that no longer exist).
+    """
     from ..routers.openapi_tools import get_tool_registry
+    from ..services.tool_sync_service import ToolSyncService
+
+    # Cleanup orphan tools automatically
+    sync_service = ToolSyncService(db)
+    deleted_count, orphan_tools = await sync_service.cleanup_orphan_tools()
+    if deleted_count > 0:
+        logger.info(f"Auto-cleaned {deleted_count} orphan tool permissions: {sorted(orphan_tools)}")
 
     registry = await get_tool_registry(db)
     tools_by_service = {}
@@ -52,6 +62,30 @@ async def get_available_tools(db: AsyncSession = Depends(get_db)):
         )
 
     return {"tools_by_service": tools_by_service, "total_tools": sum(len(tools) for tools in tools_by_service.values())}
+
+
+@router.get("/tools-sync-status", response_model=dict)
+async def get_tools_sync_status(db: AsyncSession = Depends(get_db)):
+    """Get synchronization status between tool registry and database permissions."""
+    from ..services.tool_sync_service import get_tool_sync_status
+
+    status = await get_tool_sync_status(db)
+    return status
+
+
+@router.post("/tools-sync", response_model=dict)
+async def sync_tools(db: AsyncSession = Depends(get_db)):
+    """Force synchronization: cleanup orphan tool permissions."""
+    from ..services.tool_sync_service import cleanup_orphan_tools
+
+    deleted_count, orphan_tools = await cleanup_orphan_tools(db)
+
+    return {
+        "success": True,
+        "deleted_count": deleted_count,
+        "deleted_tools": sorted(orphan_tools),
+        "message": f"Cleaned up {deleted_count} orphan tool permissions" if deleted_count > 0 else "No orphan tools found",
+    }
 
 
 @router.post("/check-permission", response_model=PermissionCheckResponse)

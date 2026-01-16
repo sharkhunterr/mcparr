@@ -132,6 +132,33 @@ class RadarrTools(BaseTool):
                 is_mutation=False,
                 requires_service="radarr",
             ),
+            ToolDefinition(
+                name="radarr_check_queue_match",
+                description="Check if a movie is currently downloading in Radarr queue with fuzzy title matching. Returns detailed download status including progress percentage, download client, file name, quality, and estimated completion time. Use this to check download status of a specific movie.",
+                parameters=[
+                    ToolParameter(
+                        name="title",
+                        description="Movie title to search for (fuzzy match)",
+                        type="string",
+                        required=False,
+                    ),
+                    ToolParameter(
+                        name="movie_id",
+                        description="Radarr movie ID for exact match",
+                        type="number",
+                        required=False,
+                    ),
+                    ToolParameter(
+                        name="tmdb_id",
+                        description="TMDB ID for exact match",
+                        type="number",
+                        required=False,
+                    ),
+                ],
+                category="media",
+                is_mutation=False,
+                requires_service="radarr",
+            ),
         ]
 
     async def execute(self, tool_name: str, arguments: dict) -> dict:
@@ -176,6 +203,8 @@ class RadarrTools(BaseTool):
                 return await self._test_all_indexers(adapter)
             elif tool_name == "radarr_get_releases":
                 return await self._get_releases(adapter, arguments)
+            elif tool_name == "radarr_check_queue_match":
+                return await self._check_queue_match(adapter, arguments)
             else:
                 return {"success": False, "error": f"Unknown tool: {tool_name}"}
 
@@ -262,6 +291,26 @@ class RadarrTools(BaseTool):
             return {"success": False, "error": "movie_id is required"}
 
         result = await adapter.get_releases(int(movie_id))
+
+        if result.get("error"):
+            return {"success": False, "error": result.get("error")}
+
+        return {"success": True, "result": result}
+
+    async def _check_queue_match(self, adapter, arguments: dict) -> dict:
+        """Check if a movie is in the download queue with fuzzy matching."""
+        title = arguments.get("title")
+        movie_id = arguments.get("movie_id")
+        tmdb_id = arguments.get("tmdb_id")
+
+        if not title and not movie_id and not tmdb_id:
+            return {"success": False, "error": "At least one of title, movie_id, or tmdb_id is required"}
+
+        result = await adapter.check_queue_match(
+            title=title,
+            movie_id=int(movie_id) if movie_id else None,
+            tmdb_id=int(tmdb_id) if tmdb_id else None,
+        )
 
         if result.get("error"):
             return {"success": False, "error": result.get("error")}

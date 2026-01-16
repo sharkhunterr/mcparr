@@ -138,6 +138,45 @@ class SonarrTools(BaseTool):
                 is_mutation=False,
                 requires_service="sonarr",
             ),
+            ToolDefinition(
+                name="sonarr_check_queue_match",
+                description="Check if a TV series/episode is currently downloading in Sonarr queue with fuzzy title matching. Returns detailed download status including progress percentage, download client, file name, quality, episode info, and estimated completion time. Use this to check download status of a specific series or episode.",
+                parameters=[
+                    ToolParameter(
+                        name="title",
+                        description="TV series title to search for (fuzzy match)",
+                        type="string",
+                        required=False,
+                    ),
+                    ToolParameter(
+                        name="series_id",
+                        description="Sonarr series ID for exact match",
+                        type="number",
+                        required=False,
+                    ),
+                    ToolParameter(
+                        name="tvdb_id",
+                        description="TVDB ID for exact match",
+                        type="number",
+                        required=False,
+                    ),
+                    ToolParameter(
+                        name="season",
+                        description="Filter results to specific season number",
+                        type="number",
+                        required=False,
+                    ),
+                    ToolParameter(
+                        name="episode",
+                        description="Filter results to specific episode number (requires season)",
+                        type="number",
+                        required=False,
+                    ),
+                ],
+                category="media",
+                is_mutation=False,
+                requires_service="sonarr",
+            ),
         ]
 
     async def execute(self, tool_name: str, arguments: dict) -> dict:
@@ -182,6 +221,8 @@ class SonarrTools(BaseTool):
                 return await self._test_indexer(adapter, arguments)
             elif tool_name == "sonarr_test_all_indexers":
                 return await self._test_all_indexers(adapter)
+            elif tool_name == "sonarr_check_queue_match":
+                return await self._check_queue_match(adapter, arguments)
             else:
                 return {"success": False, "error": f"Unknown tool: {tool_name}"}
 
@@ -273,4 +314,28 @@ class SonarrTools(BaseTool):
     async def _test_all_indexers(self, adapter) -> dict:
         """Test all enabled indexers."""
         result = await adapter.test_all_indexers()
+        return {"success": True, "result": result}
+
+    async def _check_queue_match(self, adapter, arguments: dict) -> dict:
+        """Check if a series/episode is in the download queue with fuzzy matching."""
+        title = arguments.get("title")
+        series_id = arguments.get("series_id")
+        tvdb_id = arguments.get("tvdb_id")
+        season = arguments.get("season")
+        episode = arguments.get("episode")
+
+        if not title and not series_id and not tvdb_id:
+            return {"success": False, "error": "At least one of title, series_id, or tvdb_id is required"}
+
+        result = await adapter.check_queue_match(
+            title=title,
+            series_id=int(series_id) if series_id else None,
+            tvdb_id=int(tvdb_id) if tvdb_id else None,
+            season=int(season) if season is not None else None,
+            episode=int(episode) if episode is not None else None,
+        )
+
+        if result.get("error"):
+            return {"success": False, "error": result.get("error")}
+
         return {"success": True, "result": result}
