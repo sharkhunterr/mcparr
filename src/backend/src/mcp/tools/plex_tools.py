@@ -115,6 +115,21 @@ class PlexTools(BaseTool):
                 is_mutation=False,
                 requires_service="plex",
             ),
+            ToolDefinition(
+                name="plex_scan_library",
+                description="Trigger a library scan (refresh) in Plex to detect new or changed media files. Without parameters, scans all libraries. Optionally specify a library name to scan only that library.",
+                parameters=[
+                    ToolParameter(
+                        name="library_name",
+                        description="Name of the library to scan (e.g., 'Movies', 'TV Shows'). Leave empty to scan all libraries.",
+                        type="string",
+                        required=False,
+                    ),
+                ],
+                category="media",
+                is_mutation=True,
+                requires_service="plex",
+            ),
         ]
 
     async def execute(self, tool_name: str, arguments: dict) -> dict:
@@ -155,6 +170,8 @@ class PlexTools(BaseTool):
                 return await self._get_media_details(adapter, arguments)
             elif tool_name == "plex_get_active_sessions":
                 return await self._get_active_sessions(adapter)
+            elif tool_name == "plex_scan_library":
+                return await self._scan_library(adapter, arguments)
             else:
                 return {"success": False, "error": f"Unknown tool: {tool_name}"}
 
@@ -173,6 +190,7 @@ class PlexTools(BaseTool):
                         "type": lib.get("type"),
                         "key": lib.get("key"),
                         "count": lib.get("count", 0),
+                        "refreshing": lib.get("refreshing", False),
                         "url": lib.get("url"),
                     }
                     for lib in libraries
@@ -366,3 +384,14 @@ class PlexTools(BaseTool):
                 ],
             },
         }
+
+    async def _scan_library(self, adapter, arguments: dict) -> dict:
+        """Trigger a library scan in Plex."""
+        library_name = arguments.get("library_name")
+
+        result = await adapter.scan_library(library_name=library_name)
+
+        if result.get("error") and not result.get("success"):
+            return {"success": False, "error": result.get("error"), "available_libraries": result.get("available_libraries")}
+
+        return {"success": True, "result": result}

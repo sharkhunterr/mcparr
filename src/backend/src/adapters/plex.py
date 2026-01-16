@@ -603,3 +603,69 @@ class PlexAdapter(TokenAuthAdapter):
                 "active_sessions": 0,
                 "recent_additions": 0,
             }
+
+    async def scan_library(self, library_name: Optional[str] = None) -> Dict[str, Any]:
+        """Trigger a library scan (refresh) in Plex.
+
+        Args:
+            library_name: Optional library name to scan. If not provided, scans all libraries.
+
+        Returns:
+            Dict with scan status and scanned libraries info.
+        """
+        try:
+            libraries = await self.get_libraries()
+
+            if not libraries:
+                return {"success": False, "error": "No libraries found on Plex server"}
+
+            scanned = []
+            errors = []
+
+            if library_name:
+                # Scan specific library (case-insensitive match)
+                library = next(
+                    (lib for lib in libraries if lib.get("title", "").lower() == library_name.lower()),
+                    None
+                )
+                if not library:
+                    available = [lib.get("title") for lib in libraries]
+                    return {
+                        "success": False,
+                        "error": f"Library '{library_name}' not found",
+                        "available_libraries": available,
+                    }
+                libraries_to_scan = [library]
+            else:
+                # Scan all libraries
+                libraries_to_scan = libraries
+
+            for library in libraries_to_scan:
+                key = library.get("key")
+                title = library.get("title")
+                try:
+                    # Trigger refresh - Plex returns 200 OK with empty body on success
+                    await self._make_request("GET", f"/library/sections/{key}/refresh")
+                    scanned.append({
+                        "key": key,
+                        "title": title,
+                        "type": library.get("type"),
+                        "status": "scan_started",
+                    })
+                except Exception as e:
+                    errors.append({
+                        "library": title,
+                        "error": str(e),
+                    })
+
+            return {
+                "success": len(scanned) > 0,
+                "scanned_libraries": scanned,
+                "total_scanned": len(scanned),
+                "errors": errors if errors else None,
+                "message": f"Scan started for {len(scanned)} library(ies)" if scanned else "No libraries scanned",
+            }
+
+        except Exception as e:
+            self.logger.error(f"Failed to scan library: {e}")
+            return {"success": False, "error": str(e)}
