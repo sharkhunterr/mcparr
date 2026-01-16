@@ -351,3 +351,212 @@ class KomgaAdapter(TokenAuthAdapter):
                 "books_unread": 0,
                 "completion_rate": 0,
             }
+
+    async def scan_library(self, library_id: Optional[str] = None) -> Dict[str, Any]:
+        """Trigger a library scan in Komga.
+
+        Args:
+            library_id: Optional library ID to scan. If not provided, scans all libraries.
+
+        Returns:
+            Dict with scan status and scanned libraries info.
+        """
+        try:
+            libraries = await self.get_libraries()
+
+            if not libraries:
+                return {"success": False, "error": "No libraries found in Komga"}
+
+            scanned = []
+            errors = []
+
+            if library_id:
+                # Scan specific library
+                library = next((lib for lib in libraries if lib.get("id") == library_id), None)
+                if not library:
+                    available = [{"id": lib.get("id"), "name": lib.get("name")} for lib in libraries]
+                    return {
+                        "success": False,
+                        "error": f"Library with ID '{library_id}' not found",
+                        "available_libraries": available,
+                    }
+                libraries_to_scan = [library]
+            else:
+                # Scan all libraries
+                libraries_to_scan = libraries
+
+            for library in libraries_to_scan:
+                lib_id = library.get("id")
+                lib_name = library.get("name")
+                try:
+                    # Trigger scan - POST /api/v1/libraries/{libraryId}/scan
+                    await self._make_request("POST", f"/api/v1/libraries/{lib_id}/scan")
+                    scanned.append({
+                        "id": lib_id,
+                        "name": lib_name,
+                        "status": "scan_started",
+                    })
+                except Exception as e:
+                    errors.append({
+                        "library": lib_name,
+                        "error": str(e),
+                    })
+
+            return {
+                "success": len(scanned) > 0,
+                "scanned_libraries": scanned,
+                "total_scanned": len(scanned),
+                "errors": errors if errors else None,
+                "message": f"Scan started for {len(scanned)} library(ies)" if scanned else "No libraries scanned",
+            }
+
+        except Exception as e:
+            self.logger.error(f"Failed to scan library: {e}")
+            return {"success": False, "error": str(e)}
+
+    async def mark_book_read(self, book_id: str) -> Dict[str, Any]:
+        """Mark a book as read.
+
+        Args:
+            book_id: The book ID
+
+        Returns:
+            Dict with success status and book info
+        """
+        try:
+            # Get book info first
+            response = await self._make_request("GET", f"/api/v1/books/{book_id}")
+            book = response.json()
+
+            book_name = book.get("metadata", {}).get("title", book.get("name", book_id))
+            pages_count = book.get("media", {}).get("pagesCount", 1)
+
+            # Mark as read by setting read progress to last page
+            payload = {"page": pages_count, "completed": True}
+            await self._make_request("PATCH", f"/api/v1/books/{book_id}/read-progress", json=payload)
+
+            return {
+                "success": True,
+                "message": f"'{book_name}' marked as read",
+                "book_id": book_id,
+                "title": book_name,
+                "pages": pages_count,
+                "url": self._get_book_url(book_id),
+            }
+
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 404:
+                return {"success": False, "error": f"Book with ID {book_id} not found"}
+            return {"success": False, "error": f"HTTP {e.response.status_code}"}
+        except Exception as e:
+            self.logger.error(f"Failed to mark book as read: {e}")
+            return {"success": False, "error": str(e)}
+
+    async def mark_book_unread(self, book_id: str) -> Dict[str, Any]:
+        """Mark a book as unread.
+
+        Args:
+            book_id: The book ID
+
+        Returns:
+            Dict with success status and book info
+        """
+        try:
+            # Get book info first
+            response = await self._make_request("GET", f"/api/v1/books/{book_id}")
+            book = response.json()
+
+            book_name = book.get("metadata", {}).get("title", book.get("name", book_id))
+
+            # Mark as unread by deleting read progress
+            await self._make_request("DELETE", f"/api/v1/books/{book_id}/read-progress")
+
+            return {
+                "success": True,
+                "message": f"'{book_name}' marked as unread",
+                "book_id": book_id,
+                "title": book_name,
+                "url": self._get_book_url(book_id),
+            }
+
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 404:
+                return {"success": False, "error": f"Book with ID {book_id} not found"}
+            return {"success": False, "error": f"HTTP {e.response.status_code}"}
+        except Exception as e:
+            self.logger.error(f"Failed to mark book as unread: {e}")
+            return {"success": False, "error": str(e)}
+
+    async def mark_series_read(self, series_id: str) -> Dict[str, Any]:
+        """Mark all books in a series as read.
+
+        Args:
+            series_id: The series ID
+
+        Returns:
+            Dict with success status and series info
+        """
+        try:
+            # Get series info
+            response = await self._make_request("GET", f"/api/v1/series/{series_id}")
+            series = response.json()
+
+            series_name = series.get("metadata", {}).get("title", series.get("name", series_id))
+            books_count = series.get("booksCount", 0)
+
+            # Mark series as read
+            await self._make_request("POST", f"/api/v1/series/{series_id}/read-progress")
+
+            return {
+                "success": True,
+                "message": f"All {books_count} book(s) in '{series_name}' marked as read",
+                "series_id": series_id,
+                "title": series_name,
+                "books_count": books_count,
+                "url": self._get_series_url(series_id),
+            }
+
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 404:
+                return {"success": False, "error": f"Series with ID {series_id} not found"}
+            return {"success": False, "error": f"HTTP {e.response.status_code}"}
+        except Exception as e:
+            self.logger.error(f"Failed to mark series as read: {e}")
+            return {"success": False, "error": str(e)}
+
+    async def mark_series_unread(self, series_id: str) -> Dict[str, Any]:
+        """Mark all books in a series as unread.
+
+        Args:
+            series_id: The series ID
+
+        Returns:
+            Dict with success status and series info
+        """
+        try:
+            # Get series info
+            response = await self._make_request("GET", f"/api/v1/series/{series_id}")
+            series = response.json()
+
+            series_name = series.get("metadata", {}).get("title", series.get("name", series_id))
+            books_count = series.get("booksCount", 0)
+
+            # Mark series as unread
+            await self._make_request("DELETE", f"/api/v1/series/{series_id}/read-progress")
+
+            return {
+                "success": True,
+                "message": f"All {books_count} book(s) in '{series_name}' marked as unread",
+                "series_id": series_id,
+                "title": series_name,
+                "books_count": books_count,
+                "url": self._get_series_url(series_id),
+            }
+
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 404:
+                return {"success": False, "error": f"Series with ID {series_id} not found"}
+            return {"success": False, "error": f"HTTP {e.response.status_code}"}
+        except Exception as e:
+            self.logger.error(f"Failed to mark series as unread: {e}")
+            return {"success": False, "error": str(e)}

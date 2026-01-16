@@ -130,6 +130,21 @@ class RommTools(BaseTool):
                 is_mutation=False,
                 requires_service="romm",
             ),
+            ToolDefinition(
+                name="romm_scan_platform",
+                description="Trigger a scan to detect new or changed ROMs. Can scan a specific platform or all platforms.",
+                parameters=[
+                    ToolParameter(
+                        name="platform_name",
+                        description="Platform name or slug to scan (e.g., 'PlayStation', 'psx', 'Nintendo 64'). Leave empty to scan all platforms.",
+                        type="string",
+                        required=False,
+                    ),
+                ],
+                category="gaming",
+                is_mutation=True,
+                requires_service="romm",
+            ),
         ]
 
     async def execute(self, tool_name: str, arguments: dict) -> dict:
@@ -172,6 +187,8 @@ class RommTools(BaseTool):
                 return await self._get_statistics(adapter)
             elif tool_name == "romm_get_recently_added":
                 return await self._get_recently_added(adapter, arguments)
+            elif tool_name == "romm_scan_platform":
+                return await self._scan_platform(adapter, arguments)
             else:
                 return {"success": False, "error": f"Unknown tool: {tool_name}"}
 
@@ -247,3 +264,52 @@ class RommTools(BaseTool):
                 "roms": roms,
             },
         }
+
+    async def _resolve_platform_id(self, adapter, platform_name: str) -> tuple:
+        """Resolve platform name or slug to platform ID.
+
+        Returns (platform_id, platform_name) tuple or (None, None) if no filter.
+        """
+        if not platform_name:
+            return None, None
+
+        platforms = await adapter.get_platforms()
+        if not platforms:
+            raise ValueError("No platforms found in RomM")
+
+        search_name = platform_name.lower()
+
+        # Try exact match on name or slug
+        platform = next(
+            (p for p in platforms if p.get("name", "").lower() == search_name or p.get("slug", "").lower() == search_name),
+            None
+        )
+
+        # Try partial match
+        if not platform:
+            platform = next(
+                (p for p in platforms if search_name in p.get("name", "").lower() or search_name in p.get("slug", "").lower()),
+                None
+            )
+
+        if not platform:
+            available = ", ".join(f"{p.get('name')} ({p.get('slug')})" for p in platforms)
+            raise ValueError(f"Platform '{platform_name}' not found. Available platforms: {available}")
+
+        return platform["id"], platform["name"]
+
+    async def _scan_platform(self, adapter, arguments: dict) -> dict:
+        """Trigger a platform scan in RomM."""
+        platform_name = arguments.get("platform_name")
+
+        # Resolve platform name to ID if provided
+        platform_id = None
+        if platform_name:
+            platform_id, resolved_name = await self._resolve_platform_id(adapter, platform_name)
+
+        result = await adapter.scan_platform(platform_id=platform_id)
+
+        if result.get("error") and not result.get("success"):
+            return {"success": False, "error": result.get("error"), "available_platforms": result.get("available_platforms")}
+
+        return {"success": True, "result": result}

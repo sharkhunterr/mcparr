@@ -669,3 +669,168 @@ class PlexAdapter(TokenAuthAdapter):
         except Exception as e:
             self.logger.error(f"Failed to scan library: {e}")
             return {"success": False, "error": str(e)}
+
+    async def mark_watched(self, rating_key: str) -> Dict[str, Any]:
+        """Mark a media item as watched.
+
+        Args:
+            rating_key: The ratingKey of the media item
+
+        Returns:
+            Dict with success status and item info
+        """
+        try:
+            # Get item info first for confirmation
+            response = await self._make_request("GET", f"/library/metadata/{rating_key}")
+            data = response.json()
+
+            if "MediaContainer" not in data:
+                return {"success": False, "error": f"Media item with key {rating_key} not found"}
+
+            metadata = data["MediaContainer"].get("Metadata", [])
+            if not metadata:
+                return {"success": False, "error": f"Media item with key {rating_key} not found"}
+
+            item = metadata[0]
+            title = item.get("title")
+            item_type = item.get("type")
+
+            # Mark as watched using scrobble endpoint
+            await self._make_request("GET", f"/:/scrobble", params={"key": rating_key, "identifier": "com.plexapp.plugins.library"})
+
+            await self._ensure_machine_identifier()
+
+            return {
+                "success": True,
+                "message": f"'{title}' marked as watched",
+                "rating_key": rating_key,
+                "title": title,
+                "type": item_type,
+                "url": self._get_web_url(f"/library/metadata/{rating_key}"),
+            }
+
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 404:
+                return {"success": False, "error": f"Media item with key {rating_key} not found"}
+            return {"success": False, "error": f"HTTP {e.response.status_code}"}
+        except Exception as e:
+            self.logger.error(f"Failed to mark as watched: {e}")
+            return {"success": False, "error": str(e)}
+
+    async def mark_unwatched(self, rating_key: str) -> Dict[str, Any]:
+        """Mark a media item as unwatched.
+
+        Args:
+            rating_key: The ratingKey of the media item
+
+        Returns:
+            Dict with success status and item info
+        """
+        try:
+            # Get item info first for confirmation
+            response = await self._make_request("GET", f"/library/metadata/{rating_key}")
+            data = response.json()
+
+            if "MediaContainer" not in data:
+                return {"success": False, "error": f"Media item with key {rating_key} not found"}
+
+            metadata = data["MediaContainer"].get("Metadata", [])
+            if not metadata:
+                return {"success": False, "error": f"Media item with key {rating_key} not found"}
+
+            item = metadata[0]
+            title = item.get("title")
+            item_type = item.get("type")
+
+            # Mark as unwatched using unscrobble endpoint
+            await self._make_request("GET", f"/:/unscrobble", params={"key": rating_key, "identifier": "com.plexapp.plugins.library"})
+
+            await self._ensure_machine_identifier()
+
+            return {
+                "success": True,
+                "message": f"'{title}' marked as unwatched",
+                "rating_key": rating_key,
+                "title": title,
+                "type": item_type,
+                "url": self._get_web_url(f"/library/metadata/{rating_key}"),
+            }
+
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 404:
+                return {"success": False, "error": f"Media item with key {rating_key} not found"}
+            return {"success": False, "error": f"HTTP {e.response.status_code}"}
+        except Exception as e:
+            self.logger.error(f"Failed to mark as unwatched: {e}")
+            return {"success": False, "error": str(e)}
+
+    async def get_collections(self, library_name: Optional[str] = None) -> List[Dict[str, Any]]:
+        """Get collections from Plex libraries.
+
+        Args:
+            library_name: Optional library name to filter collections from
+
+        Returns:
+            List of collections with their details
+        """
+        try:
+            await self._ensure_machine_identifier()
+            libraries = await self.get_libraries()
+
+            if not libraries:
+                return []
+
+            collections = []
+
+            if library_name:
+                # Filter to specific library
+                library = next(
+                    (lib for lib in libraries if lib.get("title", "").lower() == library_name.lower()),
+                    None
+                )
+                if not library:
+                    return []
+                libraries_to_check = [library]
+            else:
+                libraries_to_check = libraries
+
+            for library in libraries_to_check:
+                key = library.get("key")
+                lib_title = library.get("title")
+
+                try:
+                    response = await self._make_request(
+                        "GET",
+                        f"/library/sections/{key}/collections"
+                    )
+                    data = response.json()
+
+                    if "MediaContainer" not in data:
+                        continue
+
+                    lib_collections = data["MediaContainer"].get("Metadata", [])
+
+                    for collection in lib_collections:
+                        rating_key = collection.get("ratingKey")
+                        collections.append({
+                            "rating_key": rating_key,
+                            "title": collection.get("title"),
+                            "summary": collection.get("summary"),
+                            "child_count": collection.get("childCount", 0),
+                            "library": lib_title,
+                            "library_key": key,
+                            "thumb": collection.get("thumb"),
+                            "added_at": collection.get("addedAt"),
+                            "updated_at": collection.get("updatedAt"),
+                            "url": self._get_web_url(f"/library/metadata/{rating_key}") if rating_key else "",
+                        })
+
+                except Exception as e:
+                    self.logger.warning(f"Failed to get collections for library {lib_title}: {e}")
+                    continue
+
+            return collections
+
+        except Exception as e:
+            self.logger.error(f"Failed to get collections: {e}")
+            return []

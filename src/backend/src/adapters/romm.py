@@ -384,3 +384,67 @@ class RommAdapter(TokenAuthAdapter):
         except Exception as e:
             self.logger.error(f"Failed to get recently added ROMs: {e}")
             return []
+
+    async def scan_platform(self, platform_id: Optional[int] = None) -> Dict[str, Any]:
+        """Trigger a scan for ROMs on a platform or all platforms.
+
+        Args:
+            platform_id: Optional platform ID to scan. If not provided, scans all platforms.
+
+        Returns:
+            Dict with scan status and scanned platforms info.
+        """
+        try:
+            platforms = await self.get_platforms()
+
+            if not platforms:
+                return {"success": False, "error": "No platforms found in RomM"}
+
+            scanned = []
+            errors = []
+
+            if platform_id:
+                # Scan specific platform
+                platform = next((p for p in platforms if p.get("id") == platform_id), None)
+                if not platform:
+                    available = [{"id": p.get("id"), "name": p.get("name"), "slug": p.get("slug")} for p in platforms]
+                    return {
+                        "success": False,
+                        "error": f"Platform with ID '{platform_id}' not found",
+                        "available_platforms": available,
+                    }
+                platforms_to_scan = [platform]
+            else:
+                # Scan all platforms
+                platforms_to_scan = platforms
+
+            for platform in platforms_to_scan:
+                plat_id = platform.get("id")
+                plat_name = platform.get("name")
+                plat_slug = platform.get("slug")
+                try:
+                    # Trigger scan - PUT /api/platforms/{id}/roms/scan
+                    await self._make_request("PUT", f"/api/platforms/{plat_id}/roms/scan")
+                    scanned.append({
+                        "id": plat_id,
+                        "name": plat_name,
+                        "slug": plat_slug,
+                        "status": "scan_started",
+                    })
+                except Exception as e:
+                    errors.append({
+                        "platform": plat_name,
+                        "error": str(e),
+                    })
+
+            return {
+                "success": len(scanned) > 0,
+                "scanned_platforms": scanned,
+                "total_scanned": len(scanned),
+                "errors": errors if errors else None,
+                "message": f"Scan started for {len(scanned)} platform(s)" if scanned else "No platforms scanned",
+            }
+
+        except Exception as e:
+            self.logger.error(f"Failed to scan platform: {e}")
+            return {"success": False, "error": str(e)}

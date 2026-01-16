@@ -724,3 +724,252 @@ class RadarrAdapter(TokenAuthAdapter):
         except Exception as e:
             self.logger.error(f"Failed to check queue match: {e}")
             return {"found": False, "error": str(e)}
+
+    async def get_quality_profiles(self) -> List[Dict[str, Any]]:
+        """Get available quality profiles."""
+        try:
+            response = await self._make_request("GET", "/api/v3/qualityprofile")
+            profiles = response.json()
+
+            return [
+                {
+                    "id": profile.get("id"),
+                    "name": profile.get("name"),
+                    "upgrade_allowed": profile.get("upgradeAllowed", False),
+                    "cutoff": profile.get("cutoff"),
+                    "cutoff_name": next(
+                        (q.get("quality", {}).get("name") for q in profile.get("items", [])
+                         if q.get("quality", {}).get("id") == profile.get("cutoff")),
+                        None
+                    ),
+                }
+                for profile in profiles
+            ]
+        except Exception as e:
+            self.logger.error(f"Failed to get quality profiles: {e}")
+            return []
+
+    async def get_root_folders(self) -> List[Dict[str, Any]]:
+        """Get available root folders for movies."""
+        try:
+            response = await self._make_request("GET", "/api/v3/rootfolder")
+            folders = response.json()
+
+            return [
+                {
+                    "id": folder.get("id"),
+                    "path": folder.get("path"),
+                    "free_space_gb": round(folder.get("freeSpace", 0) / (1024**3), 2),
+                    "accessible": folder.get("accessible", True),
+                }
+                for folder in folders
+            ]
+        except Exception as e:
+            self.logger.error(f"Failed to get root folders: {e}")
+            return []
+
+    async def add_movie(
+        self,
+        tmdb_id: int,
+        quality_profile_id: int,
+        root_folder_path: str,
+        monitored: bool = True,
+        search_for_movie: bool = True,
+        minimum_availability: str = "announced",
+    ) -> Dict[str, Any]:
+        """Add a movie to Radarr.
+
+        Args:
+            tmdb_id: TMDB ID of the movie
+            quality_profile_id: Quality profile ID to use
+            root_folder_path: Root folder path for the movie
+            monitored: Whether to monitor the movie
+            search_for_movie: Whether to search for the movie immediately
+            minimum_availability: When the movie is considered available (announced, inCinemas, released)
+        """
+        try:
+            # First lookup the movie to get full details
+            response = await self._make_request("GET", "/api/v3/movie/lookup", params={"term": f"tmdb:{tmdb_id}"})
+            lookup_results = response.json()
+
+            if not lookup_results:
+                return {"success": False, "error": f"Movie with TMDB ID {tmdb_id} not found"}
+
+            movie_data = lookup_results[0]
+
+            # Check if already in library
+            if movie_data.get("id"):
+                return {
+                    "success": False,
+                    "error": "Movie already exists in library",
+                    "movie": {
+                        "id": movie_data.get("id"),
+                        "title": movie_data.get("title"),
+                        "year": movie_data.get("year"),
+                    },
+                }
+
+            # Prepare movie payload
+            payload = {
+                "tmdbId": tmdb_id,
+                "title": movie_data.get("title"),
+                "titleSlug": movie_data.get("titleSlug"),
+                "year": movie_data.get("year"),
+                "qualityProfileId": quality_profile_id,
+                "rootFolderPath": root_folder_path,
+                "monitored": monitored,
+                "minimumAvailability": minimum_availability,
+                "addOptions": {
+                    "searchForMovie": search_for_movie,
+                },
+                "images": movie_data.get("images", []),
+            }
+
+            # Add the movie
+            add_response = await self._make_request("POST", "/api/v3/movie", json=payload)
+            added_movie = add_response.json()
+
+            return {
+                "success": True,
+                "movie": {
+                    "id": added_movie.get("id"),
+                    "title": added_movie.get("title"),
+                    "year": added_movie.get("year"),
+                    "tmdb_id": added_movie.get("tmdbId"),
+                    "monitored": added_movie.get("monitored"),
+                    "path": added_movie.get("path"),
+                    "quality_profile_id": added_movie.get("qualityProfileId"),
+                    "url": self._get_movie_url(added_movie.get("id")),
+                },
+                "search_initiated": search_for_movie,
+            }
+
+        except Exception as e:
+            self.logger.error(f"Failed to add movie: {e}")
+            return {"success": False, "error": str(e)}
+
+    async def delete_movie(self, movie_id: int, delete_files: bool = False, add_exclusion: bool = False) -> Dict[str, Any]:
+        """Delete a movie from Radarr.
+
+        Args:
+            movie_id: Radarr movie ID
+            delete_files: Also delete downloaded files
+            add_exclusion: Add to exclusion list to prevent re-adding
+        """
+        try:
+            # Get movie info first for confirmation
+            response = await self._make_request("GET", f"/api/v3/movie/{movie_id}")
+            movie = response.json()
+            movie_title = movie.get("title", "Unknown")
+
+            # Delete the movie
+            params = {
+                "deleteFiles": str(delete_files).lower(),
+                "addImportExclusion": str(add_exclusion).lower(),
+            }
+            await self._make_request("DELETE", f"/api/v3/movie/{movie_id}", params=params)
+
+            return {
+                "success": True,
+                "deleted": {
+                    "id": movie_id,
+                    "title": movie_title,
+                },
+                "files_deleted": delete_files,
+                "added_to_exclusion": add_exclusion,
+            }
+
+        except Exception as e:
+            self.logger.error(f"Failed to delete movie {movie_id}: {e}")
+            return {"success": False, "error": str(e)}
+
+    async def update_movie(
+        self,
+        movie_id: int,
+        monitored: bool = None,
+        quality_profile_id: int = None,
+        minimum_availability: str = None,
+    ) -> Dict[str, Any]:
+        """Update a movie in Radarr.
+
+        Args:
+            movie_id: Radarr movie ID
+            monitored: New monitored status
+            quality_profile_id: New quality profile ID
+            minimum_availability: New minimum availability
+        """
+        try:
+            # Get current movie data
+            response = await self._make_request("GET", f"/api/v3/movie/{movie_id}")
+            movie = response.json()
+
+            # Update fields if provided
+            if monitored is not None:
+                movie["monitored"] = monitored
+            if quality_profile_id is not None:
+                movie["qualityProfileId"] = quality_profile_id
+            if minimum_availability is not None:
+                movie["minimumAvailability"] = minimum_availability
+
+            # Save changes
+            update_response = await self._make_request("PUT", f"/api/v3/movie/{movie_id}", json=movie)
+            updated = update_response.json()
+
+            return {
+                "success": True,
+                "movie": {
+                    "id": updated.get("id"),
+                    "title": updated.get("title"),
+                    "monitored": updated.get("monitored"),
+                    "quality_profile_id": updated.get("qualityProfileId"),
+                    "minimum_availability": updated.get("minimumAvailability"),
+                    "url": self._get_movie_url(updated.get("id")),
+                },
+            }
+
+        except Exception as e:
+            self.logger.error(f"Failed to update movie {movie_id}: {e}")
+            return {"success": False, "error": str(e)}
+
+    async def trigger_search(self, movie_id: int) -> Dict[str, Any]:
+        """Trigger an automatic search for a movie.
+
+        Args:
+            movie_id: Radarr movie ID to search for
+
+        Returns:
+            Search command result with any found releases
+        """
+        try:
+            # Get movie info
+            movie_response = await self._make_request("GET", f"/api/v3/movie/{movie_id}")
+            movie = movie_response.json()
+
+            # Trigger the search command
+            command_payload = {
+                "name": "MoviesSearch",
+                "movieIds": [movie_id],
+            }
+            command_response = await self._make_request("POST", "/api/v3/command", json=command_payload)
+            command = command_response.json()
+
+            return {
+                "success": True,
+                "movie": {
+                    "id": movie.get("id"),
+                    "title": movie.get("title"),
+                    "year": movie.get("year"),
+                    "tmdb_id": movie.get("tmdbId"),
+                    "url": self._get_movie_url(movie.get("id")),
+                },
+                "command": {
+                    "id": command.get("id"),
+                    "name": command.get("name"),
+                    "status": command.get("status"),
+                    "message": "Search command queued. Check queue for results.",
+                },
+            }
+
+        except Exception as e:
+            self.logger.error(f"Failed to trigger search for movie {movie_id}: {e}")
+            return {"success": False, "error": str(e)}

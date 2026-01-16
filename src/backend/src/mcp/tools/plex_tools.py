@@ -130,6 +130,51 @@ class PlexTools(BaseTool):
                 is_mutation=True,
                 requires_service="plex",
             ),
+            ToolDefinition(
+                name="plex_mark_watched",
+                description="Mark a media item as watched in Plex. Works for movies, episodes, and other media types.",
+                parameters=[
+                    ToolParameter(
+                        name="rating_key",
+                        description="The ratingKey of the media item (get from search or recently added results)",
+                        type="string",
+                        required=True,
+                    ),
+                ],
+                category="media",
+                is_mutation=True,
+                requires_service="plex",
+            ),
+            ToolDefinition(
+                name="plex_mark_unwatched",
+                description="Mark a media item as unwatched in Plex. Works for movies, episodes, and other media types.",
+                parameters=[
+                    ToolParameter(
+                        name="rating_key",
+                        description="The ratingKey of the media item (get from search or recently added results)",
+                        type="string",
+                        required=True,
+                    ),
+                ],
+                category="media",
+                is_mutation=True,
+                requires_service="plex",
+            ),
+            ToolDefinition(
+                name="plex_get_collections",
+                description="Get collections from Plex libraries. Collections are user-created or automatic groupings of media.",
+                parameters=[
+                    ToolParameter(
+                        name="library_name",
+                        description="Name of the library to get collections from (e.g., 'Movies'). Leave empty for all libraries.",
+                        type="string",
+                        required=False,
+                    ),
+                ],
+                category="media",
+                is_mutation=False,
+                requires_service="plex",
+            ),
         ]
 
     async def execute(self, tool_name: str, arguments: dict) -> dict:
@@ -172,6 +217,12 @@ class PlexTools(BaseTool):
                 return await self._get_active_sessions(adapter)
             elif tool_name == "plex_scan_library":
                 return await self._scan_library(adapter, arguments)
+            elif tool_name == "plex_mark_watched":
+                return await self._mark_watched(adapter, arguments)
+            elif tool_name == "plex_mark_unwatched":
+                return await self._mark_unwatched(adapter, arguments)
+            elif tool_name == "plex_get_collections":
+                return await self._get_collections(adapter, arguments)
             else:
                 return {"success": False, "error": f"Unknown tool: {tool_name}"}
 
@@ -395,3 +446,46 @@ class PlexTools(BaseTool):
             return {"success": False, "error": result.get("error"), "available_libraries": result.get("available_libraries")}
 
         return {"success": True, "result": result}
+
+    async def _mark_watched(self, adapter, arguments: dict) -> dict:
+        """Mark a media item as watched."""
+        rating_key = arguments.get("rating_key")
+
+        if not rating_key:
+            return {"success": False, "error": "rating_key is required"}
+
+        result = await adapter.mark_watched(rating_key)
+
+        if result.get("error") and not result.get("success"):
+            return {"success": False, "error": result.get("error")}
+
+        return {"success": True, "result": result}
+
+    async def _mark_unwatched(self, adapter, arguments: dict) -> dict:
+        """Mark a media item as unwatched."""
+        rating_key = arguments.get("rating_key")
+
+        if not rating_key:
+            return {"success": False, "error": "rating_key is required"}
+
+        result = await adapter.mark_unwatched(rating_key)
+
+        if result.get("error") and not result.get("success"):
+            return {"success": False, "error": result.get("error")}
+
+        return {"success": True, "result": result}
+
+    async def _get_collections(self, adapter, arguments: dict) -> dict:
+        """Get collections from Plex libraries."""
+        library_name = arguments.get("library_name")
+
+        collections = await adapter.get_collections(library_name=library_name)
+
+        return {
+            "success": True,
+            "result": {
+                "count": len(collections),
+                "library_filter": library_name,
+                "collections": collections,
+            },
+        }

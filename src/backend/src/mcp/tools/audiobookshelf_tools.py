@@ -144,6 +144,69 @@ class AudiobookshelfTools(BaseTool):
                 is_mutation=False,
                 requires_service="audiobookshelf",
             ),
+            ToolDefinition(
+                name="audiobookshelf_scan_library",
+                description="Trigger a library scan in Audiobookshelf to detect new or changed audiobook/podcast files. Without parameters, scans all libraries.",
+                parameters=[
+                    ToolParameter(
+                        name="library_name",
+                        description="Name of the library to scan. Leave empty to scan all libraries.",
+                        type="string",
+                        required=False,
+                    ),
+                    ToolParameter(
+                        name="force",
+                        description="Force scan even for unchanged files",
+                        type="boolean",
+                        required=False,
+                        default=False,
+                    ),
+                ],
+                category="media",
+                is_mutation=True,
+                requires_service="audiobookshelf",
+            ),
+            ToolDefinition(
+                name="audiobookshelf_update_progress",
+                description="Update listening progress for an audiobook or podcast. Can mark as finished or set specific position.",
+                parameters=[
+                    ToolParameter(
+                        name="title",
+                        description="Title of the audiobook/podcast (will search and find the item)",
+                        type="string",
+                        required=True,
+                    ),
+                    ToolParameter(
+                        name="current_time_seconds",
+                        description="Current position in seconds (optional if marking as finished)",
+                        type="number",
+                        required=False,
+                    ),
+                    ToolParameter(
+                        name="is_finished",
+                        description="Mark the item as finished/completed",
+                        type="boolean",
+                        required=False,
+                        default=False,
+                    ),
+                    ToolParameter(
+                        name="reset",
+                        description="Reset progress to 0 (clear progress)",
+                        type="boolean",
+                        required=False,
+                        default=False,
+                    ),
+                    ToolParameter(
+                        name="library_name",
+                        description="Library name to search in (optional)",
+                        type="string",
+                        required=False,
+                    ),
+                ],
+                category="media",
+                is_mutation=True,
+                requires_service="audiobookshelf",
+            ),
         ]
 
     async def execute(self, tool_name: str, arguments: dict) -> dict:
@@ -186,6 +249,10 @@ class AudiobookshelfTools(BaseTool):
                 return await self._get_media_progress(adapter, arguments)
             elif tool_name == "audiobookshelf_get_statistics":
                 return await self._get_statistics(adapter)
+            elif tool_name == "audiobookshelf_scan_library":
+                return await self._scan_library(adapter, arguments)
+            elif tool_name == "audiobookshelf_update_progress":
+                return await self._update_progress(adapter, arguments)
             else:
                 return {"success": False, "error": f"Unknown tool: {tool_name}"}
 
@@ -439,3 +506,57 @@ class AudiobookshelfTools(BaseTool):
         stats = await adapter.get_statistics()
 
         return {"success": True, "result": stats}
+
+    async def _scan_library(self, adapter, arguments: dict) -> dict:
+        """Trigger a library scan in Audiobookshelf."""
+        library_name = arguments.get("library_name")
+        force = arguments.get("force", False)
+
+        # Resolve library name to ID if provided
+        library_id = None
+        if library_name:
+            library_id, resolved_name = await self._resolve_library_id(adapter, library_name)
+
+        result = await adapter.scan_library(library_id=library_id, force=force)
+
+        if result.get("error") and not result.get("success"):
+            return {"success": False, "error": result.get("error"), "available_libraries": result.get("available_libraries")}
+
+        return {"success": True, "result": result}
+
+    async def _update_progress(self, adapter, arguments: dict) -> dict:
+        """Update listening progress for an audiobook or podcast."""
+        title = arguments.get("title")
+        current_time = arguments.get("current_time_seconds")
+        is_finished = arguments.get("is_finished", False)
+        reset = arguments.get("reset", False)
+        library_name = arguments.get("library_name")
+
+        if not title:
+            return {"success": False, "error": "title is required"}
+
+        # Find the item by title
+        item, found_library = await self._find_item_by_title(adapter, title, library_name)
+        item_id = item.get("id")
+
+        if reset:
+            # Clear progress
+            result = await adapter.clear_item_progress(item_id)
+        elif is_finished:
+            # Mark as finished
+            result = await adapter.mark_item_finished(item_id)
+        elif current_time is not None:
+            # Update to specific time
+            result = await adapter.update_media_progress(
+                library_item_id=item_id,
+                current_time=float(current_time),
+                is_finished=False,
+            )
+        else:
+            return {"success": False, "error": "Either current_time_seconds, is_finished, or reset is required"}
+
+        if result.get("error") and not result.get("success"):
+            return {"success": False, "error": result.get("error")}
+
+        result["library_name"] = found_library
+        return {"success": True, "result": result}

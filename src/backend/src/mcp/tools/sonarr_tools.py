@@ -177,6 +177,176 @@ class SonarrTools(BaseTool):
                 is_mutation=False,
                 requires_service="sonarr",
             ),
+            ToolDefinition(
+                name="sonarr_get_quality_profiles",
+                description="Get available quality profiles in Sonarr. Use this to get profile IDs before adding a series.",
+                parameters=[],
+                category="media",
+                is_mutation=False,
+                requires_service="sonarr",
+            ),
+            ToolDefinition(
+                name="sonarr_get_root_folders",
+                description="Get available root folders in Sonarr. Use this to get folder paths before adding a series.",
+                parameters=[],
+                category="media",
+                is_mutation=False,
+                requires_service="sonarr",
+            ),
+            ToolDefinition(
+                name="sonarr_add_series",
+                description="Add a TV series to Sonarr library. Requires TVDB ID, quality profile ID, and root folder path.",
+                parameters=[
+                    ToolParameter(
+                        name="tvdb_id",
+                        description="TVDB ID of the series (get from sonarr_search_series)",
+                        type="number",
+                        required=True,
+                    ),
+                    ToolParameter(
+                        name="quality_profile_id",
+                        description="Quality profile ID (get from sonarr_get_quality_profiles)",
+                        type="number",
+                        required=True,
+                    ),
+                    ToolParameter(
+                        name="root_folder_path",
+                        description="Root folder path (get from sonarr_get_root_folders)",
+                        type="string",
+                        required=True,
+                    ),
+                    ToolParameter(
+                        name="monitored",
+                        description="Whether to monitor the series for new episodes",
+                        type="boolean",
+                        required=False,
+                        default=True,
+                    ),
+                    ToolParameter(
+                        name="season_folder",
+                        description="Whether to use season folders",
+                        type="boolean",
+                        required=False,
+                        default=True,
+                    ),
+                    ToolParameter(
+                        name="search_for_missing",
+                        description="Whether to search for missing episodes immediately",
+                        type="boolean",
+                        required=False,
+                        default=True,
+                    ),
+                    ToolParameter(
+                        name="series_type",
+                        description="Series type",
+                        type="string",
+                        required=False,
+                        default="standard",
+                        enum=["standard", "daily", "anime"],
+                    ),
+                    ToolParameter(
+                        name="monitor",
+                        description="Which episodes to monitor",
+                        type="string",
+                        required=False,
+                        default="all",
+                        enum=["all", "future", "missing", "existing", "pilot", "firstSeason", "none"],
+                    ),
+                ],
+                category="media",
+                is_mutation=True,
+                requires_service="sonarr",
+            ),
+            ToolDefinition(
+                name="sonarr_delete_series",
+                description="Delete a TV series from Sonarr library.",
+                parameters=[
+                    ToolParameter(
+                        name="series_id",
+                        description="Sonarr series ID",
+                        type="number",
+                        required=True,
+                    ),
+                    ToolParameter(
+                        name="delete_files",
+                        description="Also delete downloaded episode files from disk",
+                        type="boolean",
+                        required=False,
+                        default=False,
+                    ),
+                    ToolParameter(
+                        name="add_exclusion",
+                        description="Add to import exclusion list to prevent re-adding",
+                        type="boolean",
+                        required=False,
+                        default=False,
+                    ),
+                ],
+                category="media",
+                is_mutation=True,
+                requires_service="sonarr",
+            ),
+            ToolDefinition(
+                name="sonarr_update_series",
+                description="Update a TV series settings in Sonarr (monitored status, quality profile, series type, etc.)",
+                parameters=[
+                    ToolParameter(
+                        name="series_id",
+                        description="Sonarr series ID",
+                        type="number",
+                        required=True,
+                    ),
+                    ToolParameter(
+                        name="monitored",
+                        description="Whether to monitor the series",
+                        type="boolean",
+                        required=False,
+                    ),
+                    ToolParameter(
+                        name="quality_profile_id",
+                        description="New quality profile ID",
+                        type="number",
+                        required=False,
+                    ),
+                    ToolParameter(
+                        name="series_type",
+                        description="Series type",
+                        type="string",
+                        required=False,
+                        enum=["standard", "daily", "anime"],
+                    ),
+                    ToolParameter(
+                        name="season_folder",
+                        description="Whether to use season folders",
+                        type="boolean",
+                        required=False,
+                    ),
+                ],
+                category="media",
+                is_mutation=True,
+                requires_service="sonarr",
+            ),
+            ToolDefinition(
+                name="sonarr_trigger_search",
+                description="Trigger an automatic search for missing episodes of a TV series. Optionally search a specific season. Returns download result if content is found and grabbed.",
+                parameters=[
+                    ToolParameter(
+                        name="series_id",
+                        description="Sonarr series ID",
+                        type="number",
+                        required=True,
+                    ),
+                    ToolParameter(
+                        name="season_number",
+                        description="Specific season number to search (searches all missing if not specified)",
+                        type="number",
+                        required=False,
+                    ),
+                ],
+                category="media",
+                is_mutation=True,
+                requires_service="sonarr",
+            ),
         ]
 
     async def execute(self, tool_name: str, arguments: dict) -> dict:
@@ -223,6 +393,18 @@ class SonarrTools(BaseTool):
                 return await self._test_all_indexers(adapter)
             elif tool_name == "sonarr_check_queue_match":
                 return await self._check_queue_match(adapter, arguments)
+            elif tool_name == "sonarr_get_quality_profiles":
+                return await self._get_quality_profiles(adapter)
+            elif tool_name == "sonarr_get_root_folders":
+                return await self._get_root_folders(adapter)
+            elif tool_name == "sonarr_add_series":
+                return await self._add_series(adapter, arguments)
+            elif tool_name == "sonarr_delete_series":
+                return await self._delete_series(adapter, arguments)
+            elif tool_name == "sonarr_update_series":
+                return await self._update_series(adapter, arguments)
+            elif tool_name == "sonarr_trigger_search":
+                return await self._trigger_search(adapter, arguments)
             else:
                 return {"success": False, "error": f"Unknown tool: {tool_name}"}
 
@@ -336,6 +518,116 @@ class SonarrTools(BaseTool):
         )
 
         if result.get("error"):
+            return {"success": False, "error": result.get("error")}
+
+        return {"success": True, "result": result}
+
+    async def _get_quality_profiles(self, adapter) -> dict:
+        """Get available quality profiles."""
+        profiles = await adapter.get_quality_profiles()
+
+        return {
+            "success": True,
+            "result": {
+                "count": len(profiles),
+                "profiles": profiles,
+            },
+        }
+
+    async def _get_root_folders(self, adapter) -> dict:
+        """Get available root folders."""
+        folders = await adapter.get_root_folders()
+
+        return {
+            "success": True,
+            "result": {
+                "count": len(folders),
+                "folders": folders,
+            },
+        }
+
+    async def _add_series(self, adapter, arguments: dict) -> dict:
+        """Add a series to Sonarr."""
+        tvdb_id = arguments.get("tvdb_id")
+        quality_profile_id = arguments.get("quality_profile_id")
+        root_folder_path = arguments.get("root_folder_path")
+
+        if not tvdb_id:
+            return {"success": False, "error": "tvdb_id is required"}
+        if not quality_profile_id:
+            return {"success": False, "error": "quality_profile_id is required"}
+        if not root_folder_path:
+            return {"success": False, "error": "root_folder_path is required"}
+
+        result = await adapter.add_series(
+            tvdb_id=int(tvdb_id),
+            quality_profile_id=int(quality_profile_id),
+            root_folder_path=root_folder_path,
+            monitored=arguments.get("monitored", True),
+            season_folder=arguments.get("season_folder", True),
+            search_for_missing=arguments.get("search_for_missing", True),
+            series_type=arguments.get("series_type", "standard"),
+            monitor=arguments.get("monitor", "all"),
+        )
+
+        if result.get("error") and not result.get("success"):
+            return {"success": False, "error": result.get("error"), "details": result}
+
+        return {"success": True, "result": result}
+
+    async def _delete_series(self, adapter, arguments: dict) -> dict:
+        """Delete a series from Sonarr."""
+        series_id = arguments.get("series_id")
+
+        if not series_id:
+            return {"success": False, "error": "series_id is required"}
+
+        result = await adapter.delete_series(
+            series_id=int(series_id),
+            delete_files=arguments.get("delete_files", False),
+            add_exclusion=arguments.get("add_exclusion", False),
+        )
+
+        if result.get("error") and not result.get("success"):
+            return {"success": False, "error": result.get("error")}
+
+        return {"success": True, "result": result}
+
+    async def _update_series(self, adapter, arguments: dict) -> dict:
+        """Update a series in Sonarr."""
+        series_id = arguments.get("series_id")
+
+        if not series_id:
+            return {"success": False, "error": "series_id is required"}
+
+        result = await adapter.update_series(
+            series_id=int(series_id),
+            monitored=arguments.get("monitored"),
+            quality_profile_id=int(arguments["quality_profile_id"]) if arguments.get("quality_profile_id") else None,
+            series_type=arguments.get("series_type"),
+            season_folder=arguments.get("season_folder"),
+        )
+
+        if result.get("error") and not result.get("success"):
+            return {"success": False, "error": result.get("error")}
+
+        return {"success": True, "result": result}
+
+    async def _trigger_search(self, adapter, arguments: dict) -> dict:
+        """Trigger an automatic search for a series."""
+        series_id = arguments.get("series_id")
+
+        if not series_id:
+            return {"success": False, "error": "series_id is required"}
+
+        season_number = arguments.get("season_number")
+
+        result = await adapter.trigger_search(
+            series_id=int(series_id),
+            season_number=int(season_number) if season_number is not None else None,
+        )
+
+        if result.get("error") and not result.get("success"):
             return {"success": False, "error": result.get("error")}
 
         return {"success": True, "result": result}

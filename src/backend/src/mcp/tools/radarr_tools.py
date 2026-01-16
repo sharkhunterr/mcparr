@@ -159,6 +159,149 @@ class RadarrTools(BaseTool):
                 is_mutation=False,
                 requires_service="radarr",
             ),
+            ToolDefinition(
+                name="radarr_get_quality_profiles",
+                description="Get available quality profiles in Radarr. Use this to get profile IDs before adding movies.",
+                parameters=[],
+                category="media",
+                is_mutation=False,
+                requires_service="radarr",
+            ),
+            ToolDefinition(
+                name="radarr_get_root_folders",
+                description="Get available root folders in Radarr. Use this to get folder paths before adding movies.",
+                parameters=[],
+                category="media",
+                is_mutation=False,
+                requires_service="radarr",
+            ),
+            ToolDefinition(
+                name="radarr_add_movie",
+                description="Add a movie to Radarr library. Requires TMDB ID, quality profile ID, and root folder path. Use radarr_search_movie to find TMDB ID, radarr_get_quality_profiles for profile IDs, and radarr_get_root_folders for paths.",
+                parameters=[
+                    ToolParameter(
+                        name="tmdb_id",
+                        description="TMDB ID of the movie to add",
+                        type="number",
+                        required=True,
+                    ),
+                    ToolParameter(
+                        name="quality_profile_id",
+                        description="Quality profile ID (get from radarr_get_quality_profiles)",
+                        type="number",
+                        required=True,
+                    ),
+                    ToolParameter(
+                        name="root_folder_path",
+                        description="Root folder path (get from radarr_get_root_folders)",
+                        type="string",
+                        required=True,
+                    ),
+                    ToolParameter(
+                        name="monitored",
+                        description="Whether to monitor the movie for downloads",
+                        type="boolean",
+                        required=False,
+                        default=True,
+                    ),
+                    ToolParameter(
+                        name="search_for_movie",
+                        description="Immediately search for the movie after adding",
+                        type="boolean",
+                        required=False,
+                        default=True,
+                    ),
+                    ToolParameter(
+                        name="minimum_availability",
+                        description="When movie is considered available",
+                        type="string",
+                        required=False,
+                        enum=["announced", "inCinemas", "released"],
+                        default="announced",
+                    ),
+                ],
+                category="media",
+                is_mutation=True,
+                requires_service="radarr",
+            ),
+            ToolDefinition(
+                name="radarr_delete_movie",
+                description="Delete a movie from Radarr library. Optionally delete files and add to exclusion list.",
+                parameters=[
+                    ToolParameter(
+                        name="movie_id",
+                        description="Radarr movie ID to delete",
+                        type="number",
+                        required=True,
+                    ),
+                    ToolParameter(
+                        name="delete_files",
+                        description="Also delete downloaded movie files",
+                        type="boolean",
+                        required=False,
+                        default=False,
+                    ),
+                    ToolParameter(
+                        name="add_exclusion",
+                        description="Add movie to exclusion list to prevent re-adding",
+                        type="boolean",
+                        required=False,
+                        default=False,
+                    ),
+                ],
+                category="media",
+                is_mutation=True,
+                requires_service="radarr",
+            ),
+            ToolDefinition(
+                name="radarr_update_movie",
+                description="Update a movie's settings in Radarr (monitored status, quality profile, availability).",
+                parameters=[
+                    ToolParameter(
+                        name="movie_id",
+                        description="Radarr movie ID to update",
+                        type="number",
+                        required=True,
+                    ),
+                    ToolParameter(
+                        name="monitored",
+                        description="New monitored status",
+                        type="boolean",
+                        required=False,
+                    ),
+                    ToolParameter(
+                        name="quality_profile_id",
+                        description="New quality profile ID",
+                        type="number",
+                        required=False,
+                    ),
+                    ToolParameter(
+                        name="minimum_availability",
+                        description="New minimum availability",
+                        type="string",
+                        required=False,
+                        enum=["announced", "inCinemas", "released"],
+                    ),
+                ],
+                category="media",
+                is_mutation=True,
+                requires_service="radarr",
+            ),
+            ToolDefinition(
+                name="radarr_trigger_search",
+                description="Trigger an automatic search for a movie in Radarr. This will search all indexers for available releases and automatically grab the best match based on quality profile.",
+                parameters=[
+                    ToolParameter(
+                        name="movie_id",
+                        description="Radarr movie ID to search for",
+                        type="number",
+                        required=True,
+                    ),
+                ],
+                category="media",
+                is_mutation=True,
+                requires_service="radarr",
+            ),
         ]
 
     async def execute(self, tool_name: str, arguments: dict) -> dict:
@@ -205,6 +348,18 @@ class RadarrTools(BaseTool):
                 return await self._get_releases(adapter, arguments)
             elif tool_name == "radarr_check_queue_match":
                 return await self._check_queue_match(adapter, arguments)
+            elif tool_name == "radarr_get_quality_profiles":
+                return await self._get_quality_profiles(adapter)
+            elif tool_name == "radarr_get_root_folders":
+                return await self._get_root_folders(adapter)
+            elif tool_name == "radarr_add_movie":
+                return await self._add_movie(adapter, arguments)
+            elif tool_name == "radarr_delete_movie":
+                return await self._delete_movie(adapter, arguments)
+            elif tool_name == "radarr_update_movie":
+                return await self._update_movie(adapter, arguments)
+            elif tool_name == "radarr_trigger_search":
+                return await self._trigger_search(adapter, arguments)
             else:
                 return {"success": False, "error": f"Unknown tool: {tool_name}"}
 
@@ -311,6 +466,87 @@ class RadarrTools(BaseTool):
             movie_id=int(movie_id) if movie_id else None,
             tmdb_id=int(tmdb_id) if tmdb_id else None,
         )
+
+        if result.get("error"):
+            return {"success": False, "error": result.get("error")}
+
+        return {"success": True, "result": result}
+
+    async def _get_quality_profiles(self, adapter) -> dict:
+        """Get available quality profiles."""
+        profiles = await adapter.get_quality_profiles()
+        return {"success": True, "result": {"count": len(profiles), "profiles": profiles}}
+
+    async def _get_root_folders(self, adapter) -> dict:
+        """Get available root folders."""
+        folders = await adapter.get_root_folders()
+        return {"success": True, "result": {"count": len(folders), "folders": folders}}
+
+    async def _add_movie(self, adapter, arguments: dict) -> dict:
+        """Add a movie to Radarr."""
+        tmdb_id = arguments.get("tmdb_id")
+        quality_profile_id = arguments.get("quality_profile_id")
+        root_folder_path = arguments.get("root_folder_path")
+
+        if not tmdb_id or not quality_profile_id or not root_folder_path:
+            return {"success": False, "error": "tmdb_id, quality_profile_id, and root_folder_path are required"}
+
+        result = await adapter.add_movie(
+            tmdb_id=int(tmdb_id),
+            quality_profile_id=int(quality_profile_id),
+            root_folder_path=root_folder_path,
+            monitored=arguments.get("monitored", True),
+            search_for_movie=arguments.get("search_for_movie", True),
+            minimum_availability=arguments.get("minimum_availability", "announced"),
+        )
+
+        if result.get("error"):
+            return {"success": False, "error": result.get("error"), "movie": result.get("movie")}
+
+        return {"success": True, "result": result}
+
+    async def _delete_movie(self, adapter, arguments: dict) -> dict:
+        """Delete a movie from Radarr."""
+        movie_id = arguments.get("movie_id")
+        if not movie_id:
+            return {"success": False, "error": "movie_id is required"}
+
+        result = await adapter.delete_movie(
+            movie_id=int(movie_id),
+            delete_files=arguments.get("delete_files", False),
+            add_exclusion=arguments.get("add_exclusion", False),
+        )
+
+        if result.get("error"):
+            return {"success": False, "error": result.get("error")}
+
+        return {"success": True, "result": result}
+
+    async def _update_movie(self, adapter, arguments: dict) -> dict:
+        """Update a movie in Radarr."""
+        movie_id = arguments.get("movie_id")
+        if not movie_id:
+            return {"success": False, "error": "movie_id is required"}
+
+        result = await adapter.update_movie(
+            movie_id=int(movie_id),
+            monitored=arguments.get("monitored"),
+            quality_profile_id=int(arguments["quality_profile_id"]) if arguments.get("quality_profile_id") else None,
+            minimum_availability=arguments.get("minimum_availability"),
+        )
+
+        if result.get("error"):
+            return {"success": False, "error": result.get("error")}
+
+        return {"success": True, "result": result}
+
+    async def _trigger_search(self, adapter, arguments: dict) -> dict:
+        """Trigger an automatic search for a movie."""
+        movie_id = arguments.get("movie_id")
+        if not movie_id:
+            return {"success": False, "error": "movie_id is required"}
+
+        result = await adapter.trigger_search(movie_id=int(movie_id))
 
         if result.get("error"):
             return {"success": False, "error": result.get("error")}

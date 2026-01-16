@@ -178,13 +178,32 @@ class OverseerrAdapter(TokenAuthAdapter):
         return None
 
     async def get_requests(
-        self, take: int = 20, skip: int = 0, status: Optional[RequestStatus] = None
+        self,
+        take: int = 20,
+        skip: int = 0,
+        status: Optional[RequestStatus] = None,
+        user_id: Optional[int] = None,
+        sort: str = "added",
+        requested_by: Optional[int] = None,
     ) -> Dict[str, Any]:
-        """Get media requests."""
+        """Get media requests with optional filters.
+
+        Args:
+            take: Number of results to return
+            skip: Number of results to skip (for pagination)
+            status: Filter by request status
+            user_id: Filter by user ID who made the request
+            sort: Sort order ('added', 'modified')
+            requested_by: Alias for user_id (filter by requester)
+        """
         try:
-            params = {"take": str(take), "skip": str(skip)}
+            params = {"take": str(take), "skip": str(skip), "sort": sort}
             if status:
                 params["filter"] = status.value
+            # Support both user_id and requested_by
+            filter_user_id = user_id or requested_by
+            if filter_user_id:
+                params["requestedBy"] = str(filter_user_id)
 
             response = await self._make_request("GET", "/api/v1/request", params=params)
             data = response.json()
@@ -485,3 +504,358 @@ class OverseerrAdapter(TokenAuthAdapter):
         except Exception as e:
             self.logger.warning(f"Failed to get settings: {e}")
             return {}
+
+    async def delete_request(self, request_id: int) -> Dict[str, Any]:
+        """Delete a media request.
+
+        Args:
+            request_id: ID of the request to delete
+
+        Returns:
+            Dict with success status
+        """
+        try:
+            # Get request info first
+            request = await self.get_request_by_id(request_id)
+            if not request:
+                return {"success": False, "error": f"Request {request_id} not found"}
+
+            # Get title for confirmation message
+            media = request.get("media", {})
+            media_type = request.get("type")
+            tmdb_id = media.get("tmdbId")
+            title = await self._get_media_title(media_type, tmdb_id) or f"Request {request_id}"
+
+            # Delete the request
+            await self._make_request("DELETE", f"/api/v1/request/{request_id}")
+
+            return {
+                "success": True,
+                "message": f"Request for '{title}' deleted successfully",
+                "request_id": request_id,
+                "title": title,
+            }
+
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 404:
+                return {"success": False, "error": f"Request {request_id} not found"}
+            return {"success": False, "error": f"HTTP {e.response.status_code}"}
+        except Exception as e:
+            self.logger.error(f"Failed to delete request {request_id}: {e}")
+            return {"success": False, "error": str(e)}
+
+    async def approve_request_detailed(self, request_id: int) -> Dict[str, Any]:
+        """Approve a media request and return detailed result.
+
+        Args:
+            request_id: ID of the request to approve
+
+        Returns:
+            Dict with success status and request details
+        """
+        try:
+            # Get request info first
+            request = await self.get_request_by_id(request_id)
+            if not request:
+                return {"success": False, "error": f"Request {request_id} not found"}
+
+            # Check if already approved
+            if request.get("status") == RequestStatus.APPROVED.value:
+                return {"success": False, "error": "Request is already approved"}
+
+            # Get title for confirmation message
+            media = request.get("media", {})
+            media_type = request.get("type")
+            tmdb_id = media.get("tmdbId")
+            title = await self._get_media_title(media_type, tmdb_id) or f"Request {request_id}"
+
+            # Approve the request
+            response = await self._make_request("POST", f"/api/v1/request/{request_id}/approve")
+            approved_request = response.json()
+
+            return {
+                "success": True,
+                "message": f"Request for '{title}' approved successfully",
+                "request_id": request_id,
+                "title": title,
+                "media_type": media_type,
+                "tmdb_id": tmdb_id,
+                "requested_by": request.get("requestedBy", {}).get("displayName"),
+                "url": self._get_request_url(request_id),
+                "media_url": self._get_media_url(media_type, tmdb_id),
+            }
+
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 404:
+                return {"success": False, "error": f"Request {request_id} not found"}
+            return {"success": False, "error": f"HTTP {e.response.status_code}"}
+        except Exception as e:
+            self.logger.error(f"Failed to approve request {request_id}: {e}")
+            return {"success": False, "error": str(e)}
+
+    async def decline_request_detailed(self, request_id: int, reason: Optional[str] = None) -> Dict[str, Any]:
+        """Decline a media request and return detailed result.
+
+        Args:
+            request_id: ID of the request to decline
+            reason: Optional reason for declining
+
+        Returns:
+            Dict with success status and request details
+        """
+        try:
+            # Get request info first
+            request = await self.get_request_by_id(request_id)
+            if not request:
+                return {"success": False, "error": f"Request {request_id} not found"}
+
+            # Check if already declined
+            if request.get("status") == RequestStatus.DECLINED.value:
+                return {"success": False, "error": "Request is already declined"}
+
+            # Get title for confirmation message
+            media = request.get("media", {})
+            media_type = request.get("type")
+            tmdb_id = media.get("tmdbId")
+            title = await self._get_media_title(media_type, tmdb_id) or f"Request {request_id}"
+
+            # Decline the request
+            data = {}
+            if reason:
+                data["reason"] = reason
+
+            response = await self._make_request("POST", f"/api/v1/request/{request_id}/decline", json=data)
+
+            return {
+                "success": True,
+                "message": f"Request for '{title}' declined" + (f" (Reason: {reason})" if reason else ""),
+                "request_id": request_id,
+                "title": title,
+                "media_type": media_type,
+                "reason": reason,
+                "requested_by": request.get("requestedBy", {}).get("displayName"),
+                "url": self._get_request_url(request_id),
+            }
+
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 404:
+                return {"success": False, "error": f"Request {request_id} not found"}
+            return {"success": False, "error": f"HTTP {e.response.status_code}"}
+        except Exception as e:
+            self.logger.error(f"Failed to decline request {request_id}: {e}")
+            return {"success": False, "error": str(e)}
+
+    async def get_issues(
+        self,
+        take: int = 20,
+        skip: int = 0,
+        status: Optional[str] = None,
+        sort: str = "added",
+    ) -> Dict[str, Any]:
+        """Get issues/problems reported by users.
+
+        Args:
+            take: Number of results to return
+            skip: Number of results to skip (for pagination)
+            status: Filter by issue status ('open', 'resolved')
+            sort: Sort order ('added', 'modified')
+
+        Returns:
+            Dict with issues list and pagination info
+        """
+        try:
+            params = {"take": str(take), "skip": str(skip), "sort": sort}
+            if status:
+                # Map status string to API filter value
+                status_map = {"open": "1", "resolved": "2"}
+                if status.lower() in status_map:
+                    params["filter"] = status_map[status.lower()]
+
+            response = await self._make_request("GET", "/api/v1/issue", params=params)
+            data = response.json()
+
+            issues = []
+            for issue in data.get("results", []):
+                media = issue.get("media", {})
+                media_type = media.get("mediaType")
+                tmdb_id = media.get("tmdbId")
+
+                # Get title from TMDB
+                title = await self._get_media_title(media_type, tmdb_id)
+
+                issue_id = issue.get("id")
+                issues.append({
+                    "id": issue_id,
+                    "issue_type": issue.get("issueType"),
+                    "status": "open" if issue.get("status") == 1 else "resolved",
+                    "problem_season": issue.get("problemSeason"),
+                    "problem_episode": issue.get("problemEpisode"),
+                    "message": issue.get("message"),
+                    "created_at": issue.get("createdAt"),
+                    "updated_at": issue.get("updatedAt"),
+                    "created_by": issue.get("createdBy", {}).get("displayName"),
+                    "media_info": {
+                        "title": title,
+                        "media_type": media_type,
+                        "tmdb_id": tmdb_id,
+                    },
+                    "url": f"{self.public_url}/issues/{issue_id}",
+                    "media_url": self._get_media_url(media_type, tmdb_id),
+                })
+
+            return {
+                "results": issues,
+                "page_info": {
+                    "pages": data.get("pageInfo", {}).get("pages", 1),
+                    "page_size": data.get("pageInfo", {}).get("pageSize", take),
+                    "results": data.get("pageInfo", {}).get("results", len(issues)),
+                    "page": data.get("pageInfo", {}).get("page", 1),
+                },
+            }
+
+        except Exception as e:
+            self.logger.error(f"Failed to get issues: {e}")
+            return {"results": [], "page_info": {}}
+
+    async def get_issue_by_id(self, issue_id: int) -> Optional[Dict[str, Any]]:
+        """Get a specific issue by ID.
+
+        Args:
+            issue_id: ID of the issue
+
+        Returns:
+            Issue data or None if not found
+        """
+        try:
+            response = await self._make_request("GET", f"/api/v1/issue/{issue_id}")
+            return response.json()
+
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 404:
+                return None
+            raise
+        except Exception as e:
+            self.logger.warning(f"Failed to get issue {issue_id}: {e}")
+            return None
+
+    async def add_issue_comment(self, issue_id: int, comment: str) -> Dict[str, Any]:
+        """Add a comment to an issue.
+
+        Args:
+            issue_id: ID of the issue
+            comment: Comment text
+
+        Returns:
+            Dict with success status
+        """
+        try:
+            # Verify issue exists
+            issue = await self.get_issue_by_id(issue_id)
+            if not issue:
+                return {"success": False, "error": f"Issue {issue_id} not found"}
+
+            # Add comment
+            payload = {"message": comment}
+            response = await self._make_request("POST", f"/api/v1/issue/{issue_id}/comment", json=payload)
+
+            return {
+                "success": True,
+                "message": "Comment added successfully",
+                "issue_id": issue_id,
+                "comment": comment,
+            }
+
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 404:
+                return {"success": False, "error": f"Issue {issue_id} not found"}
+            return {"success": False, "error": f"HTTP {e.response.status_code}"}
+        except Exception as e:
+            self.logger.error(f"Failed to add comment to issue {issue_id}: {e}")
+            return {"success": False, "error": str(e)}
+
+    async def update_issue_status(self, issue_id: int, status: str) -> Dict[str, Any]:
+        """Update issue status (resolve or reopen).
+
+        Args:
+            issue_id: ID of the issue
+            status: New status ('open' or 'resolved')
+
+        Returns:
+            Dict with success status
+        """
+        try:
+            # Verify issue exists
+            issue = await self.get_issue_by_id(issue_id)
+            if not issue:
+                return {"success": False, "error": f"Issue {issue_id} not found"}
+
+            # Map status to API value
+            status_map = {"open": 1, "resolved": 2}
+            if status.lower() not in status_map:
+                return {"success": False, "error": f"Invalid status '{status}'. Use 'open' or 'resolved'"}
+
+            # Update status
+            payload = {"status": status_map[status.lower()]}
+            response = await self._make_request("POST", f"/api/v1/issue/{issue_id}/{status.lower()}")
+
+            # Get media title for confirmation
+            media = issue.get("media", {})
+            media_type = media.get("mediaType")
+            tmdb_id = media.get("tmdbId")
+            title = await self._get_media_title(media_type, tmdb_id) or f"Issue {issue_id}"
+
+            return {
+                "success": True,
+                "message": f"Issue for '{title}' marked as {status}",
+                "issue_id": issue_id,
+                "title": title,
+                "status": status,
+                "url": f"{self.public_url}/issues/{issue_id}",
+            }
+
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 404:
+                return {"success": False, "error": f"Issue {issue_id} not found"}
+            return {"success": False, "error": f"HTTP {e.response.status_code}"}
+        except Exception as e:
+            self.logger.error(f"Failed to update issue {issue_id} status: {e}")
+            return {"success": False, "error": str(e)}
+
+    async def delete_issue(self, issue_id: int) -> Dict[str, Any]:
+        """Delete an issue.
+
+        Args:
+            issue_id: ID of the issue to delete
+
+        Returns:
+            Dict with success status
+        """
+        try:
+            # Get issue info first
+            issue = await self.get_issue_by_id(issue_id)
+            if not issue:
+                return {"success": False, "error": f"Issue {issue_id} not found"}
+
+            # Get media title for confirmation
+            media = issue.get("media", {})
+            media_type = media.get("mediaType")
+            tmdb_id = media.get("tmdbId")
+            title = await self._get_media_title(media_type, tmdb_id) or f"Issue {issue_id}"
+
+            # Delete the issue
+            await self._make_request("DELETE", f"/api/v1/issue/{issue_id}")
+
+            return {
+                "success": True,
+                "message": f"Issue for '{title}' deleted successfully",
+                "issue_id": issue_id,
+                "title": title,
+            }
+
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 404:
+                return {"success": False, "error": f"Issue {issue_id} not found"}
+            return {"success": False, "error": f"HTTP {e.response.status_code}"}
+        except Exception as e:
+            self.logger.error(f"Failed to delete issue {issue_id}: {e}")
+            return {"success": False, "error": str(e)}

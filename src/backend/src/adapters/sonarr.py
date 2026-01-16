@@ -778,3 +778,333 @@ class SonarrAdapter(TokenAuthAdapter):
         except Exception as e:
             self.logger.error(f"Failed to check queue match: {e}")
             return {"found": False, "error": str(e)}
+
+    async def get_quality_profiles(self) -> List[Dict[str, Any]]:
+        """Get available quality profiles."""
+        try:
+            response = await self._make_request("GET", "/api/v3/qualityprofile")
+            profiles = response.json()
+
+            return [
+                {
+                    "id": profile.get("id"),
+                    "name": profile.get("name"),
+                    "upgrade_allowed": profile.get("upgradeAllowed", False),
+                    "cutoff": profile.get("cutoff"),
+                    "cutoff_name": next(
+                        (
+                            item.get("quality", {}).get("name")
+                            for item in profile.get("items", [])
+                            if item.get("quality", {}).get("id") == profile.get("cutoff")
+                        ),
+                        None,
+                    ),
+                }
+                for profile in profiles
+            ]
+        except Exception as e:
+            self.logger.error(f"Failed to get quality profiles: {e}")
+            return []
+
+    async def get_root_folders(self) -> List[Dict[str, Any]]:
+        """Get available root folders for series."""
+        try:
+            response = await self._make_request("GET", "/api/v3/rootfolder")
+            folders = response.json()
+
+            return [
+                {
+                    "id": folder.get("id"),
+                    "path": folder.get("path"),
+                    "free_space_gb": round(folder.get("freeSpace", 0) / (1024**3), 2),
+                    "accessible": folder.get("accessible", True),
+                }
+                for folder in folders
+            ]
+        except Exception as e:
+            self.logger.error(f"Failed to get root folders: {e}")
+            return []
+
+    async def add_series(
+        self,
+        tvdb_id: int,
+        quality_profile_id: int,
+        root_folder_path: str,
+        monitored: bool = True,
+        season_folder: bool = True,
+        search_for_missing: bool = True,
+        series_type: str = "standard",
+        monitor: str = "all",
+    ) -> Dict[str, Any]:
+        """Add a series to Sonarr.
+
+        Args:
+            tvdb_id: TVDB ID of the series
+            quality_profile_id: ID of the quality profile to use
+            root_folder_path: Root folder path for the series
+            monitored: Whether the series should be monitored
+            season_folder: Whether to use season folders
+            search_for_missing: Whether to search for missing episodes immediately
+            series_type: Series type (standard, daily, anime)
+            monitor: Monitoring mode (all, future, missing, existing, pilot, firstSeason, none)
+
+        Returns:
+            Dict with success status and series info
+        """
+        try:
+            # First lookup the series by TVDB ID
+            response = await self._make_request("GET", "/api/v3/series/lookup", params={"term": f"tvdb:{tvdb_id}"})
+            lookup_results = response.json()
+
+            if not lookup_results:
+                return {"success": False, "error": f"Series with TVDB ID {tvdb_id} not found"}
+
+            series_data = lookup_results[0]
+
+            # Check if already in library
+            if series_data.get("id"):
+                return {
+                    "success": False,
+                    "error": "Series already in library",
+                    "existing_id": series_data.get("id"),
+                    "title": series_data.get("title"),
+                    "url": self._get_series_url(series_data.get("id")),
+                }
+
+            # Prepare add payload
+            add_options = {"searchForMissingEpisodes": search_for_missing}
+
+            # Set monitoring options based on monitor parameter
+            seasons = series_data.get("seasons", [])
+            for season in seasons:
+                if monitor == "all":
+                    season["monitored"] = True
+                elif monitor == "future":
+                    season["monitored"] = False  # Will be updated when episodes air
+                elif monitor == "missing":
+                    season["monitored"] = True  # Only search missing
+                elif monitor == "existing":
+                    season["monitored"] = False
+                elif monitor == "pilot":
+                    season["monitored"] = season.get("seasonNumber") == 1
+                elif monitor == "firstSeason":
+                    season["monitored"] = season.get("seasonNumber") == 1
+                elif monitor == "none":
+                    season["monitored"] = False
+
+            payload = {
+                "tvdbId": tvdb_id,
+                "title": series_data.get("title"),
+                "qualityProfileId": quality_profile_id,
+                "rootFolderPath": root_folder_path,
+                "monitored": monitored,
+                "seasonFolder": season_folder,
+                "seriesType": series_type,
+                "seasons": seasons,
+                "addOptions": add_options,
+            }
+
+            # Add the series
+            response = await self._make_request("POST", "/api/v3/series", json=payload)
+            added_series = response.json()
+
+            return {
+                "success": True,
+                "message": f"Series '{added_series.get('title')}' added successfully",
+                "series_id": added_series.get("id"),
+                "title": added_series.get("title"),
+                "year": added_series.get("year"),
+                "tvdb_id": added_series.get("tvdbId"),
+                "path": added_series.get("path"),
+                "monitored": added_series.get("monitored"),
+                "season_count": added_series.get("seasonCount", 0),
+                "search_started": search_for_missing,
+                "url": self._get_series_url(added_series.get("id")),
+                "tvdb_url": self._get_tvdb_url(added_series.get("tvdbId")),
+            }
+
+        except httpx.HTTPStatusError as e:
+            error_msg = f"HTTP {e.response.status_code}"
+            try:
+                error_data = e.response.json()
+                if isinstance(error_data, list) and error_data:
+                    error_msg = error_data[0].get("errorMessage", error_msg)
+                elif isinstance(error_data, dict):
+                    error_msg = error_data.get("message", error_msg)
+            except Exception:
+                pass
+            return {"success": False, "error": error_msg}
+        except Exception as e:
+            self.logger.error(f"Failed to add series: {e}")
+            return {"success": False, "error": str(e)}
+
+    async def delete_series(self, series_id: int, delete_files: bool = False, add_exclusion: bool = False) -> Dict[str, Any]:
+        """Delete a series from Sonarr.
+
+        Args:
+            series_id: Sonarr series ID
+            delete_files: Whether to delete downloaded files
+            add_exclusion: Whether to add to import exclusion list
+
+        Returns:
+            Dict with success status
+        """
+        try:
+            # Get series info first
+            response = await self._make_request("GET", f"/api/v3/series/{series_id}")
+            series = response.json()
+            title = series.get("title", f"Series {series_id}")
+
+            # Delete the series
+            params = {
+                "deleteFiles": str(delete_files).lower(),
+                "addImportListExclusion": str(add_exclusion).lower(),
+            }
+            await self._make_request("DELETE", f"/api/v3/series/{series_id}", params=params)
+
+            return {
+                "success": True,
+                "message": f"Series '{title}' deleted successfully",
+                "series_id": series_id,
+                "title": title,
+                "files_deleted": delete_files,
+                "added_to_exclusion": add_exclusion,
+            }
+
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 404:
+                return {"success": False, "error": f"Series with ID {series_id} not found"}
+            return {"success": False, "error": f"HTTP {e.response.status_code}"}
+        except Exception as e:
+            self.logger.error(f"Failed to delete series: {e}")
+            return {"success": False, "error": str(e)}
+
+    async def update_series(
+        self,
+        series_id: int,
+        monitored: bool = None,
+        quality_profile_id: int = None,
+        series_type: str = None,
+        season_folder: bool = None,
+    ) -> Dict[str, Any]:
+        """Update a series in Sonarr.
+
+        Args:
+            series_id: Sonarr series ID
+            monitored: Whether the series should be monitored
+            quality_profile_id: New quality profile ID
+            series_type: Series type (standard, daily, anime)
+            season_folder: Whether to use season folders
+
+        Returns:
+            Dict with success status and updated info
+        """
+        try:
+            # Get current series data
+            response = await self._make_request("GET", f"/api/v3/series/{series_id}")
+            series = response.json()
+
+            # Update fields if provided
+            if monitored is not None:
+                series["monitored"] = monitored
+            if quality_profile_id is not None:
+                series["qualityProfileId"] = quality_profile_id
+            if series_type is not None:
+                series["seriesType"] = series_type
+            if season_folder is not None:
+                series["seasonFolder"] = season_folder
+
+            # Update the series
+            response = await self._make_request("PUT", f"/api/v3/series/{series_id}", json=series)
+            updated_series = response.json()
+
+            # Get quality profile name
+            profile_name = None
+            try:
+                profiles = await self.get_quality_profiles()
+                profile = next((p for p in profiles if p["id"] == updated_series.get("qualityProfileId")), None)
+                if profile:
+                    profile_name = profile["name"]
+            except Exception:
+                pass
+
+            return {
+                "success": True,
+                "message": f"Series '{updated_series.get('title')}' updated successfully",
+                "series_id": updated_series.get("id"),
+                "title": updated_series.get("title"),
+                "monitored": updated_series.get("monitored"),
+                "quality_profile_id": updated_series.get("qualityProfileId"),
+                "quality_profile": profile_name,
+                "series_type": updated_series.get("seriesType"),
+                "season_folder": updated_series.get("seasonFolder"),
+                "url": self._get_series_url(updated_series.get("id")),
+            }
+
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 404:
+                return {"success": False, "error": f"Series with ID {series_id} not found"}
+            return {"success": False, "error": f"HTTP {e.response.status_code}"}
+        except Exception as e:
+            self.logger.error(f"Failed to update series: {e}")
+            return {"success": False, "error": str(e)}
+
+    async def trigger_search(self, series_id: int, season_number: int = None) -> Dict[str, Any]:
+        """Trigger an automatic search for a series or season.
+
+        Args:
+            series_id: Sonarr series ID
+            season_number: Optional season number (searches all missing if not specified)
+
+        Returns:
+            Dict with command status and download queue match info
+        """
+        try:
+            # Get series info first
+            response = await self._make_request("GET", f"/api/v3/series/{series_id}")
+            series = response.json()
+            title = series.get("title", f"Series {series_id}")
+
+            # Trigger the search command
+            if season_number is not None:
+                command = {
+                    "name": "SeasonSearch",
+                    "seriesId": series_id,
+                    "seasonNumber": season_number,
+                }
+                search_type = f"Season {season_number}"
+            else:
+                command = {
+                    "name": "SeriesSearch",
+                    "seriesId": series_id,
+                }
+                search_type = "All missing episodes"
+
+            response = await self._make_request("POST", "/api/v3/command", json=command)
+            command_result = response.json()
+
+            # Check queue for any matching downloads
+            import asyncio
+            await asyncio.sleep(2)  # Wait for search to potentially find results
+
+            queue_result = await self.check_queue_match(series_id=series_id, season=season_number)
+
+            return {
+                "success": True,
+                "message": f"Search triggered for '{title}' ({search_type})",
+                "series_id": series_id,
+                "title": title,
+                "season_number": season_number,
+                "command_id": command_result.get("id"),
+                "command_status": command_result.get("status"),
+                "queue_match": queue_result if queue_result.get("found") else None,
+                "url": self._get_series_url(series_id),
+            }
+
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 404:
+                return {"success": False, "error": f"Series with ID {series_id} not found"}
+            return {"success": False, "error": f"HTTP {e.response.status_code}"}
+        except Exception as e:
+            self.logger.error(f"Failed to trigger search: {e}")
+            return {"success": False, "error": str(e)}

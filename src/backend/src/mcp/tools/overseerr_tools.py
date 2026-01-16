@@ -42,7 +42,7 @@ class OverseerrTools(BaseTool):
             ),
             ToolDefinition(
                 name="overseerr_get_requests",
-                description="Get list of media requests with their status",
+                description="Get list of media requests with their status. Can filter by status, user, and sort order.",
                 parameters=[
                     ToolParameter(
                         name="status",
@@ -50,6 +50,20 @@ class OverseerrTools(BaseTool):
                         type="string",
                         required=False,
                         enum=["pending", "approved", "declined", "available", "processing"],
+                    ),
+                    ToolParameter(
+                        name="user_id",
+                        description="Filter by user ID (get from overseerr_get_users)",
+                        type="number",
+                        required=False,
+                    ),
+                    ToolParameter(
+                        name="sort",
+                        description="Sort order",
+                        type="string",
+                        required=False,
+                        enum=["added", "modified"],
+                        default="added",
                     ),
                     ToolParameter(
                         name="limit",
@@ -155,6 +169,123 @@ class OverseerrTools(BaseTool):
                 is_mutation=False,
                 requires_service="overseerr",
             ),
+            ToolDefinition(
+                name="overseerr_approve_request",
+                description="Approve a media request. The media will be sent to Radarr/Sonarr for download.",
+                parameters=[
+                    ToolParameter(
+                        name="request_id",
+                        description="ID of the request to approve (get from overseerr_get_requests)",
+                        type="number",
+                        required=True,
+                    ),
+                ],
+                category="requests",
+                is_mutation=True,
+                requires_service="overseerr",
+            ),
+            ToolDefinition(
+                name="overseerr_decline_request",
+                description="Decline/reject a media request with an optional reason.",
+                parameters=[
+                    ToolParameter(
+                        name="request_id",
+                        description="ID of the request to decline (get from overseerr_get_requests)",
+                        type="number",
+                        required=True,
+                    ),
+                    ToolParameter(
+                        name="reason",
+                        description="Optional reason for declining the request",
+                        type="string",
+                        required=False,
+                    ),
+                ],
+                category="requests",
+                is_mutation=True,
+                requires_service="overseerr",
+            ),
+            ToolDefinition(
+                name="overseerr_delete_request",
+                description="Delete a media request completely.",
+                parameters=[
+                    ToolParameter(
+                        name="request_id",
+                        description="ID of the request to delete (get from overseerr_get_requests)",
+                        type="number",
+                        required=True,
+                    ),
+                ],
+                category="requests",
+                is_mutation=True,
+                requires_service="overseerr",
+            ),
+            ToolDefinition(
+                name="overseerr_get_issues",
+                description="Get list of issues/problems reported by users for media items.",
+                parameters=[
+                    ToolParameter(
+                        name="status",
+                        description="Filter by issue status",
+                        type="string",
+                        required=False,
+                        enum=["open", "resolved"],
+                    ),
+                    ToolParameter(
+                        name="limit",
+                        description="Maximum number of issues to return",
+                        type="number",
+                        required=False,
+                        default=20,
+                    ),
+                ],
+                category="requests",
+                is_mutation=False,
+                requires_service="overseerr",
+            ),
+            ToolDefinition(
+                name="overseerr_update_issue",
+                description="Update issue status (resolve or reopen) and optionally add a comment.",
+                parameters=[
+                    ToolParameter(
+                        name="issue_id",
+                        description="ID of the issue to update",
+                        type="number",
+                        required=True,
+                    ),
+                    ToolParameter(
+                        name="status",
+                        description="New status for the issue",
+                        type="string",
+                        required=False,
+                        enum=["open", "resolved"],
+                    ),
+                    ToolParameter(
+                        name="comment",
+                        description="Optional comment to add to the issue",
+                        type="string",
+                        required=False,
+                    ),
+                ],
+                category="requests",
+                is_mutation=True,
+                requires_service="overseerr",
+            ),
+            ToolDefinition(
+                name="overseerr_delete_issue",
+                description="Delete an issue completely.",
+                parameters=[
+                    ToolParameter(
+                        name="issue_id",
+                        description="ID of the issue to delete",
+                        type="number",
+                        required=True,
+                    ),
+                ],
+                category="requests",
+                is_mutation=True,
+                requires_service="overseerr",
+            ),
         ]
 
     async def execute(self, tool_name: str, arguments: dict) -> dict:
@@ -196,6 +327,18 @@ class OverseerrTools(BaseTool):
                 return await self._get_users(adapter)
             elif tool_name == "overseerr_get_statistics":
                 return await self._get_statistics(adapter)
+            elif tool_name == "overseerr_approve_request":
+                return await self._approve_request(adapter, arguments)
+            elif tool_name == "overseerr_decline_request":
+                return await self._decline_request(adapter, arguments)
+            elif tool_name == "overseerr_delete_request":
+                return await self._delete_request(adapter, arguments)
+            elif tool_name == "overseerr_get_issues":
+                return await self._get_issues(adapter, arguments)
+            elif tool_name == "overseerr_update_issue":
+                return await self._update_issue(adapter, arguments)
+            elif tool_name == "overseerr_delete_issue":
+                return await self._delete_issue(adapter, arguments)
             else:
                 return {"success": False, "error": f"Unknown tool: {tool_name}"}
 
@@ -250,11 +393,18 @@ class OverseerrTools(BaseTool):
     async def _get_requests(self, adapter, arguments: dict) -> dict:
         """Get media requests."""
         status = arguments.get("status")
+        user_id = arguments.get("user_id")
+        sort = arguments.get("sort", "added")
         limit = arguments.get("limit", 20)
 
         # Adapter uses 'take' parameter, not 'limit'
         # Adapter returns {"results": [...], "page_info": {...}}
-        response = await adapter.get_requests(status=status, take=limit)
+        response = await adapter.get_requests(
+            status=status,
+            take=limit,
+            user_id=int(user_id) if user_id else None,
+            sort=sort,
+        )
         requests_list = response.get("results", [])
 
         return {
@@ -476,3 +626,128 @@ class OverseerrTools(BaseTool):
                 "total_users": stats.get("total_users", 0),
             },
         }
+
+    async def _approve_request(self, adapter, arguments: dict) -> dict:
+        """Approve a media request."""
+        request_id = arguments.get("request_id")
+
+        if not request_id:
+            return {"success": False, "error": "request_id is required"}
+
+        result = await adapter.approve_request_detailed(int(request_id))
+
+        if result.get("error") and not result.get("success"):
+            return {"success": False, "error": result.get("error")}
+
+        return {"success": True, "result": result}
+
+    async def _decline_request(self, adapter, arguments: dict) -> dict:
+        """Decline a media request."""
+        request_id = arguments.get("request_id")
+        reason = arguments.get("reason")
+
+        if not request_id:
+            return {"success": False, "error": "request_id is required"}
+
+        result = await adapter.decline_request_detailed(int(request_id), reason=reason)
+
+        if result.get("error") and not result.get("success"):
+            return {"success": False, "error": result.get("error")}
+
+        return {"success": True, "result": result}
+
+    async def _delete_request(self, adapter, arguments: dict) -> dict:
+        """Delete a media request."""
+        request_id = arguments.get("request_id")
+
+        if not request_id:
+            return {"success": False, "error": "request_id is required"}
+
+        result = await adapter.delete_request(int(request_id))
+
+        if result.get("error") and not result.get("success"):
+            return {"success": False, "error": result.get("error")}
+
+        return {"success": True, "result": result}
+
+    async def _get_issues(self, adapter, arguments: dict) -> dict:
+        """Get issues list."""
+        status = arguments.get("status")
+        limit = arguments.get("limit", 20)
+
+        response = await adapter.get_issues(take=limit, status=status)
+        issues_list = response.get("results", [])
+
+        return {
+            "success": True,
+            "result": {
+                "count": len(issues_list),
+                "issues": [
+                    {
+                        "id": issue.get("id"),
+                        "title": issue.get("media_info", {}).get("title"),
+                        "media_type": issue.get("media_info", {}).get("media_type"),
+                        "issue_type": issue.get("issue_type"),
+                        "status": issue.get("status"),
+                        "message": issue.get("message"),
+                        "created_by": issue.get("created_by"),
+                        "created_at": issue.get("created_at"),
+                        "problem_season": issue.get("problem_season"),
+                        "problem_episode": issue.get("problem_episode"),
+                        "url": issue.get("url"),
+                    }
+                    for issue in issues_list
+                ],
+            },
+        }
+
+    async def _update_issue(self, adapter, arguments: dict) -> dict:
+        """Update issue status and/or add comment."""
+        issue_id = arguments.get("issue_id")
+        status = arguments.get("status")
+        comment = arguments.get("comment")
+
+        if not issue_id:
+            return {"success": False, "error": "issue_id is required"}
+
+        results = []
+
+        # Add comment if provided
+        if comment:
+            comment_result = await adapter.add_issue_comment(int(issue_id), comment)
+            if comment_result.get("error") and not comment_result.get("success"):
+                return {"success": False, "error": comment_result.get("error")}
+            results.append(f"Comment added")
+
+        # Update status if provided
+        if status:
+            status_result = await adapter.update_issue_status(int(issue_id), status)
+            if status_result.get("error") and not status_result.get("success"):
+                return {"success": False, "error": status_result.get("error")}
+            results.append(f"Status updated to {status}")
+
+        if not results:
+            return {"success": False, "error": "Either status or comment is required"}
+
+        return {
+            "success": True,
+            "result": {
+                "issue_id": issue_id,
+                "actions": results,
+                "message": " and ".join(results),
+            },
+        }
+
+    async def _delete_issue(self, adapter, arguments: dict) -> dict:
+        """Delete an issue."""
+        issue_id = arguments.get("issue_id")
+
+        if not issue_id:
+            return {"success": False, "error": "issue_id is required"}
+
+        result = await adapter.delete_issue(int(issue_id))
+
+        if result.get("error") and not result.get("success"):
+            return {"success": False, "error": result.get("error")}
+
+        return {"success": True, "result": result}

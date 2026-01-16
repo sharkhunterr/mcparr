@@ -164,11 +164,14 @@ class TautulliAdapter(TokenAuthAdapter):
                 processed_sessions.append(
                     {
                         "session_key": session.get("session_key"),
+                        "session_id": session.get("session_id"),  # Used for terminate_session
                         "user": session.get("user"),
+                        "user_id": session.get("user_id"),
                         "friendly_name": session.get("friendly_name"),
                         "title": session.get("title"),
                         "parent_title": session.get("parent_title"),
                         "grandparent_title": session.get("grandparent_title"),
+                        "full_title": session.get("full_title"),
                         "media_type": session.get("media_type"),
                         "state": session.get("state"),
                         "progress_percent": session.get("progress_percent"),
@@ -178,8 +181,11 @@ class TautulliAdapter(TokenAuthAdapter):
                         "platform": session.get("platform"),
                         "product": session.get("product"),
                         "quality_profile": session.get("quality_profile"),
+                        "video_decision": session.get("video_decision"),
+                        "audio_decision": session.get("audio_decision"),
                         "bandwidth": session.get("bandwidth"),
                         "location": session.get("location"),
+                        "ip_address": session.get("ip_address"),
                     }
                 )
 
@@ -618,6 +624,43 @@ class TautulliAdapter(TokenAuthAdapter):
             ):
                 return user
         return None
+
+    async def terminate_session(
+        self, session_id: str, session_key: Optional[str] = None, message: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """Terminate a Plex streaming session.
+
+        Args:
+            session_id: The session_id from get_activity (required)
+            session_key: The session_key from get_activity (optional, for display)
+            message: Optional message to display to the user before termination
+
+        Returns:
+            Dict with termination status
+        """
+        try:
+            params = {"cmd": "terminate_session", "session_id": session_id}
+
+            if message:
+                params["message"] = message
+
+            response = await self._make_request("GET", "", params=params)
+            data = response.json()
+
+            if data.get("response", {}).get("result") == "success":
+                return {
+                    "success": True,
+                    "session_id": session_id,
+                    "session_key": session_key,
+                    "message": message or "Session terminated",
+                }
+            else:
+                error_msg = data.get("response", {}).get("message", "Failed to terminate session")
+                return {"success": False, "error": error_msg, "session_id": session_id}
+
+        except Exception as e:
+            self.logger.error(f"Failed to terminate session: {e}")
+            return {"success": False, "error": str(e), "session_id": session_id}
 
     def validate_config(self) -> List[str]:
         """Validate Tautulli-specific configuration."""

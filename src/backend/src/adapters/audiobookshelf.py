@@ -494,3 +494,202 @@ class AudiobookshelfAdapter(TokenAuthAdapter):
                 "listening_time_hours": 0,
                 "listened_today_hours": 0,
             }
+
+    async def scan_library(self, library_id: Optional[str] = None, force: bool = False) -> Dict[str, Any]:
+        """Trigger a library scan in Audiobookshelf.
+
+        Args:
+            library_id: Optional library ID to scan. If not provided, scans all libraries.
+            force: Force scan even for unchanged files.
+
+        Returns:
+            Dict with scan status and scanned libraries info.
+        """
+        try:
+            libraries = await self.get_libraries()
+
+            if not libraries:
+                return {"success": False, "error": "No libraries found in Audiobookshelf"}
+
+            scanned = []
+            errors = []
+
+            if library_id:
+                # Scan specific library
+                library = next((lib for lib in libraries if lib.get("id") == library_id), None)
+                if not library:
+                    available = [{"id": lib.get("id"), "name": lib.get("name")} for lib in libraries]
+                    return {
+                        "success": False,
+                        "error": f"Library with ID '{library_id}' not found",
+                        "available_libraries": available,
+                    }
+                libraries_to_scan = [library]
+            else:
+                # Scan all libraries
+                libraries_to_scan = libraries
+
+            for library in libraries_to_scan:
+                lib_id = library.get("id")
+                lib_name = library.get("name")
+                try:
+                    # Trigger scan - POST /api/libraries/{id}/scan
+                    params = {"force": "1" if force else "0"}
+                    await self._make_request("POST", f"/api/libraries/{lib_id}/scan", params=params)
+                    scanned.append({
+                        "id": lib_id,
+                        "name": lib_name,
+                        "status": "scan_started",
+                        "force": force,
+                    })
+                except Exception as e:
+                    errors.append({
+                        "library": lib_name,
+                        "error": str(e),
+                    })
+
+            return {
+                "success": len(scanned) > 0,
+                "scanned_libraries": scanned,
+                "total_scanned": len(scanned),
+                "errors": errors if errors else None,
+                "message": f"Scan started for {len(scanned)} library(ies)" if scanned else "No libraries scanned",
+            }
+
+        except Exception as e:
+            self.logger.error(f"Failed to scan library: {e}")
+            return {"success": False, "error": str(e)}
+
+    async def update_media_progress(
+        self,
+        library_item_id: str,
+        current_time: float,
+        duration: Optional[float] = None,
+        is_finished: bool = False,
+        episode_id: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Update listening progress for a library item.
+
+        Args:
+            library_item_id: The library item ID
+            current_time: Current position in seconds
+            duration: Total duration in seconds (optional)
+            is_finished: Whether the item is finished
+            episode_id: Episode ID for podcasts (optional)
+
+        Returns:
+            Dict with success status and updated progress info
+        """
+        try:
+            # Get item info first
+            item = await self.get_item(library_item_id)
+            if not item:
+                return {"success": False, "error": f"Item with ID {library_item_id} not found"}
+
+            title = item.get("title", library_item_id)
+            total_duration = duration or item.get("duration", 0)
+
+            # Calculate progress percentage
+            progress = current_time / total_duration if total_duration > 0 else 0
+            if is_finished:
+                progress = 1.0
+                current_time = total_duration
+
+            # Build the request payload
+            payload = {
+                "currentTime": current_time,
+                "progress": progress,
+                "isFinished": is_finished,
+            }
+
+            if duration:
+                payload["duration"] = duration
+
+            # Update progress
+            if episode_id:
+                endpoint = f"/api/me/progress/{library_item_id}/{episode_id}"
+            else:
+                endpoint = f"/api/me/progress/{library_item_id}"
+
+            await self._make_request("PATCH", endpoint, json=payload)
+
+            return {
+                "success": True,
+                "message": f"Progress updated for '{title}'",
+                "library_item_id": library_item_id,
+                "title": title,
+                "current_time": current_time,
+                "duration": total_duration,
+                "progress_percent": round(progress * 100, 2),
+                "is_finished": is_finished,
+                "url": self._get_item_url(library_item_id),
+            }
+
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 404:
+                return {"success": False, "error": f"Item with ID {library_item_id} not found"}
+            return {"success": False, "error": f"HTTP {e.response.status_code}"}
+        except Exception as e:
+            self.logger.error(f"Failed to update media progress: {e}")
+            return {"success": False, "error": str(e)}
+
+    async def mark_item_finished(self, library_item_id: str, episode_id: Optional[str] = None) -> Dict[str, Any]:
+        """Mark a library item as finished/completed.
+
+        Args:
+            library_item_id: The library item ID
+            episode_id: Episode ID for podcasts (optional)
+
+        Returns:
+            Dict with success status
+        """
+        try:
+            # Get item info
+            item = await self.get_item(library_item_id)
+            if not item:
+                return {"success": False, "error": f"Item with ID {library_item_id} not found"}
+
+            title = item.get("title", library_item_id)
+            duration = item.get("duration", 0)
+
+            return await self.update_media_progress(
+                library_item_id=library_item_id,
+                current_time=duration,
+                duration=duration,
+                is_finished=True,
+                episode_id=episode_id,
+            )
+
+        except Exception as e:
+            self.logger.error(f"Failed to mark item as finished: {e}")
+            return {"success": False, "error": str(e)}
+
+    async def clear_item_progress(self, library_item_id: str, episode_id: Optional[str] = None) -> Dict[str, Any]:
+        """Clear/reset progress for a library item.
+
+        Args:
+            library_item_id: The library item ID
+            episode_id: Episode ID for podcasts (optional)
+
+        Returns:
+            Dict with success status
+        """
+        try:
+            # Get item info
+            item = await self.get_item(library_item_id)
+            if not item:
+                return {"success": False, "error": f"Item with ID {library_item_id} not found"}
+
+            title = item.get("title", library_item_id)
+
+            # Reset progress to 0
+            return await self.update_media_progress(
+                library_item_id=library_item_id,
+                current_time=0,
+                is_finished=False,
+                episode_id=episode_id,
+            )
+
+        except Exception as e:
+            self.logger.error(f"Failed to clear item progress: {e}")
+            return {"success": False, "error": str(e)}

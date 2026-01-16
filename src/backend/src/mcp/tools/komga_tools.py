@@ -70,6 +70,63 @@ class KomgaTools(BaseTool):
                 is_mutation=False,
                 requires_service="komga",
             ),
+            ToolDefinition(
+                name="komga_scan_library",
+                description="Trigger a library scan in Komga to detect new or changed comic/manga files. Without parameters, scans all libraries.",
+                parameters=[
+                    ToolParameter(
+                        name="library_name",
+                        description="Name of the library to scan. Leave empty to scan all libraries.",
+                        type="string",
+                        required=False,
+                    ),
+                ],
+                category="media",
+                is_mutation=True,
+                requires_service="komga",
+            ),
+            ToolDefinition(
+                name="komga_mark_read",
+                description="Mark a book or entire series as read in Komga.",
+                parameters=[
+                    ToolParameter(
+                        name="book_id",
+                        description="Book ID to mark as read (get from komga_search)",
+                        type="string",
+                        required=False,
+                    ),
+                    ToolParameter(
+                        name="series_id",
+                        description="Series ID to mark all books as read (get from komga_search)",
+                        type="string",
+                        required=False,
+                    ),
+                ],
+                category="media",
+                is_mutation=True,
+                requires_service="komga",
+            ),
+            ToolDefinition(
+                name="komga_mark_unread",
+                description="Mark a book or entire series as unread in Komga.",
+                parameters=[
+                    ToolParameter(
+                        name="book_id",
+                        description="Book ID to mark as unread (get from komga_search)",
+                        type="string",
+                        required=False,
+                    ),
+                    ToolParameter(
+                        name="series_id",
+                        description="Series ID to mark all books as unread (get from komga_search)",
+                        type="string",
+                        required=False,
+                    ),
+                ],
+                category="media",
+                is_mutation=True,
+                requires_service="komga",
+            ),
         ]
 
     async def execute(self, tool_name: str, arguments: dict) -> dict:
@@ -106,6 +163,12 @@ class KomgaTools(BaseTool):
                 return await self._get_users(adapter)
             elif tool_name == "komga_get_statistics":
                 return await self._get_statistics(adapter)
+            elif tool_name == "komga_scan_library":
+                return await self._scan_library(adapter, arguments)
+            elif tool_name == "komga_mark_read":
+                return await self._mark_read(adapter, arguments)
+            elif tool_name == "komga_mark_unread":
+                return await self._mark_unread(adapter, arguments)
             else:
                 return {"success": False, "error": f"Unknown tool: {tool_name}"}
 
@@ -171,3 +234,55 @@ class KomgaTools(BaseTool):
         stats = await adapter.get_statistics()
 
         return {"success": True, "result": stats}
+
+    async def _scan_library(self, adapter, arguments: dict) -> dict:
+        """Trigger a library scan in Komga."""
+        library_name = arguments.get("library_name")
+
+        # Resolve library name to ID if provided
+        library_id = None
+        if library_name:
+            library_id, resolved_name = await self._resolve_library_id(adapter, library_name)
+
+        result = await adapter.scan_library(library_id=library_id)
+
+        if result.get("error") and not result.get("success"):
+            return {"success": False, "error": result.get("error"), "available_libraries": result.get("available_libraries")}
+
+        return {"success": True, "result": result}
+
+    async def _mark_read(self, adapter, arguments: dict) -> dict:
+        """Mark a book or series as read."""
+        book_id = arguments.get("book_id")
+        series_id = arguments.get("series_id")
+
+        if not book_id and not series_id:
+            return {"success": False, "error": "Either book_id or series_id is required"}
+
+        if book_id:
+            result = await adapter.mark_book_read(book_id)
+        else:
+            result = await adapter.mark_series_read(series_id)
+
+        if result.get("error") and not result.get("success"):
+            return {"success": False, "error": result.get("error")}
+
+        return {"success": True, "result": result}
+
+    async def _mark_unread(self, adapter, arguments: dict) -> dict:
+        """Mark a book or series as unread."""
+        book_id = arguments.get("book_id")
+        series_id = arguments.get("series_id")
+
+        if not book_id and not series_id:
+            return {"success": False, "error": "Either book_id or series_id is required"}
+
+        if book_id:
+            result = await adapter.mark_book_unread(book_id)
+        else:
+            result = await adapter.mark_series_unread(series_id)
+
+        if result.get("error") and not result.get("success"):
+            return {"success": False, "error": result.get("error")}
+
+        return {"success": True, "result": result}

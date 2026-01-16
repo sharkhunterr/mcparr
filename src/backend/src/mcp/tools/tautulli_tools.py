@@ -324,6 +324,30 @@ class TautulliTools(BaseTool):
                 is_mutation=False,
                 requires_service="tautulli",
             ),
+            ToolDefinition(
+                name="tautulli_terminate_session",
+                description=(
+                    "Terminate/stop an active Plex streaming session. "
+                    "Use tautulli_get_activity first to get the session_id of the stream to stop."
+                ),
+                parameters=[
+                    ToolParameter(
+                        name="session_id",
+                        description="The session_id from tautulli_get_activity to terminate",
+                        type="string",
+                        required=True,
+                    ),
+                    ToolParameter(
+                        name="message",
+                        description="Optional message to display to the user before termination",
+                        type="string",
+                        required=False,
+                    ),
+                ],
+                category="monitoring",
+                is_mutation=True,
+                requires_service="tautulli",
+            ),
         ]
 
     async def execute(self, tool_name: str, arguments: dict) -> dict:
@@ -380,6 +404,8 @@ class TautulliTools(BaseTool):
                 return await self._get_user_stats(adapter, arguments)
             elif tool_name == "tautulli_get_watch_stats_summary":
                 return await self._get_watch_stats_summary(adapter, arguments)
+            elif tool_name == "tautulli_terminate_session":
+                return await self._terminate_session(adapter, arguments)
             else:
                 return {"success": False, "error": f"Unknown tool: {tool_name}"}
 
@@ -401,15 +427,22 @@ class TautulliTools(BaseTool):
                 "lan_bandwidth_mbps": round(activity.get("lan_bandwidth", 0) / 1000, 2),
                 "sessions": [
                     {
+                        "session_id": session.get("session_id"),  # Used for terminate_session
+                        "session_key": session.get("session_key"),
                         "user": session.get("friendly_name") or session.get("user"),
+                        "user_id": session.get("user_id"),
                         "title": self._format_title(session),
+                        "full_title": session.get("full_title"),
                         "media_type": session.get("media_type"),
                         "state": session.get("state"),
                         "progress_percent": session.get("progress_percent"),
                         "player": session.get("player"),
                         "platform": session.get("platform"),
                         "quality": session.get("quality_profile"),
+                        "video_decision": session.get("video_decision"),
+                        "audio_decision": session.get("audio_decision"),
                         "location": session.get("location"),
+                        "ip_address": session.get("ip_address"),
                     }
                     for session in activity.get("sessions", [])
                 ],
@@ -932,3 +965,25 @@ class TautulliTools(BaseTool):
                 "top_platforms": top_platforms,
             },
         }
+
+    async def _terminate_session(self, adapter, arguments: dict) -> dict:
+        """Terminate an active Plex streaming session."""
+        session_id = arguments.get("session_id")
+        message = arguments.get("message")
+
+        if not session_id:
+            return {"success": False, "error": "session_id is required"}
+
+        result = await adapter.terminate_session(session_id=session_id, message=message)
+
+        if result.get("success"):
+            return {
+                "success": True,
+                "result": {
+                    "terminated": True,
+                    "session_id": session_id,
+                    "message": message or "Session terminated successfully",
+                },
+            }
+        else:
+            return {"success": False, "error": result.get("error", "Failed to terminate session")}
