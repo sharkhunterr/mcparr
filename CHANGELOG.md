@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.2.37](https://github.com/sharkhunterr/mcparr/-/compare/v0.2.36...v0.2.37) (2026-01-17)
+
+
+### Features
+
+* **ci:** sync GitLab release with GITHUB_RELEASES.md ([e798081](https://github.com/sharkhunterr/mcparr/-/commit/e798081813c6bfccb7bf846c37c97ec894024b25))
+
+
+### Bug Fixes
+
+* **ci:** improve GitHub release notes extraction ([c93f0ca](https://github.com/sharkhunterr/mcparr/-/commit/c93f0cae2a912cc6de0f1f467e7a6b1e7f5528bb))
+
 ### [0.2.36](https://github.com/sharkhunterr/mcparr/-/compare/v0.2.35...v0.2.36) (2026-01-17)
 
 ### [0.2.35](https://github.com/sharkhunterr/mcparr/-/compare/v0.2.34...v0.2.35) (2026-01-17)
