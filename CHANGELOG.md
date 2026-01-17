@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.2.31](https://github.com/sharkhunterr/mcparr/-/compare/v0.2.30...v0.2.31) (2026-01-17)
+
+
+### Bug Fixes
+
+* **ci:** improve docker health check with retry loop ([94da421](https://github.com/sharkhunterr/mcparr/-/commit/94da421d63459549f8399d0d0b6e39cae1476dc3))
+
 ### [0.2.30](https://github.com/sharkhunterr/mcparr/-/compare/v0.2.29...v0.2.30) (2026-01-17)
 
 
