@@ -750,6 +750,8 @@
       "saveToContextHelp": "Sauvegarde des valeurs du résultat pour les utiliser dans les étapes suivantes (ex: context.ma_variable)",
       "editAction": "Modifier l'action",
       "editStep": "Modifier l'étape",
+      "moveUp": "Monter",
+      "moveDown": "Descendre",
       "editCondition": "Modifier la condition",
       "conditionalEditInfo": "Les conditions d'un bloc conditionnel ne peuvent pas être modifiées ici. Supprimez et recréez le bloc si nécessaire.",
       "help": {

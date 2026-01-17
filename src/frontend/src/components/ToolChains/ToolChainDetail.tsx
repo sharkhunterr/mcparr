@@ -11,6 +11,8 @@ import {
   GripVertical,
   ChevronDown,
   ChevronUp,
+  ArrowUp,
+  ArrowDown,
   MessageSquare,
   ToggleLeft,
   ToggleRight,
@@ -275,6 +277,34 @@ const ToolChainDetail: FC<ToolChainDetailProps> = ({ chain, onClose, onUpdated }
       onUpdated();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update step');
+    }
+  };
+
+  const handleMoveStep = async (stepIndex: number, direction: 'up' | 'down') => {
+    const newIndex = direction === 'up' ? stepIndex - 1 : stepIndex + 1;
+
+    // Check bounds
+    if (newIndex < 0 || newIndex >= steps.length) return;
+
+    // Create new order array by swapping positions
+    const newStepIds = steps.map(s => s.id);
+    [newStepIds[stepIndex], newStepIds[newIndex]] = [newStepIds[newIndex], newStepIds[stepIndex]];
+
+    try {
+      setError(null);
+      const response = await fetch(`${backendUrl}/api/tool-chains/${chain.id}/steps/reorder`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newStepIds)
+      });
+      if (!response.ok) {
+        const errorData = await response.text();
+        throw new Error(`Failed to reorder steps: ${response.status} ${errorData}`);
+      }
+      await fetchSteps();
+      onUpdated();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to reorder steps');
     }
   };
 
@@ -1700,9 +1730,32 @@ const ToolChainDetail: FC<ToolChainDetailProps> = ({ chain, onClose, onUpdated }
                       >
                         <div className="flex items-start justify-between">
                           <div className="flex items-start space-x-3">
-                            <div className="flex items-center space-x-2 text-gray-400">
-                              <GripVertical className="w-4 h-4" />
-                              <span className="text-sm font-mono">{index + 1}</span>
+                            <div className="flex flex-col items-center text-gray-400">
+                              <button
+                                onClick={(e) => { e.stopPropagation(); handleMoveStep(index, 'up'); }}
+                                disabled={index === 0}
+                                className={`p-0.5 rounded transition-colors ${
+                                  index === 0
+                                    ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed'
+                                    : 'hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20'
+                                }`}
+                                title={t('toolChains.detail.moveUp')}
+                              >
+                                <ArrowUp className="w-3.5 h-3.5" />
+                              </button>
+                              <span className="text-sm font-mono my-0.5">{index + 1}</span>
+                              <button
+                                onClick={(e) => { e.stopPropagation(); handleMoveStep(index, 'down'); }}
+                                disabled={index === steps.length - 1}
+                                className={`p-0.5 rounded transition-colors ${
+                                  index === steps.length - 1
+                                    ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed'
+                                    : 'hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20'
+                                }`}
+                                title={t('toolChains.detail.moveDown')}
+                              >
+                                <ArrowDown className="w-3.5 h-3.5" />
+                              </button>
                             </div>
                             <div className="flex-1">
                               {/* Source Tool */}

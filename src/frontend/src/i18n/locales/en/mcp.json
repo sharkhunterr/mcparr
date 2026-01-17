@@ -763,6 +763,8 @@
       "saveToContextHelp": "Save result values to use in later steps (e.g., context.my_variable)",
       "editAction": "Edit action",
       "editStep": "Edit step",
+      "moveUp": "Move up",
+      "moveDown": "Move down",
       "editCondition": "Edit condition",
       "conditionalEditInfo": "Conditions on a conditional block cannot be edited here. Delete and recreate the block if needed.",
       "help": {

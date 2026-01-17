@@ -20,7 +20,7 @@ class Settings(BaseSettings):
 
     # API Configuration
     api_host: str = Field(default="0.0.0.0", alias="API_HOST")
-    api_port: int = Field(default=8002, alias="API_PORT")
+    api_port: int = Field(default=8000, alias="API_PORT")
     mcp_port: int = Field(default=8001, alias="MCP_PORT")
 
     # Database

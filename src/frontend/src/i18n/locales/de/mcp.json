@@ -698,6 +698,8 @@
       "noSteps": "Keine Schritte konfiguriert",
       "addStep": "Schritt hinzufügen",
       "editStep": "Schritt bearbeiten",
+      "moveUp": "Nach oben",
+      "moveDown": "Nach unten",
       "sourceTool": "Quelltool",
       "trigger": "Auslöser",
       "when": "Wenn",

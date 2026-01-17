@@ -2,7 +2,7 @@
 
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from loguru import logger
 from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -896,20 +896,31 @@ async def delete_chain_step(chain_id: str, step_id: str, db: AsyncSession = Depe
 @router.post("/{chain_id}/steps/reorder", response_model=List[ToolChainStepResponse])
 async def reorder_chain_steps(
     chain_id: str,
-    step_ids: List[str],
+    request: Request,
     db: AsyncSession = Depends(get_db),
 ):
     """Reorder steps in a tool chain.
 
     The step_ids list should contain all step IDs in the desired order.
+    Body: JSON array of step IDs in desired order, e.g. ["step1-id", "step2-id"]
     """
+    step_ids: List[str] = await request.json()
     # Verify chain exists
     chain_result = await db.execute(select(ToolChain).where(ToolChain.id == chain_id))
     if not chain_result.scalar_one_or_none():
         raise HTTPException(status_code=404, detail="Tool chain not found")
 
-    # Get all steps for this chain
-    result = await db.execute(select(ToolChainStep).where(ToolChainStep.chain_id == chain_id))
+    # Get all steps for this chain with eager loading
+    result = await db.execute(
+        select(ToolChainStep)
+        .options(
+            selectinload(ToolChainStep.condition_groups).selectinload(ToolChainConditionGroup.conditions),
+            selectinload(ToolChainStep.condition_groups).selectinload(ToolChainConditionGroup.child_groups),
+            selectinload(ToolChainStep.then_actions),
+            selectinload(ToolChainStep.else_actions),
+        )
+        .where(ToolChainStep.chain_id == chain_id)
+    )
     steps = {str(s.id): s for s in result.scalars().all()}
 
     # Validate all step_ids belong to this chain
@@ -1543,10 +1554,14 @@ async def reorder_step_actions(
     chain_id: str,
     step_id: str,
     branch: str,
-    action_ids: List[str],
+    request: Request,
     db: AsyncSession = Depends(get_db),
 ):
-    """Reorder actions in a step branch."""
+    """Reorder actions in a step branch.
+
+    Body: JSON array of action IDs in desired order.
+    """
+    action_ids: List[str] = await request.json()
     if branch not in ("then", "else"):
         raise HTTPException(status_code=400, detail="Branch must be 'then' or 'else'")
 
