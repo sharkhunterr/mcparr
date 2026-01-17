@@ -85,6 +85,3 @@ htmlcov/
 *.coverage
 .coverage
 coverage.xml
-
-# GitHub releases notes (GitLab CI only)
-GITHUB_RELEASES.md
