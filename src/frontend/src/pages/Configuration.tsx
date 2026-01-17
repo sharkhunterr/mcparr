@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import {
   Settings,
-  Palette,
   Bell,
   FileText,
   Monitor,
@@ -10,7 +9,6 @@ import {
   RotateCcw,
   Check,
   RefreshCw,
-  LayoutDashboard,
   Download,
   Upload,
   Database,
@@ -39,7 +37,7 @@ import { useWizard } from '../contexts/WizardContext';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../lib/api';
 
-type TabId = 'appearance' | 'general' | 'logs' | 'notifications' | 'dashboard' | 'backup' | 'about';
+type TabId = 'general' | 'logs' | 'notifications' | 'backup' | 'about';
 
 interface VersionInfo {
   app_name: string;
@@ -119,7 +117,7 @@ function Toggle({
 export default function Configuration() {
   const { t } = useTranslation('configuration');
   const { t: tCommon } = useTranslation('common');
-  const [activeTab, setActiveTab] = useState<TabId>('appearance');
+  const [activeTab, setActiveTab] = useState<TabId>('general');
   const { theme, setTheme } = useTheme();
   const { settings, updateSettings, resetSettings } = useSettings();
   const { resetWizard } = useWizard();
@@ -130,11 +128,9 @@ export default function Configuration() {
   const [loadingVersion, setLoadingVersion] = useState(false);
 
   const tabs = [
-    { id: 'appearance' as const, label: t('tabs.appearance'), icon: Palette },
-    { id: 'general' as const, label: t('tabs.general'), icon: RefreshCw },
+    { id: 'general' as const, label: t('tabs.general'), icon: Settings },
     { id: 'logs' as const, label: t('tabs.logs'), icon: FileText },
     { id: 'notifications' as const, label: t('tabs.notifications'), icon: Bell },
-    { id: 'dashboard' as const, label: t('tabs.dashboard'), icon: LayoutDashboard },
     { id: 'backup' as const, label: t('tabs.backup'), icon: FolderArchive },
     { id: 'about' as const, label: t('tabs.about'), icon: Info },
   ];
@@ -328,45 +324,6 @@ export default function Configuration() {
     }
   };
 
-  const renderAppearanceTab = () => (
-    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-4 sm:p-6">
-      <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">{t('appearance.title')}</h3>
-      <div className="grid grid-cols-3 gap-3">
-        {[
-          { value: 'light', label: t('appearance.themeOptions.light'), icon: Sun },
-          { value: 'dark', label: t('appearance.themeOptions.dark'), icon: Moon },
-          { value: 'system', label: t('appearance.themeOptions.system'), icon: Monitor },
-        ].map((option) => (
-          <button
-            key={option.value}
-            onClick={() => setTheme(option.value as 'light' | 'dark' | 'system')}
-            className={`relative flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
-              theme === option.value
-                ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-            }`}
-          >
-            <option.icon
-              className={`w-6 h-6 ${
-                theme === option.value ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400'
-              }`}
-            />
-            <span
-              className={`text-sm font-medium ${
-                theme === option.value ? 'text-blue-600 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300'
-              }`}
-            >
-              {option.label}
-            </span>
-            {theme === option.value && (
-              <Check className="w-4 h-4 text-blue-500 absolute top-2 right-2" />
-            )}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-
   const handleResetWizard = () => {
     if (window.confirm(t('general.wizard.confirmMessage'))) {
       resetWizard();
@@ -376,6 +333,45 @@ export default function Configuration() {
 
   const renderGeneralTab = () => (
     <div className="space-y-6">
+      {/* Appearance Section */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-4 sm:p-6">
+        <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">{t('appearance.title')}</h3>
+        <div className="grid grid-cols-3 gap-3">
+          {[
+            { value: 'light', label: t('appearance.themeOptions.light'), icon: Sun },
+            { value: 'dark', label: t('appearance.themeOptions.dark'), icon: Moon },
+            { value: 'system', label: t('appearance.themeOptions.system'), icon: Monitor },
+          ].map((option) => (
+            <button
+              key={option.value}
+              onClick={() => setTheme(option.value as 'light' | 'dark' | 'system')}
+              className={`relative flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
+                theme === option.value
+                  ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                  : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+              }`}
+            >
+              <option.icon
+                className={`w-6 h-6 ${
+                  theme === option.value ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400'
+                }`}
+              />
+              <span
+                className={`text-sm font-medium ${
+                  theme === option.value ? 'text-blue-600 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300'
+                }`}
+              >
+                {option.label}
+              </span>
+              {theme === option.value && (
+                <Check className="w-4 h-4 text-blue-500 absolute top-2 right-2" />
+              )}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Language & Refresh Section */}
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-4 sm:p-6 space-y-4">
         <div className="flex items-center justify-between py-2">
           <div>
@@ -424,6 +420,44 @@ export default function Configuration() {
             </select>
           </div>
         )}
+      </div>
+
+      {/* Dashboard Section */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-4 sm:p-6 space-y-4">
+        <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">{t('dashboard.title')}</h3>
+
+        <div className="flex items-center justify-between py-2">
+          <div>
+            <p className="text-sm font-medium text-gray-900 dark:text-white">{t('dashboard.compactMode.label')}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">{t('dashboard.compactMode.description')}</p>
+          </div>
+          <Toggle
+            enabled={settings.dashboardCompactMode}
+            onChange={(value) => updateSettings({ dashboardCompactMode: value })}
+          />
+        </div>
+
+        <div className="flex items-center justify-between py-2">
+          <div>
+            <p className="text-sm font-medium text-gray-900 dark:text-white">{t('dashboard.systemMetrics.label')}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">{t('dashboard.systemMetrics.description')}</p>
+          </div>
+          <Toggle
+            enabled={settings.showSystemMetrics}
+            onChange={(value) => updateSettings({ showSystemMetrics: value })}
+          />
+        </div>
+
+        <div className="flex items-center justify-between py-2">
+          <div>
+            <p className="text-sm font-medium text-gray-900 dark:text-white">{t('dashboard.mcpStats.label')}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">{t('dashboard.mcpStats.description')}</p>
+          </div>
+          <Toggle
+            enabled={settings.showMcpStats}
+            onChange={(value) => updateSettings({ showMcpStats: value })}
+          />
+        </div>
       </div>
 
       {/* Wizard section */}
@@ -550,43 +584,6 @@ export default function Configuration() {
           enabled={settings.alertOnError}
           onChange={(value) => updateSettings({ alertOnError: value })}
           disabled={!settings.notificationsEnabled}
-        />
-      </div>
-    </div>
-  );
-
-  const renderDashboardTab = () => (
-    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-4 sm:p-6 space-y-4">
-      <div className="flex items-center justify-between py-2">
-        <div>
-          <p className="text-sm font-medium text-gray-900 dark:text-white">{t('dashboard.compactMode.label')}</p>
-          <p className="text-xs text-gray-500 dark:text-gray-400">{t('dashboard.compactMode.description')}</p>
-        </div>
-        <Toggle
-          enabled={settings.dashboardCompactMode}
-          onChange={(value) => updateSettings({ dashboardCompactMode: value })}
-        />
-      </div>
-
-      <div className="flex items-center justify-between py-2">
-        <div>
-          <p className="text-sm font-medium text-gray-900 dark:text-white">{t('dashboard.systemMetrics.label')}</p>
-          <p className="text-xs text-gray-500 dark:text-gray-400">{t('dashboard.systemMetrics.description')}</p>
-        </div>
-        <Toggle
-          enabled={settings.showSystemMetrics}
-          onChange={(value) => updateSettings({ showSystemMetrics: value })}
-        />
-      </div>
-
-      <div className="flex items-center justify-between py-2">
-        <div>
-          <p className="text-sm font-medium text-gray-900 dark:text-white">{t('dashboard.mcpStats.label')}</p>
-          <p className="text-xs text-gray-500 dark:text-gray-400">{t('dashboard.mcpStats.description')}</p>
-        </div>
-        <Toggle
-          enabled={settings.showMcpStats}
-          onChange={(value) => updateSettings({ showMcpStats: value })}
         />
       </div>
     </div>
@@ -1076,16 +1073,12 @@ export default function Configuration() {
 
   const renderTabContent = () => {
     switch (activeTab) {
-      case 'appearance':
-        return renderAppearanceTab();
       case 'general':
         return renderGeneralTab();
       case 'logs':
         return renderLogsTab();
       case 'notifications':
         return renderNotificationsTab();
-      case 'dashboard':
-        return renderDashboardTab();
       case 'backup':
         return renderBackupTab();
       case 'about':
