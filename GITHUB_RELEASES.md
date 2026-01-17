@@ -4,6 +4,60 @@
 
 ---
 
+# v0.2.39
+
+**Title:** `v0.2.39 - Complete Release Automation System`
+
+**Release Notes (copier ci-dessous):**
+
+---
+
+## 🎯 What's New in v0.2.39
+
+### ✨ Release System Completion
+- **GITHUB_RELEASES.md** - Finalized versioned release notes system
+  - Single source of truth for all release documentation
+  - Versioned in both GitLab and GitHub repositories
+  - Automatic extraction by CI/CD pipelines
+  - Clean, formatted notes for all platforms
+
+### 🔧 Technical Refinements
+- **Improved Extraction Pattern** - Optimized AWK pattern for release notes
+  - Precise section detection stopping at next version marker
+  - Automatic cleanup of markdown separators
+  - Robust multi-level fallback system
+- **Cross-Platform Consistency** - Identical release notes across all platforms
+  - GitLab releases use GITHUB_RELEASES.md
+  - GitHub releases use GITHUB_RELEASES.md
+  - Docker Hub updates synchronized
+  - All platforms show identical formatted content
+
+### 📚 Documentation & Workflow
+- **Simplified Workflow** - One command deployment remains simple
+  - `npm run release:full` triggers complete automation
+  - GitLab CI handles all platform deployments
+  - Automated verification across all services
+  - No manual intervention required
+- **Historical Notes** - Complete release history maintained
+  - v0.2.34 through v0.2.39 documented
+  - Consistent format across all versions
+  - Easy reference for changelog and release content
+
+### 🚀 Deployment Flow
+Complete automation from local to all platforms:
+1. Local: `npm run release:full` → version bump + commit + tag
+2. GitLab CI: Build, test, and deploy to Docker Hub
+3. GitLab CI: Sync code and tags to GitHub
+4. GitLab CI: Create releases on both GitLab and GitHub
+5. Verification: Automated checks across all platforms
+
+---
+
+**Full Changelog**: https://github.com/sharkhunterr/mcparr/compare/v0.2.38...v0.2.39
+
+---
+---
+
 # v0.2.38
 
 **Title:** `v0.2.38 - Automated Release Notes`
