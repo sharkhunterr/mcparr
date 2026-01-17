@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.2.33](https://github.com/sharkhunterr/mcparr/-/compare/v0.2.32...v0.2.33) (2026-01-17)
+
+
+### Bug Fixes
+
+* **docker:** stamp alembic after creating fresh database ([08ab0af](https://github.com/sharkhunterr/mcparr/-/commit/08ab0af0cac1990ede400a4f34449b370a44d849))
+
 ### [0.2.32](https://github.com/sharkhunterr/mcparr/-/compare/v0.2.31...v0.2.32) (2026-01-17)
 
 
