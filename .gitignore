@@ -85,6 +85,3 @@ htmlcov/
 *.coverage
 .coverage
 coverage.xml
-
-# GitHub releases notes (local only)
-GITHUB_RELEASES.md
