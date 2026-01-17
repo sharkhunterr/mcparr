@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.2.28](https://github.com/sharkhunterr/mcparr/-/compare/v0.2.27...v0.2.28) (2026-01-17)
+
+
+### Bug Fixes
+
+* **lint:** remove unused variables and fix f-string warnings ([2d3c459](https://github.com/sharkhunterr/mcparr/-/commit/2d3c459698d1078221247aa4d6e2a74470ca9b00))
+* **toolchains:** remove unused GripVertical import ([aca37b8](https://github.com/sharkhunterr/mcparr/-/commit/aca37b8478ac275da60ec7fd577ec933073f796c))
+
 ### [0.2.27](https://github.com/sharkhunterr/mcparr/-/compare/v0.2.26...v0.2.27) (2026-01-17)
 
 
