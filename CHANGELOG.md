@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.2.27](https://github.com/sharkhunterr/mcparr/-/compare/v0.2.26...v0.2.27) (2026-01-17)
+
+
+### Features
+
+* **mcp:** add content management tools for multiple services ([6044e24](https://github.com/sharkhunterr/mcparr/-/commit/6044e24c597b5e58ce8f612a1038607878de3465))
+* **mcp:** add queue match tools and automatic tool permission sync ([6215446](https://github.com/sharkhunterr/mcparr/-/commit/62154468a45199d727a16135cdb355fcd9274679))
+* **plex:** add library scan tool and refreshing status ([5499ec2](https://github.com/sharkhunterr/mcparr/-/commit/5499ec2fece4c3f61db78e6e4ea0fb744961454c))
+* **toolchains:** add move up/down buttons for step reordering ([5e9828f](https://github.com/sharkhunterr/mcparr/-/commit/5e9828f09064f067b425b187eadad71b0f89641f))
+* **version:** add version display and update detection from GitHub ([487bdce](https://github.com/sharkhunterr/mcparr/-/commit/487bdcec519a7f250511359a4255608e617c260e))
+
+
+### Bug Fixes
+
+* **mcp:** handle SQLAlchemy transaction rollback errors in tool logging ([0c955c7](https://github.com/sharkhunterr/mcparr/-/commit/0c955c7dc8c17a70204dc6cd92e4be65f8e8ea74))
+
 ### [0.2.26](https://github.com/sharkhunterr/mcparr/-/compare/v0.2.25...v0.2.26) (2026-01-15)
 
 
