@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.2.34](https://github.com/sharkhunterr/mcparr/-/compare/v0.2.33...v0.2.34) (2026-01-17)
+
+
+### Features
+
+* **ci:** add GitHub release automation via GitLab CI ([22a8006](https://github.com/sharkhunterr/mcparr/-/commit/22a8006eb8a7e4017d1b0bc84ac99bdd34299ffb))
+* **scripts:** add flexible release, push and docker deployment automation ([05c0674](https://github.com/sharkhunterr/mcparr/-/commit/05c067428b6227a39e0540486ab4938426ad39d9))
+
 ### [0.2.33](https://github.com/sharkhunterr/mcparr/-/compare/v0.2.32...v0.2.33) (2026-01-17)
 
 
