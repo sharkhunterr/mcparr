@@ -252,6 +252,9 @@ export const api = {
   health: () => apiClient.get('/health'),
   healthDetailed: () => apiClient.get('/health/detailed'),
 
+  // Version
+  version: () => apiClient.get('/version'),
+
   // Dashboard
   dashboard: {
     overview: () => apiClient.get('/api/v1/dashboard/overview'),

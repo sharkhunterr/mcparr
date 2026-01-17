@@ -7,7 +7,22 @@
     "logs": "Logs",
     "notifications": "Notifications",
     "dashboard": "Dashboard",
-    "backup": "Backup"
+    "backup": "Backup",
+    "about": "About"
+  },
+  "about": {
+    "title": "About",
+    "description": "MCP AI Gateway with web administration interface",
+    "refresh": "Refresh",
+    "currentVersion": "Current version",
+    "latestVersion": "Latest version",
+    "updateAvailable": "Update",
+    "newVersionAvailable": "New version {{version}} available",
+    "updateDescription": "A new version is available. Check the release notes for more details.",
+    "viewRelease": "View release",
+    "releaseNotes": "Release notes",
+    "lastChecked": "Last checked",
+    "loadError": "Failed to load version information"
   },
   "appearance": {
     "title": "Theme",

@@ -101,5 +101,8 @@
     "activeAlerts": "aktive Warnungen",
     "noActiveAlerts": "Keine aktiven Warnungen",
     "viewAll": "Alle Warnungen anzeigen"
+  },
+  "version": {
+    "updateAvailable": "Update verfugbar: v{{version}}"
   }
 }

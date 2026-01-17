@@ -7,7 +7,22 @@
     "logs": "Log",
     "notifications": "Notifiche",
     "dashboard": "Dashboard",
-    "backup": "Backup"
+    "backup": "Backup",
+    "about": "Info"
+  },
+  "about": {
+    "title": "Info",
+    "description": "Gateway IA MCP con interfaccia di amministrazione web",
+    "refresh": "Aggiorna",
+    "currentVersion": "Versione attuale",
+    "latestVersion": "Ultima versione",
+    "updateAvailable": "Aggiornamento",
+    "newVersionAvailable": "Nuova versione {{version}} disponibile",
+    "updateDescription": "E disponibile una nuova versione. Consulta le note di rilascio per maggiori dettagli.",
+    "viewRelease": "Vedi release",
+    "releaseNotes": "Note di rilascio",
+    "lastChecked": "Ultimo controllo",
+    "loadError": "Impossibile caricare le informazioni sulla versione"
   },
   "appearance": {
     "title": "Tema",

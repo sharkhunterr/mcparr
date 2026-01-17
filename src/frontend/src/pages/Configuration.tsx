@@ -27,6 +27,10 @@ import {
   Link2,
   Search,
   Bot,
+  Info,
+  Github,
+  ExternalLink,
+  ArrowUpCircle,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../contexts/ThemeContext';
@@ -35,7 +39,18 @@ import { useWizard } from '../contexts/WizardContext';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../lib/api';
 
-type TabId = 'appearance' | 'general' | 'logs' | 'notifications' | 'dashboard' | 'backup';
+type TabId = 'appearance' | 'general' | 'logs' | 'notifications' | 'dashboard' | 'backup' | 'about';
+
+interface VersionInfo {
+  app_name: string;
+  current_version: string;
+  latest_version: string | null;
+  update_available: boolean;
+  release_url: string | null;
+  release_notes_url: string | null;
+  github_url: string;
+  checked_at: string;
+}
 
 interface ExportOptions {
   services: boolean;
@@ -111,6 +126,9 @@ export default function Configuration() {
   const navigate = useNavigate();
   const [showResetConfirm, setShowResetConfirm] = useState(false);
 
+  const [versionInfo, setVersionInfo] = useState<VersionInfo | null>(null);
+  const [loadingVersion, setLoadingVersion] = useState(false);
+
   const tabs = [
     { id: 'appearance' as const, label: t('tabs.appearance'), icon: Palette },
     { id: 'general' as const, label: t('tabs.general'), icon: RefreshCw },
@@ -118,7 +136,31 @@ export default function Configuration() {
     { id: 'notifications' as const, label: t('tabs.notifications'), icon: Bell },
     { id: 'dashboard' as const, label: t('tabs.dashboard'), icon: LayoutDashboard },
     { id: 'backup' as const, label: t('tabs.backup'), icon: FolderArchive },
+    { id: 'about' as const, label: t('tabs.about'), icon: Info },
   ];
+
+  // Fetch version info when About tab is active
+  useEffect(() => {
+    if (activeTab === 'about' && !versionInfo) {
+      setLoadingVersion(true);
+      api.version()
+        .then(data => setVersionInfo(data))
+        .catch(err => console.error('Failed to fetch version:', err))
+        .finally(() => setLoadingVersion(false));
+    }
+  }, [activeTab, versionInfo]);
+
+  const refreshVersionInfo = async () => {
+    setLoadingVersion(true);
+    try {
+      const data = await api.version();
+      setVersionInfo(data);
+    } catch (err) {
+      console.error('Failed to fetch version:', err);
+    } finally {
+      setLoadingVersion(false);
+    }
+  };
 
   const logLevels: { value: LogLevel; label: string }[] = logLevelValues.map(value => ({
     value,
@@ -897,6 +939,141 @@ export default function Configuration() {
     </div>
   );
 
+  const renderAboutTab = () => (
+    <div className="space-y-6">
+      {/* Version Info Card */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+        <div className="p-4 sm:p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+              <Info className="w-5 h-5 text-slate-600" />
+              {t('about.title')}
+            </h3>
+            <button
+              onClick={refreshVersionInfo}
+              disabled={loadingVersion}
+              className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              title={t('about.refresh')}
+            >
+              <RefreshCw className={`w-4 h-4 ${loadingVersion ? 'animate-spin' : ''}`} />
+            </button>
+          </div>
+
+          {loadingVersion && !versionInfo ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
+            </div>
+          ) : versionInfo ? (
+            <div className="space-y-6">
+              {/* App Info */}
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl">
+                  <Settings className="w-8 h-8 text-white" />
+                </div>
+                <div>
+                  <h4 className="text-xl font-bold text-gray-900 dark:text-white">
+                    {versionInfo.app_name}
+                  </h4>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    {t('about.description')}
+                  </p>
+                </div>
+              </div>
+
+              {/* Version Details */}
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">
+                    {t('about.currentVersion')}
+                  </p>
+                  <p className="text-lg font-mono font-semibold text-gray-900 dark:text-white">
+                    v{versionInfo.current_version}
+                  </p>
+                </div>
+
+                <div className="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">
+                    {t('about.latestVersion')}
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-lg font-mono font-semibold text-gray-900 dark:text-white">
+                      {versionInfo.latest_version ? `v${versionInfo.latest_version}` : '-'}
+                    </p>
+                    {versionInfo.update_available && (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                        <ArrowUpCircle className="w-3 h-3" />
+                        {t('about.updateAvailable')}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Update Available Banner */}
+              {versionInfo.update_available && versionInfo.release_url && (
+                <div className="p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+                  <div className="flex items-start gap-3">
+                    <ArrowUpCircle className="w-5 h-5 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
+                    <div className="flex-1">
+                      <h4 className="font-medium text-green-800 dark:text-green-300">
+                        {t('about.newVersionAvailable', { version: versionInfo.latest_version })}
+                      </h4>
+                      <p className="text-sm text-green-700 dark:text-green-400 mt-1">
+                        {t('about.updateDescription')}
+                      </p>
+                      <a
+                        href={versionInfo.release_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 mt-3 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium transition-colors"
+                      >
+                        {t('about.viewRelease')}
+                        <ExternalLink className="w-4 h-4" />
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Links */}
+              <div className="flex flex-wrap gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+                <a
+                  href={versionInfo.github_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-gray-900 dark:bg-gray-700 hover:bg-gray-800 dark:hover:bg-gray-600 text-white rounded-lg text-sm font-medium transition-colors"
+                >
+                  <Github className="w-4 h-4" />
+                  GitHub
+                </a>
+                {versionInfo.release_notes_url && (
+                  <a
+                    href={versionInfo.release_notes_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-medium transition-colors"
+                  >
+                    <FileText className="w-4 h-4" />
+                    {t('about.releaseNotes')}
+                  </a>
+                )}
+              </div>
+
+              {/* Last Check */}
+              <p className="text-xs text-gray-400 dark:text-gray-500">
+                {t('about.lastChecked')}: {new Date(versionInfo.checked_at).toLocaleString()}
+              </p>
+            </div>
+          ) : (
+            <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+              {t('about.loadError')}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+
   const renderTabContent = () => {
     switch (activeTab) {
       case 'appearance':
@@ -911,6 +1088,8 @@ export default function Configuration() {
         return renderDashboardTab();
       case 'backup':
         return renderBackupTab();
+      case 'about':
+        return renderAboutTab();
       default:
         return null;
     }

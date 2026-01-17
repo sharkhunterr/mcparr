@@ -7,7 +7,22 @@
     "logs": "Protokolle",
     "notifications": "Benachrichtigungen",
     "dashboard": "Dashboard",
-    "backup": "Sicherung"
+    "backup": "Sicherung",
+    "about": "Uber"
+  },
+  "about": {
+    "title": "Uber",
+    "description": "MCP AI Gateway mit Web-Administrationsoberflache",
+    "refresh": "Aktualisieren",
+    "currentVersion": "Aktuelle Version",
+    "latestVersion": "Neueste Version",
+    "updateAvailable": "Update",
+    "newVersionAvailable": "Neue Version {{version}} verfugbar",
+    "updateDescription": "Eine neue Version ist verfugbar. Weitere Details finden Sie in den Versionshinweisen.",
+    "viewRelease": "Release anzeigen",
+    "releaseNotes": "Versionshinweise",
+    "lastChecked": "Zuletzt gepruft",
+    "loadError": "Versionsinformationen konnten nicht geladen werden"
   },
   "appearance": {
     "title": "Design",

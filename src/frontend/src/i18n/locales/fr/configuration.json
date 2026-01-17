@@ -7,7 +7,22 @@
     "logs": "Logs",
     "notifications": "Alertes",
     "dashboard": "Dashboard",
-    "backup": "Backup"
+    "backup": "Backup",
+    "about": "A propos"
+  },
+  "about": {
+    "title": "A propos",
+    "description": "Passerelle IA MCP avec interface d'administration web",
+    "refresh": "Actualiser",
+    "currentVersion": "Version actuelle",
+    "latestVersion": "Derniere version",
+    "updateAvailable": "Mise a jour",
+    "newVersionAvailable": "Nouvelle version {{version}} disponible",
+    "updateDescription": "Une nouvelle version est disponible. Consultez les notes de version pour plus de details.",
+    "viewRelease": "Voir la release",
+    "releaseNotes": "Notes de version",
+    "lastChecked": "Derniere verification",
+    "loadError": "Impossible de charger les informations de version"
   },
   "appearance": {
     "title": "Theme",

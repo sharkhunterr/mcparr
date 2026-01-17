@@ -101,5 +101,8 @@
     "activeAlerts": "alertas activas",
     "noActiveAlerts": "Sin alertas activas",
     "viewAll": "Ver todas las alertas"
+  },
+  "version": {
+    "updateAvailable": "Actualizacion disponible: v{{version}}"
   }
 }

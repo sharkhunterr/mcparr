@@ -20,6 +20,8 @@ import {
   ExternalLink,
   AlertTriangle,
   HelpCircle,
+  Github,
+  ArrowUpCircle,
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { api } from '../lib/api';
@@ -70,6 +72,16 @@ interface ActiveAlert {
   acknowledged: boolean;
 }
 
+interface VersionInfo {
+  app_name: string;
+  current_version: string;
+  latest_version: string | null;
+  update_available: boolean;
+  release_url: string | null;
+  release_notes_url: string | null;
+  github_url: string;
+}
+
 const severityColors: Record<string, string> = {
   low: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
   medium: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300',
@@ -84,6 +96,7 @@ export default function Layout({ children }: LayoutProps) {
   const [alertStats, setAlertStats] = useState<AlertStats | null>(null);
   const [activeAlerts, setActiveAlerts] = useState<ActiveAlert[]>([]);
   const [loadingAlerts, setLoadingAlerts] = useState(false);
+  const [versionInfo, setVersionInfo] = useState<VersionInfo | null>(null);
   const langMenuRef = useRef<HTMLDivElement>(null);
   const alertMenuRef = useRef<HTMLDivElement>(null);
   const { theme, resolvedTheme, setTheme } = useTheme();
@@ -92,6 +105,22 @@ export default function Layout({ children }: LayoutProps) {
   const navigate = useNavigate();
 
   const currentLanguage = languages.find(l => l.code === i18n.language) || languages[0];
+
+  // Fetch version info on mount
+  useEffect(() => {
+    const fetchVersion = async () => {
+      try {
+        const data = await api.version();
+        setVersionInfo(data);
+      } catch (error) {
+        console.error('Failed to fetch version info:', error);
+      }
+    };
+    fetchVersion();
+    // Check for updates every hour
+    const interval = setInterval(fetchVersion, 3600000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Fetch active alerts count and list
   const fetchAlertData = useCallback(async () => {
@@ -274,6 +303,40 @@ export default function Layout({ children }: LayoutProps) {
               ))}
             </div>
           </nav>
+
+          {/* Version info at bottom */}
+          <div className="px-4 py-3 border-t border-gray-200 dark:border-gray-700">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <span className="text-xs text-gray-500 dark:text-gray-400">
+                  v{versionInfo?.current_version || '...'}
+                </span>
+                {versionInfo?.update_available && (
+                  <a
+                    href={versionInfo.release_url || versionInfo.github_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center space-x-1 text-xs text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300"
+                    title={tCommon('version.updateAvailable', { version: versionInfo.latest_version })}
+                  >
+                    <ArrowUpCircle className="h-3.5 w-3.5" />
+                    <span>{versionInfo.latest_version}</span>
+                  </a>
+                )}
+              </div>
+              {versionInfo && (
+                <a
+                  href={versionInfo.github_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                  title="GitHub"
+                >
+                  <Github className="h-4 w-4" />
+                </a>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 

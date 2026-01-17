@@ -7,7 +7,22 @@
     "logs": "Registros",
     "notifications": "Notificaciones",
     "dashboard": "Panel de control",
-    "backup": "Copia de seguridad"
+    "backup": "Copia de seguridad",
+    "about": "Acerca de"
+  },
+  "about": {
+    "title": "Acerca de",
+    "description": "Pasarela IA MCP con interfaz de administracion web",
+    "refresh": "Actualizar",
+    "currentVersion": "Version actual",
+    "latestVersion": "Ultima version",
+    "updateAvailable": "Actualizacion",
+    "newVersionAvailable": "Nueva version {{version}} disponible",
+    "updateDescription": "Hay una nueva version disponible. Consulte las notas de la version para mas detalles.",
+    "viewRelease": "Ver release",
+    "releaseNotes": "Notas de la version",
+    "lastChecked": "Ultima comprobacion",
+    "loadError": "No se pudo cargar la informacion de la version"
   },
   "appearance": {
     "title": "Tema",
