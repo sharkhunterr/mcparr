@@ -4,6 +4,41 @@
 
 ---
 
+# v0.2.36
+
+**Title:** `v0.2.36 - Release Notes Integration`
+
+**Release Notes (copier ci-dessous):**
+
+---
+
+## 📝 What's New in v0.2.36
+
+### 📋 Release Notes Management
+- **GITHUB_RELEASES.md** - Centralized release notes file for automated releases
+  - Pre-formatted release notes ready for GitHub
+  - Tracked in git repository for CI/CD access
+  - GitLab CI automatically extracts first section for new releases
+  - Comprehensive documentation for v0.2.34, v0.2.35, and v0.2.36
+
+### 🔧 Repository Improvements
+- **Version History** - Full release notes for recent versions now available
+- **CI/CD Ready** - Release automation fully functional with documented notes
+- **Consistent Format** - Standardized release note structure across all versions
+
+### 📚 Documentation
+Complete release notes now include:
+- v0.2.34: Modern Documentation & Release Automation
+- v0.2.35: GitHub Release Automation
+- v0.2.36: Release Notes Integration (this version)
+
+---
+
+**Full Changelog**: https://github.com/sharkhunterr/mcparr/compare/v0.2.35...v0.2.36
+
+---
+---
+
 # v0.2.35
 
 **Title:** `v0.2.35 - GitHub Release Automation`
