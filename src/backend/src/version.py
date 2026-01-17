@@ -1,6 +1,6 @@
 """Centralized version information for MCParr."""
 
-__version__ = "0.2.26"
+__version__ = "0.2.29"
 __app_name__ = "MCParr"
 __description__ = "MCParr AI Gateway - MCP server with web administration interface"
 __github_repo__ = "sharkhunterr/mcparr"
