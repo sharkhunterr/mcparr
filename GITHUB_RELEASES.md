@@ -6,7 +6,7 @@
 
 # v0.2.38
 
-**Title:** `v0.2.38 - GitLab-Only Release Notes`
+**Title:** `v0.2.38 - Automated Release Notes`
 
 **Release Notes (copier ci-dessous):**
 
@@ -14,25 +14,26 @@
 
 ## 📝 What's New in v0.2.38
 
-### 🔒 Release Notes Management
-- **GitLab-Only Storage** - GITHUB_RELEASES.md kept in GitLab repository only
-  - File excluded from GitHub sync via .gitignore
-  - Accessible to GitLab CI for automated releases
-  - Keeps GitHub repository clean and focused
-  - Maintains single source of truth in GitLab
+### 📋 Release Notes Management
+- **GITHUB_RELEASES.md** - Centralized release notes file for automated releases
+  - Versioned in git repository for CI/CD access
+  - Both GitLab and GitHub CI extract from this file
+  - Pre-formatted notes ready for automated releases
+  - Single source of truth for release documentation
 
 ### 🔄 Workflow Optimization
-- **Unified Release Process** - Both platforms use same release notes
-  - GitLab CI extracts from GITHUB_RELEASES.md
+- **Unified Release Process** - Both platforms use identical release notes
+  - GitLab CI extracts from GITHUB_RELEASES.md first section
+  - GitHub CI uses same extraction pattern
   - Automatic fallback to CHANGELOG.md if needed
   - Consistent formatting across all release channels
   - No manual copy-paste required
 
-### 📋 Technical Details
-- GITHUB_RELEASES.md added to .gitignore
-- GitLab CI has full access to local file
-- GitHub sync excludes documentation files
-- Clean separation of concerns
+### 🤖 Automation Improvements
+- Enhanced AWK pattern for precise section extraction
+- Stops at next version marker (# vX.Y.Z) instead of next ##
+- Automatic cleanup of trailing separators
+- Multi-level fallback system (GITHUB_RELEASES.md → CHANGELOG.md → default message)
 
 ---
 
