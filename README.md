@@ -570,6 +570,53 @@ See [docker/DOCKERHUB.md](docker/DOCKERHUB.md) for complete Docker documentation
 
 </details>
 
+## Development & Release
+
+### Release Management
+
+MCParr uses automated release scripts for version management, deployments, and publishing:
+
+```bash
+# Standard release (GitLab only)
+npm run release              # Patch version bump
+
+# Release to GitHub
+npm run release:github       # Release to GitLab + GitHub
+
+# Release with Docker deployment
+npm run release:deploy       # Trigger CI Docker build & push
+npm run release:full         # Release everywhere + Docker
+
+# Push without releasing
+npm run push                 # Push to GitLab
+npm run push:all             # Push to GitLab + GitHub
+
+# Docker Hub deployment
+npm run docker:deploy        # Build & push to Docker Hub
+```
+
+**What the release script does:**
+- ✅ Bumps version in `package.json` and `version.py`
+- ✅ Generates/updates `CHANGELOG.md`
+- ✅ Creates git tag
+- ✅ Pushes to configured remotes (GitLab/GitHub)
+- ✅ Creates releases with notes from `GITHUB_RELEASES.md`
+- ✅ Optionally triggers Docker Hub deployment
+
+**Prerequisites:**
+- GitHub remote: `git remote add github https://github.com/sharkhunterr/mcparr.git`
+- GitHub CLI: `brew install gh && gh auth login`
+- GitLab CLI: `brew install glab && glab auth login`
+
+See [scripts/README.md](scripts/README.md) for complete documentation.
+
+### Development Workflow
+
+1. Make changes and commit
+2. Update `GITHUB_RELEASES.md` with release notes
+3. Run `npm run release:dry` to preview
+4. Run `npm run release:full` to publish everywhere
+
 ## Contributing
 
 Contributions are welcome! Please:
@@ -578,7 +625,8 @@ Contributions are welcome! Please:
 2. Create a feature branch
 3. Make your changes
 4. Run tests and linting: `npm run lint && npm test`
-5. Submit a pull request
+5. Update `GITHUB_RELEASES.md` with your changes
+6. Submit a pull request
 
 ## AI Tools Used
 
