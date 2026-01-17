@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.2.30](https://github.com/sharkhunterr/mcparr/-/compare/v0.2.29...v0.2.30) (2026-01-17)
+
+
+### Features
+
+* **release:** auto-sync Python version with npm release ([682b5bb](https://github.com/sharkhunterr/mcparr/-/commit/682b5bb996fe31ea1fcd681f0feb3c4c73cd1ef1))
+
+
+### Bug Fixes
+
+* **docker:** auto-apply database migrations on startup ([80acb41](https://github.com/sharkhunterr/mcparr/-/commit/80acb41e4937273fb17506c1a901e446cd0e401f))
+
 ### [0.2.29](https://github.com/sharkhunterr/mcparr/-/compare/v0.2.28...v0.2.29) (2026-01-17)
 
 
