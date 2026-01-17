@@ -4,6 +4,43 @@
 
 ---
 
+# v0.2.37
+
+**Title:** `v0.2.37 - Release Notes Sync & Extraction Fix`
+
+**Release Notes (copier ci-dessous):**
+
+---
+
+## 🔧 What's New in v0.2.37
+
+### 🔄 Release Notes Synchronization
+- **Unified Release Notes** - GitLab and GitHub releases now use the same source
+  - Both platforms extract from GITHUB_RELEASES.md (first section)
+  - Consistent formatting and content across all release channels
+  - Automatic fallback to CHANGELOG.md if needed
+
+### 🐛 Bug Fixes
+- **Fixed Release Notes Extraction** - Corrected pattern to stop at next version
+  - Changed from "stop at next ##" to "stop at next # vX.Y.Z"
+  - Prevents including metadata from next version
+  - Cleaner output without trailing separators
+- **GitLab Release Integration** - Fixed GitLab releases to use GITHUB_RELEASES.md
+  - Previously only used CHANGELOG.md
+  - Now synchronized with GitHub release content
+
+### 📋 Technical Improvements
+- Enhanced AWK pattern for version section extraction
+- Added separator cleanup (removes trailing ---)
+- Improved error handling with multi-level fallbacks
+
+---
+
+**Full Changelog**: https://github.com/sharkhunterr/mcparr/compare/v0.2.36...v0.2.37
+
+---
+---
+
 # v0.2.36
 
 **Title:** `v0.2.36 - Release Notes Integration`
