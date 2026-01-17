@@ -8,7 +8,6 @@ import {
   Layers,
   Plus,
   Trash2,
-  GripVertical,
   ChevronDown,
   ChevronUp,
   ArrowUp,
