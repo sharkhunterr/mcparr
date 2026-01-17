@@ -1,417 +1,189 @@
 <div align="center">
 
-# MCParr AI Gateway
+# 🎯 MCParr AI Gateway
 
-**AI-powered homelab management with MCP server and web administration**
+**Turn your homelab into an AI-powered automation hub**
 
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Docker](https://img.shields.io/badge/docker-ready-brightgreen.svg)](https://hub.docker.com/r/sharkhunterr/mcparr)
-[![Python](https://img.shields.io/badge/python-3.11+-blue.svg)](https://python.org)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.104+-009688.svg)](https://fastapi.tiangolo.com)
-[![React](https://img.shields.io/badge/React-18+-61DAFB.svg)](https://reactjs.org)
-[![i18n](https://img.shields.io/badge/i18n-5%20languages-blueviolet.svg)](#-internationalization)
+[![Version](https://img.shields.io/github/v/tag/sharkhunterr/mcparr?label=version&color=blue)](https://github.com/sharkhunterr/mcparr/releases)
+[![Docker](https://img.shields.io/docker/v/sharkhunterr/mcparr?label=docker&color=2496ED)](https://hub.docker.com/r/sharkhunterr/mcparr)
+[![Docker Pulls](https://img.shields.io/docker/pulls/sharkhunterr/mcparr?color=2496ED)](https://hub.docker.com/r/sharkhunterr/mcparr)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+
+[![Python](https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=white)](https://python.org)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.104+-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
+[![React](https://img.shields.io/badge/React-18+-61DAFB?logo=react&logoColor=white)](https://reactjs.org)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5+-3178C6?logo=typescript&logoColor=white)](https://typescriptlang.org)
+[![i18n](https://img.shields.io/badge/i18n-5_languages-blueviolet.svg)](#-multi-language-support)
 
 ![MCParr Dashboard](docs/images/02-dashboard.png)
 
-[Features](#-features) •
-[Quick Start](#-quick-start) •
-[Documentation](#-documentation) •
-[Screenshots](#-screenshots)
+**[Quick Start](#-quick-start)** •
+**[Features](#-features)** •
+**[Docker Hub](https://hub.docker.com/r/sharkhunterr/mcparr)** •
+**[Documentation](docs/)** •
+**[Screenshots](#-screenshots)**
 
 </div>
 
 ---
 
+## 🚀 What is MCParr?
+
+MCParr bridges AI assistants with your homelab services through the **Model Context Protocol (MCP)**. Control your entire homelab using natural language with Open WebUI, Claude, or any MCP-compatible AI assistant.
+
+**Perfect for:**
+- 🏠 Homelab enthusiasts managing services for family/friends
+- 🤖 AI automation of media requests and downloads
+- 📊 Centralized monitoring and control
+- 🔧 Developers building on MCP protocol
+
 > [!WARNING]
-> **Vibe Code Project** - This application was built **100% using AI-assisted development** with [Claude Code](https://claude.ai/claude-code) (Anthropic's CLI). See [Project Story](#project-story) for details on why and how.
+> **Vibe Code Project** - This application was built **100% using AI-assisted development** with [Claude Code](https://claude.ai/claude-code) (Anthropic's CLI). See [Acknowledgments](#-acknowledgments) for details on why and how.
 
 ---
 
-MCParr is your unified gateway for managing homelab services through AI. Built with FastAPI and React, it combines a powerful MCP (Model Context Protocol) server with a modern web interface for seamless AI-driven automation.
-
-## Project Story
-
-### Why "MCParr"?
-
-The name **MCParr** combines two key concepts:
-- **MCP** (Model Context Protocol) - The protocol that connects AI assistants to external tools
-- **\*arr** - A reference to the popular homelab suite (Rad**arr**, Son**arr**, Prowl**arr**, etc.)
-
-MCParr is the bridge between AI and your media center, allowing natural language control of your entire homelab ecosystem.
-
-### The Need
-As a homelab enthusiast managing services for family and friends, I found myself constantly receiving messages for simple requests: "Can you add this movie?", "I can't find that show", "Can you create my account?". Each request required manual intervention and back-and-forth communication.
-
-**The Goal**: Provide an AI assistant (via Open WebUI) that could handle all these requests autonomously, allowing my users to interact directly with the homelab without requiring my intervention for every small task.
-
-### Why Vibe Code?
-This project was developed **100% using Claude Code (Anthropic's CLI) and GitHub's Spec-Kit** for a simple reason: **lack of time and technical expertise, but a growing need to do things right**.
-
-As my homelab grew, so did the complexity and the number of user requests. I needed a robust, maintainable solution but lacked:
-- Deep knowledge of FastAPI, React, and modern web development
-- Time to learn all the best practices and architectural patterns
-- Experience with AI integration and MCP protocol
-
-The result is a fully functional, well-documented homelab management platform that would have been impossible to build alone in a reasonable timeframe. This demonstrates how AI-assisted development can democratize software creation, allowing anyone with a vision to build complex systems regardless of their initial skill level.
-
-## Features
-
-**Setup Wizard & Configuration**
-- Interactive setup wizard with feature overview and help system
-- Multi-language support (FR, EN, DE, ES, IT)
-- Import/export complete configuration with selective options
-- One-click data reset with wizard restart option
-- **Auto-configuration for Open WebUI** - register all tools automatically
-
-**Service Management**
-- Configure and control 15+ homelab services
-- **Service Groups** - organize services by category for Open WebUI endpoints
-- Real-time health checks with scheduled monitoring
-- Connection testing with detailed diagnostics
-
-**MCP Tools & AI Integration**
-- 100+ MCP tools for AI-powered homelab automation
-- **Tool Chains** - create conditional workflows (IF/THEN/ELSE logic)
-- **Global Search** - search across all services simultaneously
-- Group-based tool permissions
-- Full Open WebUI compatibility
-
-**Observability & Alerts**
-- Live logs with WebSocket streaming
-- System metrics and performance monitoring
-- **Alert rules** with customizable thresholds and notifications
-- Correlation IDs for request tracing
-
-**AI Training**
-- Custom Ollama model training with GPU support
-- Training progress tracking and session management
-- Prompt management with validation
-
-**User Management**
-- Automatic user mapping across services
-- Centralized identity management
-- Group-based permissions for AI tools
-- Service-specific authentication
-
-**Contextual Help**
-- Integrated help tooltips on every page
-- Service-specific documentation
-- Best practices and troubleshooting tips
-
-**Developer Friendly**
-- Complete REST API with OpenAPI documentation
-- WebSocket endpoints for real-time updates
-- Prometheus-compatible metrics at `/metrics`
-- Extensible adapter pattern for new services
-
-## Architecture
-
-```mermaid
-graph TB
-    subgraph "Client Layer"
-        WebUI[Web UI<br/>React + TypeScript]
-        OpenWebUI[Open WebUI<br/>AI Chat Interface]
-    end
-
-    subgraph "MCParr Gateway"
-        API[FastAPI Backend<br/>Port 8000]
-        MCP[MCP Server<br/>Port 8001]
-        WS[WebSocket<br/>Real-time Updates]
-
-        API --> DB[(SQLite<br/>Configuration)]
-        API --> Cache[(Redis<br/>Cache)]
-    end
-
-    subgraph "Service Adapters"
-        Media[Media Services<br/>Plex, Overseerr, Tautulli]
-        Arr[Arr Stack<br/>Radarr, Sonarr, Prowlarr]
-        DL[Downloads<br/>Deluge, Jackett]
-        Books[Books & Games<br/>Komga, Audiobookshelf, ROMM]
-        Utils[Utilities<br/>Authentik, Wiki.js, Zammad]
-        AI[AI Services<br/>Ollama, Open WebUI]
-    end
-
-    WebUI --> API
-    WebUI --> WS
-    OpenWebUI --> MCP
-    MCP --> API
-
-    API --> Media
-    API --> Arr
-    API --> DL
-    API --> Books
-    API --> Utils
-    API --> AI
-
-    style WebUI fill:#61dafb
-    style OpenWebUI fill:#ab68ff
-    style API fill:#009688
-    style MCP fill:#ff6b6b
-    style WS fill:#ffd93d
-```
-
-### Technology Stack
+## ✨ Features
 
 <table>
 <tr>
-<td width="50%">
+<td width="33%" valign="top">
 
-**Backend**
-- Python 3.11+ with FastAPI
-- SQLAlchemy ORM + Alembic migrations
-- Redis for caching
-- WebSocket for real-time updates
-- 15+ service adapters
-- MCP server implementation
+### 🎬 Service Integration
+**15+ homelab services**
+- Plex, Overseerr, Tautulli
+- Radarr, Sonarr, Prowlarr
+- Deluge, Jackett
+- Komga, Audiobookshelf, RomM
+- Wiki.js, Zammad, Authentik
+- Open WebUI, Ollama
+
+[Full service list →](docs/SERVICES.md)
 
 </td>
-<td width="50%">
+<td width="33%" valign="top">
 
-**Frontend**
-- React 18 + TypeScript
-- Tailwind CSS + shadcn/ui
-- Recharts for visualization
-- Real-time WebSocket integration
-- Responsive dark/light themes
+### 🤖 AI Automation
+**100+ MCP tools**
+- Natural language control
+- Tool chains with IF/THEN logic
+- Global cross-service search
+- Group-based permissions
+- Auto-config for Open WebUI
+
+[MCP docs →](docs/MCP.md)
+
+</td>
+<td width="33%" valign="top">
+
+### 📊 Observability
+**Complete monitoring**
+- Real-time WebSocket logs
+- System metrics dashboard
+- Custom alert rules
+- Prometheus metrics
+- Correlation ID tracing
+
+[Monitoring guide →](docs/MONITORING.md)
 
 </td>
 </tr>
 </table>
 
-## Internationalization
+### 🎨 Modern Web UI
+- 🌐 **5 languages** (EN, FR, DE, ES, IT)
+- 🌓 Light/Dark/Auto themes
+- 📱 Fully responsive design
+- 🧭 Interactive setup wizard
+- 💾 Backup/restore configuration
 
-MCParr is fully translated into **5 languages**:
+### 🧠 AI Training (Experimental)
+- Custom Ollama model training
+- GPU worker support
+- 94+ validated prompts
+- Progress tracking
 
-| Language | Code | Status |
-|----------|------|--------|
-| English | `en` | Complete |
-| French | `fr` | Complete |
-| German | `de` | Complete |
-| Spanish | `es` | Complete |
-| Italian | `it` | Complete |
+---
 
-### Translation Tools
+## 🏃 Quick Start
 
-Translations are managed using [react-i18next](https://react.i18next.com/) with JSON locale files. All translations were generated with assistance from **Claude Code**.
-
-### Contributing Translations
-
-Want to add a new language? Here's how:
-
-1. **Fork the repository**
-2. **Create a new locale folder**: `src/frontend/src/i18n/locales/{lang_code}/`
-3. **Copy English files** from `en/` folder as templates
-4. **Translate** all JSON files (common.json, mcp.json, training.json, etc.)
-5. **Register the language** in `src/frontend/src/i18n/index.ts`
-6. **Submit a Pull Request**
-
-The locale files are in `src/frontend/src/i18n/locales/`. Each namespace (common, mcp, training, users, etc.) has its own JSON file.
-
-## Requirements
-
-### For Docker Deployment (Recommended)
-- Docker 24+
-- Docker Compose 2.20+
-- 4GB RAM minimum
-- 10GB disk space
-
-### For Local Development
-- Python 3.11+
-- Node.js 20+ (Vite requirement)
-- Poetry (Python dependency management)
-- SQLite (default) or PostgreSQL
-
-## Quick Start
-
-### Docker Deployment (Production)
+### Option 1: Docker (Recommended)
 
 ```bash
-# Pull and run the unified Docker image
+# Pull the latest image
 docker pull sharkhunterr/mcparr:latest
 
-# Using Docker Compose (recommended)
+# Run with Docker Compose
 curl -o docker-compose.yml https://raw.githubusercontent.com/sharkhunterr/mcparr/master/docker/docker-compose.yml
 docker compose up -d
-
-# Or via npm scripts
-npm run docker        # Build and start
-npm start            # Start in production mode
-npm stop             # Stop services
-npm run logs         # View logs
 ```
 
-### Local Development
+**Access**: http://localhost:3000
+
+📖 **[Complete Docker guide →](docker/README.md)** | **[Docker Hub →](https://hub.docker.com/r/sharkhunterr/mcparr)**
+
+### Option 2: Local Development
 
 ```bash
-# Setup (first time only - installs Poetry and dependencies)
+# Clone and setup
+git clone https://github.com/sharkhunterr/mcparr.git
+cd mcparr
 npm run setup
 
-# Start backend and frontend concurrently
+# Start dev servers
 npm run dev
 
-# Or start separately
-npm run dev:backend   # Backend on port 8000
-npm run dev:frontend  # Frontend on port 3000
-
-# Testing and linting
-npm test              # Run all tests
-npm run lint          # Run all linters
-npm run fix           # Auto-fix linting issues
-npm run reports       # Generate test/lint reports
+# Access
+# Frontend: http://localhost:3000
+# API docs: http://localhost:8000/docs
 ```
 
-### Access Your Gateway
+📖 **[Development guide →](docs/DEVELOPMENT.md)**
 
-- **Web UI**: http://localhost:3000
-- **API Docs**: http://localhost:8000/docs
-- **ReDoc**: http://localhost:8000/redoc
-- **MCP Server**: http://localhost:8001
+---
 
-## First-Time Setup Wizard
+## 🔧 Configuration
 
-On first access, an interactive wizard guides you through MCParr's features:
+MCParr requires minimal configuration to get started:
 
-- **Language Selection**: Choose your preferred language (FR, EN, DE, ES, IT)
-- **Import Backup**: Restore a previous configuration to skip manual setup
-- **Feature Tour**: Overview of each section including:
-  - Services & Service Groups
-  - Users & Group Management
-  - MCP Tools & Tool Chains
-  - AI Training
-  - Monitoring & Alerts
-  - Configuration & Backup
-- **Contextual Help**: Each step includes help tooltips with best practices
-
-**Skip or Reset**: Click "Skip" to access the interface. Reset the wizard anytime via Configuration → Backup → Reset.
-
-## Documentation
-
-- [Installation Guide](docs/INSTALLATION.md) - Complete installation and setup
-- [Configuration Guide](docs/CONFIGURATION.md) - Environment variables and service config
-- [API Reference](docs/API.md) - REST API endpoint documentation
-- [MCP Integration](docs/MCP.md) - Connect to Claude Desktop and AI assistants
-- [User Guide](docs/USER_GUIDE.md) - End-user documentation
-- [Integration Guide](docs/INTEGRATION_GUIDE.md) - Add new services to MCParr
-
-## Supported Services
-
-MCParr integrates with 15+ homelab services. Each tool returns clickable URLs to open items directly in the service web interface.
-
-### Media Management
-
-| Service | Description | MCP Tools | Actions |
-|---------|-------------|-----------|---------|
-| 🎬 Plex | Media server | `plex_get_libraries`, `plex_search_media`, `plex_get_recently_added`, `plex_get_on_deck`, `plex_get_media_details`, `plex_get_active_sessions` | Search content, list libraries, view sessions, get recently added (with links) |
-| 🎫 Overseerr | Request management | `overseerr_search_media`, `overseerr_get_requests`, `overseerr_request_media`, `overseerr_get_trending`, `overseerr_check_availability`, `overseerr_get_users`, `overseerr_get_statistics` | Request movies/TV, check availability (with TMDB links) |
-| 🎥 Radarr | Movie automation | `radarr_get_movies`, `radarr_search_movie`, `radarr_get_queue`, `radarr_get_calendar`, `radarr_get_statistics`, `radarr_get_indexers`, `radarr_test_indexer`, `radarr_test_all_indexers` | Manage movies, search, view queue/calendar (with TMDB/IMDB links) |
-| 📺 Sonarr | TV automation | `sonarr_get_series`, `sonarr_search_series`, `sonarr_get_queue`, `sonarr_get_calendar`, `sonarr_get_statistics`, `sonarr_get_indexers`, `sonarr_test_indexer`, `sonarr_test_all_indexers` | Manage series, search, view queue/calendar (with TVDB/IMDB links) |
-| 📊 Tautulli | Plex analytics | `tautulli_get_activity`, `tautulli_get_history`, `tautulli_get_users`, `tautulli_get_libraries`, `tautulli_get_statistics`, `tautulli_get_recently_added`, `tautulli_get_server_info`, `tautulli_get_top_users`, `tautulli_get_top_movies`, `tautulli_get_top_tv_shows`, `tautulli_get_top_music`, `tautulli_get_top_platforms`, `tautulli_get_user_stats`, `tautulli_get_watch_stats_summary` | View activity, history, stats, top users/content (with Plex links) |
-| 🔍 Prowlarr | Indexer manager | `prowlarr_get_indexers`, `prowlarr_search`, `prowlarr_get_indexer_stats`, `prowlarr_get_applications`, `prowlarr_get_statistics`, `prowlarr_test_indexer`, `prowlarr_test_all_indexers` | Search across indexers, manage and test indexers |
-
-### Downloads & Storage
-
-| Service | Description | MCP Tools | Actions |
-|---------|-------------|-----------|---------|
-| ⬇️ Deluge | Torrent client | `deluge_get_torrents`, `deluge_add_torrent`, `deluge_pause_torrent`, `deluge_resume_torrent`, `deluge_remove_torrent`, `deluge_get_statistics` | Manage torrents, add/pause/resume/remove, view stats |
-| 🔎 Jackett | Torrent indexer | `jackett_get_indexers`, `jackett_search`, `jackett_test_indexer`, `jackett_get_statistics`, `jackett_test_all_indexers` | Search across indexers, test and manage indexers |
-
-### Books & Games
-
-| Service | Description | MCP Tools | Actions |
-|---------|-------------|-----------|---------|
-| 📚 Komga | Comics/Manga | `komga_get_libraries`, `komga_search`, `komga_get_users`, `komga_get_statistics` | Search by title with library name filter, browse libraries (with reader links) |
-| 🎧 Audiobookshelf | Audiobooks | `audiobookshelf_get_libraries`, `audiobookshelf_get_library_items`, `audiobookshelf_search`, `audiobookshelf_get_users`, `audiobookshelf_get_listening_stats`, `audiobookshelf_get_media_progress`, `audiobookshelf_get_statistics` | Search by library name, track progress (with player links) |
-| 🎮 RomM | ROM manager | `romm_get_platforms`, `romm_get_roms`, `romm_search_roms`, `romm_get_collections`, `romm_get_users`, `romm_get_statistics` | Browse platforms, ROMs, collections (with game links) |
-
-### Utilities & Infrastructure
-
-| Service | Description | MCP Tools | Actions |
-|---------|-------------|-----------|---------|
-| 📖 Wiki.js | Documentation | `wikijs_get_pages`, `wikijs_get_page`, `wikijs_search`, `wikijs_get_page_tree`, `wikijs_get_tags`, `wikijs_get_users`, `wikijs_get_statistics`, `wikijs_create_page` | Search/browse/create wiki pages (with page links) |
-| 🎫 Zammad | Ticketing | `zammad_get_tickets`, `zammad_get_ticket_details`, `zammad_search_tickets`, `zammad_create_ticket`, `zammad_add_comment`, `zammad_update_ticket_status`, `zammad_get_ticket_stats` | Manage tickets, create/update/comment (with ticket links) |
-| 🔐 Authentik | Identity | `authentik_get_users`, `authentik_get_user`, `authentik_search_users`, `authentik_get_groups`, `authentik_get_applications`, `authentik_get_events`, `authentik_get_statistics`, `authentik_get_server_info`, `authentik_deactivate_user` | Manage users, groups, applications, view events |
-| 💬 Open WebUI | AI interface | `openwebui_get_status`, `openwebui_get_users`, `openwebui_get_models`, `openwebui_get_chats`, `openwebui_get_statistics`, `openwebui_search_users` | Manage AI models, chats, users |
-
-> **Note**: Adding new services requires development work. See the [Integration Guide](docs/INTEGRATION_GUIDE.md) for details on implementing new service adapters.
-
-## AI Integration with Open WebUI
-
-MCParr is designed to work seamlessly with **Open WebUI**, providing a ChatGPT-like interface to control your entire homelab through natural language.
-
-```mermaid
-sequenceDiagram
-    participant User
-    participant OpenWebUI
-    participant MCParr
-    participant Services
-
-    User->>OpenWebUI: "Request the movie Inception"
-    OpenWebUI->>MCParr: POST /tools/overseerr_request_movie
-    MCParr->>Services: Search TMDB API
-    Services-->>MCParr: Movie ID: 27205
-    MCParr->>Services: POST to Overseerr API
-    Services-->>MCParr: Request created
-    MCParr-->>OpenWebUI: {status: "success", id: 123}
-    OpenWebUI-->>User: "Requested Inception via Overseerr!"
-
-    Note over User,Services: AI automatically uses the right tools
+```yaml
+# docker-compose.yml
+environment:
+  - LOG_LEVEL=INFO                        # debug, info, warning, error
+  - DATABASE_URL=sqlite:///data/mcparr.db # or PostgreSQL
+  - REDIS_URL=redis://localhost:6379     # optional cache
 ```
 
-### Quick Setup with Open WebUI
+After first launch, use the **Setup Wizard** to:
+1. Select your language
+2. Import existing config (optional)
+3. Tour MCParr features
+4. Configure your services
 
-**1. Configure Open WebUI in MCParr**
+📖 **[Configuration guide →](docs/CONFIGURATION.md)**
 
-First, add Open WebUI as a service in MCParr (Services page) with an admin API key.
+---
 
-**2. Auto-Configure (Recommended)**
+## 💬 AI Integration
 
-Go to **MCP** → **Configuration** tab and use the **Auto-Configuration** feature:
-- Select endpoint mode: **Group** (recommended), **Service Group**, **Service**, or **All**
-- Choose which categories/services to expose
-- Click **Configure** - MCParr will automatically register all tools in Open WebUI
+### With Open WebUI (Recommended)
 
-**3. Manual Setup (Alternative)**
-
-In Open WebUI:
-1. Go to **Settings** → **Admin Settings** → **Tools**
-2. Click **"+ Add Tool"**
-3. Configure:
-   - **Type**: OpenAPI
-   - **URL**: `http://YOUR_MCPARR_HOST:8000`
-   - **OpenAPI Spec**: `/tools/openapi.json`
-   - **Auth**: Session
-4. Click **Save**
-
-**Important Notes:**
-- Use `localhost` if Open WebUI is running on the same machine
-- Use `host.docker.internal` if Open WebUI is in Docker on macOS/Windows
-- On Linux with Docker, use your machine's IP address
-
-**4. Enable Tools in Chat**
-
-1. Start a new chat in Open WebUI
-2. Click the **tools icon** (wrench) in the chat input bar
-3. Enable the MCParr tools you want to use
-4. Start chatting! The AI can now control your homelab
-
-**5. Example Conversations**
+1. **Add Open WebUI service** in MCParr
+2. Go to **MCP → Configuration**
+3. Click **Auto-Configure** → Select services
+4. Enable tools in Open WebUI chat
 
 ```
-You: What movies do I have about space?
-AI: [Searches Plex] You have 23 space movies including Interstellar, The Martian...
-
 You: Request the new season of Foundation
-AI: [Uses Overseerr] I've requested Foundation Season 2 for you!
+AI: ✅ I've requested Foundation Season 2 via Overseerr!
+
+You: What movies do I have about space?
+AI: 🎬 Found 23 space movies in your Plex library...
 
 You: How are my downloads?
-AI: [Checks Radarr/Sonarr] You have 3 movies and 5 episodes downloading...
+AI: 📥 You have 3 movies and 5 episodes downloading...
 ```
 
-### Other AI Assistants
-
-MCParr also works with Claude Desktop and other MCP-compatible assistants.
-
-**Claude Desktop Configuration:**
+### With Claude Desktop
 
 Add to `~/.config/claude/claude_desktop_config.json`:
 
@@ -420,233 +192,150 @@ Add to `~/.config/claude/claude_desktop_config.json`:
   "mcpServers": {
     "mcparr": {
       "command": "curl",
-      "args": ["-N", "http://YOUR_MCPARR_HOST:8001/sse"]
+      "args": ["-N", "http://localhost:8001/sse"]
     }
   }
 }
 ```
 
-### Available MCP Tools
-
-Once connected, AI assistants can:
-- **Search Plex** libraries for movies, TV shows, music
-- **Request media** via Overseerr with automatic quality selection
-- **Manage downloads** in Radarr, Sonarr, Prowlarr
-- **Control torrents** in Deluge
-- **Browse libraries** in Komga, Audiobookshelf, ROMM
-- **Create tickets** in Zammad
-- **Manage users** in Authentik
-- **Search documentation** in Wiki.js
-- **Global Search** - search across all enabled services at once
-- **Monitor system** health and metrics
-
-### Tool Chains
-
-Create automated workflows with conditional logic:
-- **IF/THEN/ELSE** - execute different actions based on tool results
-- **Context Variables** - pass data between chain steps
-- **Nested Conditions** - complex decision trees with AND/OR groups
-
-Example: When a movie search returns no results → automatically request it via Overseerr.
-
-See [MCP Integration Guide](docs/MCP.md) for complete tool documentation and advanced configuration.
-
-## Monitoring & Observability
-
-- **Metrics**: Prometheus-compatible metrics at `/metrics`
-- **Health Check**: `/health` endpoint for Docker/Kubernetes
-- **Logs**: Structured JSON logging with correlation IDs
-- **WebSocket**: Real-time log streaming at `/ws/logs`
-- **Alerts**: Customizable alert rules and notifications
-
-## Testing
-
-```bash
-# Run all tests
-npm test
-
-# Backend tests (pytest)
-npm run test:back
-
-# Frontend tests (build verification)
-npm run test:front
-
-# Generate coverage reports
-npm run reports
-```
-
-## Security
-
-- Local network trust model (no auth required by default)
-- Configurable CORS origins
-- All API keys in environment variables
-- Input validation and sanitization
-- Rate limiting and circuit breakers
-- Secure service-to-service communication
-
-## Docker Configuration
-
-MCParr uses a **single unified Docker image** containing both backend (FastAPI + MCP) and frontend (React):
-
-```yaml
-version: '3.8'
-services:
-  mcparr:
-    image: sharkhunterr/mcparr:latest
-    ports:
-      - "3000:3000"  # Web UI (nginx)
-      - "8000:8000"  # API (FastAPI)
-      - "8001:8001"  # MCP Server
-    volumes:
-      - mcparr-data:/app/data
-    environment:
-      - LOG_LEVEL=INFO
-      - DATABASE_URL=sqlite:///data/mcparr.db
-    restart: unless-stopped
-
-volumes:
-  mcparr-data:
-```
-
-See [docker/DOCKERHUB.md](docker/DOCKERHUB.md) for complete Docker documentation.
-
-## Screenshots
-
-<details open>
-<summary><b>Services Management</b></summary>
-
-![Services List](docs/images/03-services-list.png)
-*Manage 15+ homelab services with health monitoring and connection testing*
-
-![Add Service](docs/images/06-add-service.png)
-*Easy service configuration with automatic health checks*
-
-</details>
-
-<details>
-<summary><b>User & Group Management</b></summary>
-
-![User Auto-Detection](docs/images/07-users-auto-detection.png)
-*Automatic user discovery across all services*
-
-![Group Permissions](docs/images/09-groups-tools-permissions.png)
-*Granular tool permissions per group (112 MCP tools available)*
-
-</details>
-
-<details>
-<summary><b>AI Training with Ollama</b></summary>
-
-![Training Overview](docs/images/11-training-overview.png)
-*Monitor training sessions with GPU support*
-
-![Training Prompts](docs/images/14-training-prompts.png)
-*94 validated prompts for fine-tuning models*
-
-![Training Workers](docs/images/16-training-workers.png)
-*GPU workers for distributed training*
-
-</details>
-
-<details>
-<summary><b>Monitoring & Observability</b></summary>
-
-![System Metrics](docs/images/18-monitoring-metrics.png)
-*Real-time system metrics with auto-refresh*
-
-![Log Viewer](docs/images/19-monitoring-logs.png)
-*Advanced log filtering and search (1700+ logs tracked)*
-
-</details>
-
-<details>
-<summary><b>Configuration</b></summary>
-
-![Appearance Settings](docs/images/21-config-appearance.png)
-*Light/Dark/System theme options*
-
-![Backup & Restore](docs/images/26-config-backup.png)
-*Complete configuration backup with selective export*
-
-</details>
-
-## Development & Release
-
-### Release Management
-
-MCParr uses automated release scripts for version management, deployments, and publishing:
-
-```bash
-# Standard release (GitLab only)
-npm run release              # Patch version bump
-
-# Release to GitHub
-npm run release:github       # Release to GitLab + GitHub
-
-# Release with Docker deployment
-npm run release:deploy       # Trigger CI Docker build & push
-npm run release:full         # Release everywhere + Docker
-
-# Push without releasing
-npm run push                 # Push to GitLab
-npm run push:all             # Push to GitLab + GitHub
-
-# Docker Hub deployment
-npm run docker:deploy        # Build & push to Docker Hub
-```
-
-**What the release script does:**
-- ✅ Bumps version in `package.json` and `version.py`
-- ✅ Generates/updates `CHANGELOG.md`
-- ✅ Creates git tag
-- ✅ Pushes to configured remotes (GitLab/GitHub)
-- ✅ Creates releases with notes from `GITHUB_RELEASES.md`
-- ✅ Optionally triggers Docker Hub deployment
-
-**Prerequisites:**
-- GitHub remote: `git remote add github https://github.com/sharkhunterr/mcparr.git`
-- GitHub CLI: `brew install gh && gh auth login`
-- GitLab CLI: `brew install glab && glab auth login`
-
-See [scripts/README.md](scripts/README.md) for complete documentation.
-
-### Development Workflow
-
-1. Make changes and commit
-2. Update `GITHUB_RELEASES.md` with release notes
-3. Run `npm run release:dry` to preview
-4. Run `npm run release:full` to publish everywhere
-
-## Contributing
-
-Contributions are welcome! Please:
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Run tests and linting: `npm run lint && npm test`
-5. Update `GITHUB_RELEASES.md` with your changes
-6. Submit a pull request
-
-## AI Tools Used
-
-This project was built using AI-assisted development:
-
-| Tool | Usage |
-|------|-------|
-| [Claude Code](https://claude.ai/claude-code) | 100% of codebase development (Anthropic's CLI) |
-| [GitHub Spec-Kit](https://github.com/github/spec-kit) | Project planning and architecture design |
-
-## License
-
-MIT License - see [LICENSE](LICENSE) file for details
-
-## Support
-
-- [GitHub Repository](https://github.com/sharkhunterr/mcparr)
-- [Documentation](docs/)
-- [Issues](https://github.com/sharkhunterr/mcparr/issues)
+📖 **[AI integration guide →](docs/AI_INTEGRATION.md)**
 
 ---
 
-**Built with** Claude Code **for the homelab community**
+## 📸 Screenshots
+
+<details open>
+<summary><b>🎯 Dashboard & Services</b></summary>
+
+| Dashboard | Services Management |
+|-----------|---------------------|
+| ![Dashboard](docs/images/02-dashboard.png) | ![Services](docs/images/03-services-list.png) |
+
+</details>
+
+<details>
+<summary><b>👥 User & Group Management</b></summary>
+
+| User Auto-Detection | Group Permissions |
+|---------------------|-------------------|
+| ![Users](docs/images/07-users-auto-detection.png) | ![Groups](docs/images/09-groups-tools-permissions.png) |
+
+</details>
+
+<details>
+<summary><b>📊 Monitoring & Logs</b></summary>
+
+| System Metrics | Log Viewer |
+|----------------|------------|
+| ![Metrics](docs/images/18-monitoring-metrics.png) | ![Logs](docs/images/19-monitoring-logs.png) |
+
+</details>
+
+**[View all screenshots →](docs/SCREENSHOTS.md)**
+
+---
+
+## 📚 Documentation
+
+| Guide | Description |
+|-------|-------------|
+| [Installation](docs/INSTALLATION.md) | Complete setup instructions |
+| [Docker](docker/README.md) | Docker deployment guide |
+| [Configuration](docs/CONFIGURATION.md) | Environment & service config |
+| [Services](docs/SERVICES.md) | All supported services |
+| [AI Integration](docs/AI_INTEGRATION.md) | Open WebUI & Claude setup |
+| [MCP Tools](docs/MCP.md) | Tool chains & permissions |
+| [API Reference](docs/API.md) | REST API endpoints |
+| [Development](docs/DEVELOPMENT.md) | Contributing & releases |
+| [Monitoring](docs/MONITORING.md) | Metrics & observability |
+
+---
+
+## 🌐 Multi-Language Support
+
+MCParr is fully translated into **5 languages**:
+
+🇬🇧 English • 🇫🇷 Français • 🇩🇪 Deutsch • 🇪🇸 Español • 🇮🇹 Italiano
+
+All translations generated with Claude Code. Want to add a language? [Translation guide →](docs/CONTRIBUTING.md#translations)
+
+---
+
+## 🛠️ Technology Stack
+
+**Backend**: Python 3.11 • FastAPI • SQLAlchemy • Alembic • Redis • MCP
+
+**Frontend**: React 18 • TypeScript • Tailwind CSS • Vite • i18next
+
+**DevOps**: Docker • GitLab CI • GitHub Actions • Prometheus
+
+**[Architecture diagram →](docs/ARCHITECTURE.md)**
+
+---
+
+## 🤝 Contributing
+
+Contributions welcome! Please:
+
+1. Read the [Contributing Guide](docs/CONTRIBUTING.md)
+2. Fork and create a feature branch
+3. Run tests: `npm run lint && npm test`
+4. Submit a pull request
+
+**Releases**: We use automated release scripts. See [Development Guide](docs/DEVELOPMENT.md) for details.
+
+---
+
+## 📦 Releases & Docker
+
+### Latest Release
+
+Check [Releases](https://github.com/sharkhunterr/mcparr/releases) for changelogs and downloads.
+
+### Docker Images
+
+```bash
+# Latest stable
+docker pull sharkhunterr/mcparr:latest
+
+# Specific version
+docker pull sharkhunterr/mcparr:v0.2.33
+```
+
+**Platforms**: `linux/amd64`, `linux/arm64`
+
+**[Docker Hub →](https://hub.docker.com/r/sharkhunterr/mcparr)** | **[Release automation →](scripts/README.md)**
+
+---
+
+## 🙏 Acknowledgments
+
+**The Need**: Managing 15+ homelab services for family and friends became overwhelming — scattered UIs, manual requests, no unified control.
+
+**The Solution**: MCParr was born to bridge AI assistants with homelab services, letting users make requests in natural language instead of learning multiple interfaces.
+
+**The Approach**: As a young parent with limited time and no fullstack development experience (neither backend nor frontend), traditional coding wasn't an option. Built entirely through [Claude Code](https://claude.ai/claude-code) using "vibe coding" — pure conversation, no manual coding required.
+
+**The Architecture**: Structured using [GitHub Spec-Kit](https://github.com/github/spec-kit) methodology for maintainable, scalable design.
+
+Special thanks to the homelab community and all contributors!
+
+---
+
+## 📄 License
+
+MIT License - see [LICENSE](LICENSE) file for details.
+
+---
+
+<div align="center">
+
+**Built with Claude Code 🤖 for the homelab community 🏠**
+
+[![GitHub](https://img.shields.io/badge/GitHub-sharkhunterr/mcparr-181717?logo=github)](https://github.com/sharkhunterr/mcparr)
+[![Docker Hub](https://img.shields.io/badge/Docker-sharkhunterr/mcparr-2496ED?logo=docker&logoColor=white)](https://hub.docker.com/r/sharkhunterr/mcparr)
+[![Documentation](https://img.shields.io/badge/Docs-Read%20Now-blue?logo=bookstack)](docs/)
+
+[⭐ Star on GitHub](https://github.com/sharkhunterr/mcparr) • [🐛 Report Bug](https://github.com/sharkhunterr/mcparr/issues) • [💡 Request Feature](https://github.com/sharkhunterr/mcparr/issues)
+
+</div>
