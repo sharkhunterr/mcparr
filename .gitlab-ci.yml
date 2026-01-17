@@ -398,6 +398,66 @@ release:gitlab:
   rules:
     - if: '$CI_COMMIT_TAG'
 
+release:github:
+  stage: release
+  image: alpine:latest
+  before_script:
+    - apk add --no-cache curl jq
+  script:
+    - echo "Création de la release GitHub ${CI_COMMIT_TAG}..."
+    - |
+      # Extraire la première section de version de GITHUB_RELEASES.md
+      if [ -f GITHUB_RELEASES.md ]; then
+        # Extraction de la première release (entre premier ## et prochain ## ou ---)
+        NOTES=$(awk '/^## /{if(++count==1){p=1; next} if(count==2){exit}} p{print}' GITHUB_RELEASES.md)
+
+        if [ -z "$NOTES" ]; then
+          echo "⚠️ Aucune note trouvée dans GITHUB_RELEASES.md, utilisation du CHANGELOG"
+          VERSION="${CI_COMMIT_TAG#v}"
+          NOTES=$(awk "/^## \\[${VERSION}\\]/{flag=1; next} /^## \\[/{flag=0} flag" CHANGELOG.md)
+          if [ -z "$NOTES" ]; then
+            NOTES="Release ${CI_COMMIT_TAG}"
+          fi
+        fi
+      else
+        echo "⚠️ GITHUB_RELEASES.md non trouvé, utilisation du CHANGELOG"
+        VERSION="${CI_COMMIT_TAG#v}"
+        NOTES=$(awk "/^## \\[${VERSION}\\]/{flag=1; next} /^## \\[/{flag=0} flag" CHANGELOG.md)
+        if [ -z "$NOTES" ]; then
+          NOTES="Release ${CI_COMMIT_TAG}"
+        fi
+      fi
+
+      echo "Notes de release:"
+      echo "$NOTES"
+
+      # Créer la release GitHub via API
+      RESPONSE=$(curl -X POST \
+        -H "Authorization: token ${GITHUB_TOKEN}" \
+        -H "Accept: application/vnd.github.v3+json" \
+        -H "Content-Type: application/json" \
+        -s -w "\n%{http_code}" \
+        "https://api.github.com/repos/${GITHUB_REPO}/releases" \
+        -d "$(jq -n \
+          --arg tag "${CI_COMMIT_TAG}" \
+          --arg name "Release ${CI_COMMIT_TAG}" \
+          --arg body "$NOTES" \
+          '{tag_name: $tag, name: $name, body: $body, draft: false, prerelease: false}')")
+
+      HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+      BODY=$(echo "$RESPONSE" | sed '$d')
+
+      if [ "$HTTP_CODE" -eq 201 ]; then
+        echo "✅ Release GitHub créée avec succès"
+        echo "$BODY" | jq -r '.html_url'
+      else
+        echo "❌ Erreur lors de la création de la release GitHub (HTTP $HTTP_CODE)"
+        echo "$BODY" | jq '.' || echo "$BODY"
+        exit 1
+      fi
+  rules:
+    - if: '$CI_COMMIT_TAG && $DEPLOY == "true" && $GITHUB_DEPLOY_ENABLED == "true"'
+
 # =============================================================================
 # Stage: Verify (vérification post-deploy)
 # =============================================================================
@@ -425,7 +485,7 @@ verify:
     # Vérifier GitHub
     - |
       if [ "$GITHUB_DEPLOY_ENABLED" = "true" ] && [ "$DEPLOY" = "true" ]; then
-        echo "Vérification GitHub..."
+        echo "Vérification GitHub tag..."
         RESPONSE=$(curl -s -H "Authorization: token ${GITHUB_TOKEN}" \
           "https://api.github.com/repos/${GITHUB_REPO}/git/refs/tags/${CI_COMMIT_TAG}")
         if echo "$RESPONSE" | jq -e '.ref' > /dev/null 2>&1; then
@@ -433,6 +493,16 @@ verify:
         else
           echo "❌ Tag ${CI_COMMIT_TAG} non trouvé sur GitHub"
           exit 1
+        fi
+
+        echo "Vérification GitHub release..."
+        RESPONSE=$(curl -s -H "Authorization: token ${GITHUB_TOKEN}" \
+          "https://api.github.com/repos/${GITHUB_REPO}/releases/tags/${CI_COMMIT_TAG}")
+        if echo "$RESPONSE" | jq -e '.id' > /dev/null 2>&1; then
+          RELEASE_URL=$(echo "$RESPONSE" | jq -r '.html_url')
+          echo "✅ Release ${CI_COMMIT_TAG} trouvée sur GitHub: ${RELEASE_URL}"
+        else
+          echo "⚠️ Release ${CI_COMMIT_TAG} non trouvée sur GitHub (peut nécessiter quelques secondes)"
         fi
       fi
     - echo "✅ Vérification terminée avec succès"

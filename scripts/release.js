@@ -106,20 +106,13 @@ async function main() {
 
   // Check remotes
   const gitlabUrl = getRemoteUrl('origin');
-  const githubUrl = getRemoteUrl('github');
 
   console.log(`\n🔗 Remotes:`);
   console.log(`   GitLab: ${gitlabUrl || 'not configured'}`);
-  console.log(`   GitHub: ${githubUrl || 'not configured'}`);
+  console.log(`   GitHub: will use GITHUB_TOKEN env var or gh CLI auth`);
 
   if (options.gitlab && !gitlabUrl) {
     console.error('❌ GitLab remote (origin) not configured');
-    process.exit(1);
-  }
-
-  if (options.github && !githubUrl) {
-    console.error('❌ GitHub remote not configured');
-    console.log('\n💡 Add GitHub remote with: git remote add github <url>');
     process.exit(1);
   }
 
@@ -143,7 +136,7 @@ async function main() {
   const tag = `v${newVersion}`;
   console.log(`\n✨ New version: ${tag}`);
 
-  // Step 2: Push to remotes
+  // Step 2: Push to GitLab (GitHub push is handled by GitLab CI)
   if (!options.skipPush) {
     const pushOptions = options.deploy ? '-o ci.variable="DEPLOY=true"' : '';
 
@@ -152,13 +145,10 @@ async function main() {
         `git push origin ${currentBranch} --follow-tags ${pushOptions}`,
         'Pushing to GitLab'
       );
-    }
 
-    if (options.github) {
-      exec(
-        `git push github ${currentBranch} --follow-tags`,
-        'Pushing to GitHub'
-      );
+      if (options.github) {
+        console.log('\n💡 GitHub push will be handled by GitLab CI');
+      }
     }
   }
 
@@ -182,17 +172,29 @@ async function main() {
       }
     }
 
-    if (options.github && githubUrl) {
+    if (options.github) {
       console.log('\n📋 Creating GitHub release...');
-      try {
-        // Check if gh is installed
-        execSync('which gh', { stdio: 'ignore' });
 
-        const ghCmd = `gh release create ${tag} --notes-file "${releaseNotesFile}" --title "Release ${tag}"`;
-        exec(ghCmd, 'Creating GitHub release');
-      } catch {
-        console.warn('⚠️  gh CLI not found. Skipping GitHub release creation.');
-        console.log('   Install with: brew install gh (macOS) or https://cli.github.com/');
+      // Check for GITHUB_TOKEN env var
+      const githubToken = process.env.GITHUB_TOKEN;
+      const githubRepo = process.env.GITHUB_REPO || 'sharkhunterr/mcparr';
+
+      if (!githubToken) {
+        console.warn('⚠️  GITHUB_TOKEN not found in environment variables.');
+        console.log('   GitHub release will be created by GitLab CI');
+      } else {
+        try {
+          // Check if gh is installed
+          execSync('which gh', { stdio: 'ignore' });
+
+          // Use gh CLI with token from env
+          const ghCmd = `GH_TOKEN=${githubToken} gh release create ${tag} --repo ${githubRepo} --notes-file "${releaseNotesFile}" --title "Release ${tag}"`;
+          exec(ghCmd, 'Creating GitHub release');
+        } catch {
+          console.warn('⚠️  gh CLI not found.');
+          console.log('   GitHub release will be created by GitLab CI');
+          console.log('   Install gh CLI: brew install gh (macOS) or https://cli.github.com/');
+        }
       }
     }
 
