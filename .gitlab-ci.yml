@@ -236,11 +236,31 @@ test:docker:health:
     - echo "Test de santé du conteneur..."
     - |
       docker run -d --name test-container -p 3000:3000 -p 8000:8000 ${DOCKER_IMAGE}:${CI_COMMIT_SHA}
-      sleep 15
+
+      # Wait for backend to be ready (with retry loop)
+      echo "Waiting for backend to be ready..."
+      for i in $(seq 1 30); do
+        if docker exec test-container curl -sf http://localhost:8000/health > /dev/null 2>&1; then
+          echo "Backend is ready after $i attempts"
+          break
+        fi
+        if [ $i -eq 30 ]; then
+          echo "Backend failed to start after 30 attempts"
+          docker logs test-container
+          exit 1
+        fi
+        echo "Attempt $i/30 - waiting..."
+        sleep 2
+      done
+
       # Test backend health
+      echo "Testing backend health endpoint..."
       docker exec test-container curl -f http://localhost:8000/health || exit 1
+
       # Test frontend
+      echo "Testing frontend..."
       docker exec test-container curl -f http://localhost:3000 || exit 1
+
       docker stop test-container
       docker rm test-container
   rules:
