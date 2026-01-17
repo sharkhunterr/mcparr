@@ -21,6 +21,10 @@
     {
       "filename": "package.json",
       "type": "json"
+    },
+    {
+      "filename": "src/backend/src/version.py",
+      "updater": "scripts/version-updater.js"
     }
   ],
   "skip": {
