@@ -3,6 +3,11 @@
   "subtitle": "Entrenamiento y ajuste fino de modelos de IA",
   "refresh": "Actualizar",
 
+  "devWarning": {
+    "title": "Funcionalidad en desarrollo",
+    "description": "Esta sección está actualmente en desarrollo y aún no es funcional. Las funciones de entrenamiento de IA estarán disponibles en una versión futura."
+  },
+
   "help": {
     "category": "Entrenamiento IA"
   },

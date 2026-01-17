@@ -3,6 +3,11 @@
   "subtitle": "Entraînement et fine-tuning de modèles IA",
   "refresh": "Actualiser",
 
+  "devWarning": {
+    "title": "Fonctionnalité en cours de développement",
+    "description": "Cette section est actuellement en développement et n'est pas encore fonctionnelle. Les fonctionnalités d'entraînement IA seront disponibles dans une prochaine version."
+  },
+
   "help": {
     "category": "IA Training"
   },

@@ -3,6 +3,11 @@
   "subtitle": "Addestramento e ottimizzazione dei modelli IA",
   "refresh": "Aggiorna",
 
+  "devWarning": {
+    "title": "Funzionalità in sviluppo",
+    "description": "Questa sezione è attualmente in sviluppo e non è ancora funzionante. Le funzionalità di addestramento IA saranno disponibili in una versione futura."
+  },
+
   "help": {
     "category": "Addestramento IA"
   },

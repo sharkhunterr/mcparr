@@ -3,6 +3,11 @@
   "subtitle": "AI model training and fine-tuning",
   "refresh": "Refresh",
 
+  "devWarning": {
+    "title": "Feature under development",
+    "description": "This section is currently under development and not yet functional. AI training features will be available in a future release."
+  },
+
   "help": {
     "category": "AI Training"
   },

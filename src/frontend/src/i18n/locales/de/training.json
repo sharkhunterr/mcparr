@@ -3,6 +3,11 @@
   "subtitle": "KI-Modelltraining und Feinabstimmung",
   "refresh": "Aktualisieren",
 
+  "devWarning": {
+    "title": "Funktion in Entwicklung",
+    "description": "Dieser Bereich befindet sich derzeit in Entwicklung und ist noch nicht funktionsfähig. KI-Training-Funktionen werden in einer zukünftigen Version verfügbar sein."
+  },
+
   "help": {
     "category": "KI-Training"
   },

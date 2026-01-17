@@ -32,6 +32,7 @@ import {
   Monitor,
   Copy,
   Eye,
+  AlertTriangle,
 } from 'lucide-react';
 import { WorkerList } from '../components/Workers';
 import { api } from '../lib/api';
@@ -2996,6 +2997,19 @@ export default function Training() {
             );
           })}
         </nav>
+      </div>
+
+      {/* Development Warning */}
+      <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-lg flex items-start gap-3">
+        <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+        <div>
+          <p className="text-sm font-medium text-amber-800 dark:text-amber-300">
+            {t('devWarning.title')}
+          </p>
+          <p className="text-xs text-amber-700 dark:text-amber-400 mt-1">
+            {t('devWarning.description')}
+          </p>
+        </div>
       </div>
 
       {/* Tab Content */}
