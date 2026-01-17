@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.2.32](https://github.com/sharkhunterr/mcparr/-/compare/v0.2.31...v0.2.32) (2026-01-17)
+
+
+### Bug Fixes
+
+* **docker:** initialize database tables before running migrations ([b0eb654](https://github.com/sharkhunterr/mcparr/-/commit/b0eb6546886a6d35ccfa848682d85e74cdcfaf34))
+
 ### [0.2.31](https://github.com/sharkhunterr/mcparr/-/compare/v0.2.30...v0.2.31) (2026-01-17)
 
 
