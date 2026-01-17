@@ -408,8 +408,9 @@ release:github:
     - |
       # Extraire la première section de version de GITHUB_RELEASES.md
       if [ -f GITHUB_RELEASES.md ]; then
-        # Extraction de la première release (entre premier ## et prochain ## ou ---)
-        NOTES=$(awk '/^## /{if(++count==1){p=1; next} if(count==2){exit}} p{print}' GITHUB_RELEASES.md)
+        # Extraction de la première release (entre premier ## et prochain # vX.Y.Z)
+        # Nettoyer les séparateurs --- en fin de section
+        NOTES=$(awk '/^## /{if(found==0){found=1; p=1; next}} /^# v[0-9]/{if(found==1 && p==1){exit}} p{print}' GITHUB_RELEASES.md | sed 's/^---$//' | sed '/^$/N;/^\n$/D')
 
         if [ -z "$NOTES" ]; then
           echo "⚠️ Aucune note trouvée dans GITHUB_RELEASES.md, utilisation du CHANGELOG"
