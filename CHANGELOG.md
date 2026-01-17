@@ -2,6 +2,8 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.2.39](https://github.com/sharkhunterr/mcparr/-/compare/v0.2.38...v0.2.39) (2026-01-17)
+
 ### [0.2.38](https://github.com/sharkhunterr/mcparr/-/compare/v0.2.37...v0.2.38) (2026-01-17)
 
 ### [0.2.37](https://github.com/sharkhunterr/mcparr/-/compare/v0.2.36...v0.2.37) (2026-01-17)
