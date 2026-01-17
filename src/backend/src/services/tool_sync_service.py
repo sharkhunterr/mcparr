@@ -89,7 +89,6 @@ class ToolSyncService:
 
         # Calculate differences
         orphan_tools = {t for t in db_tools if t != "*" and t not in available_tools}
-        missing_tools = available_tools - db_tools
 
         return {
             "db_tool_count": len(db_tools),

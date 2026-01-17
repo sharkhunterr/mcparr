@@ -696,7 +696,7 @@ class PlexAdapter(TokenAuthAdapter):
             item_type = item.get("type")
 
             # Mark as watched using scrobble endpoint
-            await self._make_request("GET", f"/:/scrobble", params={"key": rating_key, "identifier": "com.plexapp.plugins.library"})
+            await self._make_request("GET", "/:/scrobble", params={"key": rating_key, "identifier": "com.plexapp.plugins.library"})
 
             await self._ensure_machine_identifier()
 
@@ -743,7 +743,7 @@ class PlexAdapter(TokenAuthAdapter):
             item_type = item.get("type")
 
             # Mark as unwatched using unscrobble endpoint
-            await self._make_request("GET", f"/:/unscrobble", params={"key": rating_key, "identifier": "com.plexapp.plugins.library"})
+            await self._make_request("GET", "/:/unscrobble", params={"key": rating_key, "identifier": "com.plexapp.plugins.library"})
 
             await self._ensure_machine_identifier()
 

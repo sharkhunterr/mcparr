@@ -717,7 +717,7 @@ class OverseerrTools(BaseTool):
             comment_result = await adapter.add_issue_comment(int(issue_id), comment)
             if comment_result.get("error") and not comment_result.get("success"):
                 return {"success": False, "error": comment_result.get("error")}
-            results.append(f"Comment added")
+            results.append("Comment added")
 
         # Update status if provided
         if status:

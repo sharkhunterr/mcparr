@@ -649,7 +649,6 @@ class AudiobookshelfAdapter(TokenAuthAdapter):
             if not item:
                 return {"success": False, "error": f"Item with ID {library_item_id} not found"}
 
-            title = item.get("title", library_item_id)
             duration = item.get("duration", 0)
 
             return await self.update_media_progress(
@@ -679,8 +678,6 @@ class AudiobookshelfAdapter(TokenAuthAdapter):
             item = await self.get_item(library_item_id)
             if not item:
                 return {"success": False, "error": f"Item with ID {library_item_id} not found"}
-
-            title = item.get("title", library_item_id)
 
             # Reset progress to 0
             return await self.update_media_progress(

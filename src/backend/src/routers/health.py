@@ -9,7 +9,7 @@ from loguru import logger
 from pydantic import BaseModel
 
 from src.config.settings import get_settings
-from src.version import __version__, __app_name__, __github_repo__, __github_url__
+from src.version import __app_name__, __github_repo__, __github_url__, __version__
 
 
 class HealthResponse(BaseModel):

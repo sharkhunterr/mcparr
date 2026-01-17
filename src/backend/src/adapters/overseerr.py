@@ -570,8 +570,7 @@ class OverseerrAdapter(TokenAuthAdapter):
             title = await self._get_media_title(media_type, tmdb_id) or f"Request {request_id}"
 
             # Approve the request
-            response = await self._make_request("POST", f"/api/v1/request/{request_id}/approve")
-            approved_request = response.json()
+            await self._make_request("POST", f"/api/v1/request/{request_id}/approve")
 
             return {
                 "success": True,
@@ -624,7 +623,7 @@ class OverseerrAdapter(TokenAuthAdapter):
             if reason:
                 data["reason"] = reason
 
-            response = await self._make_request("POST", f"/api/v1/request/{request_id}/decline", json=data)
+            await self._make_request("POST", f"/api/v1/request/{request_id}/decline", json=data)
 
             return {
                 "success": True,
@@ -755,8 +754,7 @@ class OverseerrAdapter(TokenAuthAdapter):
                 return {"success": False, "error": f"Issue {issue_id} not found"}
 
             # Add comment
-            payload = {"message": comment}
-            response = await self._make_request("POST", f"/api/v1/issue/{issue_id}/comment", json=payload)
+            await self._make_request("POST", f"/api/v1/issue/{issue_id}/comment", json={"message": comment})
 
             return {
                 "success": True,
@@ -795,8 +793,7 @@ class OverseerrAdapter(TokenAuthAdapter):
                 return {"success": False, "error": f"Invalid status '{status}'. Use 'open' or 'resolved'"}
 
             # Update status
-            payload = {"status": status_map[status.lower()]}
-            response = await self._make_request("POST", f"/api/v1/issue/{issue_id}/{status.lower()}")
+            await self._make_request("POST", f"/api/v1/issue/{issue_id}/{status.lower()}")
 
             # Get media title for confirmation
             media = issue.get("media", {})
