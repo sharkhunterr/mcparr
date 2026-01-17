@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.2.29](https://github.com/sharkhunterr/mcparr/-/compare/v0.2.28...v0.2.29) (2026-01-17)
+
+
+### Features
+
+* **training:** add development warning banner ([75ac95d](https://github.com/sharkhunterr/mcparr/-/commit/75ac95d1088998da0baf81e24dd5b6e831e7b484))
+
+
+### Bug Fixes
+
+* **nginx:** add proxy rule for /version endpoint ([b251f28](https://github.com/sharkhunterr/mcparr/-/commit/b251f288be6def21faee9c15486f3636c6668b80))
+
 ### [0.2.28](https://github.com/sharkhunterr/mcparr/-/compare/v0.2.27...v0.2.28) (2026-01-17)
 
 
