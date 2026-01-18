@@ -483,7 +483,15 @@ export default function Configuration() {
     <div className="space-y-6">
       {/* Logs Section */}
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-4 sm:p-6 space-y-4">
-        <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">{t('tabs.logs')}</h3>
+        <div className="flex items-center gap-3 mb-2">
+          <div className="p-2 rounded-lg bg-purple-100 dark:bg-purple-900/30">
+            <FileText className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+          </div>
+          <div>
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-white">{t('tabs.logs')}</h3>
+            <p className="text-xs text-gray-500 dark:text-gray-400">{t('logs.logLevel.description')}</p>
+          </div>
+        </div>
 
         <div className="flex items-center justify-between py-2">
           <div>
@@ -553,7 +561,15 @@ export default function Configuration() {
 
       {/* Notifications/Alerts Section */}
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-4 sm:p-6 space-y-4">
-        <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">{t('tabs.notifications')}</h3>
+        <div className="flex items-center gap-3 mb-2">
+          <div className="p-2 rounded-lg bg-orange-100 dark:bg-orange-900/30">
+            <AlertCircle className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+          </div>
+          <div>
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-white">{t('tabs.notifications')}</h3>
+            <p className="text-xs text-gray-500 dark:text-gray-400">{t('notifications.enabled.description')}</p>
+          </div>
+        </div>
 
         <div className="flex items-center justify-between py-2">
           <div>
