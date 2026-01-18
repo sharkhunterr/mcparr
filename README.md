@@ -57,7 +57,7 @@ MCParr bridges AI assistants with your homelab services through the **Model Cont
 - Wiki.js, Zammad, Authentik
 - Open WebUI, Ollama
 
-[Full service list →](docs/SERVICES.md)
+[Full service list →](docs/USER_GUIDE.md#services-management)
 
 </td>
 <td width="33%" valign="top">
@@ -83,7 +83,7 @@ MCParr bridges AI assistants with your homelab services through the **Model Cont
 - Prometheus metrics
 - Correlation ID tracing
 
-[Monitoring guide →](docs/MONITORING.md)
+[Monitoring guide →](docs/USER_GUIDE.md#monitoring)
 
 </td>
 </tr>
@@ -137,7 +137,7 @@ npm run dev
 # API docs: http://localhost:8000/docs
 ```
 
-📖 **[Development guide →](docs/DEVELOPMENT.md)**
+📖 **[Development guide →](docs/INTEGRATION_GUIDE.md)**
 
 ---
 
@@ -159,7 +159,7 @@ After first launch, use the **Setup Wizard** to:
 3. Tour MCParr features
 4. Configure your services
 
-📖 **[Configuration guide →](docs/CONFIGURATION.md)**
+📖 **[Configuration guide →](docs/CONFIGURATION.md)** | **[User guide →](docs/USER_GUIDE.md)**
 
 ---
 
@@ -198,7 +198,7 @@ Add to `~/.config/claude/claude_desktop_config.json`:
 }
 ```
 
-📖 **[AI integration guide →](docs/AI_INTEGRATION.md)**
+📖 **[AI integration guide →](docs/MCP.md)**
 
 ---
 
@@ -231,7 +231,7 @@ Add to `~/.config/claude/claude_desktop_config.json`:
 
 </details>
 
-**[View all screenshots →](docs/SCREENSHOTS.md)**
+**[View all screenshots →](docs/images/)**
 
 ---
 
@@ -242,12 +242,11 @@ Add to `~/.config/claude/claude_desktop_config.json`:
 | [Installation](docs/INSTALLATION.md) | Complete setup instructions |
 | [Docker](docker/README.md) | Docker deployment guide |
 | [Configuration](docs/CONFIGURATION.md) | Environment & service config |
-| [Services](docs/SERVICES.md) | All supported services |
-| [AI Integration](docs/AI_INTEGRATION.md) | Open WebUI & Claude setup |
-| [MCP Tools](docs/MCP.md) | Tool chains & permissions |
+| [User Guide](docs/USER_GUIDE.md) | Complete UI guide, services & monitoring |
+| [MCP Integration](docs/MCP.md) | AI integration, tool chains & permissions |
 | [API Reference](docs/API.md) | REST API endpoints |
-| [Development](docs/DEVELOPMENT.md) | Contributing & releases |
-| [Monitoring](docs/MONITORING.md) | Metrics & observability |
+| [Integration Guide](docs/INTEGRATION_GUIDE.md) | Developer guide for new services |
+| [Scripts](scripts/README.md) | Release automation & CI/CD |
 
 ---
 
@@ -257,7 +256,7 @@ MCParr is fully translated into **5 languages**:
 
 🇬🇧 English • 🇫🇷 Français • 🇩🇪 Deutsch • 🇪🇸 Español • 🇮🇹 Italiano
 
-All translations generated with Claude Code. Want to add a language? [Translation guide →](docs/CONTRIBUTING.md#translations)
+All translations generated with Claude Code. Want to add a language? See [Integration Guide](docs/INTEGRATION_GUIDE.md#11-step-9-internationalization-i18n).
 
 ---
 
@@ -269,7 +268,90 @@ All translations generated with Claude Code. Want to add a language? [Translatio
 
 **DevOps**: Docker • GitLab CI • GitHub Actions • Prometheus
 
-**[Architecture diagram →](docs/ARCHITECTURE.md)**
+**[Architecture details →](docs/INTEGRATION_GUIDE.md#1-architecture-overview)**
+
+---
+
+## 🏗️ Architecture
+
+### Global Architecture
+
+```mermaid
+flowchart TB
+    subgraph Clients["🖥️ AI Clients"]
+        OW[Open WebUI]
+        CD[Claude Desktop]
+        API[REST API Client]
+    end
+
+    subgraph MCParr["🎯 MCParr Gateway"]
+        subgraph Backend["FastAPI Backend :8000"]
+            REST[REST API<br/>/api/*]
+            OA[OpenAPI Tools<br/>/tools/*]
+            TR[Tool Registry]
+            PM[Permission Manager]
+        end
+
+        subgraph MCP["MCP Server :8001"]
+            SSE[SSE Endpoint<br/>/sse]
+            MSG[Message Handler]
+        end
+
+        subgraph Data["Data Layer"]
+            DB[(SQLite/PostgreSQL)]
+            REDIS[(Redis Cache)]
+        end
+    end
+
+    subgraph Services["🔧 Homelab Services"]
+        direction LR
+        PLEX[Plex]
+        OV[Overseerr]
+        RAD[Radarr]
+        SON[Sonarr]
+        MORE[...]
+    end
+
+    OW -->|OpenAPI + JWT| OA
+    CD -->|MCP Protocol| SSE
+    API -->|REST| REST
+
+    OA --> TR
+    SSE --> MSG --> TR
+    REST --> TR
+
+    TR --> PM
+    PM --> DB
+    TR --> REDIS
+
+    TR -->|HTTP| Services
+```
+
+### Request Flow Sequence
+
+```mermaid
+sequenceDiagram
+    participant User as 👤 User
+    participant AI as 🤖 AI Assistant
+    participant MCParr as 🎯 MCParr
+    participant Service as 🔧 Service
+
+    User->>AI: "Request Foundation Season 2"
+    AI->>MCParr: Call overseerr_request_media
+
+    Note over MCParr: Validate JWT Token
+    Note over MCParr: Check User Permissions
+    Note over MCParr: Resolve User Mapping
+
+    MCParr->>Service: POST /api/v1/request
+    Service-->>MCParr: 201 Created
+
+    Note over MCParr: Log Request
+    Note over MCParr: Update Metrics
+
+    MCParr-->>AI: Success Response
+    AI-->>User: "✅ Foundation S2 requested!"
+```
 
 ---
 
@@ -277,12 +359,12 @@ All translations generated with Claude Code. Want to add a language? [Translatio
 
 Contributions welcome! Please:
 
-1. Read the [Contributing Guide](docs/CONTRIBUTING.md)
+1. Read the [Integration Guide](docs/INTEGRATION_GUIDE.md) for development details
 2. Fork and create a feature branch
 3. Run tests: `npm run lint && npm test`
 4. Submit a pull request
 
-**Releases**: We use automated release scripts. See [Development Guide](docs/DEVELOPMENT.md) for details.
+**Releases**: We use automated release scripts. See [Scripts documentation](scripts/README.md) for details.
 
 ---
 
