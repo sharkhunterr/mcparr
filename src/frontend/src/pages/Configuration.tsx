@@ -595,20 +595,20 @@ export default function Configuration() {
 
 
   const renderBackupTab = () => (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Export Section */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-4 sm:p-6">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30">
-            <Download className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-3 sm:p-6">
+        <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+          <div className="p-1.5 sm:p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30">
+            <Download className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 dark:text-blue-400" />
           </div>
-          <div>
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-white">{t('backup.export.title')}</h3>
-            <p className="text-xs text-gray-500 dark:text-gray-400">{t('backup.export.description')}</p>
+          <div className="min-w-0">
+            <h3 className="text-xs sm:text-sm font-semibold text-gray-900 dark:text-white truncate">{t('backup.export.title')}</h3>
+            <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 truncate">{t('backup.export.description')}</p>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 mb-3 sm:mb-4">
           {backupCategories.map((cat) => {
             const Icon = cat.icon;
             const isChecked = exportOptions[cat.key];
@@ -618,51 +618,51 @@ export default function Configuration() {
               <button
                 key={cat.key}
                 onClick={() => setExportOptions(prev => ({ ...prev, [cat.key]: !prev[cat.key] }))}
-                className={`relative flex items-start gap-3 p-3 rounded-lg border-2 transition-all text-left ${
+                className={`relative flex items-start gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg border-2 transition-all text-left ${
                   isChecked
                     ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
                     : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
                 }`}
               >
-                <div className={`p-1.5 rounded-md ${isChecked ? 'bg-blue-100 dark:bg-blue-900/50' : 'bg-gray-100 dark:bg-gray-700'}`}>
-                  <Icon className={`w-4 h-4 ${isChecked ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400'}`} />
+                <div className={`p-1 sm:p-1.5 rounded-md flex-shrink-0 ${isChecked ? 'bg-blue-100 dark:bg-blue-900/50' : 'bg-gray-100 dark:bg-gray-700'}`}>
+                  <Icon className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isChecked ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400'}`} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className={`text-sm font-medium ${isChecked ? 'text-blue-700 dark:text-blue-300' : 'text-gray-700 dark:text-gray-300'}`}>
+                  <div className="flex items-center gap-1.5 sm:gap-2">
+                    <span className={`text-xs sm:text-sm font-medium truncate ${isChecked ? 'text-blue-700 dark:text-blue-300' : 'text-gray-700 dark:text-gray-300'}`}>
                       {cat.label}
                     </span>
                     {loadingPreview ? (
-                      <Loader2 className="w-3 h-3 text-gray-400 animate-spin" />
+                      <Loader2 className="w-3 h-3 text-gray-400 animate-spin flex-shrink-0" />
                     ) : (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400">
+                      <span className="text-[9px] sm:text-[10px] px-1 sm:px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 flex-shrink-0">
                         {count}
                       </span>
                     )}
                   </div>
-                  <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5 truncate">{cat.description}</p>
+                  <p className="text-[9px] sm:text-[10px] text-gray-500 dark:text-gray-400 mt-0.5 truncate">{cat.description}</p>
                 </div>
                 {isChecked && (
-                  <Check className="w-4 h-4 text-blue-500 absolute top-2 right-2" />
+                  <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-500 absolute top-1.5 sm:top-2 right-1.5 sm:right-2" />
                 )}
               </button>
             );
           })}
         </div>
 
-        <div className="flex items-center justify-between pt-3 border-t border-gray-100 dark:border-gray-700">
-          <div className="text-xs text-gray-500 dark:text-gray-400">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 pt-2 sm:pt-3 border-t border-gray-100 dark:border-gray-700">
+          <div className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">
             {t('backup.export.categoriesSelected', { count: Object.values(exportOptions).filter(Boolean).length })}
           </div>
           <button
             onClick={handleFullExport}
             disabled={exporting || Object.values(exportOptions).every(v => !v)}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white text-sm font-medium rounded-lg transition-colors"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white text-xs sm:text-sm font-medium rounded-lg transition-colors"
           >
             {exporting ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
+              <Loader2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-spin" />
             ) : (
-              <Download className="w-4 h-4" />
+              <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             )}
             {t('backup.export.button')}
           </button>
@@ -670,20 +670,20 @@ export default function Configuration() {
       </div>
 
       {/* Import Section */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-4 sm:p-6">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900/30">
-            <Upload className="w-5 h-5 text-green-600 dark:text-green-400" />
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-3 sm:p-6">
+        <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+          <div className="p-1.5 sm:p-2 rounded-lg bg-green-100 dark:bg-green-900/30">
+            <Upload className="w-4 h-4 sm:w-5 sm:h-5 text-green-600 dark:text-green-400" />
           </div>
-          <div>
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-white">{t('backup.import.title')}</h3>
-            <p className="text-xs text-gray-500 dark:text-gray-400">{t('backup.import.description')}</p>
+          <div className="min-w-0">
+            <h3 className="text-xs sm:text-sm font-semibold text-gray-900 dark:text-white truncate">{t('backup.import.title')}</h3>
+            <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 truncate">{t('backup.import.description')}</p>
           </div>
         </div>
 
         {/* File Upload */}
-        <div className="mb-4">
-          <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:border-green-500 dark:hover:border-green-500 transition-colors bg-gray-50 dark:bg-gray-900/50">
+        <div className="mb-3 sm:mb-4">
+          <label className="flex flex-col items-center justify-center w-full h-24 sm:h-32 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:border-green-500 dark:hover:border-green-500 transition-colors bg-gray-50 dark:bg-gray-900/50">
             <input
               type="file"
               accept=".json"
@@ -691,16 +691,16 @@ export default function Configuration() {
               className="hidden"
             />
             {importFile ? (
-              <div className="text-center">
-                <Database className="w-8 h-8 text-green-500 mx-auto mb-2" />
-                <p className="text-sm font-medium text-gray-900 dark:text-white">{importFileName}</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
+              <div className="text-center px-2">
+                <Database className="w-6 h-6 sm:w-8 sm:h-8 text-green-500 mx-auto mb-1.5 sm:mb-2" />
+                <p className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white truncate">{importFileName}</p>
+                <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 truncate">
                   {t('backup.import.version', { version: importFile.version })} - {importFile.exported_at ? new Date(importFile.exported_at).toLocaleDateString() : t('backup.import.dateUnknown')}
                 </p>
                 {importFile.stats && (
-                  <div className="flex flex-wrap gap-1 mt-2 justify-center">
+                  <div className="flex flex-wrap gap-1 mt-1.5 sm:mt-2 justify-center">
                     {Object.entries(importFile.stats).map(([key, value]) => (
-                      <span key={key} className="text-[10px] px-1.5 py-0.5 rounded bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300">
+                      <span key={key} className="text-[9px] sm:text-[10px] px-1 sm:px-1.5 py-0.5 rounded bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300">
                         {key}: {value as number}
                       </span>
                     ))}
@@ -709,9 +709,9 @@ export default function Configuration() {
               </div>
             ) : (
               <div className="text-center">
-                <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                <p className="text-sm text-gray-600 dark:text-gray-400">{t('backup.import.selectFile')}</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">{t('backup.import.fileType')}</p>
+                <Upload className="w-6 h-6 sm:w-8 sm:h-8 text-gray-400 mx-auto mb-1.5 sm:mb-2" />
+                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">{t('backup.import.selectFile')}</p>
+                <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">{t('backup.import.fileType')}</p>
               </div>
             )}
           </label>
@@ -720,7 +720,7 @@ export default function Configuration() {
         {/* Import Options */}
         {importFile && (
           <>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 sm:gap-2 mb-3 sm:mb-4">
               {backupCategories.map((cat) => {
                 const Icon = cat.icon;
                 const isChecked = importOptions[cat.key];
@@ -731,7 +731,7 @@ export default function Configuration() {
                     key={cat.key}
                     onClick={() => setImportOptions(prev => ({ ...prev, [cat.key]: !prev[cat.key] }))}
                     disabled={!hasData}
-                    className={`flex items-center gap-2 p-2 rounded-lg border transition-all ${
+                    className={`flex items-center gap-1.5 sm:gap-2 p-1.5 sm:p-2 rounded-lg border transition-all ${
                       !hasData
                         ? 'border-gray-200 dark:border-gray-700 opacity-50 cursor-not-allowed'
                         : isChecked
@@ -739,11 +739,11 @@ export default function Configuration() {
                         : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
                     }`}
                   >
-                    <Icon className={`w-4 h-4 ${isChecked && hasData ? 'text-green-600' : 'text-gray-400'}`} />
-                    <span className={`text-xs font-medium ${isChecked && hasData ? 'text-green-700 dark:text-green-300' : 'text-gray-600 dark:text-gray-400'}`}>
+                    <Icon className={`w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0 ${isChecked && hasData ? 'text-green-600' : 'text-gray-400'}`} />
+                    <span className={`text-[10px] sm:text-xs font-medium truncate ${isChecked && hasData ? 'text-green-700 dark:text-green-300' : 'text-gray-600 dark:text-gray-400'}`}>
                       {cat.label}
                     </span>
-                    {hasData && isChecked && <Check className="w-3 h-3 text-green-500 ml-auto" />}
+                    {hasData && isChecked && <Check className="w-3 h-3 text-green-500 ml-auto flex-shrink-0" />}
                   </button>
                 );
               })}
