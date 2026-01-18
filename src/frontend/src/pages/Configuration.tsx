@@ -28,6 +28,10 @@ import {
   Github,
   ExternalLink,
   ArrowUpCircle,
+  Palette,
+  Globe,
+  LayoutDashboard,
+  Sparkles,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../contexts/ThemeContext';
@@ -333,7 +337,15 @@ export default function Configuration() {
     <div className="space-y-6">
       {/* Appearance Section */}
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-4 sm:p-6">
-        <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">{t('appearance.title')}</h3>
+        <div className="flex items-center gap-3 mb-4">
+          <div className="p-2 rounded-lg bg-pink-100 dark:bg-pink-900/30">
+            <Palette className="w-5 h-5 text-pink-600 dark:text-pink-400" />
+          </div>
+          <div>
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-white">{t('appearance.title')}</h3>
+            <p className="text-xs text-gray-500 dark:text-gray-400">{t('appearance.themeOptions.system')}</p>
+          </div>
+        </div>
         <div className="grid grid-cols-3 gap-3">
           {[
             { value: 'light', label: t('appearance.themeOptions.light'), icon: Sun },
@@ -371,6 +383,16 @@ export default function Configuration() {
 
       {/* Language & Refresh Section */}
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-4 sm:p-6 space-y-4">
+        <div className="flex items-center gap-3 mb-2">
+          <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30">
+            <Globe className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+          </div>
+          <div>
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-white">{t('general.language.label')}</h3>
+            <p className="text-xs text-gray-500 dark:text-gray-400">{t('general.autoRefresh.description')}</p>
+          </div>
+        </div>
+
         <div className="flex items-center justify-between py-2">
           <div>
             <p className="text-sm font-medium text-gray-900 dark:text-white">{t('general.language.label')}</p>
@@ -422,7 +444,15 @@ export default function Configuration() {
 
       {/* Dashboard Section */}
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-4 sm:p-6 space-y-4">
-        <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">{t('dashboard.title')}</h3>
+        <div className="flex items-center gap-3 mb-2">
+          <div className="p-2 rounded-lg bg-indigo-100 dark:bg-indigo-900/30">
+            <LayoutDashboard className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+          </div>
+          <div>
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-white">{t('dashboard.title')}</h3>
+            <p className="text-xs text-gray-500 dark:text-gray-400">{t('dashboard.compactMode.description')}</p>
+          </div>
+        </div>
 
         <div className="flex items-center justify-between py-2">
           <div>
@@ -460,12 +490,13 @@ export default function Configuration() {
 
       {/* Wizard section */}
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-4 sm:p-6">
-        <div className="flex items-start justify-between">
-          <div>
-            <p className="text-sm font-medium text-gray-900 dark:text-white">{t('general.wizard.label')}</p>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              {t('general.wizard.description')}
-            </p>
+        <div className="flex items-center gap-3 mb-4">
+          <div className="p-2 rounded-lg bg-amber-100 dark:bg-amber-900/30">
+            <Sparkles className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+          </div>
+          <div className="flex-1">
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-white">{t('general.wizard.label')}</h3>
+            <p className="text-xs text-gray-500 dark:text-gray-400">{t('general.wizard.description')}</p>
           </div>
           <button
             onClick={handleResetWizard}
@@ -963,10 +994,15 @@ export default function Configuration() {
       <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
         <div className="p-4 sm:p-6">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-              <Info className="w-5 h-5 text-slate-600" />
-              {t('about.title')}
-            </h3>
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-slate-100 dark:bg-slate-900/30">
+                <Info className="w-5 h-5 text-slate-600 dark:text-slate-400" />
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold text-gray-900 dark:text-white">{t('about.title')}</h3>
+                <p className="text-xs text-gray-500 dark:text-gray-400">{t('about.description')}</p>
+              </div>
+            </div>
             <button
               onClick={refreshVersionInfo}
               disabled={loadingVersion}
