@@ -4,15 +4,15 @@
 
 ---
 
-# v0.2.44
+# v0.2.45
 
-**Title:** `v0.2.44 - MCP Statistics Granularity, Denied Status & WikiJS Default Locale`
+**Title:** `v0.2.45 - MCP Statistics Granularity, Denied Status & WikiJS Default Locale`
 
 **Release Notes (copier ci-dessous):**
 
 ---
 
-## 📊 What's New in v0.2.44
+## 📊 What's New in v0.2.45
 
 ### ✨ MCP Statistics Enhancements
 - **Granularity Selector** - Control chart precision with new options
@@ -92,7 +92,7 @@
 
 ---
 
-**Full Changelog**: https://github.com/sharkhunterr/mcparr/compare/v0.2.43...v0.2.44
+**Full Changelog**: https://github.com/sharkhunterr/mcparr/compare/v0.2.44...v0.2.45
 
 ---
 ---
