@@ -2881,7 +2881,6 @@ export default function MCP() {
                   subtitle={t('stats.completed', { count: stats?.by_status?.completed || 0 })}
                   color={stats?.success_rate && stats.success_rate < 90 ? 'red' : 'green'}
                   change={stats?.comparison?.success_rate_change}
-                  changeAbsolute={true}
                 />
                 <StatCard
                   title={t('stats.avgDuration')}

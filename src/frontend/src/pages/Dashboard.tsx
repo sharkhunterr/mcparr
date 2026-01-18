@@ -734,7 +734,7 @@ export default function Dashboard() {
                           ? 'text-red-600 dark:text-red-400'
                           : 'text-gray-400'
                     }`}>
-                      {mcpStats.comparison.success_rate_change > 0 ? '+' : ''}{mcpStats.comparison.success_rate_change.toFixed(1)}pt
+                      {mcpStats.comparison.success_rate_change > 0 ? '+' : ''}{mcpStats.comparison.success_rate_change.toFixed(0)}%
                     </span>
                   )}
                 </div>

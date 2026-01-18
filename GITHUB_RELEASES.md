@@ -65,6 +65,11 @@
 - New keys: `stats.denied`, `stats.accessDenied`, `status.denied`
 - Warning messages for too many data points
 
+### 🐛 Bug Fixes
+- **Trend Indicator** - Fixed success rate change display
+  - Now shows "%" instead of "pt" for consistency with other stats
+  - Fixed in both MCP Stats page and Dashboard
+
 ### 📝 Technical Details
 - UTC-based slot generation for accurate timezone handling
 - Consistent strftime formatting across backend queries
