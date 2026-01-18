@@ -215,7 +215,7 @@ const GroupList: FC<GroupListProps> = ({ onSelectGroup, onCreateGroup, selectedG
                       <Wrench className="w-3 h-3 mr-1" />
                       {group.tool_count}
                     </span>
-                    <span>{t('list.priority')}: {group.priority}</span>
+                    <span>{t('list.priority', { priority: group.priority })}</span>
                   </div>
                 </div>
               </div>

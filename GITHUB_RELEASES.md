@@ -35,6 +35,10 @@
   - Fixed missing French accents across configuration.json, common.json, users.json, wizard.json
   - Improved translation completeness across the application
 
+### 🐛 Bug Fixes
+- **Groups Page** - Fixed `{{priority}}` displaying instead of actual value
+  - Priority translation now correctly receives the priority parameter
+
 ### 📝 Technical Details
 - Updated LogViewer component button styling to match AlertManager and MetricsTab
 - Enhanced code organization with structural comments
