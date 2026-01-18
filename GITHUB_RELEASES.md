@@ -4,15 +4,15 @@
 
 ---
 
-# v0.2.43
+# v0.2.44
 
-**Title:** `v0.2.43 - MCP Statistics Granularity, Denied Status & Enhanced Charts`
+**Title:** `v0.2.44 - MCP Statistics Granularity, Denied Status & WikiJS Default Locale`
 
 **Release Notes (copier ci-dessous):**
 
 ---
 
-## 📊 What's New in v0.2.43
+## 📊 What's New in v0.2.44
 
 ### ✨ MCP Statistics Enhancements
 - **Granularity Selector** - Control chart precision with new options
@@ -40,7 +40,7 @@
   - Requests denied due to group permissions now show as "Denied" instead of "Failed"
 
 - **Updated Statistics Cards** - 5-column grid with new "Denied" card
-  - New stat card showing denied request count
+  - New stat card showing denied request count with trend indicator
   - Orange color when denied > 0, gray otherwise
   - Translations in 5 languages (Refusé, Denied, Verweigert, Denegado, Negato)
 
@@ -49,21 +49,6 @@
   - "Requests by User" chart displays full-width bars with success/denied/failed breakdown
   - Dashboard MiniBarChart updated with denied segment
   - StatusDonutChart includes denied in the breakdown
-
-### 🔧 Backend API Updates
-- Added `granularity` parameter to `/hourly-usage` endpoint
-- Added `granularity` parameter to `/hourly-usage-by-user` endpoint
-- Auto-detection: ≤1h → minute, ≤72h → hour, >72h → day
-- Increased `/hourly-usage-by-user` limit from 168h to 720h (30 days)
-- Added `denied_count` to `/hourly-usage` response
-- Added `denied_count` to `/user-stats` response
-- New `mark_denied()` method in McpRequest model
-
-### 🌍 Translations
-- Added granularity translations in 5 languages (FR, EN, DE, ES, IT)
-- New keys: `stats.granularity.title`, `stats.granularity.auto/minute/hour/day`
-- New keys: `stats.denied`, `stats.accessDenied`, `status.denied`
-- Warning messages for too many data points
 
 ### 🌐 WikiJS Default Locale
 - **Service-level Default Language** - Configure default locale per WikiJS service
@@ -74,20 +59,40 @@
   - Setting saved/restored with backups
   - Translations in 5 languages
 
+### 🔧 Backend API Updates
+- Added `granularity` parameter to `/hourly-usage` endpoint
+- Added `granularity` parameter to `/hourly-usage-by-user` endpoint
+- Auto-detection: ≤1h → minute, ≤72h → hour, >72h → day
+- Increased `/hourly-usage-by-user` limit from 168h to 720h (30 days)
+- Added `denied_count` to `/hourly-usage` response
+- Added `denied_count` to `/user-stats` response
+- Added `denied` and `denied_change` to stats comparison response
+- New `mark_denied()` method in McpRequest model
+- Fixed `config` field propagation to MCP tools (was `extra_config`)
+
+### 🌍 Translations
+- Added granularity translations in 5 languages (FR, EN, DE, ES, IT)
+- New keys: `stats.granularity.title`, `stats.granularity.auto/minute/hour/day`
+- New keys: `stats.denied`, `stats.accessDenied`, `status.denied`
+- New keys: `form.wikijsSettings`, `form.defaultLocale`, `form.defaultLocaleDescription`
+- Warning messages for too many data points
+
 ### 🐛 Bug Fixes
 - **Trend Indicator** - Fixed success rate change display
   - Now shows "%" instead of "pt" for consistency with other stats
   - Fixed in both MCP Stats page and Dashboard
+- **Stats Comparison** - Added missing `denied_change` field for trend indicator
 
 ### 📝 Technical Details
 - UTC-based slot generation for accurate timezone handling
 - Consistent strftime formatting across backend queries
 - Performance-optimized chart rendering with slot limits
 - Permission-denied requests use `mark_denied()` instead of `mark_failed()`
+- Service `config` field correctly passed to tool instances
 
 ---
 
-**Full Changelog**: https://github.com/sharkhunterr/mcparr/compare/v0.2.42...v0.2.43
+**Full Changelog**: https://github.com/sharkhunterr/mcparr/compare/v0.2.43...v0.2.44
 
 ---
 ---
