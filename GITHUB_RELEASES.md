@@ -4,15 +4,15 @@
 
 ---
 
-# v0.2.40
+# v0.2.41
 
-**Title:** `v0.2.40 - UI Polish & Translation Fixes`
+**Title:** `v0.2.41 - UI Polish, Documentation & Architecture Diagrams`
 
 **Release Notes (copier ci-dessous):**
 
 ---
 
-## 🎨 What's New in v0.2.40
+## 🎨 What's New in v0.2.41
 
 ### 🔧 UI/UX Improvements
 - **Harmonized Action Buttons** - Unified styling across Monitoring tabs
@@ -45,6 +45,33 @@
   - Bars now extend to full width to show relative service distribution per user
   - Better visual comparison of service usage across users
 
+### 📖 Documentation Overhaul
+- **Fixed Broken Links** - All documentation links now point to existing files
+  - `docs/SERVICES.md` → `docs/USER_GUIDE.md#services-management`
+  - `docs/MONITORING.md` → `docs/USER_GUIDE.md#monitoring`
+  - `docs/AI_INTEGRATION.md` → `docs/MCP.md`
+  - `docs/DEVELOPMENT.md` → `docs/INTEGRATION_GUIDE.md`
+  - `docs/ARCHITECTURE.md` → `docs/INTEGRATION_GUIDE.md#1-architecture-overview`
+  - `docs/CONTRIBUTING.md` → `docs/INTEGRATION_GUIDE.md`
+  - `docs/SCREENSHOTS.md` → `docs/images/`
+
+- **Updated Documentation Table** - Reflects actual existing documentation
+  - Installation, Docker, Configuration guides
+  - User Guide (complete UI guide, services & monitoring)
+  - MCP Integration (AI integration, tool chains & permissions)
+  - API Reference, Integration Guide, Scripts documentation
+
+### 🏗️ Architecture Diagrams
+- **Mermaid Flowchart** - Global architecture diagram showing:
+  - AI Clients (Open WebUI, Claude Desktop, REST API)
+  - MCParr Gateway components (Backend, MCP Server, Data Layer)
+  - Homelab Services integration
+
+- **Mermaid Sequence Diagram** - Request flow visualization:
+  - User → AI Assistant → MCParr → Service flow
+  - JWT validation, permission checks, user mapping
+  - Logging and metrics updates
+
 ### 📝 Technical Details
 - Updated LogViewer component button styling to match AlertManager and MetricsTab
 - Enhanced code organization with structural comments
@@ -53,7 +80,7 @@
 
 ---
 
-**Full Changelog**: https://github.com/sharkhunterr/mcparr/compare/v0.2.39...v0.2.40
+**Full Changelog**: https://github.com/sharkhunterr/mcparr/compare/v0.2.40...v0.2.41
 
 ---
 ---
