@@ -38,6 +38,9 @@
 ### 🐛 Bug Fixes
 - **Groups Page** - Fixed `{{priority}}` displaying instead of actual value
   - Priority translation now correctly receives the priority parameter
+- **MCP Page** - Translated Request Details modal
+  - Added translations for all labels in the request details modal (FR, EN, DE, ES, IT)
+  - Modal now displays localized text for Tool, Category, User, Status, Duration, etc.
 
 ### 📝 Technical Details
 - Updated LogViewer component button styling to match AlertManager and MetricsTab

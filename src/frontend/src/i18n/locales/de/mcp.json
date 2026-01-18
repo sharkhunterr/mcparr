@@ -125,6 +125,21 @@
     "step": "Schritt",
     "nextTools": "Nächste Tools",
     "viewChain": "Kettenkonfiguration anzeigen",
+    "requestDetail": {
+      "title": "Anfragedetails",
+      "tool": "Tool",
+      "category": "Kategorie",
+      "user": "Benutzer",
+      "status": "Status",
+      "duration": "Dauer",
+      "created": "Erstellt",
+      "completed": "Abgeschlossen",
+      "inputParams": "Eingabeparameter",
+      "result": "Ergebnis",
+      "error": "Fehler",
+      "close": "Schließen",
+      "viewDetails": "Details"
+    },
     "help": {
       "title": "MCP-Anfragenverlauf",
       "overview": "Übersicht",

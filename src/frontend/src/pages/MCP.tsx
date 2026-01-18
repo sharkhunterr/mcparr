@@ -2858,7 +2858,7 @@ export default function MCP() {
                                 onClick={() => setSelectedRequest(request)}
                                 className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 text-sm"
                               >
-                                Details
+                                {t('history.requestDetail.viewDetails')}
                               </button>
                             </td>
                           </tr>
@@ -3074,7 +3074,7 @@ export default function MCP() {
             <div className="relative bg-white dark:bg-gray-800 rounded-lg max-w-2xl w-full p-6 shadow-xl">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-                  Request Details
+                  {t('history.requestDetail.title')}
                 </h3>
                 <button
                   onClick={() => setSelectedRequest(null)}
@@ -3087,33 +3087,33 @@ export default function MCP() {
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Tool</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">{t('history.requestDetail.tool')}</p>
                     <p className="font-medium text-gray-900 dark:text-white">{selectedRequest.tool_name}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Category</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">{t('history.requestDetail.category')}</p>
                     {selectedRequest.tool_category && <CategoryBadge category={selectedRequest.tool_category} />}
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">User</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">{t('history.requestDetail.user')}</p>
                     <p className="text-gray-900 dark:text-white" title={selectedRequest.user_id || undefined}>
                       {selectedRequest.user_display_name || selectedRequest.user_id || '-'}
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Status</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">{t('history.requestDetail.status')}</p>
                     <StatusBadge status={selectedRequest.status} />
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Duration</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">{t('history.requestDetail.duration')}</p>
                     <p className="text-gray-900 dark:text-white">{formatDuration(selectedRequest.duration_ms)}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Created</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">{t('history.requestDetail.created')}</p>
                     <p className="text-gray-900 dark:text-white">{formatDate(selectedRequest.created_at)}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Completed</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">{t('history.requestDetail.completed')}</p>
                     <p className="text-gray-900 dark:text-white">
                       {selectedRequest.completed_at ? formatDate(selectedRequest.completed_at) : '-'}
                     </p>
@@ -3122,7 +3122,7 @@ export default function MCP() {
 
                 {selectedRequest.input_params && Object.keys(selectedRequest.input_params).length > 0 && (
                   <div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">Input Parameters</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">{t('history.requestDetail.inputParams')}</p>
                     <pre className="bg-gray-50 dark:bg-gray-900 p-3 rounded-lg text-xs overflow-x-auto">
                       {JSON.stringify(selectedRequest.input_params, null, 2)}
                     </pre>
@@ -3131,7 +3131,7 @@ export default function MCP() {
 
                 {selectedRequest.output_result && (
                   <div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">Result</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">{t('history.requestDetail.result')}</p>
                     <pre className="bg-gray-50 dark:bg-gray-900 p-3 rounded-lg text-xs overflow-x-auto max-h-48">
                       {JSON.stringify(selectedRequest.output_result, null, 2)}
                     </pre>
@@ -3266,7 +3266,7 @@ export default function MCP() {
 
                 {selectedRequest.error_message && (
                   <div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">Error</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">{t('history.requestDetail.error')}</p>
                     <p className="text-red-600 dark:text-red-400 text-sm bg-red-50 dark:bg-red-900/20 p-3 rounded-lg">
                       {selectedRequest.error_message}
                     </p>
@@ -3279,7 +3279,7 @@ export default function MCP() {
                   onClick={() => setSelectedRequest(null)}
                   className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600"
                 >
-                  Close
+                  {t('history.requestDetail.close')}
                 </button>
               </div>
             </div>

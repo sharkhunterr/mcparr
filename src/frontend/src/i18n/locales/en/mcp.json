@@ -125,6 +125,21 @@
     "step": "Step",
     "nextTools": "Next Tools",
     "viewChain": "View chain configuration",
+    "requestDetail": {
+      "title": "Request Details",
+      "tool": "Tool",
+      "category": "Category",
+      "user": "User",
+      "status": "Status",
+      "duration": "Duration",
+      "created": "Created",
+      "completed": "Completed",
+      "inputParams": "Input Parameters",
+      "result": "Result",
+      "error": "Error",
+      "close": "Close",
+      "viewDetails": "Details"
+    },
     "help": {
       "title": "MCP Request History",
       "overview": "Overview",

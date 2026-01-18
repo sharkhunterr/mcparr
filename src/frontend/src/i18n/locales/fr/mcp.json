@@ -125,6 +125,21 @@
     "step": "Étape",
     "nextTools": "Outils suivants",
     "viewChain": "Voir la configuration de la chaîne",
+    "requestDetail": {
+      "title": "Détails de la requête",
+      "tool": "Outil",
+      "category": "Catégorie",
+      "user": "Utilisateur",
+      "status": "Statut",
+      "duration": "Durée",
+      "created": "Créée",
+      "completed": "Terminée",
+      "inputParams": "Paramètres d'entrée",
+      "result": "Résultat",
+      "error": "Erreur",
+      "close": "Fermer",
+      "viewDetails": "Détails"
+    },
     "help": {
       "title": "Historique des requêtes MCP",
       "overview": "Vue d'ensemble",

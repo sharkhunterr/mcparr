@@ -125,6 +125,21 @@
     "step": "Passo",
     "nextTools": "Strumenti successivi",
     "viewChain": "Visualizza configurazione catena",
+    "requestDetail": {
+      "title": "Dettagli della richiesta",
+      "tool": "Strumento",
+      "category": "Categoria",
+      "user": "Utente",
+      "status": "Stato",
+      "duration": "Durata",
+      "created": "Creata",
+      "completed": "Completata",
+      "inputParams": "Parametri di input",
+      "result": "Risultato",
+      "error": "Errore",
+      "close": "Chiudi",
+      "viewDetails": "Dettagli"
+    },
     "help": {
       "title": "Cronologia richieste MCP",
       "overview": "Panoramica",
