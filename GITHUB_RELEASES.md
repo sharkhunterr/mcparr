@@ -21,16 +21,25 @@
   - Unified background colors, borders, and hover states
   - Improved visual consistency throughout the observability interface
 
+- **Configuration Page Polish** - Streamlined and unified tab layouts
+  - Merged Logs and Notifications tabs into single "Observabilité" tab
+  - Added icon headers with titles/subtitles to all Configuration sections
+  - Removed redundant "MCParr / Passerelle IA MCP" block from About tab
+  - Harmonized header styling (icons, spacing, text sizes) across all tabs
+  - Optimized Backup tab for mobile with 2-column Export grid
+
 ### 🌍 Translation Fixes
 - **Configuration Page** - Fixed missing translation key
   - Added `dashboard.title` translation in all languages (FR, EN, DE, ES, IT)
   - Resolved "dashboard.title" display issue in Configuration → General tab
+  - Fixed missing French accents across configuration.json, common.json, users.json, wizard.json
   - Improved translation completeness across the application
 
 ### 📝 Technical Details
 - Updated LogViewer component button styling to match AlertManager and MetricsTab
 - Enhanced code organization with structural comments
 - Better maintainability for UI components
+- Consistent text sizing (text-sm/text-xs) across all Configuration tabs
 
 ---
 
