@@ -301,6 +301,7 @@ class McpAuditService:
                 func.count(McpRequest.id).label("count"),
                 func.sum(case((McpRequest.status == McpRequestStatus.COMPLETED, 1), else_=0)).label("success_count"),
                 func.sum(case((McpRequest.status == McpRequestStatus.FAILED, 1), else_=0)).label("failed_count"),
+                func.sum(case((McpRequest.status == McpRequestStatus.DENIED, 1), else_=0)).label("denied_count"),
             )
             .where(and_(McpRequest.created_at >= since, McpRequest.created_at <= until))
             .group_by(func.strftime(strftime_format, McpRequest.created_at))
@@ -313,6 +314,7 @@ class McpAuditService:
                 "count": row.count,
                 "success_count": row.success_count or 0,
                 "failed_count": row.failed_count or 0,
+                "denied_count": row.denied_count or 0,
                 "granularity": granularity,
             }
             for row in result.fetchall()
@@ -350,6 +352,7 @@ class McpAuditService:
                 func.avg(McpRequest.duration_ms).label("avg_duration"),
                 func.sum(case((McpRequest.status == McpRequestStatus.COMPLETED, 1), else_=0)).label("success_count"),
                 func.sum(case((McpRequest.status == McpRequestStatus.FAILED, 1), else_=0)).label("failed_count"),
+                func.sum(case((McpRequest.status == McpRequestStatus.DENIED, 1), else_=0)).label("denied_count"),
             )
             .where(and_(McpRequest.created_at >= since, McpRequest.created_at <= until, McpRequest.user_id.isnot(None)))
             .group_by(McpRequest.user_id)
@@ -363,6 +366,7 @@ class McpAuditService:
                 "avg_duration_ms": round(row.avg_duration or 0, 2),
                 "success_count": row.success_count or 0,
                 "failed_count": row.failed_count or 0,
+                "denied_count": row.denied_count or 0,
                 "success_rate": round((row.success_count / row.count) * 100, 2) if row.count > 0 else 0,
             }
             for row in result.fetchall()

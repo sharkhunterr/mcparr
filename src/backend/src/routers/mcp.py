@@ -252,6 +252,7 @@ class McpHourlyUsageResponse(BaseModel):
     count: int
     success_count: int = 0
     failed_count: int = 0
+    denied_count: int = 0
     granularity: str = "hour"
 
 
@@ -262,6 +263,7 @@ class McpUserStatsResponse(BaseModel):
     avg_duration_ms: float
     success_count: int
     failed_count: int
+    denied_count: int = 0
     success_rate: float
 
 

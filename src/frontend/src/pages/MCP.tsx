@@ -61,6 +61,7 @@ interface McpHourlyUsage {
   count: number;
   success_count?: number;
   failed_count?: number;
+  denied_count?: number;
   granularity?: 'minute' | 'hour' | 'day';
 }
 
@@ -71,6 +72,7 @@ interface McpUserStats {
   avg_duration_ms: number;
   success_count: number;
   failed_count: number;
+  denied_count: number;
   success_rate: number;
 }
 
@@ -128,6 +130,7 @@ const StatusBadge = ({ status }: { status: string }) => {
     processing: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
     completed: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
     failed: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
+    denied: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200',
     cancelled: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200',
   };
 
@@ -243,6 +246,7 @@ const HourlyUsageChart = ({ data, startTime, endTime, granularity: selectedGranu
       count: d?.count || 0,
       success: d?.success_count || 0,
       failed: d?.failed_count || 0,
+      denied: d?.denied_count || 0,
       label: formatLabel(slot)
     };
   });
@@ -290,6 +294,10 @@ const HourlyUsageChart = ({ data, startTime, endTime, granularity: selectedGranu
             <span className="text-gray-500 dark:text-gray-400">{t('stats.failed')}</span>
           </div>
           <div className="flex items-center gap-1">
+            <div className="w-3 h-3 rounded-sm bg-orange-500" />
+            <span className="text-gray-500 dark:text-gray-400">{t('status.denied')}</span>
+          </div>
+          <div className="flex items-center gap-1">
             <div className="w-3 h-3 rounded-sm bg-gray-300 dark:bg-gray-600" />
             <span className="text-gray-500 dark:text-gray-400">{t('stats.noDataForPeriod')}</span>
           </div>
@@ -300,20 +308,23 @@ const HourlyUsageChart = ({ data, startTime, endTime, granularity: selectedGranu
           const totalHeight = h.count > 0 ? Math.max((h.count / maxCount) * chartHeight, 8) : 6;
           const successRatio = h.count > 0 ? h.success / h.count : 0;
           const failedRatio = h.count > 0 ? h.failed / h.count : 0;
+          const deniedRatio = h.count > 0 ? h.denied / h.count : 0;
           const successHeight = totalHeight * successRatio;
           const failedHeight = totalHeight * failedRatio;
+          const deniedHeight = totalHeight * deniedRatio;
           const isLast = i === hours.length - 1;
+          const hasTopSegment = failedHeight > 0 || deniedHeight > 0;
 
           return (
             <div
               key={i}
               className="flex-1 flex flex-col items-center justify-end group relative"
-              title={`${h.label}: ${h.count} req (${h.success} ok, ${h.failed} err)`}
+              title={`${h.label}: ${h.count} req (${h.success} ok, ${h.failed} err, ${h.denied} denied)`}
             >
               {/* Tooltip on hover */}
               <div className="absolute bottom-full mb-2 hidden group-hover:block z-10">
                 <div className="bg-gray-900 text-white text-xs rounded px-2 py-1 whitespace-nowrap">
-                  {h.label}: {h.count} ({h.success} ✓, {h.failed} ✗)
+                  {h.label}: {h.count} ({h.success} ✓, {h.failed} ✗, {h.denied} ⊘)
                 </div>
               </div>
               {h.count === 0 ? (
@@ -323,19 +334,26 @@ const HourlyUsageChart = ({ data, startTime, endTime, granularity: selectedGranu
                   style={{ height: '6px' }}
                 />
               ) : (
-                // Stacked bar: failed on top, success on bottom
+                // Stacked bar: failed on top, denied in middle, success on bottom
                 <div className="w-full flex flex-col-reverse">
-                  {/* Success (green) - bottom, rounded-t when no failed bar on top */}
+                  {/* Success (green) - bottom */}
                   {successHeight > 0 && (
                     <div
-                      className={`w-full rounded-b-sm ${failedHeight === 0 ? 'rounded-t-sm' : ''} ${isLast ? 'bg-green-500' : 'bg-green-400 dark:bg-green-500/80'}`}
+                      className={`w-full rounded-b-sm ${!hasTopSegment ? 'rounded-t-sm' : ''} ${isLast ? 'bg-green-500' : 'bg-green-400 dark:bg-green-500/80'}`}
                       style={{ height: `${successHeight}px` }}
+                    />
+                  )}
+                  {/* Denied (orange) - middle */}
+                  {deniedHeight > 0 && (
+                    <div
+                      className={`w-full ${successHeight === 0 ? 'rounded-b-sm' : ''} ${failedHeight === 0 ? 'rounded-t-sm' : ''} ${isLast ? 'bg-orange-500' : 'bg-orange-400 dark:bg-orange-500/80'}`}
+                      style={{ height: `${deniedHeight}px` }}
                     />
                   )}
                   {/* Failed (red) - top */}
                   {failedHeight > 0 && (
                     <div
-                      className={`w-full ${successHeight > 0 ? '' : 'rounded-b-sm'} rounded-t-sm ${isLast ? 'bg-red-500' : 'bg-red-400 dark:bg-red-500/80'}`}
+                      className={`w-full ${successHeight === 0 && deniedHeight === 0 ? 'rounded-b-sm' : ''} rounded-t-sm ${isLast ? 'bg-red-500' : 'bg-red-400 dark:bg-red-500/80'}`}
                       style={{ height: `${failedHeight}px` }}
                     />
                   )}
@@ -456,6 +474,7 @@ const StatusDonutChart = ({ data, total }: { data: Record<string, number>; total
   const statusColors: Record<string, { stroke: string; fill: string }> = {
     completed: { stroke: '#22c55e', fill: 'bg-green-500' },
     failed: { stroke: '#ef4444', fill: 'bg-red-500' },
+    denied: { stroke: '#f97316', fill: 'bg-orange-500' },
     pending: { stroke: '#eab308', fill: 'bg-yellow-500' },
     processing: { stroke: '#3b82f6', fill: 'bg-blue-500' },
     cancelled: { stroke: '#6b7280', fill: 'bg-gray-500' },
@@ -469,7 +488,7 @@ const StatusDonutChart = ({ data, total }: { data: Record<string, number>; total
 
   // Sort entries so completed is first (largest usually)
   const entries = Object.entries(data).sort((a, b) => {
-    const order = ['completed', 'failed', 'pending', 'processing', 'cancelled'];
+    const order = ['completed', 'failed', 'denied', 'pending', 'processing', 'cancelled'];
     return order.indexOf(a[0]) - order.indexOf(b[0]);
   });
 
@@ -858,14 +877,17 @@ const UserStatsChart = ({ data }: { data: McpUserStats[] }) => {
     );
   }
 
-  const maxCount = Math.max(...data.map(d => d.request_count), 1);
-
   return (
     <div className="space-y-3">
       {data.slice(0, 8).map((user, index) => {
         const color = getUserColor(index);
-        const percentage = (user.request_count / maxCount) * 100;
         const displayName = user.user_display_name || user.user_id.split('@')[0] || user.user_id.substring(0, 8);
+
+        // Calculate percentages within the user's total (bar is always full width)
+        const total = user.request_count || 1;
+        const successPct = (user.success_count / total) * 100;
+        const deniedPct = ((user.denied_count || 0) / total) * 100;
+        const failedPct = (user.failed_count / total) * 100;
 
         return (
           <div key={user.user_id} className="group">
@@ -885,11 +907,32 @@ const UserStatsChart = ({ data }: { data: McpUserStats[] }) => {
                 </span>
               </div>
             </div>
-            <div className="h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
-              <div
-                className="h-full rounded-full transition-all duration-500"
-                style={{ width: `${percentage}%`, backgroundColor: color.hex }}
-              />
+            {/* Full-width bar with stacked segments */}
+            <div className="h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden flex">
+              {/* Success segment - green */}
+              {successPct > 0 && (
+                <div
+                  className="h-full bg-green-500 transition-all duration-500"
+                  style={{ width: `${successPct}%` }}
+                  title={`${t('stats.completed')}: ${user.success_count}`}
+                />
+              )}
+              {/* Denied segment - orange */}
+              {deniedPct > 0 && (
+                <div
+                  className="h-full bg-orange-500 transition-all duration-500"
+                  style={{ width: `${deniedPct}%` }}
+                  title={`${t('stats.denied')}: ${user.denied_count || 0}`}
+                />
+              )}
+              {/* Failed segment - red */}
+              {failedPct > 0 && (
+                <div
+                  className="h-full bg-red-500 transition-all duration-500"
+                  style={{ width: `${failedPct}%` }}
+                  title={`${t('stats.failed')}: ${user.failed_count}`}
+                />
+              )}
             </div>
           </div>
         );
@@ -2824,7 +2867,7 @@ export default function MCP() {
                 </div>
               </div>
               {/* Stats Grid */}
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
+              <div className="grid grid-cols-2 lg:grid-cols-5 gap-2 sm:gap-4">
                 <StatCard
                   title={t('stats.totalRequests')}
                   value={stats?.total || 0}
@@ -2846,6 +2889,14 @@ export default function MCP() {
                   subtitle={t('stats.perRequest')}
                   color="purple"
                   change={stats?.comparison?.duration_change}
+                  changeInverted={true}
+                />
+                <StatCard
+                  title={t('stats.denied')}
+                  value={stats?.by_status?.denied || 0}
+                  subtitle={t('stats.accessDenied')}
+                  color={(stats?.by_status?.denied || 0) > 0 ? 'orange' : 'gray'}
+                  change={stats?.comparison?.denied_change}
                   changeInverted={true}
                 />
                 <StatCard
@@ -3216,6 +3267,7 @@ export default function MCP() {
                     <option value="processing">{t('status.processing')}</option>
                     <option value="completed">{t('status.completed')}</option>
                     <option value="failed">{t('status.failed')}</option>
+                    <option value="denied">{t('status.denied')}</option>
                     <option value="cancelled">{t('status.cancelled')}</option>
                   </select>
 

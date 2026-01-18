@@ -57,12 +57,14 @@
     "usage": "uso",
     "success": "Éxito",
     "failed": "Fallido",
+    "denied": "Denegado",
     "noDataForPeriod": "Sin datos",
     "loading": "Cargando datos MCP...",
     "lastHours": "Últimas {{hours}}h",
     "completed": "{{count}} completadas",
     "perRequest": "Por solicitud",
     "errorsEncountered": "Errores encontrados",
+    "accessDenied": "Acceso denegado",
     "byStatus": "Por Estado",
     "noToolUsageData": "Sin datos de uso de herramientas",
     "avgDurationByService": "Duración media por servicio",
@@ -242,6 +244,7 @@
     "processing": "Procesando",
     "completed": "Completado",
     "failed": "Fallido",
+    "denied": "Denegado",
     "cancelled": "Cancelado"
   },
 

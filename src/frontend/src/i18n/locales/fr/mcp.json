@@ -45,11 +45,13 @@
     "totalRequests": "Total Requêtes",
     "successRate": "Taux de Succès",
     "avgDuration": "Durée Moyenne",
+    "denied": "Refusé",
     "periodHours": "Période ({{hours}}h)",
     "lastHours": "Dernières {{hours}}h",
     "completed": "{{count}} terminées",
     "perRequest": "Par requête",
     "errorsEncountered": "Erreurs rencontrées",
+    "accessDenied": "Accès refusés",
     "requestsOverTime": "Requêtes dans le Temps",
     "statusDistribution": "Distribution des Statuts",
     "total": "total",
@@ -242,6 +244,7 @@
     "processing": "En cours",
     "completed": "Terminé",
     "failed": "Échoué",
+    "denied": "Refusé",
     "cancelled": "Annulé"
   },
 

@@ -96,6 +96,7 @@ interface HourlyUsage {
   count: number;
   success_count?: number;
   failed_count?: number;
+  denied_count?: number;
 }
 
 interface LogStats {
@@ -260,12 +261,12 @@ const TrendIndicator = ({
   );
 };
 
-// Mini stacked bar chart for MCP hourly usage with success/failure breakdown
+// Mini stacked bar chart for MCP hourly usage with success/failure/denied breakdown
 const MiniBarChart = ({ data, hoursCount = 12 }: { data: HourlyUsage[]; hoursCount?: number }) => {
   // Generate hours with 0 values for missing hours
   // Backend uses UTC, so we need to generate UTC hours for matching
   const now = new Date();
-  const hours: { hour: string; count: number; success: number; failed: number; label: string }[] = [];
+  const hours: { hour: string; count: number; success: number; failed: number; denied: number; label: string }[] = [];
 
   for (let i = hoursCount - 1; i >= 0; i--) {
     const date = new Date(now.getTime() - i * 60 * 60 * 1000);
@@ -285,6 +286,7 @@ const MiniBarChart = ({ data, hoursCount = 12 }: { data: HourlyUsage[]; hoursCou
       count: found?.count || 0,
       success: found?.success_count || 0,
       failed: found?.failed_count || 0,
+      denied: found?.denied_count || 0,
       label: localHour + 'h'  // Display local time
     });
   }
@@ -298,15 +300,18 @@ const MiniBarChart = ({ data, hoursCount = 12 }: { data: HourlyUsage[]; hoursCou
         const totalHeight = h.count > 0 ? Math.max((h.count / maxCount) * maxHeight, 6) : 4;
         const successRatio = h.count > 0 ? h.success / h.count : 0;
         const failedRatio = h.count > 0 ? h.failed / h.count : 0;
+        const deniedRatio = h.count > 0 ? h.denied / h.count : 0;
         const successHeight = totalHeight * successRatio;
         const failedHeight = totalHeight * failedRatio;
+        const deniedHeight = totalHeight * deniedRatio;
         const isLast = i === hours.length - 1;
+        const hasTopSegment = failedHeight > 0 || deniedHeight > 0;
 
         return (
           <div
             key={i}
             className="flex-1 flex flex-col items-center justify-end"
-            title={`${h.label}: ${h.count} req (${h.success} ok, ${h.failed} err)`}
+            title={`${h.label}: ${h.count} req (${h.success} ok, ${h.failed} err, ${h.denied} denied)`}
           >
             {h.count === 0 ? (
               // No data - gray dot
@@ -315,19 +320,26 @@ const MiniBarChart = ({ data, hoursCount = 12 }: { data: HourlyUsage[]; hoursCou
                 style={{ height: '4px' }}
               />
             ) : (
-              // Stacked bar: failed on top, success on bottom
+              // Stacked bar: failed on top, denied in middle, success on bottom
               <div className="w-full flex flex-col-reverse">
-                {/* Success (green) - bottom, rounded-t when no failed bar on top */}
+                {/* Success (green) - bottom */}
                 {successHeight > 0 && (
                   <div
-                    className={`w-full rounded-b-sm ${failedHeight === 0 ? 'rounded-t-sm' : ''} ${isLast ? 'bg-green-500' : 'bg-green-400 dark:bg-green-500/80'}`}
+                    className={`w-full rounded-b-sm ${!hasTopSegment ? 'rounded-t-sm' : ''} ${isLast ? 'bg-green-500' : 'bg-green-400 dark:bg-green-500/80'}`}
                     style={{ height: `${successHeight}px` }}
+                  />
+                )}
+                {/* Denied (orange) - middle */}
+                {deniedHeight > 0 && (
+                  <div
+                    className={`w-full ${successHeight === 0 ? 'rounded-b-sm' : ''} ${failedHeight === 0 ? 'rounded-t-sm' : ''} ${isLast ? 'bg-orange-500' : 'bg-orange-400 dark:bg-orange-500/80'}`}
+                    style={{ height: `${deniedHeight}px` }}
                   />
                 )}
                 {/* Failed (red) - top */}
                 {failedHeight > 0 && (
                   <div
-                    className={`w-full ${successHeight > 0 ? '' : 'rounded-b-sm'} rounded-t-sm ${isLast ? 'bg-red-500' : 'bg-red-400 dark:bg-red-500/80'}`}
+                    className={`w-full ${successHeight === 0 && deniedHeight === 0 ? 'rounded-b-sm' : ''} rounded-t-sm ${isLast ? 'bg-red-500' : 'bg-red-400 dark:bg-red-500/80'}`}
                     style={{ height: `${failedHeight}px` }}
                   />
                 )}

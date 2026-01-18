@@ -654,8 +654,8 @@ async def execute_tool_with_logging(
                         f"[MCP] Access denied for user {central_user_id} to tool {tool_name}: "
                         f"{permission_result.denial_reason}"
                     )
-                    # Log the denied request
-                    mcp_request.mark_failed(f"Access denied: {permission_result.denial_reason}", "PermissionDenied")
+                    # Log the denied request with dedicated status
+                    mcp_request.mark_denied(f"Access denied: {permission_result.denial_reason}")
                     session.add(mcp_request)
                     await session.commit()
                     return {

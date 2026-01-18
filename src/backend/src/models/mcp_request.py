@@ -17,6 +17,7 @@ class McpRequestStatus(str, Enum):
     PROCESSING = "processing"
     COMPLETED = "completed"
     FAILED = "failed"
+    DENIED = "denied"  # Access denied due to permission restrictions
     CANCELLED = "cancelled"
 
 
@@ -138,6 +139,15 @@ class McpRequest(Base, UUIDMixin, TimestampMixin):
         self.status = McpRequestStatus.FAILED
         self.error_message = error_message
         self.error_type = error_type
+        self.completed_at = datetime.utcnow()
+        if self.started_at:
+            self.duration_ms = int((self.completed_at - self.started_at).total_seconds() * 1000)
+
+    def mark_denied(self, reason: str) -> None:
+        """Mark request as denied due to permission restrictions."""
+        self.status = McpRequestStatus.DENIED
+        self.error_message = reason
+        self.error_type = "PermissionDenied"
         self.completed_at = datetime.utcnow()
         if self.started_at:
             self.duration_ms = int((self.completed_at - self.started_at).total_seconds() * 1000)

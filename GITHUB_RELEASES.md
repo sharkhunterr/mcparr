@@ -6,7 +6,7 @@
 
 # v0.2.43
 
-**Title:** `v0.2.43 - MCP Statistics Granularity & Custom Date Range`
+**Title:** `v0.2.43 - MCP Statistics Granularity, Denied Status & Enhanced Charts`
 
 **Release Notes (copier ci-dessous):**
 
@@ -33,21 +33,43 @@
   - Performance protection: MAX_SLOTS limit (750) with user-friendly warning
   - Supports up to 30 days at hourly granularity
 
+### 🚫 New "Denied" Request Status
+- **Distinct Status for Permission Denied** - Separate from technical failures
+  - New `DENIED` status in `McpRequestStatus` enum
+  - Orange color coding for denied requests (distinct from red for failed)
+  - Requests denied due to group permissions now show as "Denied" instead of "Failed"
+
+- **Updated Statistics Cards** - 5-column grid with new "Denied" card
+  - New stat card showing denied request count
+  - Orange color when denied > 0, gray otherwise
+  - Translations in 5 languages (Refusé, Denied, Verweigert, Denegado, Negato)
+
+- **Stacked Bar Charts** - Visual breakdown of request outcomes
+  - "Requests Over Time" chart shows 3 segments: success (green), denied (orange), failed (red)
+  - "Requests by User" chart displays full-width bars with success/denied/failed breakdown
+  - Dashboard MiniBarChart updated with denied segment
+  - StatusDonutChart includes denied in the breakdown
+
 ### 🔧 Backend API Updates
 - Added `granularity` parameter to `/hourly-usage` endpoint
 - Added `granularity` parameter to `/hourly-usage-by-user` endpoint
 - Auto-detection: ≤1h → minute, ≤72h → hour, >72h → day
 - Increased `/hourly-usage-by-user` limit from 168h to 720h (30 days)
+- Added `denied_count` to `/hourly-usage` response
+- Added `denied_count` to `/user-stats` response
+- New `mark_denied()` method in McpRequest model
 
 ### 🌍 Translations
 - Added granularity translations in 5 languages (FR, EN, DE, ES, IT)
 - New keys: `stats.granularity.title`, `stats.granularity.auto/minute/hour/day`
+- New keys: `stats.denied`, `stats.accessDenied`, `status.denied`
 - Warning messages for too many data points
 
 ### 📝 Technical Details
 - UTC-based slot generation for accurate timezone handling
 - Consistent strftime formatting across backend queries
 - Performance-optimized chart rendering with slot limits
+- Permission-denied requests use `mark_denied()` instead of `mark_failed()`
 
 ---
 

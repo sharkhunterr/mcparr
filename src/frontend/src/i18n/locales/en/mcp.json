@@ -45,11 +45,13 @@
     "totalRequests": "Total Requests",
     "successRate": "Success Rate",
     "avgDuration": "Avg Duration",
+    "denied": "Denied",
     "periodHours": "Period ({{hours}}h)",
     "lastHours": "Last {{hours}}h",
     "completed": "{{count}} completed",
     "perRequest": "Per request",
     "errorsEncountered": "Errors encountered",
+    "accessDenied": "Access denied",
     "requestsOverTime": "Requests Over Time",
     "statusDistribution": "Status Distribution",
     "total": "total",
@@ -242,6 +244,7 @@
     "processing": "Processing",
     "completed": "Completed",
     "failed": "Failed",
+    "denied": "Denied",
     "cancelled": "Cancelled"
   },
 
