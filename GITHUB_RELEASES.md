@@ -4,15 +4,15 @@
 
 ---
 
-# v0.2.41
+# v0.2.42
 
-**Title:** `v0.2.41 - UI Polish, Documentation & Architecture Diagrams`
+**Title:** `v0.2.42 - UI Polish, Documentation & Architecture Diagrams`
 
 **Release Notes (copier ci-dessous):**
 
 ---
 
-## 🎨 What's New in v0.2.41
+## 🎨 What's New in v0.2.42
 
 ### 🔧 UI/UX Improvements
 - **Harmonized Action Buttons** - Unified styling across Monitoring tabs
@@ -80,7 +80,7 @@
 
 ---
 
-**Full Changelog**: https://github.com/sharkhunterr/mcparr/compare/v0.2.40...v0.2.41
+**Full Changelog**: https://github.com/sharkhunterr/mcparr/compare/v0.2.41...v0.2.42
 
 ---
 ---
