@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.2.45](https://github.com/sharkhunterr/mcparr/-/compare/v0.2.43...v0.2.45) (2026-01-18)
+
+
+### Bug Fixes
+
+* **mcp:** add denied_change to stats comparison ([6c83ae8](https://github.com/sharkhunterr/mcparr/-/commit/6c83ae8b24404856054c612a1e20053aa1d6af52))
+
 ### [0.2.44](https://github.com/sharkhunterr/mcparr/-/compare/v0.2.42...v0.2.44) (2026-01-18)
 
 
