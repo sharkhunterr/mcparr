@@ -928,7 +928,7 @@ class SystemTools(BaseTool):
                         "port": service.port,
                         "username": service.username,
                         "password": service.password,
-                        "extra_config": service.config or {},
+                        "config": service.config or {},
                     }
 
                     tool = tool_class(service_config)

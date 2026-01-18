@@ -665,7 +665,7 @@ async def test_tool(
             "api_key": svc.api_key,
             "username": getattr(svc, "username", None),
             "password": getattr(svc, "password", None),
-            "extra_config": getattr(svc, "extra_config", None) or {},
+            "config": getattr(svc, "config", None) or {},
         }
 
     # Tool class mapping

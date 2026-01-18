@@ -37,6 +37,7 @@ interface Service {
   api_key?: string;
   username?: string;
   password?: string;
+  config?: Record<string, unknown>;
   status: 'active' | 'inactive' | 'error' | 'testing' | 'unknown';
   enabled: boolean;
   health_check_enabled: boolean;
@@ -623,7 +624,8 @@ const ServiceList: React.FC = () => {
             password: selectedService.password || '',
             enabled: selectedService.enabled,
             health_check_enabled: selectedService.health_check_enabled,
-            health_check_interval: selectedService.health_check_interval?.toString() || '300'
+            health_check_interval: selectedService.health_check_interval?.toString() || '300',
+            config: selectedService.config || {}
           }}
           isEditing={true}
         />

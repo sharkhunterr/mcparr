@@ -15,6 +15,7 @@ interface ServiceFormData {
   enabled: boolean;
   health_check_enabled: boolean;
   health_check_interval: string;
+  config?: Record<string, unknown>;
 }
 
 interface ServiceFormProps {
@@ -211,6 +212,7 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
     enabled: true,
     health_check_enabled: true,
     health_check_interval: '300',
+    config: {},
     ...initialData
   });
 
@@ -237,6 +239,13 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }));
     }
+  };
+
+  const handleConfigChange = (key: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      config: { ...prev.config, [key]: value || undefined }
+    }));
   };
 
   const validateForm = (): boolean => {
@@ -586,6 +595,42 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
                   )}
                 </div>
               )}
+            </div>
+          )}
+
+          {/* WikiJS-specific Settings */}
+          {formData.service_type === 'wikijs' && (
+            <div className="space-y-4">
+              <h4 className="text-lg font-medium text-gray-900 dark:text-white">{t('form.wikijsSettings')}</h4>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  {t('form.defaultLocale')}
+                  <span className="ml-1 text-gray-400 font-normal">({t('form.optional')})</span>
+                </label>
+                <select
+                  value={(formData.config?.default_locale as string) || ''}
+                  onChange={(e) => handleConfigChange('default_locale', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                  disabled={loading}
+                >
+                  <option value="">{t('form.defaultLocaleAuto')}</option>
+                  <option value="en">English (en)</option>
+                  <option value="fr">Français (fr)</option>
+                  <option value="de">Deutsch (de)</option>
+                  <option value="es">Español (es)</option>
+                  <option value="it">Italiano (it)</option>
+                  <option value="pt">Português (pt)</option>
+                  <option value="nl">Nederlands (nl)</option>
+                  <option value="ru">Русский (ru)</option>
+                  <option value="zh">中文 (zh)</option>
+                  <option value="ja">日本語 (ja)</option>
+                  <option value="ko">한국어 (ko)</option>
+                </select>
+                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                  {t('form.defaultLocaleDescription')}
+                </p>
+              </div>
             </div>
           )}
 

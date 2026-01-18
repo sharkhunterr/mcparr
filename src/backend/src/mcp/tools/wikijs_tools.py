@@ -24,10 +24,9 @@ class WikiJSTools(BaseTool):
                     ),
                     ToolParameter(
                         name="locale",
-                        description="Locale/language filter (e.g., 'en', 'fr')",
+                        description="Locale/language filter (e.g., 'en', 'fr'). Uses service default if not specified.",
                         type="string",
                         required=False,
-                        default="en",
                     ),
                 ],
                 category="system",
@@ -61,10 +60,9 @@ class WikiJSTools(BaseTool):
                     ),
                     ToolParameter(
                         name="locale",
-                        description="Locale/language to search in",
+                        description="Locale/language to search in. Uses service default if not specified.",
                         type="string",
                         required=False,
-                        default="en",
                     ),
                 ],
                 category="system",
@@ -84,10 +82,9 @@ class WikiJSTools(BaseTool):
                     ),
                     ToolParameter(
                         name="locale",
-                        description="Locale/language filter",
+                        description="Locale/language filter. Uses service default if not specified.",
                         type="string",
                         required=False,
-                        default="en",
                     ),
                 ],
                 category="system",
@@ -149,10 +146,9 @@ class WikiJSTools(BaseTool):
                     ),
                     ToolParameter(
                         name="locale",
-                        description="Locale/language for the page",
+                        description="Locale/language for the page. Uses service default if not specified.",
                         type="string",
                         required=False,
-                        default="en",
                     ),
                     ToolParameter(
                         name="tags",
@@ -195,13 +191,13 @@ class WikiJSTools(BaseTool):
             adapter = WikiJSAdapter(service_proxy)
 
             if tool_name == "wikijs_get_pages":
-                return await self._get_pages(adapter, arguments)
+                return await self._get_pages(adapter, arguments, service_proxy)
             elif tool_name == "wikijs_get_page":
                 return await self._get_page(adapter, arguments)
             elif tool_name == "wikijs_search":
-                return await self._search(adapter, arguments)
+                return await self._search(adapter, arguments, service_proxy)
             elif tool_name == "wikijs_get_page_tree":
-                return await self._get_page_tree(adapter, arguments)
+                return await self._get_page_tree(adapter, arguments, service_proxy)
             elif tool_name == "wikijs_get_tags":
                 return await self._get_tags(adapter)
             elif tool_name == "wikijs_get_users":
@@ -209,17 +205,18 @@ class WikiJSTools(BaseTool):
             elif tool_name == "wikijs_get_statistics":
                 return await self._get_statistics(adapter)
             elif tool_name == "wikijs_create_page":
-                return await self._create_page(adapter, arguments)
+                return await self._create_page(adapter, arguments, service_proxy)
             else:
                 return {"success": False, "error": f"Unknown tool: {tool_name}"}
 
         except Exception as e:
             return {"success": False, "error": str(e), "error_type": type(e).__name__}
 
-    async def _get_pages(self, adapter, arguments: dict) -> dict:
+    async def _get_pages(self, adapter, arguments: dict, service_proxy) -> dict:
         """Get pages from WikiJS."""
         limit = arguments.get("limit", 50)
-        locale = arguments.get("locale", "en")
+        default_locale = service_proxy.get_config_value("default_locale", "en")
+        locale = arguments.get("locale") or default_locale
 
         pages = await adapter.get_pages(limit=limit, locale=locale)
 
@@ -239,10 +236,11 @@ class WikiJSTools(BaseTool):
         else:
             return {"success": False, "error": f"Page not found: {page_id}"}
 
-    async def _search(self, adapter, arguments: dict) -> dict:
+    async def _search(self, adapter, arguments: dict, service_proxy) -> dict:
         """Search in WikiJS."""
         query = arguments.get("query")
-        locale = arguments.get("locale", "en")
+        default_locale = service_proxy.get_config_value("default_locale", "en")
+        locale = arguments.get("locale") or default_locale
 
         if not query:
             return {"success": False, "error": "query is required"}
@@ -260,10 +258,11 @@ class WikiJSTools(BaseTool):
             },
         }
 
-    async def _get_page_tree(self, adapter, arguments: dict) -> dict:
+    async def _get_page_tree(self, adapter, arguments: dict, service_proxy) -> dict:
         """Get page tree from WikiJS."""
         parent_id = int(arguments.get("parent_id", 0))
-        locale = arguments.get("locale", "en")
+        default_locale = service_proxy.get_config_value("default_locale", "en")
+        locale = arguments.get("locale") or default_locale
 
         tree = await adapter.get_page_tree(parent_id=parent_id, locale=locale)
 
@@ -287,13 +286,14 @@ class WikiJSTools(BaseTool):
 
         return {"success": True, "result": stats}
 
-    async def _create_page(self, adapter, arguments: dict) -> dict:
+    async def _create_page(self, adapter, arguments: dict, service_proxy) -> dict:
         """Create a page in WikiJS."""
         path = arguments.get("path")
         title = arguments.get("title")
         content = arguments.get("content")
         description = arguments.get("description", "")
-        locale = arguments.get("locale", "en")
+        default_locale = service_proxy.get_config_value("default_locale", "en")
+        locale = arguments.get("locale") or default_locale
         tags_str = arguments.get("tags", "")
 
         if not path or not title or not content:

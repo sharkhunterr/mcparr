@@ -65,6 +65,15 @@
 - New keys: `stats.denied`, `stats.accessDenied`, `status.denied`
 - Warning messages for too many data points
 
+### 🌐 WikiJS Default Locale
+- **Service-level Default Language** - Configure default locale per WikiJS service
+  - New "Langue par défaut" dropdown in WikiJS service settings
+  - Supports 11 languages: EN, FR, DE, ES, IT, PT, NL, RU, ZH, JA, KO
+  - WikiJS tools (`wikijs_search`, `wikijs_get_pages`, `wikijs_get_page_tree`, `wikijs_create_page`) use service default when locale not specified
+  - Falls back to "en" if no default configured
+  - Setting saved/restored with backups
+  - Translations in 5 languages
+
 ### 🐛 Bug Fixes
 - **Trend Indicator** - Fixed success rate change display
   - Now shows "%" instead of "pt" for consistency with other stats
