@@ -93,6 +93,7 @@
     }
   },
   "dashboard": {
+    "title": "Dashboard",
     "compactMode": {
       "label": "Modalita compatta",
       "description": "Riduci la spaziatura"

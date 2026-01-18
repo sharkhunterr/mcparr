@@ -93,6 +93,7 @@
     }
   },
   "dashboard": {
+    "title": "Dashboard",
     "compactMode": {
       "label": "Modo compacto",
       "description": "Reducir el espaciado"

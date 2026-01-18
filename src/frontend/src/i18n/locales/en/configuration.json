@@ -96,6 +96,7 @@
     }
   },
   "dashboard": {
+    "title": "Dashboard",
     "compactMode": {
       "label": "Compact mode",
       "description": "Reduce spacing"

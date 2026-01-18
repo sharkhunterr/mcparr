@@ -93,6 +93,7 @@
     }
   },
   "dashboard": {
+    "title": "Dashboard",
     "compactMode": {
       "label": "Kompaktmodus",
       "description": "Abstände verringern"
