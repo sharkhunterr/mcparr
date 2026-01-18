@@ -4,7 +4,7 @@
   "tabs": {
     "appearance": "Erscheinungsbild",
     "general": "Allgemein",
-    "logs": "Protokolle",
+    "logs": "Observability",
     "notifications": "Benachrichtigungen",
     "dashboard": "Dashboard",
     "backup": "Sicherung",
