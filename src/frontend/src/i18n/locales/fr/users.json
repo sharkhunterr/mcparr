@@ -117,13 +117,13 @@
     "help": {
       "title": "Liste des mappings",
       "overview": "Vue d'ensemble",
-      "overviewContent": "Cette page affiche tous les mappings utilisateurs existants. Chaque carte represente un utilisateur central avec ses comptes lies sur differents services.",
+      "overviewContent": "Cette page affiche tous les mappings utilisateurs existants. Chaque carte représente un utilisateur central avec ses comptes liés sur différents services.",
       "cards": "Cartes utilisateurs",
-      "cardsContent": "Chaque carte montre le nom de l'utilisateur, le nombre de services actifs et des badges colores pour chaque service connecte. Survolez un badge pour voir les details.",
-      "edit": "Edition et gestion",
-      "editContent": "Cliquez sur l'icone crayon pour editer un utilisateur : modifier son nom, ajouter de nouveaux services ou supprimer des mappings existants.",
+      "cardsContent": "Chaque carte montre le nom de l'utilisateur, le nombre de services actifs et des badges colorés pour chaque service connecté. Survolez un badge pour voir les détails.",
+      "edit": "Édition et gestion",
+      "editContent": "Cliquez sur l'icône crayon pour éditer un utilisateur : modifier son nom, ajouter de nouveaux services ou supprimer des mappings existants.",
       "sync": "Synchronisation",
-      "syncContent": "Les badges verts indiquent une synchronisation active. Vous pouvez activer/desactiver la synchronisation pour chaque service individuellement dans les details."
+      "syncContent": "Les badges verts indiquent une synchronisation active. Vous pouvez activer/désactiver la synchronisation pour chaque service individuellement dans les détails."
     },
     "search": "Rechercher...",
     "allStatus": "Tous statuts",

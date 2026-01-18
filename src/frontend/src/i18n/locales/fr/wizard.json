@@ -19,7 +19,7 @@
       "permissions": "Gestion des permissions"
     },
     "import": {
-      "selectFile": "Cliquer pour selectionner un fichier",
+      "selectFile": "Cliquer pour sélectionner un fichier",
       "jsonOnly": ".json uniquement",
       "version": "Version",
       "unknownDate": "Date inconnue",
@@ -27,11 +27,11 @@
       "mergeDescription": "Fusionner avec existant",
       "importButton": "Importer la configuration",
       "importing": "Import en cours...",
-      "success": "Import reussi ! Passage a l'etape suivante...",
-      "failed": "Import termine avec des erreurs",
+      "success": "Import réussi ! Passage à l'étape suivante...",
+      "failed": "Import terminé avec des erreurs",
       "errors": "erreur(s)",
       "cancel": "Annuler",
-      "continueAnyway": "Continuer quand meme",
+      "continueAnyway": "Continuer quand même",
       "categories": {
         "services": "Services",
         "users": "Users",
