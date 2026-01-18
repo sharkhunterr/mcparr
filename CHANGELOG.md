@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.2.43](https://github.com/sharkhunterr/mcparr/-/compare/v0.2.42...v0.2.43) (2026-01-18)
+
+
+### Features
+
+* **mcp:** add denied status and stacked bar charts for request stats ([5aaea6a](https://github.com/sharkhunterr/mcparr/-/commit/5aaea6a175421eaea3f789aac55dddeb8cf26618))
+* **mcp:** add granularity selector and custom date range for MCP stats charts ([434f751](https://github.com/sharkhunterr/mcparr/-/commit/434f7517a32935b2cf433e932684c69caef9ea6d))
+* **wikijs:** add configurable default locale for WikiJS service ([17cf49f](https://github.com/sharkhunterr/mcparr/-/commit/17cf49f7f39f0520a414789252a806e9023dd929))
+
+
+### Bug Fixes
+
+* **ui:** show success rate change in % instead of pt ([fee1184](https://github.com/sharkhunterr/mcparr/-/commit/fee118450e9f8d6576ea14fdb441b55f9b0090b6))
+
 ### [0.2.42](https://github.com/sharkhunterr/mcparr/-/compare/v0.2.41...v0.2.42) (2026-01-18)
 
 
