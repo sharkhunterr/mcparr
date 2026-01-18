@@ -226,6 +226,8 @@ class McpStatsComparisonResponse(BaseModel):
     completed_change: Optional[float]
     failed: int
     failed_change: Optional[float]
+    denied: int = 0
+    denied_change: Optional[float] = None
 
 
 class McpStatsWithComparisonResponse(BaseModel):

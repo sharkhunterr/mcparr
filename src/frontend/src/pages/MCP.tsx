@@ -35,6 +35,8 @@ interface McpStatsComparison {
   completed_change: number | null;
   failed: number;
   failed_change: number | null;
+  denied: number;
+  denied_change: number | null;
 }
 
 interface McpStats {

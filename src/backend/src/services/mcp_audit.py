@@ -149,6 +149,7 @@ class McpAuditService:
         # Success rate
         completed = by_status.get(McpRequestStatus.COMPLETED.value, 0) + by_status.get("completed", 0)
         failed = by_status.get(McpRequestStatus.FAILED.value, 0) + by_status.get("failed", 0)
+        denied = by_status.get(McpRequestStatus.DENIED.value, 0) + by_status.get("denied", 0)
         success_rate = (completed / (completed + failed) * 100) if (completed + failed) > 0 else 100
 
         return {
@@ -160,6 +161,7 @@ class McpAuditService:
             "success_rate": round(success_rate, 2),
             "completed": completed,
             "failed": failed,
+            "denied": denied,
         }
 
     async def get_stats(
@@ -223,6 +225,8 @@ class McpAuditService:
                 "completed_change": calc_change(current.get("completed", 0), previous.get("completed", 0)),
                 "failed": previous.get("failed", 0),
                 "failed_change": calc_change(current.get("failed", 0), previous.get("failed", 0)),
+                "denied": previous.get("denied", 0),
+                "denied_change": calc_change(current.get("denied", 0), previous.get("denied", 0)),
             },
         }
 
