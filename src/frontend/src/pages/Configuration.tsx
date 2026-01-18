@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import {
   Settings,
-  Bell,
   FileText,
   Monitor,
   Moon,
@@ -37,7 +36,7 @@ import { useWizard } from '../contexts/WizardContext';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../lib/api';
 
-type TabId = 'general' | 'logs' | 'notifications' | 'backup' | 'about';
+type TabId = 'general' | 'logs' | 'backup' | 'about';
 
 interface VersionInfo {
   app_name: string;
@@ -130,7 +129,6 @@ export default function Configuration() {
   const tabs = [
     { id: 'general' as const, label: t('tabs.general'), icon: Settings },
     { id: 'logs' as const, label: t('tabs.logs'), icon: FileText },
-    { id: 'notifications' as const, label: t('tabs.notifications'), icon: Bell },
     { id: 'backup' as const, label: t('tabs.backup'), icon: FolderArchive },
     { id: 'about' as const, label: t('tabs.about'), icon: Info },
   ];
@@ -482,112 +480,119 @@ export default function Configuration() {
   );
 
   const renderLogsTab = () => (
-    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-4 sm:p-6 space-y-4">
-      <div className="flex items-center justify-between py-2">
-        <div>
-          <p className="text-sm font-medium text-gray-900 dark:text-white">{t('logs.logLevel.label')}</p>
-          <p className="text-xs text-gray-500 dark:text-gray-400">{t('logs.logLevel.description')}</p>
-        </div>
-        <select
-          value={settings.logLevel}
-          onChange={(e) => updateSettings({ logLevel: e.target.value as LogLevel })}
-          className="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-        >
-          {logLevels.map((level) => (
-            <option key={level.value} value={level.value}>
-              {level.label}
-            </option>
-          ))}
-        </select>
-      </div>
+    <div className="space-y-6">
+      {/* Logs Section */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-4 sm:p-6 space-y-4">
+        <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">{t('tabs.logs')}</h3>
 
-      <div className="flex items-center justify-between py-2">
-        <div>
-          <p className="text-sm font-medium text-gray-900 dark:text-white">{t('logs.logToConsole.label')}</p>
-          <p className="text-xs text-gray-500 dark:text-gray-400">{t('logs.logToConsole.description')}</p>
-        </div>
-        <Toggle
-          enabled={settings.logToConsole}
-          onChange={(value) => updateSettings({ logToConsole: value })}
-        />
-      </div>
-
-      <div className="flex items-center justify-between py-2">
-        <div>
-          <p className="text-sm font-medium text-gray-900 dark:text-white">{t('logs.logToBackend.label')}</p>
-          <p className="text-xs text-gray-500 dark:text-gray-400">{t('logs.logToBackend.description')}</p>
-        </div>
-        <Toggle
-          enabled={settings.logToBackend}
-          onChange={(value) => updateSettings({ logToBackend: value })}
-        />
-      </div>
-
-      {/* Log Levels Preview */}
-      <div className="pt-4 border-t border-gray-100 dark:border-gray-700">
-        <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
-          {t('logs.levelsPreview', { level: settings.logLevel })}
-        </p>
-        <div className="flex flex-wrap gap-2">
-          {logLevels.map((level) => {
-            const isIncluded = logLevels.findIndex((l) => l.value === level.value) >=
-              logLevels.findIndex((l) => l.value === settings.logLevel);
-            return (
-              <span
-                key={level.value}
-                className={`px-2 py-1 text-xs rounded-full ${
-                  isIncluded
-                    ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
-                    : 'bg-gray-100 dark:bg-gray-700 text-gray-400 line-through'
-                }`}
-              >
+        <div className="flex items-center justify-between py-2">
+          <div>
+            <p className="text-sm font-medium text-gray-900 dark:text-white">{t('logs.logLevel.label')}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">{t('logs.logLevel.description')}</p>
+          </div>
+          <select
+            value={settings.logLevel}
+            onChange={(e) => updateSettings({ logLevel: e.target.value as LogLevel })}
+            className="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+          >
+            {logLevels.map((level) => (
+              <option key={level.value} value={level.value}>
                 {level.label}
-              </span>
-            );
-          })}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="flex items-center justify-between py-2">
+          <div>
+            <p className="text-sm font-medium text-gray-900 dark:text-white">{t('logs.logToConsole.label')}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">{t('logs.logToConsole.description')}</p>
+          </div>
+          <Toggle
+            enabled={settings.logToConsole}
+            onChange={(value) => updateSettings({ logToConsole: value })}
+          />
+        </div>
+
+        <div className="flex items-center justify-between py-2">
+          <div>
+            <p className="text-sm font-medium text-gray-900 dark:text-white">{t('logs.logToBackend.label')}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">{t('logs.logToBackend.description')}</p>
+          </div>
+          <Toggle
+            enabled={settings.logToBackend}
+            onChange={(value) => updateSettings({ logToBackend: value })}
+          />
+        </div>
+
+        {/* Log Levels Preview */}
+        <div className="pt-4 border-t border-gray-100 dark:border-gray-700">
+          <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+            {t('logs.levelsPreview', { level: settings.logLevel })}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {logLevels.map((level) => {
+              const isIncluded = logLevels.findIndex((l) => l.value === level.value) >=
+                logLevels.findIndex((l) => l.value === settings.logLevel);
+              return (
+                <span
+                  key={level.value}
+                  className={`px-2 py-1 text-xs rounded-full ${
+                    isIncluded
+                      ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
+                      : 'bg-gray-100 dark:bg-gray-700 text-gray-400 line-through'
+                  }`}
+                >
+                  {level.label}
+                </span>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* Notifications/Alerts Section */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-4 sm:p-6 space-y-4">
+        <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">{t('tabs.notifications')}</h3>
+
+        <div className="flex items-center justify-between py-2">
+          <div>
+            <p className="text-sm font-medium text-gray-900 dark:text-white">{t('notifications.enabled.label')}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">{t('notifications.enabled.description')}</p>
+          </div>
+          <Toggle
+            enabled={settings.notificationsEnabled}
+            onChange={(value) => updateSettings({ notificationsEnabled: value })}
+          />
+        </div>
+
+        <div className="flex items-center justify-between py-2">
+          <div>
+            <p className="text-sm font-medium text-gray-900 dark:text-white">{t('notifications.sound.label')}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">{t('notifications.sound.description')}</p>
+          </div>
+          <Toggle
+            enabled={settings.soundEnabled}
+            onChange={(value) => updateSettings({ soundEnabled: value })}
+            disabled={!settings.notificationsEnabled}
+          />
+        </div>
+
+        <div className="flex items-center justify-between py-2">
+          <div>
+            <p className="text-sm font-medium text-gray-900 dark:text-white">{t('notifications.alertOnError.label')}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">{t('notifications.alertOnError.description')}</p>
+          </div>
+          <Toggle
+            enabled={settings.alertOnError}
+            onChange={(value) => updateSettings({ alertOnError: value })}
+            disabled={!settings.notificationsEnabled}
+          />
         </div>
       </div>
     </div>
   );
 
-  const renderNotificationsTab = () => (
-    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-4 sm:p-6 space-y-4">
-      <div className="flex items-center justify-between py-2">
-        <div>
-          <p className="text-sm font-medium text-gray-900 dark:text-white">{t('notifications.enabled.label')}</p>
-          <p className="text-xs text-gray-500 dark:text-gray-400">{t('notifications.enabled.description')}</p>
-        </div>
-        <Toggle
-          enabled={settings.notificationsEnabled}
-          onChange={(value) => updateSettings({ notificationsEnabled: value })}
-        />
-      </div>
-
-      <div className="flex items-center justify-between py-2">
-        <div>
-          <p className="text-sm font-medium text-gray-900 dark:text-white">{t('notifications.sound.label')}</p>
-          <p className="text-xs text-gray-500 dark:text-gray-400">{t('notifications.sound.description')}</p>
-        </div>
-        <Toggle
-          enabled={settings.soundEnabled}
-          onChange={(value) => updateSettings({ soundEnabled: value })}
-          disabled={!settings.notificationsEnabled}
-        />
-      </div>
-
-      <div className="flex items-center justify-between py-2">
-        <div>
-          <p className="text-sm font-medium text-gray-900 dark:text-white">{t('notifications.alertOnError.label')}</p>
-          <p className="text-xs text-gray-500 dark:text-gray-400">{t('notifications.alertOnError.description')}</p>
-        </div>
-        <Toggle
-          enabled={settings.alertOnError}
-          onChange={(value) => updateSettings({ alertOnError: value })}
-          disabled={!settings.notificationsEnabled}
-        />
-      </div>
-    </div>
-  );
 
   const renderBackupTab = () => (
     <div className="space-y-6">
@@ -1077,8 +1082,6 @@ export default function Configuration() {
         return renderGeneralTab();
       case 'logs':
         return renderLogsTab();
-      case 'notifications':
-        return renderNotificationsTab();
       case 'backup':
         return renderBackupTab();
       case 'about':
