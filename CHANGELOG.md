@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.2.40](https://github.com/sharkhunterr/mcparr/-/compare/v0.2.39...v0.2.40) (2026-01-18)
+
+
+### Features
+
+* **i18n:** translate MCP request details modal ([5a13313](https://github.com/sharkhunterr/mcparr/-/commit/5a133135292e25da3532d0bb265586b86ede66fd))
+* **ui:** add icon headers to General and About tabs in Configuration ([14874c2](https://github.com/sharkhunterr/mcparr/-/commit/14874c2a154bd7f7946c032e3359a5683266a3a6))
+* **ui:** add icon headers to Observability tab sections ([dbddc17](https://github.com/sharkhunterr/mcparr/-/commit/dbddc17ef194749eaca164e56657a710b7d28869))
+
+
+### Bug Fixes
+
+* **i18n:** add missing dashboard.title translation key ([ff0d1fb](https://github.com/sharkhunterr/mcparr/-/commit/ff0d1fbb6a81dec2ec544ee261b9bffb1058da08))
+* **i18n:** add missing French accents across all translation files ([52c43cc](https://github.com/sharkhunterr/mcparr/-/commit/52c43ccbb98d88a65c282207f40fc737390cdd5d))
+* **i18n:** add missing French accents in Configuration translations ([a692211](https://github.com/sharkhunterr/mcparr/-/commit/a692211784c0f14507f936af2f9a07945b269c00))
+* **i18n:** pass priority parameter to translation in GroupList ([ba347e0](https://github.com/sharkhunterr/mcparr/-/commit/ba347e0f3bbb8a169d92c332098843e0f61d7a9d))
+* **ui:** display 2 columns in Export section on mobile ([35fbec6](https://github.com/sharkhunterr/mcparr/-/commit/35fbec69c5c53970d8a3e1bfc22222fd18ffa75f))
+* **ui:** harmonize action buttons styling across Monitoring tabs ([27d635d](https://github.com/sharkhunterr/mcparr/-/commit/27d635d5e447bbf8552ec8df8ee75add6e10c667))
+* **ui:** make Services by User chart bars extend to full width ([c23861b](https://github.com/sharkhunterr/mcparr/-/commit/c23861b392a399528dd214ae75fe69811cc0ccbe))
+* **ui:** optimize Backup tab for mobile responsiveness ([69cc0b9](https://github.com/sharkhunterr/mcparr/-/commit/69cc0b9154d52dc7b296ddb8b4558575bf31113b))
+
 ### [0.2.39](https://github.com/sharkhunterr/mcparr/-/compare/v0.2.38...v0.2.39) (2026-01-17)
 
 ### [0.2.38](https://github.com/sharkhunterr/mcparr/-/compare/v0.2.37...v0.2.38) (2026-01-17)

@@ -1,6 +1,6 @@
 {
   "name": "mcparr",
-  "version": "0.2.39",
+  "version": "0.2.40",
   "description": "MCParr - AI Homelab Gateway with MCP server and web administration",
   "scripts": {
     "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
