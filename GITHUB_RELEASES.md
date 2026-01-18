@@ -4,6 +4,58 @@
 
 ---
 
+# v0.2.43
+
+**Title:** `v0.2.43 - MCP Statistics Granularity & Custom Date Range`
+
+**Release Notes (copier ci-dessous):**
+
+---
+
+## 📊 What's New in v0.2.43
+
+### ✨ MCP Statistics Enhancements
+- **Granularity Selector** - Control chart precision with new options
+  - Auto mode: Intelligent detection based on selected period
+  - Minute granularity for periods ≤1 hour (60 data points max)
+  - Hour granularity for periods ≤72 hours (up to 30 days)
+  - Day granularity for longer periods
+  - Dropdown selector in Stats tab header
+
+- **Custom Date Range** - Precise time period selection
+  - Start/end date pickers for custom ranges
+  - Quick presets: 1h, 6h, 24h, 3d, 7d
+  - Both time-based charts now use the same filters
+
+- **Improved Charts** - Better visualization
+  - Gray bars displayed for time slots without data
+  - Synchronized granularity between "Requêtes dans le temps" and "Requêtes par utilisateur"
+  - Performance protection: MAX_SLOTS limit (750) with user-friendly warning
+  - Supports up to 30 days at hourly granularity
+
+### 🔧 Backend API Updates
+- Added `granularity` parameter to `/hourly-usage` endpoint
+- Added `granularity` parameter to `/hourly-usage-by-user` endpoint
+- Auto-detection: ≤1h → minute, ≤72h → hour, >72h → day
+- Increased `/hourly-usage-by-user` limit from 168h to 720h (30 days)
+
+### 🌍 Translations
+- Added granularity translations in 5 languages (FR, EN, DE, ES, IT)
+- New keys: `stats.granularity.title`, `stats.granularity.auto/minute/hour/day`
+- Warning messages for too many data points
+
+### 📝 Technical Details
+- UTC-based slot generation for accurate timezone handling
+- Consistent strftime formatting across backend queries
+- Performance-optimized chart rendering with slot limits
+
+---
+
+**Full Changelog**: https://github.com/sharkhunterr/mcparr/compare/v0.2.42...v0.2.43
+
+---
+---
+
 # v0.2.42
 
 **Title:** `v0.2.42 - UI Polish, Documentation & Architecture Diagrams`
