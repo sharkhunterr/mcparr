@@ -4,6 +4,41 @@
 
 ---
 
+# v0.2.40
+
+**Title:** `v0.2.40 - UI Polish & Translation Fixes`
+
+**Release Notes (copier ci-dessous):**
+
+---
+
+## 🎨 What's New in v0.2.40
+
+### 🔧 UI/UX Improvements
+- **Harmonized Action Buttons** - Unified styling across Monitoring tabs
+  - Consistent button sizes and spacing in Metrics, Logs, and Alerts tabs
+  - Standardized icon sizes (w-4 h-4) across all action buttons
+  - Unified background colors, borders, and hover states
+  - Improved visual consistency throughout the observability interface
+
+### 🌍 Translation Fixes
+- **Configuration Page** - Fixed missing translation key
+  - Added `dashboard.title` translation in all languages (FR, EN, DE, ES, IT)
+  - Resolved "dashboard.title" display issue in Configuration → General tab
+  - Improved translation completeness across the application
+
+### 📝 Technical Details
+- Updated LogViewer component button styling to match AlertManager and MetricsTab
+- Enhanced code organization with structural comments
+- Better maintainability for UI components
+
+---
+
+**Full Changelog**: https://github.com/sharkhunterr/mcparr/compare/v0.2.39...v0.2.40
+
+---
+---
+
 # v0.2.39
 
 **Title:** `v0.2.39 - Complete Release Automation System`
