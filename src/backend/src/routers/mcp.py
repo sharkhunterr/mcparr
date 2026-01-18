@@ -252,6 +252,7 @@ class McpHourlyUsageResponse(BaseModel):
     count: int
     success_count: int = 0
     failed_count: int = 0
+    granularity: str = "hour"
 
 
 class McpUserStatsResponse(BaseModel):
@@ -278,6 +279,7 @@ class McpHourlyUserUsageResponse(BaseModel):
     user_id: str
     user_display_name: Optional[str] = None
     count: int
+    granularity: str = "hour"
 
 
 # Endpoints
@@ -376,50 +378,63 @@ async def get_mcp_request(
 @router.get("/stats", response_model=McpStatsResponse)
 async def get_mcp_stats(
     hours: int = Query(24, ge=1, le=720, description="Time period in hours"),
+    start_time: str | None = Query(None, description="Custom start time (ISO format)"),
+    end_time: str | None = Query(None, description="Custom end time (ISO format)"),
     session: AsyncSession = Depends(get_db_session),
 ):
     """Get MCP request statistics for the specified time period."""
-    stats = await mcp_audit_service.get_stats(session, hours=hours)
+    stats = await mcp_audit_service.get_stats(session, hours=hours, start_time=start_time, end_time=end_time)
     return McpStatsResponse(**stats)
 
 
 @router.get("/stats/comparison", response_model=McpStatsWithComparisonResponse)
 async def get_mcp_stats_with_comparison(
     hours: int = Query(24, ge=1, le=720, description="Time period in hours"),
+    start_time: str | None = Query(None, description="Custom start time (ISO format)"),
+    end_time: str | None = Query(None, description="Custom end time (ISO format)"),
     session: AsyncSession = Depends(get_db_session),
 ):
     """Get MCP request statistics with comparison to previous period."""
-    stats = await mcp_audit_service.get_stats_with_comparison(session, hours=hours)
+    stats = await mcp_audit_service.get_stats_with_comparison(session, hours=hours, start_time=start_time, end_time=end_time)
     return McpStatsWithComparisonResponse(**stats)
 
 
 @router.get("/tools/usage", response_model=list[McpToolUsageResponse])
 async def get_tool_usage(
     hours: int = Query(24, ge=1, le=720, description="Time period in hours"),
+    start_time: str | None = Query(None, description="Custom start time (ISO format)"),
+    end_time: str | None = Query(None, description="Custom end time (ISO format)"),
     session: AsyncSession = Depends(get_db_session),
 ):
     """Get tool usage statistics."""
-    usage = await mcp_audit_service.get_tool_usage(session, hours=hours)
+    usage = await mcp_audit_service.get_tool_usage(session, hours=hours, start_time=start_time, end_time=end_time)
     return [McpToolUsageResponse(**item) for item in usage]
 
 
 @router.get("/hourly-usage", response_model=list[McpHourlyUsageResponse])
 async def get_hourly_usage(
-    hours: int = Query(24, ge=1, le=168, description="Time period in hours"),
+    hours: int = Query(24, ge=1, le=720, description="Time period in hours"),
+    start_time: str | None = Query(None, description="Custom start time (ISO format)"),
+    end_time: str | None = Query(None, description="Custom end time (ISO format)"),
+    granularity: str | None = Query(None, description="Granularity: minute, hour, day. Auto-detect if not specified."),
     session: AsyncSession = Depends(get_db_session),
 ):
-    """Get hourly usage statistics."""
-    usage = await mcp_audit_service.get_hourly_usage(session, hours=hours)
+    """Get usage statistics with configurable granularity."""
+    usage = await mcp_audit_service.get_hourly_usage(
+        session, hours=hours, start_time=start_time, end_time=end_time, granularity=granularity
+    )
     return [McpHourlyUsageResponse(**item) for item in usage]
 
 
 @router.get("/user-stats", response_model=list[McpUserStatsResponse])
 async def get_user_stats(
     hours: int = Query(24, ge=1, le=720, description="Time period in hours"),
+    start_time: str | None = Query(None, description="Custom start time (ISO format)"),
+    end_time: str | None = Query(None, description="Custom end time (ISO format)"),
     session: AsyncSession = Depends(get_db_session),
 ):
     """Get usage statistics per user."""
-    stats = await mcp_audit_service.get_user_stats(session, hours=hours)
+    stats = await mcp_audit_service.get_user_stats(session, hours=hours, start_time=start_time, end_time=end_time)
 
     # Get display names for all user_ids
     user_ids = [s["user_id"] for s in stats if s["user_id"]]
@@ -434,10 +449,12 @@ async def get_user_stats(
 @router.get("/user-service-stats", response_model=list[McpUserServiceStatsResponse])
 async def get_user_service_stats(
     hours: int = Query(24, ge=1, le=720, description="Time period in hours"),
+    start_time: str | None = Query(None, description="Custom start time (ISO format)"),
+    end_time: str | None = Query(None, description="Custom end time (ISO format)"),
     session: AsyncSession = Depends(get_db_session),
 ):
     """Get usage statistics per user and service."""
-    stats = await mcp_audit_service.get_user_service_stats(session, hours=hours)
+    stats = await mcp_audit_service.get_user_service_stats(session, hours=hours, start_time=start_time, end_time=end_time)
 
     # Get display names for all user_ids
     user_ids = list({s["user_id"] for s in stats if s["user_id"]})
@@ -451,11 +468,16 @@ async def get_user_service_stats(
 
 @router.get("/hourly-usage-by-user", response_model=list[McpHourlyUserUsageResponse])
 async def get_hourly_usage_by_user(
-    hours: int = Query(24, ge=1, le=168, description="Time period in hours"),
+    hours: int = Query(24, ge=1, le=720, description="Time period in hours"),
+    start_time: str | None = Query(None, description="Custom start time (ISO format)"),
+    end_time: str | None = Query(None, description="Custom end time (ISO format)"),
+    granularity: str | None = Query(None, description="Granularity: minute, hour, day. Auto-detect if not specified."),
     session: AsyncSession = Depends(get_db_session),
 ):
-    """Get hourly usage statistics broken down by user."""
-    usage = await mcp_audit_service.get_hourly_usage_by_user(session, hours=hours)
+    """Get usage statistics broken down by user with configurable granularity."""
+    usage = await mcp_audit_service.get_hourly_usage_by_user(
+        session, hours=hours, start_time=start_time, end_time=end_time, granularity=granularity
+    )
 
     # Get display names for all user_ids
     user_ids = list({u["user_id"] for u in usage if u["user_id"]})

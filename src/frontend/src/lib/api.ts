@@ -360,20 +360,20 @@ export const api = {
         apiClient.get('/api/mcp/requests', { params: filters }),
       get: (id: string) => apiClient.get(`/api/mcp/requests/${id}`),
     },
-    stats: (hours: number = 24) =>
-      apiClient.get('/api/mcp/stats', { params: { hours } }),
-    statsWithComparison: (hours: number = 24) =>
-      apiClient.get('/api/mcp/stats/comparison', { params: { hours } }),
-    toolUsage: (hours: number = 24) =>
-      apiClient.get('/api/mcp/tools/usage', { params: { hours } }),
-    hourlyUsage: (hours: number = 24) =>
-      apiClient.get('/api/mcp/hourly-usage', { params: { hours } }),
-    userStats: (hours: number = 24) =>
-      apiClient.get('/api/mcp/user-stats', { params: { hours } }),
-    userServiceStats: (hours: number = 24) =>
-      apiClient.get('/api/mcp/user-service-stats', { params: { hours } }),
-    hourlyUsageByUser: (hours: number = 24) =>
-      apiClient.get('/api/mcp/hourly-usage-by-user', { params: { hours } }),
+    stats: (hours: number = 24, start_time?: string, end_time?: string) =>
+      apiClient.get('/api/mcp/stats', { params: { hours, ...(start_time && { start_time }), ...(end_time && { end_time }) } }),
+    statsWithComparison: (hours: number = 24, start_time?: string, end_time?: string) =>
+      apiClient.get('/api/mcp/stats/comparison', { params: { hours, ...(start_time && { start_time }), ...(end_time && { end_time }) } }),
+    toolUsage: (hours: number = 24, start_time?: string, end_time?: string) =>
+      apiClient.get('/api/mcp/tools/usage', { params: { hours, ...(start_time && { start_time }), ...(end_time && { end_time }) } }),
+    hourlyUsage: (hours: number = 24, start_time?: string, end_time?: string, granularity?: string) =>
+      apiClient.get('/api/mcp/hourly-usage', { params: { hours, ...(start_time && { start_time }), ...(end_time && { end_time }), ...(granularity && { granularity }) } }),
+    userStats: (hours: number = 24, start_time?: string, end_time?: string) =>
+      apiClient.get('/api/mcp/user-stats', { params: { hours, ...(start_time && { start_time }), ...(end_time && { end_time }) } }),
+    userServiceStats: (hours: number = 24, start_time?: string, end_time?: string) =>
+      apiClient.get('/api/mcp/user-service-stats', { params: { hours, ...(start_time && { start_time }), ...(end_time && { end_time }) } }),
+    hourlyUsageByUser: (hours: number = 24, start_time?: string, end_time?: string, granularity?: string) =>
+      apiClient.get('/api/mcp/hourly-usage-by-user', { params: { hours, ...(start_time && { start_time }), ...(end_time && { end_time }), ...(granularity && { granularity }) } }),
     tools: () => apiClient.get('/api/mcp/tools'),
     executeTool: (toolName: string, params: Record<string, any> = {}) =>
       apiClient.post('/api/mcp/tools/test', { tool_name: toolName, arguments: params }),

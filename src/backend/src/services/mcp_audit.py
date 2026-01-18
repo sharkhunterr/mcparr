@@ -12,6 +12,28 @@ from src.models import McpRequest, McpRequestStatus
 class McpAuditService:
     """Service for MCP request auditing and analytics."""
 
+    def _parse_time_range(
+        self,
+        hours: int,
+        start_time: Optional[str] = None,
+        end_time: Optional[str] = None,
+    ) -> Tuple[datetime, datetime]:
+        """Parse time range from hours or custom start/end times."""
+        now = datetime.utcnow()
+
+        if start_time and end_time:
+            # Parse ISO format strings
+            try:
+                parsed_start = datetime.fromisoformat(start_time.replace('Z', '+00:00').replace('+00:00', ''))
+                parsed_end = datetime.fromisoformat(end_time.replace('Z', '+00:00').replace('+00:00', ''))
+                return parsed_start, parsed_end
+            except (ValueError, AttributeError):
+                # Fallback to hours-based calculation
+                pass
+
+        # Default: use hours
+        return now - timedelta(hours=hours), now
+
     async def get_requests(
         self,
         session: AsyncSession,
@@ -144,12 +166,13 @@ class McpAuditService:
         self,
         session: AsyncSession,
         hours: int = 24,
+        start_time: Optional[str] = None,
+        end_time: Optional[str] = None,
     ) -> dict:
         """Get MCP request statistics for the specified time period."""
-        now = datetime.utcnow()
-        since = now - timedelta(hours=hours)
+        since, until = self._parse_time_range(hours, start_time, end_time)
 
-        stats = await self._get_period_stats(session, since, now)
+        stats = await self._get_period_stats(session, since, until)
         stats["period_hours"] = hours
 
         return stats
@@ -158,11 +181,14 @@ class McpAuditService:
         self,
         session: AsyncSession,
         hours: int = 24,
+        start_time: Optional[str] = None,
+        end_time: Optional[str] = None,
     ) -> dict:
         """Get MCP request statistics with comparison to previous period."""
-        now = datetime.utcnow()
-        current_start = now - timedelta(hours=hours)
-        previous_start = current_start - timedelta(hours=hours)
+        current_start, now = self._parse_time_range(hours, start_time, end_time)
+        # Calculate previous period duration
+        period_duration = now - current_start
+        previous_start = current_start - period_duration
 
         # Get current period stats
         current = await self._get_period_stats(session, current_start, now)
@@ -204,9 +230,11 @@ class McpAuditService:
         self,
         session: AsyncSession,
         hours: int = 24,
+        start_time: Optional[str] = None,
+        end_time: Optional[str] = None,
     ) -> List[dict]:
         """Get tool usage statistics."""
-        since = datetime.utcnow() - timedelta(hours=hours)
+        since, until = self._parse_time_range(hours, start_time, end_time)
 
         result = await session.execute(
             select(
@@ -216,7 +244,7 @@ class McpAuditService:
                 func.avg(McpRequest.duration_ms).label("avg_duration"),
                 func.sum(case((McpRequest.status == McpRequestStatus.COMPLETED, 1), else_=0)).label("success_count"),
             )
-            .where(McpRequest.created_at >= since)
+            .where(and_(McpRequest.created_at >= since, McpRequest.created_at <= until))
             .group_by(McpRequest.tool_name, McpRequest.tool_category)
             .order_by(func.count(McpRequest.id).desc())
         )
@@ -236,21 +264,47 @@ class McpAuditService:
         self,
         session: AsyncSession,
         hours: int = 24,
+        start_time: Optional[str] = None,
+        end_time: Optional[str] = None,
+        granularity: Optional[str] = None,
     ) -> List[dict]:
-        """Get hourly usage statistics with success/failure breakdown."""
-        since = datetime.utcnow() - timedelta(hours=hours)
+        """Get usage statistics with configurable granularity.
 
-        # SQLite doesn't have date_trunc, use strftime instead
+        Args:
+            granularity: 'minute', 'hour', or 'day'. If None, auto-detect based on period.
+        """
+        since, until = self._parse_time_range(hours, start_time, end_time)
+
+        # Calculate period duration in hours
+        period_hours = (until - since).total_seconds() / 3600
+
+        # Auto-detect granularity if not specified
+        if granularity is None:
+            if period_hours <= 1:
+                granularity = "minute"
+            elif period_hours <= 72:
+                granularity = "hour"
+            else:
+                granularity = "day"
+
+        # SQLite strftime format based on granularity
+        if granularity == "minute":
+            strftime_format = "%Y-%m-%d %H:%M:00"
+        elif granularity == "day":
+            strftime_format = "%Y-%m-%d 00:00:00"
+        else:  # hour (default)
+            strftime_format = "%Y-%m-%d %H:00:00"
+
         result = await session.execute(
             select(
-                func.strftime("%Y-%m-%d %H:00:00", McpRequest.created_at).label("hour"),
+                func.strftime(strftime_format, McpRequest.created_at).label("hour"),
                 func.count(McpRequest.id).label("count"),
                 func.sum(case((McpRequest.status == McpRequestStatus.COMPLETED, 1), else_=0)).label("success_count"),
                 func.sum(case((McpRequest.status == McpRequestStatus.FAILED, 1), else_=0)).label("failed_count"),
             )
-            .where(McpRequest.created_at >= since)
-            .group_by(func.strftime("%Y-%m-%d %H:00:00", McpRequest.created_at))
-            .order_by(func.strftime("%Y-%m-%d %H:00:00", McpRequest.created_at))
+            .where(and_(McpRequest.created_at >= since, McpRequest.created_at <= until))
+            .group_by(func.strftime(strftime_format, McpRequest.created_at))
+            .order_by(func.strftime(strftime_format, McpRequest.created_at))
         )
 
         return [
@@ -259,6 +313,7 @@ class McpAuditService:
                 "count": row.count,
                 "success_count": row.success_count or 0,
                 "failed_count": row.failed_count or 0,
+                "granularity": granularity,
             }
             for row in result.fetchall()
         ]
@@ -282,9 +337,11 @@ class McpAuditService:
         self,
         session: AsyncSession,
         hours: int = 24,
+        start_time: Optional[str] = None,
+        end_time: Optional[str] = None,
     ) -> List[dict]:
         """Get usage statistics per user."""
-        since = datetime.utcnow() - timedelta(hours=hours)
+        since, until = self._parse_time_range(hours, start_time, end_time)
 
         result = await session.execute(
             select(
@@ -294,7 +351,7 @@ class McpAuditService:
                 func.sum(case((McpRequest.status == McpRequestStatus.COMPLETED, 1), else_=0)).label("success_count"),
                 func.sum(case((McpRequest.status == McpRequestStatus.FAILED, 1), else_=0)).label("failed_count"),
             )
-            .where(and_(McpRequest.created_at >= since, McpRequest.user_id.isnot(None)))
+            .where(and_(McpRequest.created_at >= since, McpRequest.created_at <= until, McpRequest.user_id.isnot(None)))
             .group_by(McpRequest.user_id)
             .order_by(func.count(McpRequest.id).desc())
         )
@@ -315,9 +372,11 @@ class McpAuditService:
         self,
         session: AsyncSession,
         hours: int = 24,
+        start_time: Optional[str] = None,
+        end_time: Optional[str] = None,
     ) -> List[dict]:
         """Get usage statistics per user and service (extracted from tool name prefix)."""
-        since = datetime.utcnow() - timedelta(hours=hours)
+        since, until = self._parse_time_range(hours, start_time, end_time)
 
         # Extract service name from tool_name (prefix before first underscore)
         # e.g., "plex_search_media" -> "plex", "radarr_get_queue" -> "radarr"
@@ -333,6 +392,7 @@ class McpAuditService:
             .where(
                 and_(
                     McpRequest.created_at >= since,
+                    McpRequest.created_at <= until,
                     McpRequest.user_id.isnot(None),
                     McpRequest.tool_name.contains("_"),  # Only tools with underscore
                 )
@@ -356,19 +416,46 @@ class McpAuditService:
         self,
         session: AsyncSession,
         hours: int = 24,
+        start_time: Optional[str] = None,
+        end_time: Optional[str] = None,
+        granularity: Optional[str] = None,
     ) -> List[dict]:
-        """Get hourly usage statistics broken down by user."""
-        since = datetime.utcnow() - timedelta(hours=hours)
+        """Get usage statistics broken down by user with configurable granularity.
+
+        Args:
+            granularity: 'minute', 'hour', or 'day'. If None, auto-detect based on period.
+        """
+        since, until = self._parse_time_range(hours, start_time, end_time)
+
+        # Calculate period duration in hours
+        period_hours = (until - since).total_seconds() / 3600
+
+        # Auto-detect granularity if not specified
+        if granularity is None:
+            if period_hours <= 1:
+                granularity = "minute"
+            elif period_hours <= 72:
+                granularity = "hour"
+            else:
+                granularity = "day"
+
+        # SQLite strftime format based on granularity
+        if granularity == "minute":
+            strftime_format = "%Y-%m-%d %H:%M:00"
+        elif granularity == "day":
+            strftime_format = "%Y-%m-%d 00:00:00"
+        else:  # hour (default)
+            strftime_format = "%Y-%m-%d %H:00:00"
 
         result = await session.execute(
             select(
-                func.strftime("%Y-%m-%d %H:00:00", McpRequest.created_at).label("hour"),
+                func.strftime(strftime_format, McpRequest.created_at).label("hour"),
                 McpRequest.user_id,
                 func.count(McpRequest.id).label("count"),
             )
-            .where(and_(McpRequest.created_at >= since, McpRequest.user_id.isnot(None)))
-            .group_by(func.strftime("%Y-%m-%d %H:00:00", McpRequest.created_at), McpRequest.user_id)
-            .order_by(func.strftime("%Y-%m-%d %H:00:00", McpRequest.created_at))
+            .where(and_(McpRequest.created_at >= since, McpRequest.created_at <= until, McpRequest.user_id.isnot(None)))
+            .group_by(func.strftime(strftime_format, McpRequest.created_at), McpRequest.user_id)
+            .order_by(func.strftime(strftime_format, McpRequest.created_at))
         )
 
         return [
@@ -376,6 +463,7 @@ class McpAuditService:
                 "hour": row.hour,
                 "user_id": row.user_id,
                 "count": row.count,
+                "granularity": granularity,
             }
             for row in result.fetchall()
         ]

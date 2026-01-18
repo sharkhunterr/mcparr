@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Bot, RefreshCw, BarChart3, History, Wrench, Settings, ChevronDown, ChevronRight, Play, X, Loader2, TrendingUp, TrendingDown, Minus, Link2, Workflow, ArrowRight, Square, CircleDot } from 'lucide-react';
+import { Bot, RefreshCw, BarChart3, History, Wrench, Settings, ChevronDown, ChevronRight, Play, X, Loader2, TrendingUp, TrendingDown, Minus, Link2, Workflow, ArrowRight, Square, CircleDot, Calendar, AlertTriangle } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import { ToolChainManagement } from '../components/ToolChains';
 import { GlobalSearchConfig, GlobalSearchInfoBlock } from '../components/MCP';
@@ -61,6 +61,7 @@ interface McpHourlyUsage {
   count: number;
   success_count?: number;
   failed_count?: number;
+  granularity?: 'minute' | 'hour' | 'day';
 }
 
 interface McpUserStats {
@@ -87,6 +88,7 @@ interface McpHourlyUserUsage {
   user_id: string;
   user_display_name: string | null;
   count: number;
+  granularity?: string;
 }
 
 interface McpTool {
@@ -136,38 +138,141 @@ const StatusBadge = ({ status }: { status: string }) => {
   );
 };
 
-// Stacked bar chart component for hourly usage with success/failure breakdown
-const HourlyUsageChart = ({ data, timeRange }: { data: McpHourlyUsage[]; timeRange: number }) => {
+// Stacked bar chart component for usage with auto-granularity (minute/hour/day)
+interface HourlyUsageChartProps {
+  data: McpHourlyUsage[];
+  startTime: string;
+  endTime: string;
+  granularity: 'auto' | 'minute' | 'hour' | 'day';
+}
+
+const HourlyUsageChart = ({ data, startTime, endTime, granularity: selectedGranularity }: HourlyUsageChartProps) => {
   const { t } = useTranslation('mcp');
-  // Generate all hours for the timeRange with 0 values for missing hours
-  // Backend uses UTC, so we need to generate UTC hours for matching
-  const now = new Date();
-  const hours: { hour: string; count: number; success: number; failed: number; label: string }[] = [];
 
-  for (let i = timeRange - 1; i >= 0; i--) {
-    const date = new Date(now.getTime() - i * 60 * 60 * 1000);
-    // API format: "YYYY-MM-DD HH:00:00" in UTC
-    const year = date.getUTCFullYear();
-    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
-    const day = String(date.getUTCDate()).padStart(2, '0');
-    const utcHour = String(date.getUTCHours()).padStart(2, '0');
-    const hourKey = `${year}-${month}-${day} ${utcHour}`;
+  // Calculate period in hours
+  const start = new Date(startTime);
+  const end = new Date(endTime);
+  const periodHours = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
 
-    // Local hour for display
-    const localHour = String(date.getHours()).padStart(2, '0');
+  // Use granularity from API data if available, otherwise calculate based on selection
+  // This ensures frontend slots match the backend's actual grouping
+  const actualGranularity = data.length > 0 && data[0].granularity
+    ? data[0].granularity as 'minute' | 'hour' | 'day'
+    : selectedGranularity === 'auto'
+      ? (periodHours <= 1 ? 'minute' : periodHours <= 72 ? 'hour' : 'day')
+      : selectedGranularity;
 
-    const found = data.find(d => d.hour.startsWith(hourKey));
-    hours.push({
-      hour: hourKey,
-      count: found?.count || 0,
-      success: found?.success_count || 0,
-      failed: found?.failed_count || 0,
-      label: `${localHour}:00`  // Display local time in label
-    });
-  }
+  // Calculate expected number of slots to check if it's too many
+  const expectedSlots = actualGranularity === 'minute'
+    ? periodHours * 60
+    : actualGranularity === 'hour'
+      ? periodHours
+      : periodHours / 24;
+
+  // Max slots to render (to avoid performance issues)
+  // 750 allows 30 days at hour granularity (30 * 24 = 720)
+  const MAX_SLOTS = 750;
+  const tooManySlots = expectedSlots > MAX_SLOTS;
+
+  // Generate all time slots for the period (using UTC to match backend)
+  const generateTimeSlots = (): string[] => {
+    // If too many slots, don't generate (will show warning instead)
+    if (tooManySlots) return [];
+
+    const slots: string[] = [];
+    const current = new Date(start);
+
+    // Round to the appropriate granularity (in UTC)
+    if (actualGranularity === 'minute') {
+      current.setUTCSeconds(0, 0);
+    } else if (actualGranularity === 'hour') {
+      current.setUTCMinutes(0, 0, 0);
+    } else {
+      current.setUTCHours(0, 0, 0, 0);
+    }
+
+    while (current <= end) {
+      const year = current.getUTCFullYear();
+      const month = String(current.getUTCMonth() + 1).padStart(2, '0');
+      const day = String(current.getUTCDate()).padStart(2, '0');
+      const hour = String(current.getUTCHours()).padStart(2, '0');
+      const minute = String(current.getUTCMinutes()).padStart(2, '0');
+
+      if (actualGranularity === 'minute') {
+        slots.push(`${year}-${month}-${day} ${hour}:${minute}:00`);
+        current.setUTCMinutes(current.getUTCMinutes() + 1);
+      } else if (actualGranularity === 'hour') {
+        slots.push(`${year}-${month}-${day} ${hour}:00:00`);
+        current.setUTCHours(current.getUTCHours() + 1);
+      } else {
+        slots.push(`${year}-${month}-${day} 00:00:00`);
+        current.setUTCDate(current.getUTCDate() + 1);
+      }
+    }
+    return slots;
+  };
+
+  // Create lookup from data
+  const dataLookup = new Map(data.map(d => [d.hour, d]));
+  const allSlots = generateTimeSlots();
+
+  // Format label based on granularity
+  const formatLabel = (hourStr: string): string => {
+    const [datePart, timePart] = hourStr.split(' ');
+    const [, month, day] = datePart.split('-');
+    const [hour, minute] = (timePart || '00:00:00').split(':');
+
+    if (actualGranularity === 'day') {
+      return `${day}/${month}`;
+    } else if (actualGranularity === 'minute') {
+      return `${hour}:${minute}`;
+    } else {
+      // Hour granularity - show date if data spans multiple days
+      if (periodHours > 24) {
+        return `${day}/${month} ${hour}h`;
+      }
+      return `${hour}:00`;
+    }
+  };
+
+  // Build hours array with all slots (filled or empty)
+  const hours = allSlots.map(slot => {
+    const d = dataLookup.get(slot);
+    return {
+      key: slot,
+      count: d?.count || 0,
+      success: d?.success_count || 0,
+      failed: d?.failed_count || 0,
+      label: formatLabel(slot)
+    };
+  });
 
   const maxCount = Math.max(...hours.map(h => h.count), 1);
   const chartHeight = 128; // pixels (h-32)
+
+  // Show warning if too many slots
+  if (tooManySlots) {
+    return (
+      <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+            {t('stats.requestsOverTime')}
+          </h3>
+        </div>
+        <div className="flex flex-col items-center justify-center py-8 text-center">
+          <div className="text-amber-500 dark:text-amber-400 mb-2">
+            <AlertTriangle className="w-8 h-8 mx-auto" />
+          </div>
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            {t('stats.tooManyDataPoints', { count: Math.round(expectedSlots), max: MAX_SLOTS })}
+          </p>
+          <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+            {t('stats.reduceGranularityOrPeriod')}
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow">
@@ -212,7 +317,7 @@ const HourlyUsageChart = ({ data, timeRange }: { data: McpHourlyUsage[]; timeRan
                 </div>
               </div>
               {h.count === 0 ? (
-                // No data - gray dot
+                // No data - gray bar
                 <div
                   className={`w-full rounded-sm bg-gray-300 dark:bg-gray-600 ${isLast ? 'opacity-100' : 'opacity-50'}`}
                   style={{ height: '6px' }}
@@ -872,8 +977,35 @@ const UserServiceChart = ({ data }: { data: McpUserServiceStats[] }) => {
 };
 
 // Stacked Bar Chart - Hourly usage by user
-const HourlyUserStackedChart = ({ data, timeRange }: { data: McpHourlyUserUsage[]; timeRange: number }) => {
+interface HourlyUserStackedChartProps {
+  data: McpHourlyUserUsage[];
+  startTime: string;
+  endTime: string;
+  granularity: 'auto' | 'minute' | 'hour' | 'day';
+}
+
+const HourlyUserStackedChart = ({ data, startTime, endTime, granularity: selectedGranularity }: HourlyUserStackedChartProps) => {
   const { t } = useTranslation('mcp');
+
+  // Calculate period in hours
+  const start = new Date(startTime);
+  const end = new Date(endTime);
+  const periodHours = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
+
+  // Determine actual granularity
+  const actualGranularity = selectedGranularity === 'auto'
+    ? (periodHours <= 1 ? 'minute' : periodHours <= 72 ? 'hour' : 'day')
+    : selectedGranularity;
+
+  // Calculate expected slots and check limit
+  const expectedSlots = actualGranularity === 'minute'
+    ? periodHours * 60
+    : actualGranularity === 'hour'
+      ? periodHours
+      : periodHours / 24;
+  const MAX_SLOTS = 750;
+  const tooManySlots = expectedSlots > MAX_SLOTS;
+
   // Get unique users and assign colors
   const users = [...new Set(data.map(d => d.user_id))];
   const userColorMap: Record<string, { displayName: string; color: typeof USER_COLORS[0] }> = {};
@@ -885,37 +1017,109 @@ const HourlyUserStackedChart = ({ data, timeRange }: { data: McpHourlyUserUsage[
     };
   });
 
-  // Generate hours and aggregate data
-  const now = new Date();
-  const hours: { hour: string; label: string; byUser: Record<string, number>; total: number }[] = [];
+  // Generate all time slots (using UTC to match backend)
+  const generateTimeSlots = (): string[] => {
+    if (tooManySlots) return [];
+    const slots: string[] = [];
+    const current = new Date(start);
 
-  for (let i = timeRange - 1; i >= 0; i--) {
-    const date = new Date(now.getTime() - i * 60 * 60 * 1000);
-    const year = date.getUTCFullYear();
-    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
-    const day = String(date.getUTCDate()).padStart(2, '0');
-    const utcHour = String(date.getUTCHours()).padStart(2, '0');
-    const hourKey = `${year}-${month}-${day} ${utcHour}`;
-    const localHour = String(date.getHours()).padStart(2, '0');
+    if (actualGranularity === 'minute') {
+      current.setUTCSeconds(0, 0);
+    } else if (actualGranularity === 'hour') {
+      current.setUTCMinutes(0, 0, 0);
+    } else {
+      current.setUTCHours(0, 0, 0, 0);
+    }
 
-    const hourData: Record<string, number> = {};
-    let total = 0;
-    data.filter(d => d.hour.startsWith(hourKey)).forEach(d => {
-      hourData[d.user_id] = (hourData[d.user_id] || 0) + d.count;
-      total += d.count;
-    });
+    while (current <= end) {
+      const year = current.getUTCFullYear();
+      const month = String(current.getUTCMonth() + 1).padStart(2, '0');
+      const day = String(current.getUTCDate()).padStart(2, '0');
+      const hour = String(current.getUTCHours()).padStart(2, '0');
+      const minute = String(current.getUTCMinutes()).padStart(2, '0');
 
-    hours.push({ hour: hourKey, label: `${localHour}:00`, byUser: hourData, total });
-  }
+      if (actualGranularity === 'minute') {
+        slots.push(`${year}-${month}-${day} ${hour}:${minute}:00`);
+        current.setUTCMinutes(current.getUTCMinutes() + 1);
+      } else if (actualGranularity === 'hour') {
+        slots.push(`${year}-${month}-${day} ${hour}:00:00`);
+        current.setUTCHours(current.getUTCHours() + 1);
+      } else {
+        slots.push(`${year}-${month}-${day} 00:00:00`);
+        current.setUTCDate(current.getUTCDate() + 1);
+      }
+    }
+    return slots;
+  };
+
+  const allSlots = generateTimeSlots();
+
+  // Format label based on granularity
+  const formatLabel = (hourStr: string): string => {
+    const [datePart, timePart] = hourStr.split(' ');
+    const [, month, day] = datePart.split('-');
+    const [hour, minute] = (timePart || '00:00:00').split(':');
+
+    if (actualGranularity === 'day') {
+      return `${day}/${month}`;
+    } else if (actualGranularity === 'minute') {
+      return `${hour}:${minute}`;
+    } else {
+      if (periodHours > 24) {
+        return `${day}/${month} ${hour}h`;
+      }
+      return `${hour}:00`;
+    }
+  };
+
+  // Group data by time bucket
+  const dataByHour: Record<string, { byUser: Record<string, number>; total: number }> = {};
+  data.forEach(d => {
+    if (!dataByHour[d.hour]) {
+      dataByHour[d.hour] = { byUser: {}, total: 0 };
+    }
+    dataByHour[d.hour].byUser[d.user_id] = (dataByHour[d.hour].byUser[d.user_id] || 0) + d.count;
+    dataByHour[d.hour].total += d.count;
+  });
+
+  // Build hours array with all slots
+  const hours = allSlots.map(slot => ({
+    hour: slot,
+    label: formatLabel(slot),
+    byUser: dataByHour[slot]?.byUser || {},
+    total: dataByHour[slot]?.total || 0
+  }));
 
   const maxCount = Math.max(...hours.map(h => h.total), 1);
   const chartHeight = 140;
 
-  if (users.length === 0) {
+  // Show warning if too many slots
+  if (tooManySlots) {
     return (
       <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow">
         <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
-          Requêtes par utilisateur (temps)
+          {t('stats.requestsByUser')}
+        </h3>
+        <div className="flex flex-col items-center justify-center py-8 text-center">
+          <div className="text-amber-500 dark:text-amber-400 mb-2">
+            <AlertTriangle className="w-8 h-8 mx-auto" />
+          </div>
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            {t('stats.tooManyDataPoints', { count: Math.round(expectedSlots), max: MAX_SLOTS })}
+          </p>
+          <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+            {t('stats.reduceGranularityOrPeriod')}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (users.length === 0 && hours.every(h => h.total === 0)) {
+    return (
+      <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow">
+        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
+          {t('stats.requestsByUser')}
         </h3>
         <div className="flex items-center justify-center h-32 text-gray-500 dark:text-gray-400 text-sm">
           {t('stats.noData')}
@@ -928,7 +1132,7 @@ const HourlyUserStackedChart = ({ data, timeRange }: { data: McpHourlyUserUsage[
     <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-          Requêtes par utilisateur (temps)
+          {t('stats.requestsByUser')}
         </h3>
         <div className="flex items-center gap-2 flex-wrap justify-end">
           {users.slice(0, 5).map(userId => (
@@ -2117,6 +2321,234 @@ const ConfigurationTab = ({ tools }: { tools: McpToolsResponse | null }) => {
   );
 };
 
+// ============================================================================
+// DATE RANGE PICKER COMPONENT
+// ============================================================================
+
+interface DateRangePickerProps {
+  startDate: Date | null;
+  endDate: Date | null;
+  onApply: (start: Date, end: Date) => void;
+  onClear: () => void;
+  presetValue: number;
+  onPresetChange: (hours: number) => void;
+}
+
+const DateRangePicker = ({ startDate, endDate, onApply, onClear, presetValue, onPresetChange }: DateRangePickerProps) => {
+  const { t } = useTranslation('mcp');
+  const [isOpen, setIsOpen] = useState(false);
+  const [tempStart, setTempStart] = useState<string>('');
+  const [tempEnd, setTempEnd] = useState<string>('');
+
+  // Format date for datetime-local input
+  const formatDateForInput = (date: Date) => {
+    const pad = (n: number) => n.toString().padStart(2, '0');
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+  };
+
+  // Initialize temp values when opening
+  const handleOpen = () => {
+    if (startDate && endDate) {
+      setTempStart(formatDateForInput(startDate));
+      setTempEnd(formatDateForInput(endDate));
+    } else {
+      // Default to last 24h
+      const end = new Date();
+      const start = new Date(end.getTime() - 24 * 60 * 60 * 1000);
+      setTempStart(formatDateForInput(start));
+      setTempEnd(formatDateForInput(end));
+    }
+    setIsOpen(true);
+  };
+
+  const handleApply = () => {
+    if (tempStart && tempEnd) {
+      onApply(new Date(tempStart), new Date(tempEnd));
+      setIsOpen(false);
+    }
+  };
+
+  const handlePresetClick = (preset: string) => {
+    const now = new Date();
+    let start: Date;
+    let end: Date = now;
+
+    switch (preset) {
+      case 'today':
+        start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        break;
+      case 'yesterday':
+        start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+        end = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        break;
+      case 'last7days':
+        start = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        break;
+      case 'last30days':
+        start = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        break;
+      case 'thisMonth':
+        start = new Date(now.getFullYear(), now.getMonth(), 1);
+        break;
+      case 'lastMonth':
+        start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        end = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
+        break;
+      default:
+        return;
+    }
+
+    setTempStart(formatDateForInput(start));
+    setTempEnd(formatDateForInput(end));
+  };
+
+  const isCustom = startDate !== null && endDate !== null;
+
+  // Format display text
+  const getDisplayText = () => {
+    if (isCustom && startDate && endDate) {
+      const formatShort = (d: Date) => d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+      return `${formatShort(startDate)} - ${formatShort(endDate)}`;
+    }
+    return null;
+  };
+
+  return (
+    <div className="relative">
+      {/* Combined select + custom button + date display */}
+      <div className="flex items-center gap-2">
+        {/* Preset dropdown */}
+        <select
+          value={isCustom ? 'custom' : presetValue}
+          onChange={(e) => {
+            const val = e.target.value;
+            if (val === 'custom') {
+              handleOpen();
+            } else {
+              onClear();
+              onPresetChange(Number(val));
+            }
+          }}
+          className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white flex-shrink-0"
+        >
+          <option value={1}>{t('stats.timeRange1h')}</option>
+          <option value={6}>{t('stats.timeRange6h')}</option>
+          <option value={24}>{t('stats.timeRange24h')}</option>
+          <option value={72}>{t('stats.timeRange3d')}</option>
+          <option value={168}>{t('stats.timeRange7d')}</option>
+          <option value="custom">{t('stats.timeRangeCustom')}</option>
+        </select>
+
+        {/* Calendar button for custom range */}
+        <button
+          onClick={handleOpen}
+          className={`p-2 text-sm border rounded-lg flex items-center gap-1 transition-colors ${
+            isCustom
+              ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
+              : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600'
+          }`}
+          title={getDisplayText() || t('stats.dateRange.custom')}
+        >
+          <Calendar className="w-4 h-4" />
+        </button>
+
+        {/* Clear button when custom range is active */}
+        {isCustom && (
+          <button
+            onClick={onClear}
+            className="p-2 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+            title={t('stats.dateRange.clear')}
+          >
+            <X className="w-4 h-4" />
+          </button>
+        )}
+
+        {/* Custom range display - inline to the right */}
+        {isCustom && (
+          <span className="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap ml-1">
+            {getDisplayText()}
+          </span>
+        )}
+      </div>
+
+      {/* Popup modal */}
+      {isOpen && (
+        <>
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 z-40"
+            onClick={() => setIsOpen(false)}
+          />
+
+          {/* Modal */}
+          <div className="absolute top-full left-0 mt-2 z-50 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-4 min-w-[320px]">
+            {/* Presets */}
+            <div className="mb-4">
+              <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">
+                {t('stats.dateRange.preset')}
+              </label>
+              <div className="grid grid-cols-3 gap-1">
+                {['today', 'yesterday', 'last7days', 'last30days', 'thisMonth', 'lastMonth'].map(preset => (
+                  <button
+                    key={preset}
+                    onClick={() => handlePresetClick(preset)}
+                    className="px-2 py-1 text-xs border border-gray-200 dark:border-gray-600 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  >
+                    {t(`stats.dateRange.${preset}`)}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Custom inputs */}
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+                  {t('stats.dateRange.from')}
+                </label>
+                <input
+                  type="datetime-local"
+                  value={tempStart}
+                  onChange={(e) => setTempStart(e.target.value)}
+                  className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+                  {t('stats.dateRange.to')}
+                </label>
+                <input
+                  type="datetime-local"
+                  value={tempEnd}
+                  onChange={(e) => setTempEnd(e.target.value)}
+                  className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                />
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex justify-end gap-2 mt-4 pt-3 border-t border-gray-200 dark:border-gray-700">
+              <button
+                onClick={() => setIsOpen(false)}
+                className="px-3 py-1.5 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
+              >
+                {t('stats.dateRange.cancel')}
+              </button>
+              <button
+                onClick={handleApply}
+                disabled={!tempStart || !tempEnd}
+                className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {t('stats.dateRange.apply')}
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
+
 export default function MCP() {
   const { t } = useTranslation('mcp');
   const [searchParams] = useSearchParams();
@@ -2136,23 +2568,46 @@ export default function MCP() {
   const [selectedRequest, setSelectedRequest] = useState<McpRequest | null>(null);
   const [selectedToolToTest, setSelectedToolToTest] = useState<McpTool | null>(null);
   const [timeRange, setTimeRange] = useState(24);
+  const [customStartDate, setCustomStartDate] = useState<Date | null>(null);
+  const [customEndDate, setCustomEndDate] = useState<Date | null>(null);
+  const [chartGranularity, setChartGranularity] = useState<'auto' | 'minute' | 'hour' | 'day'>('auto');
   const [serviceFilter, setServiceFilter] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [expandedServices, setExpandedServices] = useState<Set<string>>(new Set());
 
+  // Calculate effective time range based on custom dates or preset
+  const getEffectiveTimeRange = useCallback(() => {
+    if (customStartDate && customEndDate) {
+      return {
+        start_time: customStartDate.toISOString(),
+        end_time: customEndDate.toISOString(),
+        hours: Math.ceil((customEndDate.getTime() - customStartDate.getTime()) / (60 * 60 * 1000)),
+      };
+    }
+    return {
+      start_time: new Date(Date.now() - timeRange * 60 * 60 * 1000).toISOString(),
+      end_time: new Date().toISOString(),
+      hours: timeRange,
+    };
+  }, [customStartDate, customEndDate, timeRange]);
+
   const fetchData = useCallback(async () => {
     setLoading(true);
+    const { start_time, end_time, hours } = getEffectiveTimeRange();
+    // Pass granularity to API (undefined for 'auto' lets backend decide)
+    const apiGranularity = chartGranularity === 'auto' ? undefined : chartGranularity;
     try {
       const [statsRes, toolUsageRes, hourlyRes, userStatsRes, userServiceStatsRes, hourlyUserRes, requestsRes, toolsRes, toolGroupsRes] = await Promise.all([
-        api.mcp.statsWithComparison(timeRange).catch(() => null),
-        api.mcp.toolUsage(timeRange).catch(() => []),
-        api.mcp.hourlyUsage(timeRange).catch(() => []),
-        api.mcp.userStats(timeRange).catch(() => []),
-        api.mcp.userServiceStats(timeRange).catch(() => []),
-        api.mcp.hourlyUsageByUser(timeRange).catch(() => []),
+        api.mcp.statsWithComparison(hours, start_time, end_time).catch(() => null),
+        api.mcp.toolUsage(hours, start_time, end_time).catch(() => []),
+        api.mcp.hourlyUsage(hours, start_time, end_time, apiGranularity).catch(() => []),
+        api.mcp.userStats(hours, start_time, end_time).catch(() => []),
+        api.mcp.userServiceStats(hours, start_time, end_time).catch(() => []),
+        api.mcp.hourlyUsageByUser(hours, start_time, end_time, apiGranularity).catch(() => []),
         api.mcp.requests.list({
-          limit: timeRange > 24 ? 200 : 100,
-          start_time: new Date(Date.now() - timeRange * 60 * 60 * 1000).toISOString(),
+          limit: hours > 24 ? 200 : 100,
+          start_time,
+          end_time,
           ...(serviceFilter && { service: serviceFilter }),
           ...(statusFilter && { status: statusFilter }),
         }).catch(() => ({ items: [], total: 0 })),
@@ -2175,7 +2630,7 @@ export default function MCP() {
     } finally {
       setLoading(false);
     }
-  }, [timeRange, serviceFilter, statusFilter]);
+  }, [getEffectiveTimeRange, serviceFilter, statusFilter, chartGranularity]);
 
   useEffect(() => {
     fetchData();
@@ -2332,17 +2787,33 @@ export default function MCP() {
                     <RefreshCw className="w-4 h-4" />
                   </button>
 
-                  {/* Time range filter */}
+                  {/* Time range filter with DateRangePicker */}
+                  <DateRangePicker
+                    startDate={customStartDate}
+                    endDate={customEndDate}
+                    onApply={(start, end) => {
+                      setCustomStartDate(start);
+                      setCustomEndDate(end);
+                    }}
+                    onClear={() => {
+                      setCustomStartDate(null);
+                      setCustomEndDate(null);
+                    }}
+                    presetValue={timeRange}
+                    onPresetChange={setTimeRange}
+                  />
+
+                  {/* Granularity selector */}
                   <select
-                    value={timeRange}
-                    onChange={(e) => setTimeRange(Number(e.target.value))}
-                    className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white flex-shrink-0"
+                    value={chartGranularity}
+                    onChange={(e) => setChartGranularity(e.target.value as 'auto' | 'minute' | 'hour' | 'day')}
+                    className="px-2 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white flex-shrink-0"
+                    title={t('stats.granularity.title')}
                   >
-                    <option value={1}>{t('stats.timeRange1h')}</option>
-                    <option value={6}>{t('stats.timeRange6h')}</option>
-                    <option value={24}>{t('stats.timeRange24h')}</option>
-                    <option value={72}>{t('stats.timeRange3d')}</option>
-                    <option value={168}>{t('stats.timeRange7d')}</option>
+                    <option value="auto">{t('stats.granularity.auto')}</option>
+                    <option value="minute">{t('stats.granularity.minute')}</option>
+                    <option value="hour">{t('stats.granularity.hour')}</option>
+                    <option value="day">{t('stats.granularity.day')}</option>
                   </select>
 
                   {/* Spacer */}
@@ -2388,7 +2859,12 @@ export default function MCP() {
               </div>
 
               {/* Hourly Usage Chart */}
-              <HourlyUsageChart data={hourlyUsage} timeRange={timeRange} />
+              <HourlyUsageChart
+                data={hourlyUsage}
+                startTime={getEffectiveTimeRange().start_time}
+                endTime={getEffectiveTimeRange().end_time}
+                granularity={chartGranularity}
+              />
 
               {/* Tool Usage & Categories */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -2676,7 +3152,12 @@ export default function MCP() {
               </div>
 
               {/* Hourly Usage by User - Stacked Chart */}
-              <HourlyUserStackedChart data={hourlyUserUsage} timeRange={timeRange} />
+              <HourlyUserStackedChart
+                data={hourlyUserUsage}
+                startTime={getEffectiveTimeRange().start_time}
+                endTime={getEffectiveTimeRange().end_time}
+                granularity={chartGranularity}
+              />
             </div>
           )}
 
@@ -2694,18 +3175,21 @@ export default function MCP() {
                     <RefreshCw className="w-4 h-4" />
                   </button>
 
-                  {/* Time range filter */}
-                  <select
-                    value={timeRange}
-                    onChange={(e) => setTimeRange(Number(e.target.value))}
-                    className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white flex-shrink-0"
-                  >
-                    <option value={1}>{t('stats.timeRange1h')}</option>
-                    <option value={6}>{t('stats.timeRange6h')}</option>
-                    <option value={24}>{t('stats.timeRange24h')}</option>
-                    <option value={72}>{t('stats.timeRange3d')}</option>
-                    <option value={168}>{t('stats.timeRange7d')}</option>
-                  </select>
+                  {/* Time range filter with DateRangePicker */}
+                  <DateRangePicker
+                    startDate={customStartDate}
+                    endDate={customEndDate}
+                    onApply={(start, end) => {
+                      setCustomStartDate(start);
+                      setCustomEndDate(end);
+                    }}
+                    onClear={() => {
+                      setCustomStartDate(null);
+                      setCustomEndDate(null);
+                    }}
+                    presetValue={timeRange}
+                    onPresetChange={setTimeRange}
+                  />
 
                   {/* Service filter */}
                   <select
