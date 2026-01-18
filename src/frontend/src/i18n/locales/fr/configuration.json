@@ -1,35 +1,35 @@
 {
   "title": "Configuration",
-  "description": "Parametres de l'application",
+  "description": "Paramètres de l'application",
   "tabs": {
     "appearance": "Apparence",
-    "general": "General",
-    "logs": "Observabilite",
+    "general": "Général",
+    "logs": "Observabilité",
     "notifications": "Alertes",
     "dashboard": "Dashboard",
     "backup": "Backup",
-    "about": "A propos"
+    "about": "À propos"
   },
   "about": {
-    "title": "A propos",
+    "title": "À propos",
     "description": "Passerelle IA MCP avec interface d'administration web",
     "refresh": "Actualiser",
     "currentVersion": "Version actuelle",
-    "latestVersion": "Derniere version",
-    "updateAvailable": "Mise a jour",
+    "latestVersion": "Dernière version",
+    "updateAvailable": "Mise à jour",
     "newVersionAvailable": "Nouvelle version {{version}} disponible",
-    "updateDescription": "Une nouvelle version est disponible. Consultez les notes de version pour plus de details.",
+    "updateDescription": "Une nouvelle version est disponible. Consultez les notes de version pour plus de détails.",
     "viewRelease": "Voir la release",
     "releaseNotes": "Notes de version",
-    "lastChecked": "Derniere verification",
+    "lastChecked": "Dernière vérification",
     "loadError": "Impossible de charger les informations de version"
   },
   "appearance": {
-    "title": "Theme",
+    "title": "Thème",
     "themeOptions": {
       "light": "Clair",
       "dark": "Sombre",
-      "system": "Systeme"
+      "system": "Système"
     }
   },
   "general": {
@@ -46,11 +46,11 @@
     },
     "autoRefresh": {
       "label": "Actualisation automatique",
-      "description": "Rafraichir les donnees automatiquement"
+      "description": "Rafraîchir les données automatiquement"
     },
     "refreshInterval": {
       "label": "Intervalle",
-      "description": "Frequence de rafraichissement"
+      "description": "Fréquence de rafraîchissement"
     },
     "wizard": {
       "label": "Guide de configuration",
@@ -62,7 +62,7 @@
   "logs": {
     "logLevel": {
       "label": "Niveau de log",
-      "description": "Filtrer par severite"
+      "description": "Filtrer par sévérité"
     },
     "logToConsole": {
       "label": "Logs console",
@@ -72,7 +72,7 @@
       "label": "Logs backend",
       "description": "Envoyer les logs au serveur"
     },
-    "levelsPreview": "Niveaux enregistres avec \"{{level}}\":",
+    "levelsPreview": "Niveaux enregistrés avec \"{{level}}\" :",
     "levels": {
       "debug": "Debug",
       "info": "Info",
@@ -99,10 +99,10 @@
     "title": "Dashboard",
     "compactMode": {
       "label": "Mode compact",
-      "description": "Reduire l'espacement"
+      "description": "Réduire l'espacement"
     },
     "systemMetrics": {
-      "label": "Metriques systeme",
+      "label": "Métriques système",
       "description": "Afficher CPU, RAM, disque"
     },
     "mcpStats": {
@@ -113,27 +113,27 @@
   "backup": {
     "export": {
       "title": "Exporter la configuration",
-      "description": "Selectionnez les elements a sauvegarder",
+      "description": "Sélectionnez les éléments à sauvegarder",
       "button": "Exporter",
-      "categoriesSelected": "{{count}} categories selectionnees"
+      "categoriesSelected": "{{count}} catégories sélectionnées"
     },
     "import": {
       "title": "Importer une configuration",
       "description": "Restaurer depuis un fichier de backup",
       "button": "Importer la configuration",
-      "selectFile": "Cliquer pour selectionner un fichier",
+      "selectFile": "Cliquer pour sélectionner un fichier",
       "fileType": ".json uniquement",
       "version": "Version {{version}}",
       "dateUnknown": "Date inconnue",
       "mergeMode": {
         "label": "Mode fusion",
-        "description": "Fusionner avec les donnees existantes au lieu de remplacer"
+        "description": "Fusionner avec les données existantes au lieu de remplacer"
       },
       "result": {
-        "success": "Import reussi",
-        "error": "Import termine avec des erreurs",
-        "warnings": "Avertissements:",
-        "errors": "Erreurs:",
+        "success": "Import réussi",
+        "error": "Import terminé avec des erreurs",
+        "warnings": "Avertissements :",
+        "errors": "Erreurs :",
         "andMore": "... et {{count}} autres"
       }
     },
@@ -156,19 +156,19 @@
       },
       "site_config": {
         "label": "Configuration",
-        "description": "Parametres du site"
+        "description": "Paramètres du site"
       },
       "training_prompts": {
         "label": "Prompts",
-        "description": "Prompts d'entrainement IA"
+        "description": "Prompts d'entraînement IA"
       },
       "training_workers": {
         "label": "Workers",
-        "description": "Workers d'entrainement IA"
+        "description": "Workers d'entraînement IA"
       },
       "tool_chains": {
-        "label": "Chaines",
-        "description": "Chaines d'outils MCP"
+        "label": "Chaînes",
+        "description": "Chaînes d'outils MCP"
       },
       "global_search": {
         "label": "Recherche globale",
@@ -181,35 +181,35 @@
     },
     "reset": {
       "title": "Zone de danger",
-      "description": "Supprimer toutes les donnees de l'application",
-      "warningTitle": "⚠️ Action irreversible",
-      "warningDescription": "Cette action supprimera definitivement toutes les donnees :",
+      "description": "Supprimer toutes les données de l'application",
+      "warningTitle": "⚠️ Action irréversible",
+      "warningDescription": "Cette action supprimera définitivement toutes les données :",
       "warningItems": {
-        "services": "Tous les services configures",
+        "services": "Tous les services configurés",
         "serviceGroups": "Tous les groupes de services",
         "userMappings": "Tous les mappings utilisateurs",
         "groups": "Tous les groupes et permissions",
-        "training": "Tous les prompts et templates d'entrainement",
-        "workers": "Tous les workers d'entrainement",
-        "toolChains": "Toutes les chaines d'outils",
+        "training": "Tous les prompts et templates d'entraînement",
+        "workers": "Tous les workers d'entraînement",
+        "toolChains": "Toutes les chaînes d'outils",
         "globalSearch": "Configuration de recherche globale",
-        "alerts": "Toutes les alertes configurees",
+        "alerts": "Toutes les alertes configurées",
         "siteConfig": "Toute la configuration du site"
       },
-      "warningFooter": "Cette action ne peut pas etre annulee. Assurez-vous d'avoir exporte vos donnees si necessaire.",
-      "button": "Reinitialiser toutes les donnees",
+      "warningFooter": "Cette action ne peut pas être annulée. Assurez-vous d'avoir exporté vos données si nécessaire.",
+      "button": "Réinitialiser toutes les données",
       "confirmTitle": "Confirmation requise",
-      "confirmDescription": "Etes-vous absolument certain de vouloir supprimer toutes les donnees ? Cette action est irreversible.",
-      "showWizard": "Afficher le wizard de configuration apres la reinitialisation",
+      "confirmDescription": "Êtes-vous absolument certain de vouloir supprimer toutes les données ? Cette action est irréversible.",
+      "showWizard": "Afficher le wizard de configuration après la réinitialisation",
       "confirmButton": "Confirmer la suppression",
       "deleting": "Suppression...",
       "successMessage": "Toutes les données ont été supprimées avec succès.",
-      "errorMessage": "Erreur lors de la réinitialisation: {{error}}"
+      "errorMessage": "Erreur lors de la réinitialisation : {{error}}"
     }
   },
   "reset": {
-    "title": "Reinitialiser les parametres ?",
-    "description": "Cette action va restaurer tous les parametres a leurs valeurs par defaut.",
-    "button": "Reinitialiser"
+    "title": "Réinitialiser les paramètres ?",
+    "description": "Cette action va restaurer tous les paramètres à leurs valeurs par défaut.",
+    "button": "Réinitialiser"
   }
 }
