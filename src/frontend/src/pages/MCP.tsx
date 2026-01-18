@@ -820,17 +820,13 @@ const UserServiceChart = ({ data }: { data: McpUserServiceStats[] }) => {
 
   // Get all unique services
   const allServices = [...new Set(data.map(d => d.service))];
-  const maxTotal = Math.max(...Object.values(byUser).map(u => u.total), 1);
 
   // Sort users by total
   const sortedUsers = Object.entries(byUser).sort((a, b) => b[1].total - a[1].total).slice(0, 6);
 
   return (
     <div className="space-y-3">
-      {sortedUsers.map(([userId, userData]) => {
-        const barWidth = (userData.total / maxTotal) * 100;
-
-        return (
+      {sortedUsers.map(([userId, userData]) => (
           <div key={userId} className="group">
             <div className="flex items-center justify-between mb-1">
               <span className="text-sm font-medium text-gray-900 dark:text-white truncate" title={userId}>
@@ -858,8 +854,7 @@ const UserServiceChart = ({ data }: { data: McpUserServiceStats[] }) => {
               })}
             </div>
           </div>
-        );
-      })}
+        ))}
       {/* Legend */}
       <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
         {allServices.slice(0, 6).map(service => {
