@@ -41,6 +41,9 @@
 - **MCP Page** - Translated Request Details modal
   - Added translations for all labels in the request details modal (FR, EN, DE, ES, IT)
   - Modal now displays localized text for Tool, Category, User, Status, Duration, etc.
+- **MCP Stats Chart** - Fixed "Services by User" chart distribution
+  - Bars now extend to full width to show relative service distribution per user
+  - Better visual comparison of service usage across users
 
 ### 📝 Technical Details
 - Updated LogViewer component button styling to match AlertManager and MetricsTab

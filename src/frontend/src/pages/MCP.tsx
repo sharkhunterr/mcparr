@@ -840,7 +840,7 @@ const UserServiceChart = ({ data }: { data: McpUserServiceStats[] }) => {
                 {userData.total}
               </span>
             </div>
-            <div className="h-3 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden flex" style={{ width: `${barWidth}%` }}>
+            <div className="h-3 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden flex w-full">
               {allServices.map((service) => {
                 const count = userData.services[service] || 0;
                 if (count === 0) return null;
