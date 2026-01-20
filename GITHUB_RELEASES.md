@@ -4,6 +4,52 @@
 
 ---
 
+# v0.2.46
+
+**Title:** `v0.2.46 - Documentation Update & Bug Fixes`
+
+**Release Notes (copier ci-dessous):**
+
+---
+
+## 📚 What's New in v0.2.46
+
+### 📸 Documentation Screenshots Overhaul
+- **40+ New Screenshots** - Complete visual refresh of documentation
+  - Dashboard: Light/Dark themes, alerts view
+  - Services: List, test, add, edit, groups
+  - Users: Auto-detection, groups, permissions, manual management
+  - MCP: Stats, history, tools, test interface, configuration
+  - Tool Chains: Create, edit, configure steps
+  - Monitoring: Metrics, logs, alerts (active, create, historic)
+  - Configuration: General, monitoring, backup, about
+  - Help: System and service-specific help panels
+
+- **Updated USER_GUIDE.md** - All image references updated to new naming convention
+  - Descriptive filenames instead of numbered (e.g., `services.png` vs `03-services-list.png`)
+  - Added warning for AI Training section (feature under development)
+  - New sections documenting MCP tools test and configuration features
+
+### 🐛 Bug Fixes
+- **Fixed StaleDataError in MCP Request Logging**
+  - Resolved `UPDATE statement expected to update 1 row(s); 0 were matched` error
+  - Added commit after `mark_started()` to persist record before tool execution
+  - Prevents autoflush issues during registry fetch
+  - MCP requests now properly recorded in history
+
+### 📝 Technical Details
+- Removed 18 obsolete numbered screenshots
+- Added 41 new descriptive screenshots
+- Updated all image references in USER_GUIDE.md
+- AI Training section marked as under development
+
+---
+
+**Full Changelog**: https://github.com/sharkhunterr/mcparr/compare/v0.2.45...v0.2.46
+
+---
+---
+
 # v0.2.45
 
 **Title:** `v0.2.45 - MCP Statistics Granularity, Denied Status & WikiJS Default Locale`
