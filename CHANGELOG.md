@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.2.46](https://github.com/sharkhunterr/mcparr/-/compare/v0.2.45...v0.2.46) (2026-01-20)
+
+
+### Bug Fixes
+
+* **mcp:** prevent StaleDataError in request logging ([bdc4bb1](https://github.com/sharkhunterr/mcparr/-/commit/bdc4bb19a4d9a9bc3178406837fe7cb9d42b1096))
+
 ### [0.2.45](https://github.com/sharkhunterr/mcparr/-/compare/v0.2.43...v0.2.45) (2026-01-18)
 
 
