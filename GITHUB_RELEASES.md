@@ -30,6 +30,9 @@
   - Added warning for AI Training section (feature under development)
   - New sections documenting MCP tools test and configuration features
 
+- **Updated README.md** - Screenshot references updated to new filenames
+  - Dashboard, Services, Users, Groups, Monitoring screenshots updated
+
 ### 🐛 Bug Fixes
 - **Fixed StaleDataError in MCP Request Logging**
   - Resolved `UPDATE statement expected to update 1 row(s); 0 were matched` error

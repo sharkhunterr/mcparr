@@ -15,7 +15,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5+-3178C6?logo=typescript&logoColor=white)](https://typescriptlang.org)
 [![i18n](https://img.shields.io/badge/i18n-5_languages-blueviolet.svg)](#-multi-language-support)
 
-![MCParr Dashboard](docs/images/02-dashboard.png)
+![MCParr Dashboard](docs/images/dashboard_light.png)
 
 **[Quick Start](#-quick-start)** •
 **[Features](#-features)** •
@@ -209,7 +209,7 @@ Add to `~/.config/claude/claude_desktop_config.json`:
 
 | Dashboard | Services Management |
 |-----------|---------------------|
-| ![Dashboard](docs/images/02-dashboard.png) | ![Services](docs/images/03-services-list.png) |
+| ![Dashboard](docs/images/dashboard_light.png) | ![Services](docs/images/services.png) |
 
 </details>
 
@@ -218,7 +218,7 @@ Add to `~/.config/claude/claude_desktop_config.json`:
 
 | User Auto-Detection | Group Permissions |
 |---------------------|-------------------|
-| ![Users](docs/images/07-users-auto-detection.png) | ![Groups](docs/images/09-groups-tools-permissions.png) |
+| ![Users](docs/images/user_auto.png) | ![Groups](docs/images/user_group_add_tool.png) |
 
 </details>
 
@@ -227,7 +227,7 @@ Add to `~/.config/claude/claude_desktop_config.json`:
 
 | System Metrics | Log Viewer |
 |----------------|------------|
-| ![Metrics](docs/images/18-monitoring-metrics.png) | ![Logs](docs/images/19-monitoring-logs.png) |
+| ![Metrics](docs/images/monitoring_metrics.png) | ![Logs](docs/images/monitoring_log.png) |
 
 </details>
 
