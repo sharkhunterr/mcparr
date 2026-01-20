@@ -28,13 +28,17 @@ After deploying MCParr, access the web interface at:
 - **API Docs**: http://localhost:8000/docs
 - **MCP Server**: http://localhost:8001
 
-![MCParr Dashboard](images/02-dashboard.png)
+![MCParr Dashboard Light](images/dashboard_light.png)
+
+![MCParr Dashboard Dark](images/dashboard_dark.png)
 
 ---
 
 ## Dashboard
 
 The dashboard provides an overview of your MCParr instance with key metrics and quick access to all features.
+
+![Dashboard with Alerts](images/dashboard_alerte.png)
 
 ### System Resources
 Monitor CPU, Memory, and Disk usage in real-time with color-coded progress bars:
@@ -67,7 +71,7 @@ Quick summary showing:
 
 ### Viewing Services
 
-![Services List](images/03-services-list.png)
+![Services List](images/services.png)
 
 The Services page displays all configured homelab services with:
 - **Service Icon & Name**: Visual identification
@@ -83,7 +87,7 @@ The Services page displays all configured homelab services with:
 
 ### Testing Service Connection
 
-![Test Connection Dialog](images/04-service-test-connection.png)
+![Test Connection Dialog](images/test_service.png)
 
 Click the test icon (⚡) to verify connectivity. The test performs 5 checks:
 
@@ -93,13 +97,19 @@ Click the test icon (⚡) to verify connectivity. The test performs 5 checks:
 4. **Authentication** - Validating API credentials
 5. **Service Health** - Checking service-specific endpoints
 
-![Test Success](images/05-service-test-success.png)
+![Test All Services](images/test_all_services.png)
 
 A successful test shows all checks passed with timing (e.g., "350ms", "94ms"). Click "Run Test" to retest or "Close" to dismiss.
 
+### Editing a Service
+
+![Update Service](images/update_service.png)
+
+Edit existing services by clicking the edit button.
+
 ### Adding a New Service
 
-![Add Service](images/06-add-service.png)
+![Add Service](images/add_service.png)
 
 To add a service:
 
@@ -127,6 +137,12 @@ To add a service:
 ## Service Groups
 
 Service Groups allow you to organize services for easier management and Open WebUI auto-configuration.
+
+![Service Groups](images/groupe_service.png)
+
+![Add Service Group](images/add_service_group.png)
+
+![Add Group](images/add_group.png)
 
 ### Creating a Service Group
 
@@ -158,7 +174,7 @@ When auto-configuring Open WebUI with **Service Group** mode:
 
 ### Automatic User Detection
 
-![Auto Detection](images/07-users-auto-detection.png)
+![Auto Detection](images/user_auto.png)
 
 MCParr can automatically discover users across all your services:
 
@@ -173,9 +189,21 @@ The detection queries user lists from: Plex, Tautulli, Overseerr, Open WebUI, Ol
 
 ### Managing User Groups
 
-![User Groups](images/08-users-groups.png)
+![User Groups](images/user_group.png)
 
 Groups organize users and control access to MCP tools.
+
+![Add User Group](images/user_group_add.png)
+
+Create new user groups with custom settings.
+
+![Add User to Group](images/user_group_add_user.png)
+
+Add users to existing groups.
+
+![Manual User Management](images/user_manual.png)
+
+Manually manage user mappings.
 
 **Default Groups:**
 - **Admin** (red): Full access to all 112 tools
@@ -197,7 +225,7 @@ Groups organize users and control access to MCP tools.
 
 ### Configuring Group Permissions
 
-![Group Tool Permissions](images/09-groups-tools-permissions.png)
+![Group Tool Permissions](images/user_group_add_tool.png)
 
 Fine-tune which MCP tools each group can access:
 
@@ -225,9 +253,43 @@ Fine-tune which MCP tools each group can access:
 
 ## MCP Server
 
-![MCP Server Stats](images/10-mcp-server-stats.png)
+![MCP Server Stats](images/mcp_stats.png)
 
 Monitor Model Context Protocol server activity and tool usage.
+
+### MCP History
+
+![MCP History](images/mcp_history.png)
+
+View the complete history of all MCP tool calls with filtering options.
+
+### MCP Tools
+
+![MCP Tools List](images/mcp_tools.png)
+
+Browse all available MCP tools grouped by service.
+
+![MCP Tools Ungrouped](images/mcp_tools_ungroup.png)
+
+View tools without grouping for a flat list.
+
+![MCP Tools Test](images/mcp_tools_test.png)
+
+Test any MCP tool directly from the interface with custom parameters.
+
+### MCP Configuration
+
+![MCP Configuration](images/mcp_config.png)
+
+Configure MCP server settings and tool access.
+
+![MCP Configuration by Group](images/mcp_config_by_group.png)
+
+Configure tool permissions per user group.
+
+![MCP Global Search Configuration](images/mcp_config_global_search.png)
+
+Enable/disable services for global search functionality.
 
 ### Statistics (24h)
 - **Total Requests**: 0 (in last 24h)
@@ -262,7 +324,11 @@ Usage breakdown showing which services are being accessed via MCP tools (empty w
 
 Tool Chains allow you to create automated workflows with conditional logic (IF/THEN/ELSE).
 
+![Tool Chains List](images/mcp_chains.png)
+
 ### Creating a Tool Chain
+
+![Create Tool Chain](images/mcp_chain.png)
 
 1. Go to **MCP** → **Chains** tab
 2. Click **+ New Chain**
@@ -273,6 +339,10 @@ Tool Chains allow you to create automated workflows with conditional logic (IF/T
 4. Add chain steps with conditions and actions
 
 ### Chain Step Configuration
+
+![Tool Chain Update](images/mcp_chain_update.png)
+
+![Tool Chain Update Detail](images/mcp_chain_update_detail.png)
 
 Each step includes:
 - **Source Tool**: Tool to execute
@@ -367,6 +437,8 @@ AI: [Uses system_global_search tool]
 ---
 
 ## AI Training
+
+> ⚠️ **Note**: This feature is currently under development and not fully functional. The documentation below describes the planned functionality.
 
 ### Training Overview
 
@@ -579,7 +651,7 @@ List all fine-tuned Ollama models created by MCParr.
 
 ### System Metrics
 
-![Monitoring Metrics](images/18-monitoring-metrics.png)
+![Monitoring Metrics](images/monitoring_metrics.png)
 
 Real-time system monitoring with auto-refresh.
 
@@ -615,7 +687,7 @@ Horizontal status bars showing:
 
 ### Log Viewer
 
-![Log Viewer](images/19-monitoring-logs.png)
+![Log Viewer](images/monitoring_log.png)
 
 Advanced log filtering and real-time streaming.
 
@@ -656,9 +728,21 @@ Advanced log filtering and real-time streaming.
 
 ### Alert Management
 
-![Alert Management](images/20-monitoring-alerts.png)
+![Alert Management](images/monitoring_alerts.png)
 
 Configure and monitor system alerts.
+
+![Active Alerts](images/monitoring_alerts_active.png)
+
+View currently active alerts.
+
+![Create Alert](images/monitoring_alerts_create.png)
+
+Create new alert rules.
+
+![Alert History](images/monitoring_alerts_historic.png)
+
+View alert history.
 
 **Alert Statistics:**
 - **Active Alerts**: 0
@@ -744,8 +828,6 @@ View all triggered alerts in the **History** tab:
 
 ### Appearance
 
-![Appearance Settings](images/21-config-appearance.png)
-
 Customize the interface theme.
 
 **Theme Options:**
@@ -757,7 +839,7 @@ Click any theme card to apply immediately.
 
 ### General Settings
 
-![General Settings](images/22-config-general.png)
+![General Settings](images/config_general.png)
 
 Application-wide settings.
 
@@ -772,7 +854,7 @@ Application-wide settings.
 
 ### Logs Configuration
 
-![Logs Configuration](images/23-config-logs.png)
+![Monitoring Configuration](images/conifg_monitoring.png)
 
 Configure logging behavior.
 
@@ -794,8 +876,6 @@ Badges showing: Debug, Info, Warning, Error, Critical
 
 ### Alerts Configuration
 
-![Alerts Configuration](images/24-config-alerts.png)
-
 Configure alert notifications.
 
 **Notifications**:
@@ -812,8 +892,6 @@ Configure alert notifications.
 
 ### Dashboard Configuration
 
-![Dashboard Configuration](images/25-config-dashboard.png)
-
 Customize dashboard widgets.
 
 **Mode compact** (Compact Mode):
@@ -828,9 +906,15 @@ Customize dashboard widgets.
 - Toggle: ✓ Enabled (blue)
 - Description: "Afficher les stats du gateway" (Show gateway stats)
 
+### About
+
+![About](images/config_about.png)
+
+View application version and information.
+
 ### Backup & Restore
 
-![Backup & Restore](images/26-config-backup.png)
+![Backup & Restore](images/config_backup.png)
 
 Export and import complete configuration.
 
@@ -1157,6 +1241,10 @@ AI: [Uses radarr and sonarr status tools]
 ## Help System
 
 MCParr includes an integrated help system accessible throughout the interface.
+
+![Help System](images/help.png)
+
+![Service Help](images/help_service.png)
 
 ### Accessing Help
 
