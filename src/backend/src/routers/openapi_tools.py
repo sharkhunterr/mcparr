@@ -683,6 +683,11 @@ async def execute_tool_with_logging(
         await session.flush()  # Get the ID
         # Mark as started
         mcp_request.mark_started()
+        # Commit to persist the record before executing the tool
+        # This prevents StaleDataError when autoflush triggers during registry fetch
+        await session.commit()
+        # Re-add to session for later updates
+        session.add(mcp_request)
     except Exception as e:
         # If flush fails, rollback and continue without logging
         await session.rollback()
