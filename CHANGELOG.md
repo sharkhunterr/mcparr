@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.2.49](https://github.com/sharkhunterr/mcparr/-/compare/v0.2.48...v0.2.49) (2026-02-04)
+
+
+### Bug Fixes
+
+* **db:** make migrations idempotent for Docker upgrades ([4c2bf43](https://github.com/sharkhunterr/mcparr/-/commit/4c2bf4387085053c3c919219635c55b18646d3ce))
+
 ### [0.2.48](https://github.com/sharkhunterr/mcparr/-/compare/v0.2.47...v0.2.48) (2026-02-04)
 
 
