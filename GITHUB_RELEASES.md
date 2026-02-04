@@ -40,6 +40,13 @@
   - Prevents autoflush issues during registry fetch
   - MCP requests now properly recorded in history
 
+- **Fixed Database Migration Issues on Docker Updates**
+  - Resolved `no such column: alert_history.acknowledged` errors
+  - Made all column-adding migrations idempotent (safe to re-run)
+  - Rewrote `init_db.py` to use Alembic migrations only
+  - Added schema integrity check to detect and fix migration state mismatches
+  - Docker containers now properly upgrade existing databases
+
 ### 📝 Technical Details
 - Removed 18 obsolete numbered screenshots
 - Added 41 new descriptive screenshots
