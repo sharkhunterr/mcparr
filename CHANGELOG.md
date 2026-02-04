@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.2.47](https://github.com/sharkhunterr/mcparr/-/compare/v0.2.46...v0.2.47) (2026-02-04)
+
+
+### Features
+
+* **branding:** add MCParr logo, favicon and banner ([a3060fd](https://github.com/sharkhunterr/mcparr/-/commit/a3060fdc715985214dc40b4b43322cb9c7f3dd94))
+
 ### [0.2.46](https://github.com/sharkhunterr/mcparr/-/compare/v0.2.45...v0.2.46) (2026-01-20)
 
 
