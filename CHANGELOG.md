@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.2.48](https://github.com/sharkhunterr/mcparr/-/compare/v0.2.47...v0.2.48) (2026-02-04)
+
+
+### Features
+
+* **branding:** add PNG version of logo ([84098ae](https://github.com/sharkhunterr/mcparr/-/commit/84098ae46e0fbe466980d388da2bf32e129bb1ed))
+
 ### [0.2.47](https://github.com/sharkhunterr/mcparr/-/compare/v0.2.46...v0.2.47) (2026-02-04)
 
 
