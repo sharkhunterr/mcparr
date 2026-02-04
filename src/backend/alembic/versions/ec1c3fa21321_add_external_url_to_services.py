@@ -18,11 +18,21 @@ branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
 
+def column_exists(table_name: str, column_name: str) -> bool:
+    """Check if a column exists in a table (SQLite compatible)."""
+    bind = op.get_bind()
+    inspector = sa.inspect(bind)
+    columns = [col['name'] for col in inspector.get_columns(table_name)]
+    return column_name in columns
+
+
 def upgrade() -> None:
-    # Add external_url column to service_configs table
-    op.add_column('service_configs', sa.Column('external_url', sa.String(255), nullable=True))
+    # Idempotent migration - only add column if it doesn't exist
+    if not column_exists('service_configs', 'external_url'):
+        op.add_column('service_configs', sa.Column('external_url', sa.String(255), nullable=True))
 
 
 def downgrade() -> None:
-    # Remove external_url column from service_configs table
-    op.drop_column('service_configs', 'external_url')
+    # Only drop column if it exists
+    if column_exists('service_configs', 'external_url'):
+        op.drop_column('service_configs', 'external_url')

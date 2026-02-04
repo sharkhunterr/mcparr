@@ -18,12 +18,22 @@ branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
 
+def column_exists(table_name: str, column_name: str) -> bool:
+    """Check if a column exists in a table (SQLite compatible)."""
+    bind = op.get_bind()
+    inspector = sa.inspect(bind)
+    columns = [col['name'] for col in inspector.get_columns(table_name)]
+    return column_name in columns
+
+
 def upgrade() -> None:
-    op.add_column(
-        'training_sessions',
-        sa.Column('training_logs', sa.Text(), nullable=True, comment='Training logs captured from the worker')
-    )
+    if not column_exists('training_sessions', 'training_logs'):
+        op.add_column(
+            'training_sessions',
+            sa.Column('training_logs', sa.Text(), nullable=True, comment='Training logs captured from the worker')
+        )
 
 
 def downgrade() -> None:
-    op.drop_column('training_sessions', 'training_logs')
+    if column_exists('training_sessions', 'training_logs'):
+        op.drop_column('training_sessions', 'training_logs')

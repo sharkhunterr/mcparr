@@ -18,14 +18,31 @@ branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
 
+def column_exists(table_name: str, column_name: str) -> bool:
+    """Check if a column exists in a table (SQLite compatible)."""
+    bind = op.get_bind()
+    inspector = sa.inspect(bind)
+    columns = [col['name'] for col in inspector.get_columns(table_name)]
+    return column_name in columns
+
+
 def upgrade() -> None:
-    # Add tool calling support to training_prompts
-    op.add_column('training_prompts', sa.Column('tool_call', sa.JSON(), nullable=True))
-    op.add_column('training_prompts', sa.Column('tool_response', sa.JSON(), nullable=True))
-    op.add_column('training_prompts', sa.Column('assistant_response', sa.Text(), nullable=True))
+    if not column_exists('training_prompts', 'tool_call'):
+        op.add_column('training_prompts', sa.Column('tool_call', sa.JSON(), nullable=True))
+
+    if not column_exists('training_prompts', 'tool_response'):
+        op.add_column('training_prompts', sa.Column('tool_response', sa.JSON(), nullable=True))
+
+    if not column_exists('training_prompts', 'assistant_response'):
+        op.add_column('training_prompts', sa.Column('assistant_response', sa.Text(), nullable=True))
 
 
 def downgrade() -> None:
-    op.drop_column('training_prompts', 'assistant_response')
-    op.drop_column('training_prompts', 'tool_response')
-    op.drop_column('training_prompts', 'tool_call')
+    if column_exists('training_prompts', 'assistant_response'):
+        op.drop_column('training_prompts', 'assistant_response')
+
+    if column_exists('training_prompts', 'tool_response'):
+        op.drop_column('training_prompts', 'tool_response')
+
+    if column_exists('training_prompts', 'tool_call'):
+        op.drop_column('training_prompts', 'tool_call')

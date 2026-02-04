@@ -1,80 +1,143 @@
 #!/usr/bin/env python3
-"""Initialize database tables and stamp alembic version.
+"""Initialize database using Alembic migrations.
 
-This script:
-1. Creates all tables using SQLAlchemy's create_all() (idempotent)
-2. Stamps the alembic version table to mark all migrations as applied
+This script ensures the database is properly initialized:
+1. For fresh databases: runs all migrations from scratch
+2. For existing databases: applies any pending migrations
+3. For corrupted migration state: resets and re-runs migrations
 
-This ensures a fresh database starts with all tables and the correct
-migration state, so subsequent alembic upgrades work correctly.
+All schema management is done through Alembic migrations to ensure
+consistency between fresh installs and upgrades.
 """
 
-import asyncio
 import os
+import sqlite3
 import subprocess
 import sys
 
-# Add the backend src to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from src.database.connection import init_database
+def get_db_path():
+    """Extract database file path from DATABASE_URL."""
+    db_url = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./data/mcparr.db")
+    if ":///" in db_url:
+        return db_url.split(":///")[-1]
+    return "./data/mcparr.db"
 
 
-def check_alembic_version_exists():
-    """Check if alembic_version table exists and has entries."""
-    import sqlite3
+def ensure_data_directory():
+    """Ensure the data directory exists."""
+    db_path = get_db_path()
+    data_dir = os.path.dirname(db_path)
+    if data_dir and not os.path.exists(data_dir):
+        os.makedirs(data_dir, exist_ok=True)
+        print(f"Created data directory: {data_dir}")
 
-    db_path = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./data/mcparr.db")
-    # Extract file path from URL
-    if ":///" in db_path:
-        db_file = db_path.split(":///")[-1]
-    else:
-        db_file = "./data/mcparr.db"
 
-    if not os.path.exists(db_file):
-        return False
+def check_schema_integrity():
+    """Check if the database schema matches expected state.
+
+    Returns True if schema appears valid, False if migrations need to be re-run.
+    """
+    db_path = get_db_path()
+
+    if not os.path.exists(db_path):
+        return True  # Fresh DB, no issues
 
     try:
-        conn = sqlite3.connect(db_file)
+        conn = sqlite3.connect(db_path)
         cursor = conn.cursor()
-        cursor.execute("SELECT COUNT(*) FROM alembic_version")
-        count = cursor.fetchone()[0]
+
+        # Check for critical columns that should exist
+        # These are columns added by migrations that might be missing
+        # if the DB was created with create_all() + stamp head
+        checks = [
+            ("alert_history", "acknowledged"),
+            ("alert_history", "acknowledged_at"),
+            ("service_configs", "external_url"),
+        ]
+
+        for table, column in checks:
+            try:
+                cursor.execute(f"SELECT {column} FROM {table} LIMIT 1")
+            except sqlite3.OperationalError as e:
+                if "no such column" in str(e):
+                    print(f"Schema mismatch detected: {table}.{column} is missing")
+                    conn.close()
+                    return False
+                elif "no such table" in str(e):
+                    # Table doesn't exist yet, that's OK for fresh DB
+                    pass
+
         conn.close()
-        return count > 0
-    except sqlite3.OperationalError:
+        return True
+
+    except Exception as e:
+        print(f"Error checking schema: {e}")
+        return True  # Assume OK on error, let alembic handle it
+
+
+def reset_alembic_version():
+    """Reset alembic version to force re-running all migrations."""
+    db_path = get_db_path()
+
+    if not os.path.exists(db_path):
+        return
+
+    try:
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+
+        # Drop alembic_version table to force fresh migration run
+        cursor.execute("DROP TABLE IF EXISTS alembic_version")
+        conn.commit()
+        conn.close()
+        print("Reset alembic version table")
+
+    except Exception as e:
+        print(f"Error resetting alembic version: {e}")
+
+
+def run_migrations():
+    """Run Alembic migrations to latest version."""
+    print("Running database migrations...")
+
+    result = subprocess.run(
+        ["alembic", "upgrade", "head"],
+        capture_output=True,
+        text=True,
+    )
+
+    if result.returncode != 0:
+        print(f"Migration error: {result.stderr}")
         return False
 
+    if result.stdout:
+        print(result.stdout)
 
-async def main():
-    """Initialize database tables and stamp alembic."""
+    print("Database migrations complete.")
+    return True
+
+
+def main():
+    """Initialize database with migrations."""
     print("Initializing database...")
 
-    # Check if this is a fresh database (no alembic version)
-    is_fresh = not check_alembic_version_exists()
+    # Ensure data directory exists
+    ensure_data_directory()
 
-    if is_fresh:
-        print("Fresh database detected, creating all tables...")
-        db_manager = init_database()
-        await db_manager.create_tables()
-        await db_manager.close()
-        print("Database tables created successfully.")
+    # Check if schema is valid (detects create_all + stamp head issues)
+    if not check_schema_integrity():
+        print("Schema integrity check failed, resetting migration state...")
+        reset_alembic_version()
 
-        # Stamp alembic to mark all migrations as applied
-        print("Stamping alembic version to 'head'...")
-        result = subprocess.run(
-            ["alembic", "stamp", "head"],
-            capture_output=True,
-            text=True,
-        )
-        if result.returncode != 0:
-            print(f"Warning: alembic stamp failed: {result.stderr}")
-        else:
-            print("Alembic stamped to head successfully.")
+    # Run migrations (creates tables for fresh DB, updates existing DB)
+    success = run_migrations()
+
+    if success:
+        print("Database initialization complete.")
     else:
-        print("Existing database detected, skipping table creation.")
-
-    print("Database initialization complete.")
+        print("Database initialization completed with warnings.")
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()
